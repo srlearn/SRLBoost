@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.Utils;
 
 import java.util.Collection;
@@ -11,7 +7,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
+
+// TODO(@hayesall): This class basically duplicates `MapOfLists`: types might be generalized.
 
 /** A Map that maps Keys to Set of values.
  *
@@ -26,28 +25,16 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
     public MapOfSets() {
     }
 
-
     public int size() {
         return map == null ? 0 : map.size();
     }
 
     public boolean isEmpty() {
-        return map == null ? true : map.isEmpty();
+        return map == null || map.isEmpty();
     }
 
     public boolean containsKey(Key key) {
-        return map == null ? false : map.containsKey(key);
-    }
-
-    public boolean containsValue(Key key, Value value) {
-
-        if (map == null) {
-            return false;
-        }
-        else {
-            Set<Value> set;
-            return (set = map.get(key)) != null && set.contains(value);
-        }
+        return map != null && map.containsKey(key);
     }
 
     public Set<Value> getValues(Key key) {
@@ -69,29 +56,20 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
         result.add(value);
     }
 
-    public Set<Value> removeValues(Key key) {
-        if ( map == null ) {
-            return null;
-        }
-        else {
-            Set<Value> set;
-            return ((set = map.remove(key)) != null) ? set : null;
-        }
+    public void removeValues(Key key) {
+        map.remove(key);
     }
 
-    public Value removeValue(Key key, Value value) {
-        if ( map == null ) {
-            return null;
-        }
-        else {
-            Set<Value> set;
-            return (Value) (((set = map.remove(key)) != null) ? set.remove(value) : null);
+    public void removeValue(Key key, Value value) {
+        Set<Value> set;
+        if (((set = map.remove(key)) != null)) {
+            set.remove(value);
         }
     }
 
     public <K extends Key, S extends Set<Value>> void putAll(Map<K, S> newMap) {
 
-        if ( newMap != null && newMap.isEmpty() == false ) {
+        if ( newMap != null && !newMap.isEmpty()) {
 
             if ( map == null ) {
                 map = createMap();
@@ -113,7 +91,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
 
     public void putAll(Key key, Set<? extends Value> values) {
 
-        if ( values.isEmpty() == false ) {
+        if (!values.isEmpty()) {
 
             Set<Value> set = map.get(key);
             if ( set == null ) {
@@ -129,12 +107,6 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
     public void clear() {
         if ( map == null) {
             map.clear();
-        }
-    }
-
-    public void clearKey(Key key) {
-        if (map != null) {
-            map.remove(key);
         }
     }
 
@@ -174,7 +146,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
     }
 
     public String toString(String prefix) {
-        String result = null;
+        String result;
 
         if ( map == null ) {
             result = "{}";
@@ -187,7 +159,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
 
                 boolean first = true;
                 for (Value value : entry.getValue()) {
-                    if ( first == false ) {
+                    if (!first) {
                         stringBuilder.append(",");
 
                     }
@@ -197,7 +169,6 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
 
                     String prefixedValueString = Utils.getStringWithLinePrefix(valueString, "    ");
                     stringBuilder.append(prefixedValueString);
-
 
                     first = false;
                 }
@@ -227,7 +198,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
             return false;
         }
         final MapOfSets<Key, Value> other = (MapOfSets<Key, Value>) obj;
-        if (this.map != other.map && (this.map == null || !this.map.equals(other.map))) {
+        if (!Objects.equals(this.map, other.map)) {
             return false;
         }
         return true;
@@ -256,11 +227,9 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
 
         Value next = null;
 
-        public AllValueIterator(Iterator<Key> allKeysIterator) {
+        AllValueIterator(Iterator<Key> allKeysIterator) {
             this.allKeysIterator = allKeysIterator;
         }
-
-
 
         public boolean hasNext() {
             setupNext();

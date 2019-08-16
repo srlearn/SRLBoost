@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
@@ -11,15 +7,16 @@ import edu.wisc.cs.will.FOPC.RelevanceStrength;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfLists;
 
+import java.util.Objects;
+
 /**
- *
  * @author twalker
  */
 public class RelevantFeatureInformation implements RelevantInformation, Cloneable {
 
     Example example;
 
-    boolean relevanceFromPositiveExample = true;
+    private boolean relevanceFromPositiveExample = true;
 
     private PredicateNameAndArity predicateNameAndArity;
 
@@ -74,13 +71,6 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
         return relevanceStrength;
     }
 
-    /**
-     * @param relevanceStrength the relevanceStrength to set
-     */
-    public void setRelevanceStrength(RelevanceStrength relevanceStrength) {
-        this.relevanceStrength = relevanceStrength;
-    }
-
     @Override
     public boolean prove(HornClauseContext context) {
 
@@ -111,19 +101,16 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
             return false;
         }
         final RelevantFeatureInformation other = (RelevantFeatureInformation) obj;
-        if (this.example != other.example && (this.example == null || !this.example.equals(other.example))) {
+        if (!Objects.equals(this.example, other.example)) {
             return false;
         }
         if (this.relevanceFromPositiveExample != other.relevanceFromPositiveExample) {
             return false;
         }
-        if (this.predicateNameAndArity != other.predicateNameAndArity && (this.predicateNameAndArity == null || !this.predicateNameAndArity.equals(other.predicateNameAndArity))) {
+        if (!Objects.equals(this.predicateNameAndArity, other.predicateNameAndArity)) {
             return false;
         }
-        if (this.relevanceStrength != other.relevanceStrength) {
-            return false;
-        }
-        return true;
+        return this.relevanceStrength == other.relevanceStrength;
     }
 
     public boolean subsumes(RelevantInformation that) {
@@ -153,12 +140,10 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
     }
 
     protected RelevantFeatureInformation clone() throws CloneNotSupportedException {
-        RelevantFeatureInformation newRCI = (RelevantFeatureInformation) super.clone();
-        return newRCI;
+        return (RelevantFeatureInformation) super.clone();
     }
 
     public boolean isValidAdvice(AdviceProcessor ap) {
-        //Set<PredicateNameAndArity> usedPredicate =
         return true;
     }
 

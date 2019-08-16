@@ -1,19 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.Utils;
 
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.List;
-import java.util.Set;
 
 /** A Map that maps Keys to List of values.
  *
@@ -28,31 +16,19 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
     public MapOfLists() {
     }
 
-    /** Returns the number of Key entries in the map.
-     * 
-     * @return
+    /**
+     * Returns the number of Key entries in the map.
      */
     public int size() {
         return map == null ? 0 : map.size();
     }
 
     public boolean isEmpty() {
-        return map == null ? true : map.isEmpty();
+        return map == null || map.isEmpty();
     }
 
     public boolean containsKey(Key key) {
-        return map == null ? false : map.containsKey(key);
-    }
-
-    public boolean containsValue(Key key, Value value) {
-
-        if (map == null) {
-            return false;
-        }
-        else {
-            List<Value> list;
-            return (list = map.get(key)) != null && list.contains(value);
-        }
+        return map != null && map.containsKey(key);
     }
 
     public Value setValue(Key key, int index, Value element) {
@@ -70,53 +46,14 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         return result.set(index, element);
     }
 
-    public Value removeValue(Key key, int index) {
-        if ( map == null ) {
-            return null;
-        }
-        else {
-            List<Value> list = map.get(key);
+    public void removeValue(Key key, Value value) {
+        List<Value> list = map.get(key);
 
-            if ( list != null ) {
-                Object removedObject = list.remove(index);
-                if ( list.isEmpty() ) {
-                    map.remove(key);
-                }
-                return (Value)removedObject;
+        if ( list != null ) {
+            list.remove(value);
+            if ( list.isEmpty() ) {
+                map.remove(key);
             }
-            else {
-                return null;
-            }
-        }
-    }
-
-    public boolean removeValue(Key key, Value value) {
-        if ( map == null ) {
-            return false;
-        }
-        else {
-            List<Value> list = map.get(key);
-
-            if ( list != null ) {
-                boolean objectWasRemoved = list.remove(value);
-                if ( list.isEmpty() ) {
-                    map.remove(key);
-                }
-                return objectWasRemoved;
-            }
-            else {
-                return false;
-            }
-        }
-    }
-
-    public int indexOfValue(Key key, Value value) {
-        if ( map == null ) {
-            return -1;
-        }
-        else {
-            List<Value> list;
-            return (((list = map.get(key)) != null) ? list.indexOf(value) : -1);
         }
     }
 
@@ -130,23 +67,13 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         }
     }
 
-    public boolean containsAllValues(Key key, Collection c) {
-        if ( map == null ) {
-            return false;
-        }
-        else {
-            List<Value> list;
-            return (((list = map.get(key)) != null) ? list.containsAll(c) : false);
-        }
-    }
-
     public boolean contains(Key key, Value o) {
         if ( map == null ) {
             return false;
         }
         else {
             List<Value> list;
-            return (((list = map.get(key)) != null) ? list.contains(o) : false);
+            return (((list = map.get(key)) != null) && list.contains(o));
         }
     }
 
@@ -154,7 +81,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         if ( map != null ) map.clear();
     }
 
-    public boolean addAllValues(Key key, int index, Collection<? extends Value> c) {
+    public void addAllValues(Key key, Collection<? extends Value> c) {
         if ( map == null ) {
             map = createMap();
         }
@@ -165,35 +92,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
             map.put(key, result);
         }
 
-        return result.addAll(index, c);
-    }
-
-    public boolean addAllValues(Key key, Collection<? extends Value> c) {
-        if ( map == null ) {
-            map = createMap();
-        }
-
-        List<Value> result = map.get(key);
-        if ( result == null ) {
-            result = createValueList();
-            map.put(key, result);
-        }
-
-        return result.addAll(c);
-    }
-
-    public void addValue(Key key, int index, Value element) {
-        if ( map == null ) {
-            map = createMap();
-        }
-
-        List<Value> result = map.get(key);
-        if ( result == null ) {
-            result = createValueList();
-            map.put(key, result);
-        }
-
-        result.add(index, element);
+        result.addAll(c);
     }
 
     public boolean add(Key key, Value e) {
@@ -253,11 +152,11 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
     }
 
     protected List<Value> createValueList() {
-        return new ArrayList<Value>();
+        return new ArrayList<>();
     }
 
-    protected Map<Key, List<Value>> createMap() {
-        return new HashMap<Key, List<Value>>();
+    private Map<Key, List<Value>> createMap() {
+        return new HashMap<>();
     }
 
     public String toString(String prefix) {
@@ -272,9 +171,8 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
 
                 boolean first = true;
                 for (Value value : entry.getValue()) {
-                    if ( first == false ) {
+                    if (!first) {
                         stringBuilder.append(",");
-
                     }
                     stringBuilder.append("\n").append(prefix).append("   ").append(value);
 
@@ -302,10 +200,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
             return false;
         }
         final MapOfLists<Key, Value> other = (MapOfLists<Key, Value>) obj;
-        if (this.map != other.map && (this.map == null || !this.map.equals(other.map))) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.map, other.map);
     }
 
     @Override
@@ -332,11 +227,9 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
 
         Value next = null;
 
-        public AllValueIterator(Iterator<Key> allKeysIterator) {
+        AllValueIterator(Iterator<Key> allKeysIterator) {
             this.allKeysIterator = allKeysIterator;
         }
-
-
 
         public boolean hasNext() {
             setupNext();

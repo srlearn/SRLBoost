@@ -1085,27 +1085,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         return new ConsCellIterator(this);
     }
 
-//    public static void main(String[] args) {
-//
-//        HornClauseContext context = new DefaultHornClauseContext();
-//
-//        Literal lit = context.getFileParser().parseLiteral("literal([f(X) | Y], [f(X), g(X) | Y]).");
-//        ConsCell c1 = (ConsCell)lit.getArgument(0);
-//
-//        ConsCell c2 = (ConsCell)lit.getArgument(1);
-//
-//        Term varY = c1.rest();
-//
-//        BindingList bl = new BindingList();
-//        PrettyPrinterOptions ppo = new PrettyPrinterOptions();
-//        ppo.setSentenceTerminator("");
-//
-//        System.out.println("memberViaEq(" + PrettyPrinter.print(c1, "", "", ppo, bl) + " ," + PrettyPrinter.print(varY, "", "", ppo, bl) + ") = " + c1.memberViaEq(varY) + ".");
-//        System.out.println("memberViaEquals(" + PrettyPrinter.print(c1, "", "", ppo, bl) + " ," + PrettyPrinter.print(varY, "", "", ppo, bl) + ") = " + c1.memberViaEquals(varY) + ".");
-//
-//        System.out.println("memberViaEq(" + PrettyPrinter.print(c2, "", "", ppo, bl) + " ," + PrettyPrinter.print(varY, "", "", ppo, bl) + ") = " + c2.memberViaEq(varY) + ".");
-//        System.out.println("memberViaEquals(" + PrettyPrinter.print(c2, "", "", ppo, bl) + " ," + PrettyPrinter.print(varY, "", "", ppo, bl) + ") = " + c2.memberViaEquals(varY) + ".");
-//    }
     /** Implements a Iterator over the elements of a ConsCell.
      *
      * This iterator returns all the elements of a ConsCell list.

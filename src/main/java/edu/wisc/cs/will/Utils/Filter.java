@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.Utils;
 
 /**
@@ -16,5 +11,5 @@ public interface Filter<E> {
      * @param filterObject Object to be examined for filtering.
      * @return True to include filterObject, False to exclude it.
      */
-    public boolean includeElement(E filterObject);
+    boolean includeElement(E filterObject);
 }

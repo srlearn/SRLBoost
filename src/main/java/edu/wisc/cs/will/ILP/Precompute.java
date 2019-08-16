@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
 
 import java.io.PrintStream;
@@ -45,8 +42,6 @@ public class Precompute {
 
     public static boolean stopIfNoPrecomputesFound = true;
 
-    //protected LearnOneClause                  innerLoop;
-    //protected HandleFOPCstrings stringHandler;
     public boolean reportPrunes = true; // Sometimes we want ONLY the precomputed facts and not the pruning rules.  If so, set this to false.
 
     public boolean complainIfFileExists = false; // The caller should take care of this (and this check can be turned off at the caller).
@@ -65,7 +60,7 @@ public class Precompute {
     	return (new CondorFile(fileName)).exists() || (new CondorFile(fileName + ".gz")).exists();
     }
 
-    public List<Literal> processPrecomputeSpecifications(boolean overwritePrecomputeFileIfExists, HornClausebase clausebase, List<Sentence> sentencesToPrecompute, String fileName) throws SearchInterrupted {
+    public List<Literal> processPrecomputeSpecifications(boolean overwritePrecomputeFileIfExists, HornClausebase clausebase, List<Sentence> sentencesToPrecompute, String fileName) {
         List<Literal> results = null;
 
         if (sentencesToPrecompute != null) {
@@ -86,14 +81,12 @@ public class Precompute {
         return results;
     }
 
-    /** Converts a sentence to precompute into a definite clauses.
-     * 
-     * @param sentence
-     * @param clausesToPrecompute MapOfLists that is populated
+    /**
+     * Converts a sentence to precompute into a definite clauses.
      */
-    public MapOfLists<PredicateNameAndArity, Clause> convertPrecomputeSpecificationToDefiniteClauseMap(List<Sentence> sentencesToPrecompute) {
+    private MapOfLists<PredicateNameAndArity, Clause> convertPrecomputeSpecificationToDefiniteClauseMap(List<Sentence> sentencesToPrecompute) {
 
-        MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute = new MapOfLists<PredicateNameAndArity, Clause>();
+        MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute = new MapOfLists<>();
 
         for (Sentence sentence : sentencesToPrecompute) {
             List<Clause> clauses = sentence.convertToClausalForm();
@@ -121,11 +114,10 @@ public class Precompute {
      * 		d) if literalsInBodyCanAppearInRules=true then create some guidance for prune()
      * 				e.g., if p(x) :- q(x), r(x) IS THE ONLY CLAUSE FOR p(x) then if p(x) is in a clause, no need to consider adding q(x) and r(x).
      * 		e) remove the clause(s) used to precompute from background knowledge (so they aren't again used)
-     * @throws SearchInterrupted
      */
-    public List<Literal> createPrecomputedFile(MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute, HornClausebase clausebase, String fileName) throws SearchInterrupted {
+    private List<Literal> createPrecomputedFile(MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute, HornClausebase clausebase, String fileName) {
 
-        List<Literal> precomputedLiterals = new ArrayList<Literal>();
+        List<Literal> precomputedLiterals = new ArrayList<>();
 
         HornClauseProver prover = new HornClauseProver(clausebase.getStringHandler(), clausebase);
         prover.maxSearchDepth = java.lang.Integer.MAX_VALUE;
@@ -136,14 +128,12 @@ public class Precompute {
         duplicates = 0;
         checked = null;
 
-        if (clausesToPrecompute.isEmpty() == false) {
+        if (!clausesToPrecompute.isEmpty()) {
 
             counter = 0;
             duplicates = 0;
-         // checked = new HashSet<List<Term>>(128);
-            checked = new HashSet<String>(128);
+            checked = new HashSet<>(128);
 
-            //HornClauseProverChildrenGenerator rulesAndFactsHolder = null;
             HandleFOPCstrings stringHandler = prover.getStringHandler();
 
             Utils.println("\n%%% Precomputing " + clausesToPrecompute.size() + " predicates.");
@@ -203,14 +193,13 @@ public class Precompute {
                         Literal head = c.getDefiniteClauseHead();            //Utils.warning("head = " + head);
                         Collection<Variable> boundVariables = head.collectFreeVariables(null); //Utils.warning("boundVariables = " + boundVariables);
                         Literal negatedQuery = stringHandler.getLiteral(stringHandler.standardPredicateNames.findAll); // Use 'findAll' since we may want to remove duplicates our own way.
-                        Variable resultList = stringHandler.getNewUnamedVariable();  //Utils.warning("resultList = " + resultList);
+                        Variable resultList = stringHandler.getNewUnamedVariable();
 
-                        List<Term> arguments2 = new ArrayList<Term>(3);
+                        List<Term> arguments2 = new ArrayList<>(3);
                         arguments2.add(stringHandler.getLiteralAsTerm(head)); // Need to create all(head, body, result) - use all instead of findAll since we don't care about duplicates.
                         arguments2.add(stringHandler.getSentenceAsTerm(stringHandler.getClause(c.negLiterals, false), "precompute"));
                         arguments2.add(resultList);
                         negatedQuery.setArguments(arguments2);
-                        // Utils.println("%    negatedQuery: '" + negatedQuery + "'.");
 
                         /* Try to prove each possible grounded list of arguments */
                         BindingList bindings = prover.prove(negatedQuery);
@@ -227,7 +216,7 @@ public class Precompute {
                         writeResultsToStream((ConsCell) lookup, printStream, precomputedLiterals);
                         boolean canPrune = (reportPrunes
                                 && matchingFactExists(clausebase, head) == null
-                                && matchingClauseHeadExists(clausebase, head, null) == null
+                                && matchingClauseHeadExists(clausebase, head) == null
                                 && matchingClauseHeadExists(clausebase, head, c, clauses) == null);
                         // Can only prune predicates that are DETERMINED by the arguments in the clauseHead.  Also see lookForPruneOpportunities.
                         // Note: this code is 'safe' but it misses some opportunities.  E.g., if one has 'p(x) :- q(x,y)' AND THERE IS ONLY ONE POSSIBLE y FOR EACH x, then pruning is valid.  (Called "determinate literals" in ILP - TODO handle such cases.)
@@ -275,7 +264,7 @@ public class Precompute {
                     if (printStream != null)
                         printStream.println("\n\n%%% Precomputed a total of " + Utils.comma(counter) + " facts (and found " + Utils.comma(duplicates) + " duplications).  Done at " + Utils.getDateTime() + "\n");
                 }
-            } catch (FileNotFoundException e) {
+            } catch (FileNotFoundException | SearchInterrupted e) {
                 Utils.reportStackTrace(e);
                 Utils.error("Unable to successfully open this file for writing\n" + fileName + ".\nError message:\n" + e.getMessage());
             } finally {
@@ -305,7 +294,6 @@ public class Precompute {
                 Utils.error("This code assumes all precomputed items are grounded (" + stringHandler.getShortStringToIndicateCurrentVariableNotation() + "),\n so need to rethink what to do here:\n '" + first + "'.");
             } // TODO
             Literal inner = ((LiteralAsTerm) first).itemBeingWrapped;
-       //   List<Term> checkItem = inner.getArguments();
             String checkItem = inner.toString(); // See if the print the same (and hence will be re-parsed the same).
             if (!checked.contains(checkItem)) {
                 counter++;
@@ -329,12 +317,11 @@ public class Precompute {
         }
     }
 
-    /** Does an item in the fact base match (i.e., unify with) this query?
-     *
-     * @param query
+    /**
+     * Does an item in the fact base match (i.e., unify with) this query?
      * @return The matching fact, if one exists. Otherwise null.
      */
-    public Literal matchingFactExists(HornClausebase clausebase, Literal query) {
+    private Literal matchingFactExists(HornClausebase clausebase, Literal query) {
         if (query == null) {
             Utils.error("Cannot have query=null here.");
         }
@@ -358,12 +345,12 @@ public class Precompute {
      *
      * @return The matching clause head if one exists, otherwise null.
      */
-    public Clause matchingClauseHeadExists(HornClausebase clausebase, Literal query, Clause ignoreThisClause) {
+    private Clause matchingClauseHeadExists(HornClausebase clausebase, Literal query) {
         Iterable<Clause> candidates = clausebase.getPossibleMatchingBackgroundKnowledge(query, null);
         if (candidates == null) {
             return null;
         }
-        return matchingClauseHeadExists(clausebase, query, ignoreThisClause, candidates);
+        return matchingClauseHeadExists(clausebase, query, null, candidates);
     }
 
     /**
@@ -371,7 +358,7 @@ public class Precompute {
      *
      * @return The matching clause head if one exists, otherwise null.
      */
-    public Clause matchingClauseHeadExists(HornClausebase clausebase, Literal query, Clause ignoreThisClause, Iterable<Clause> listOfClauses) {
+    private Clause matchingClauseHeadExists(HornClausebase clausebase, Literal query, Clause ignoreThisClause, Iterable<Clause> listOfClauses) {
         if (query == null) {
             Utils.error("Cannot have query=null here.");
         }
@@ -385,9 +372,6 @@ public class Precompute {
                 Utils.error("Call clauses passed to the method must be Horn.  You provided: '" + clause + "'.");
             }
             if (clause != ignoreThisClause) {
-                if (clause == null) {
-                    Utils.error("Cannot have clause=null here.");
-                } // Should be checked elsewhere, but play it safe.
                 bindings.theta.clear();
                 if (Unifier.UNIFIER.unify(clause.posLiterals.get(0), query, bindings) != null) {
                     return clause;

@@ -1,13 +1,9 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Utils;
 
 import java.util.Arrays;
 
 /**
  * @author tkhot
- *
  */
 public class RegressionValueOrVector {
 
@@ -70,46 +66,28 @@ public class RegressionValueOrVector {
 		}
 	}
 
-	/**
-	 * @return the singleRegressionValue
-	 */
 	public double getSingleRegressionValue() {
 		return singleRegressionValue;
 	}
 
-	/**
-	 * @param singleRegressionValue the singleRegressionValue to set
-	 */
-	public void setSingleRegressionValue(double singleRegressionValue) {
+	private void setSingleRegressionValue(double singleRegressionValue) {
 		this.singleRegressionValue = singleRegressionValue;
 	}
 
-	/**
-	 * @return the regressionVector
-	 */
-	public double[] getRegressionVector() {
+	double[] getRegressionVector() {
 		return regressionVector;
 	}
 
-	/**
-	 * @param regressionVector the regressionVector to set
-	 */
-	public void setRegressionVector(double[] regressionVector) {
+	private void setRegressionVector(double[] regressionVector) {
 		setHasVector(true);
 		this.regressionVector = regressionVector;
 	}
 
-	/**
-	 * @return the hasVector
-	 */
 	public boolean isHasVector() {
 		return hasVector;
 	}
 
-	/**
-	 * @param hasVector the hasVector to set
-	 */
-	public void setHasVector(boolean hasVector) {
+	private void setHasVector(boolean hasVector) {
 		this.hasVector = hasVector;
 	}
 	

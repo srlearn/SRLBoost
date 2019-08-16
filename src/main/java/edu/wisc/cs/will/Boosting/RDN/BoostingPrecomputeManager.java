@@ -34,18 +34,13 @@ class BoostingPrecomputeManager {
 			List<Sentence> precomputeThese = parser.getSentencesToPrecompute(i);
 			precomputeThese = filterSentencesWithHead(precomputeThese, pName);
 			if (Utils.getSizeSafely(precomputeThese) > 0) {
-				try {
-					String precomputeFileNameToUse = "recomputed" + Utils.defaultFileExtensionWithPeriod;
+				String precomputeFileNameToUse = "recomputed" + Utils.defaultFileExtensionWithPeriod;
 
-					// The method below will check if the precompute file already exists, and if so, will simply return unless overwritten.
-					precomputer.processPrecomputeSpecifications(true,
-							setup.getContext().getClausebase(),
-							precomputeThese, precomputeFileNameToUse);
-					addToFacts(precomputeFileNameToUse); // Load the precomputed file.
-				} catch (SearchInterrupted e) {
-					Utils.reportStackTrace(e);
-					Utils.error("Problem in recomputeFactsFor.");
-				}
+				// The method below will check if the precompute file already exists, and if so, will simply return unless overwritten.
+				precomputer.processPrecomputeSpecifications(true,
+						setup.getContext().getClausebase(),
+						precomputeThese, precomputeFileNameToUse);
+				addToFacts(precomputeFileNameToUse); // Load the precomputed file.
 			}
 		}
 	}

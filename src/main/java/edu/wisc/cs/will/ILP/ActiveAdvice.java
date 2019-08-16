@@ -99,7 +99,7 @@ public class ActiveAdvice {
         }
 
         MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<PredicateNameAndArity, Clause>();
-        List<RelevantClauseInformation> expandedRCIs = rci.expandNonOperationalPredicates(ap.getContext(), supportClausesForExpansions);
+        List<RelevantClauseInformation> expandedRCIs = rci.expandNonOperationalPredicates(ap.getContext());
 
         // We will add all of the support clauses...just for the hell of it...
         for (Map.Entry<PredicateNameAndArity, List<Clause>> entry : supportClausesForExpansions.entrySet()) {
@@ -241,7 +241,7 @@ public class ActiveAdvice {
 
         MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<PredicateNameAndArity, Clause>();
 
-        List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body, supportClausesForExpansions);
+        List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body);
 
         if (expansions == null || (expansions.size() == 1 && expansions.get(0).equals(body))) {
             // No sentences...

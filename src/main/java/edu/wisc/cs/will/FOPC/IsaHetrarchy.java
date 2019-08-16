@@ -15,8 +15,7 @@ public class IsaHetrarchy {
 	/*
 	 * Written by shavlik.
 	 */
-	
-	
+
 	protected final static int debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	
 	private HandleFOPCstrings stringHandler; // Have a back pointer to the owner of this ISA hetrarchy.
@@ -60,13 +59,7 @@ public class IsaHetrarchy {
 			Utils.waitHere();
 		}
 	}
-	
-	public Type getWillListType()    { 	return willListType;	}
-	public Type getWillAtomicType()  {	return willAtomicType;	}
-	public Type getWillNumberType()  {  return willNumberType;	}
-	public Type getWillBooleanType() {	return willBooleanType;	}
-	public Type getWillTokenType()   {	return willTokenType;	}
-	
+
 	public List<Type> getAllKnownTypesForThisTerm(Term term) {
 		if (term instanceof Variable) { return null; }
 		if (term instanceof Function) { return null; }
@@ -164,24 +157,11 @@ public class IsaHetrarchy {
 		// Utils.println("  getIsaType, put in isaTypeHash: " + stdName + " -> " + result);
 		return result;		
 	}
-	protected void addISA(String child, String parent) {
-		if (child == null || parent == null) { Utils.error("Cannot have null's in isa(" + child + ", " + parent + ")"); }
-		if (child.equals(parent)) { 
-			if (HandleFOPCstrings.debugLevel > 2) { Utils.println("Ignoring " + child + " ISA " + parent + "."); }
-			return;
-		}
-		
-		Type childType  = getIsaType(child);
-		Type parentType = getIsaType(parent);
-		addISA(childType, parentType); 
-	}
+
 	protected void addISA(Term child, Type parentType ) {
 		stringHandler.addConstantToISA(child, getIsaType(child), parentType); // Need to register this constant.
 	}
-	protected List<Type> reverseISA(String parent) {
-		return reverseIsaHetrarchy.get(getIsaType(parent));
-	}
-	
+
 	protected void addToReverseISA(Type parent, Type child) {
 		List<Type> children = reverseIsa(parent);
 		
@@ -212,25 +192,7 @@ public class IsaHetrarchy {
 		Utils.error("Cannot remove '" + child + "' from the reverse ISA of '" + parent + "'.");
 		return false;
 	}
-	
-	// Only works for DIRECT child-parent links.
-	protected void removeISA(String child, String parent) {
-		if (child == null || parent == null) { Utils.error("Cannot have null's in remove isa(" + child + ", " + parent + ")"); }
-		if (child.equals(parent))            { Utils.error("Cannot remove isa(" + child + ", " + parent + ")"); }
-		
-		Type childType  = getIsaType(child);
-		Type parentType = getIsaType(parent);
-		removeISA(childType, parentType);
-	}
-	protected void removeISA(Type childType, Type parentType) {
-		List<Type> currentParents = isaHetrarchy.get(childType);
-		
-		if (!currentParents.remove(parentType)) { 
-			Utils.error("Cannot find isa(" + childType + ", " + parentType + ").  Currently isa(" + childType + ", " + Utils.limitLengthOfPrintedList(currentParents, 10) + ")."); // Could simply fail silently here?
-		}	
-		removeFromReverseISA(parentType, childType);
-	}
-	
+
 	// See if child ISA parent.
 	public boolean isa(String child, String parent) {
 		return isa(getIsaType(child), getIsaType(parent));
@@ -325,28 +287,7 @@ public class IsaHetrarchy {
 		if (complainIfNoParentFound) { Utils.error("Cannot find a common parent of '" + typeAorig + "' and '" + typeBorig + "'."); }
 		return null;
 	}
-	
-	protected List<Type> getTypeAndSuperTypes(Type child) {
-		List<Type> ancestors = isaHetrarchy.get(child);
-		List<Type> result    = null;
-		if (ancestors == null) { 
-			result = new ArrayList<Type>(1); 
-			if (child != rootOfISA) { result.add(rootOfISA); }
-		} else { 
-			for (Type ancestor : ancestors) { 
-				List<Type> results2 = getTypeAndSuperTypes(ancestor);
-				if (result == null) { result = results2; }
-				else                { result.addAll(results2); }
-			}
-		}
-		result.add(0, child); // Add to front so list is in order from child to root. 
-		return result;		
-	}	
-	
-	public void dumpIsaHier() {  // TODO need to pretty print.
-		Utils.println("\n% The isa hetrarchy: " + isaHetrarchy);
-	}
-	
+
 	// Collect all the instances of this type AND OF ITS CHILDREN.  A FRESH list is returned.
 	public Set<Term> getAllInstances(Type thisType) {
 		// Utils.println("getAllInstances of " +EntryType);
@@ -364,61 +305,4 @@ public class IsaHetrarchy {
 		}
 		return results;
 	}
-//	public static void main(String[] args)  {
-//		args = Utils.chopCommentFromArgs(args);
-//
-//		// Test ISA to see if a hetrarchy works.
-//		HandleFOPCstrings stringHandler = new HandleFOPCstrings();
-//		IsaHetrarchy      isaHandler    = stringHandler.isaHandler;
-//
-//		Type h = new Type("h");
-//		Type i = new Type("i");
-//		Type j = new Type("j");
-//		Type k = new Type("k");
-//		Type l = new Type("l");
-//		Type m = new Type("m");
-//		Type a = new Type("a");
-//		Type b = new Type("b");
-//		Type c = new Type("c");
-//		Type d = new Type("d");
-//		Type e = new Type("e");
-//		Type f = new Type("f");
-//		Type g = new Type("g");
-//
-//		isaHandler.addISA(a, d);
-//		isaHandler.addISA(a, e);
-//		isaHandler.addISA(a, f);
-//		isaHandler.addISA(b, d);
-//		isaHandler.addISA(b, e);
-//		isaHandler.addISA(b, f);
-//		isaHandler.addISA(c, d);
-//		isaHandler.addISA(c, e);
-//		isaHandler.addISA(c, f);
-//		isaHandler.addISA(f, g);
-//		isaHandler.addISA(f, h);
-//		isaHandler.addISA(f, i);
-//		isaHandler.addISA(i, j);
-//		isaHandler.addISA(a, j);
-//
-//		isaHandler.addISA(k, j);
-//		isaHandler.addISA(a, k);
-//		isaHandler.addISA(l, c);
-//		isaHandler.addISA(m, a);
-//
-//		Utils.println(" isa(a,b) = " + isaHandler.isa(a,b));
-//		Utils.println(" isa(a,f) = " + isaHandler.isa(a,f));
-//		Utils.println(" isa(a,h) = " + isaHandler.isa(a,h));
-//		Utils.println(" isa(b,j) = " + isaHandler.isa(b,j));
-//		Utils.println(" isa(c,i) = " + isaHandler.isa(c,i));
-//		Utils.println(" isa(l,j) = " + isaHandler.isa(l,j));
-//		Utils.println(" isa(l,b) = " + isaHandler.isa(l,b));
-//
-//		isaHandler.dumpIsaHier();
-//
-//		Utils.println(" reverseISA(j) = " + isaHandler.reverseIsa(j));
-//		Utils.println(" reverseISA(a) = " + isaHandler.reverseIsa(a));
-//		Utils.println(" reverseISA(d) = " + isaHandler.reverseIsa(d));
-//
-//	}
-	
 }

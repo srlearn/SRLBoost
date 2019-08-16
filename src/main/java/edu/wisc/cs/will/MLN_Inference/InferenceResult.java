@@ -4,7 +4,7 @@ import edu.wisc.cs.will.MLN_Task.GroundLiteral;
 import edu.wisc.cs.will.Utils.Utils;
 
 public class InferenceResult {
-	public GroundLiteral groundLiteral;
+	GroundLiteral groundLiteral;
 	public double        probability;
 	public String        documentation;
 	
@@ -13,10 +13,7 @@ public class InferenceResult {
 		this.probability   = probability;
 		this.documentation = documentation;
 	}
-	
-	public String toStringProbAndLiteralOnly() { // Write "backwards" so better alignment when literal names are of varying length.
-		return toStringProbAndLiteralOnly("% ");
-	}
+
 	public String toStringProbAndLiteralOnly(String preface) { // Write "backwards" so better alignment when literal names are of varying length.
 		return preface + "Prob = " + Utils.truncate(probability, 6) + " for '" + groundLiteral.toStringLiteralOnly() + "'. " + documentation;
 	}

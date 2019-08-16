@@ -6,84 +6,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import edu.wisc.cs.will.Utils.Utils;
-
 //Written by Trevor Walker.
 
 public class RecordHandler {
 
 	protected RecordReferenceMap     referenceMap;
-	protected Map<String,RecordList> recordMap = new HashMap<String,RecordList>();
+	protected Map<String,RecordList> recordMap = new HashMap<>();
 	
 	public RecordHandler() {
 		this.referenceMap = new RecordReferenceMap();
 	}
-	
-	/** Records s as the first term under key.
-	 * 
-	 * @param key
-	 * @param s
-	 * @return Reference to the record
-	 */
-	public RecordReference recorda(String key, Term s) {
-		RecordList rl = recordMap.get(key);
-		
-		if ( rl == null ) {
-			rl = new RecordList();
-			recordMap.put(key,rl);
-		}
-		
-		RecordReference result = rl.recorda(key,s);
-		
-		return result;
-	}
-	
-	/** Records s as the last term under key.
-	 * 
-	 * @param key
-	 * @param s
-	 * @return Reference to the record
-	 */
-	public RecordReference recordz(String key, Term s) {
-		
-		RecordList rl = recordMap.get(key);
-		
-		if ( rl == null ) {
-			rl = new RecordList();
-			recordMap.put(key,rl);
-		}
-		
-		RecordReference result = rl.recordz(key,s);
-		
-		return result;
-	}
-	
-	/**
-         * Erases the references record.
-         * 
-         * @param recordReference
-         * @return False.
-         */
-	public boolean erase(RecordReference recordReference) {
-		boolean result = false;
-		
-		RecordList rl = recordMap.get(recordReference.key);
-		
-		if ( rl != null ) {
-			rl.erase(recordReference);
-		}
-		
-		return result;
-	}
-	
-	/** Removes all entries under key.
-	 * 
-	 * @param key
-	 */
-	public void eraseall(String key) {
-		recordMap.remove(key);
-	}
-	
+
 	/** Performs a DB lookup of for the key, unifying Term with the first appropriate entry and updating bindingList.
 	 *
 	 * This version of recorded does not allow backtracking.  If you need backtracking, use the
@@ -159,33 +92,6 @@ public class RecordHandler {
 		public RecordList() {
 		}
 
-		public RecordReference recorda(String key, Term term) {
-			RecordEntry re = new RecordEntry(term);
-			
-			completeEntryList.add(0, re);
-			
-			LiteralAsTerm lat = LiteralAsTerm.class.cast(term);
-			if(lat != null) {
-				Pair<String,Integer> indexKey = new Pair<String,Integer>(lat.itemBeingWrapped.predicateName.name,lat.itemBeingWrapped.numberArgs());
-				addIndexedEntry( createPredicateNameIndex(), indexKey, re, true);
-			}
-			
-			return referenceMap.getReference(key, re);
-		}
-		
-		public RecordReference recordz(String key, Term term) {
-			RecordEntry re = new RecordEntry(term);
-			completeEntryList.add(re);
-			
-			LiteralAsTerm lat = LiteralAsTerm.class.cast(term);
-			if(lat != null) {
-				Pair<String,Integer> indexKey = new Pair<String,Integer>(lat.itemBeingWrapped.predicateName.name,lat.itemBeingWrapped.numberArgs());
-				addIndexedEntry( createPredicateNameIndex(), indexKey, re, false);
-			}
-			
-			return referenceMap.getReference(key, re);
-		}
-		
 		public RecordReference recorded(String key, Term term, BindingList bindingList, Unifier u, RecordBacktrackEntry backtrackEntry) {
 			RecordReference result = null;
 			
@@ -216,55 +122,7 @@ public class RecordHandler {
 			
 			return result;
 		}
-		
-		public boolean erase(RecordReference recordReference) {
-			boolean result = completeEntryList.remove(recordReference.recordEntry);
-			
-			if ( predicateNameIndex != null ) {
-				LiteralAsTerm lat = LiteralAsTerm.class.cast(recordReference.recordEntry.term);
-				if(lat != null) {
-					Pair<String,Integer> key = new Pair<String,Integer>(lat.itemBeingWrapped.predicateName.name,lat.itemBeingWrapped.numberArgs());
-					removeIndexedEntry( predicateNameIndex, key, recordReference.recordEntry);
-				}
-			}
-			
-			return result;
-		}
-		
-		private Map<Pair<String,Integer>,List<RecordEntry>> createPredicateNameIndex() {
-			if ( predicateNameIndex == null ) predicateNameIndex = new HashMap<Pair<String,Integer>,List<RecordEntry>>();
-			return predicateNameIndex;
-		}
-		
-		private void addIndexedEntry(Map<Pair<String,Integer>,List<RecordEntry>> index, Pair<String,Integer> key, RecordEntry re, boolean atFront) {
-	
-			List<RecordEntry> records = index.get(key);
-			
-			if ( records == null ) {
-				records = new LinkedList<RecordEntry>();
-				index.put(key, records);
-			}
-			
-			if ( atFront ) {
-				records.add(0,re);
-			}
-			else {
-				records.add(re);
-			}
-			
-			System.out.println("Added index: " + key + ":" + re.term +  " -> " + records.toString());
-		}
-		
-		private void removeIndexedEntry(Map<Pair<String,Integer>,List<RecordEntry>> index, Pair<String,Integer> key, RecordEntry re) {
-			
-			List<RecordEntry> records = index.get(key);
-			
-			if ( records != null ) {
-				records.remove(re);
-				//System.out.println("Removed index: " + key + ":" + re.term + " from " + records.toString());
-			}
-		}
-		
+
 		private Iterator<RecordEntry> getIndexedIteratorForTerm(Term term) {
 			
 			if ( term instanceof LiteralAsTerm ) {
@@ -288,7 +146,6 @@ public class RecordHandler {
 				}
 			}
 			else {
-				//System.out.println("Iterating over " + completeEntryList);
 				return completeEntryList.iterator();
 			}
 		}
@@ -298,7 +155,7 @@ public class RecordHandler {
 		S s;
 		T t;
 		
-		public Pair(S s, T t) {
+		Pair(S s, T t) {
 			this.s = s;
 			this.t = t;
 		}
@@ -311,93 +168,5 @@ public class RecordHandler {
 		public int hashCode() {
 			return (s == null ? 0 : s.hashCode()) + (t == null ? 0 : t.hashCode());
 		}
-	}
-	 
-	public static void main(String args[]) {
-		args = Utils.chopCommentFromArgs(args);
-		
-		Unifier unifier = new Unifier();
-		HandleFOPCstrings stringHandler = new HandleFOPCstrings();
-		RecordHandler recordHandler = stringHandler.getRecordHandler();
-		String key = "test";		
-		RecordReference rr = null;
-		
-		int literalCount = 10;
-		for(int i = 0; i < literalCount; i++) {
-			LiteralAsTerm literal = new LiteralAsTerm(stringHandler, new Literal(stringHandler, stringHandler.getPredicateName("my_pred"), stringHandler.getNumericConstant(i))); 
-			rr = recordHandler.recordz(key, literal);
-			System.out.println("Recording " + key + " -> " + literal + "  (" + rr + ")");
-		}
-		
-		for(int i = 0; i < literalCount; i++) {
-			for(int j = 0; j < i; j++) {
-				LiteralAsTerm literal = new LiteralAsTerm(stringHandler, new Literal(stringHandler, stringHandler.getPredicateName("my_pred"), stringHandler.getNumericConstant(i), stringHandler.getNumericConstant(j))); 
-				rr = recordHandler.recordz(key, literal);
-				if ( Utils.random() < .5 ) {
-					System.out.println("Recording " + key + " -> " + literal + "  (" + rr + ")");
-				} else {
-					recordHandler.erase(rr);
-				}
-			}
-		}
-		
-		for(int i = 0; i < literalCount; i++) {
-			LiteralAsTerm literal = new LiteralAsTerm(stringHandler, new Literal(stringHandler, stringHandler.getPredicateName("your_pred"), stringHandler.getNumericConstant(i))); 
-			rr = recordHandler.recordz(key, literal);
-			System.out.println("Recording " + key + " -> " + literal + "  (" + rr + ")");
-		}
-		
-		System.gc();
-		
-		BindingList bl = new BindingList();
-		RecordBacktrackEntry rbe;
-		Term u;
-		
-		u = new LiteralAsTerm(stringHandler, new Literal(stringHandler, stringHandler.getPredicateName("my_pred"), stringHandler.getExternalVariable("X", false))); 
-		rbe = new RecordBacktrackEntry();
-		
-		System.out.println("Called recorded " + u);
-		while( (rr = recordHandler.recorded(key, u, bl, unifier, rbe)) != null ) {
-			System.out.println("Result: " + bl + "  (" + rr + ")" );
-			bl = new BindingList();
-		}
-		
-		u = new LiteralAsTerm(stringHandler, new Literal(stringHandler, stringHandler.getPredicateName("my_pred"), stringHandler.getExternalVariable("X", false), stringHandler.getExternalVariable("X", false))); 
-		rbe = new RecordBacktrackEntry();
-		
-		System.out.println("Called recorded " + u);
-		while( (rr = recordHandler.recorded(key, u, bl, unifier, rbe)) != null ) {
-			System.out.println("Result: " + bl + "  (" + rr + ")" );
-			bl = new BindingList();
-		}
-		
-		u = new LiteralAsTerm(stringHandler, new Literal(stringHandler, stringHandler.getPredicateName("my_pred"), stringHandler.getExternalVariable("X", false), stringHandler.getExternalVariable("Y", false))); 
-		rbe = new RecordBacktrackEntry();
-		
-		System.out.println("Called recorded " + u);
-		while( (rr = recordHandler.recorded(key, u, bl, unifier, rbe)) != null ) {
-			System.out.println("Result: " + bl + "  (" + rr + ")" );
-			bl = new BindingList();
-		}
-		
-		u = new LiteralAsTerm(stringHandler, new Literal(stringHandler, stringHandler.getPredicateName("my_pred"), stringHandler.getNumericConstant(3), stringHandler.getExternalVariable("Y", false))); 
-		rbe = new RecordBacktrackEntry();
-		
-		System.out.println("Called recorded " + u);
-		while( (rr = recordHandler.recorded(key, u, bl, unifier, rbe)) != null ) {
-			System.out.println("Result: " + bl + "  (" + rr + ")" );
-			bl = new BindingList();
-		}
-		
-		u = new LiteralAsTerm(stringHandler, new Literal(stringHandler, stringHandler.getPredicateName("your_pred"), stringHandler.getExternalVariable("Y", false))); 
-		rbe = new RecordBacktrackEntry();
-		
-		System.out.println("Called recorded " + u);
-		while( (rr = recordHandler.recorded(key, u, bl, unifier, rbe)) != null ) {
-			System.out.println("Result: " + bl + "  (" + rr + ")" );
-			bl = new BindingList();
-		}
-
-		
 	}
 }

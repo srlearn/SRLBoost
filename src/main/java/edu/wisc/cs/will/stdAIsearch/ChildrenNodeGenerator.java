@@ -1,10 +1,6 @@
-/**
- * 
- */
 package edu.wisc.cs.will.stdAIsearch;
 
 import java.util.List;
-import java.util.ArrayList;
 
 /** Generate
  * 
@@ -19,13 +15,11 @@ import java.util.ArrayList;
 public abstract class ChildrenNodeGenerator<T extends SearchNode> {
 	
     protected StateBasedSearchTask<T> task;
-    //protected List<T> newChildren; // This is only used to return a list of children.  It could be put on the stack (if Java allowed that), but by making it an instance variable, at least there is no need to garbage collect in the middle of a search.
+	// This is only used to return a list of children.
+	// It could be put on the stack (if Java allowed that), but by making it an instance variable,
+	// at least there is no need to garbage collect in the middle of a search.
 
-	/**
-	 * 
-	 */		
-	public ChildrenNodeGenerator() {
-	}
+	protected ChildrenNodeGenerator() {}
 
     public ChildrenNodeGenerator(StateBasedSearchTask<T> task) {
 		this.task = task;
@@ -37,5 +31,5 @@ public abstract class ChildrenNodeGenerator<T extends SearchNode> {
 	
     public abstract List<T> collectChildren(T nodeBeingExplored) throws SearchInterrupted;
 
-	public abstract void             clearAnySavedInformation(boolean insideIterativeDeepening);
+	public abstract void clearAnySavedInformation(boolean insideIterativeDeepening);
 }

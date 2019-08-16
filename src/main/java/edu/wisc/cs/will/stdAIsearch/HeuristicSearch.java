@@ -6,17 +6,9 @@ package edu.wisc.cs.will.stdAIsearch;
  * @author shavlik
  */
 public abstract class HeuristicSearch extends SearchStrategy {
-    /**
-     * Empty constructor.
-     */
-    public HeuristicSearch() {
-    }
 
-    /**
-     * Returns "heuristic search".
-     * 
-     * @see java.lang.Object#toString()
-     */
+    HeuristicSearch() {}
+
     public String toString() {
         return "heuristic search";
     }

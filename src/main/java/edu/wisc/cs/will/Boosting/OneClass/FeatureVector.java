@@ -1,31 +1,26 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.OneClass;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.List;
 
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author tkhot
- *
  */
 public class FeatureVector {
-	List<Double> features;
+	private List<Double> features;
 	
 	public List<String> pathFeatures;
 	
 	public boolean usepath = true;
 	public FeatureVector() {
-		features = new ArrayList<Double>();
-		pathFeatures = new ArrayList<String>();
+		features = new ArrayList<>();
+		pathFeatures = new ArrayList<>();
 	}
 	
-	public double getDistance(FeatureVector other) {
+	double getDistance(FeatureVector other) {
 		
 		
 		if (usepath) {
@@ -67,7 +62,7 @@ public class FeatureVector {
 		return -1;
 	}
 
-	public double getFeature(int index) {
+	private double getFeature(int index) {
 		return features.get(index);
 	}
 
@@ -84,7 +79,7 @@ public class FeatureVector {
 		features.addAll(featureVector.features);
 	}
 	
-	public void parseString(String fvec) {
+	void parseString(String fvec) {
 		if (usepath) {
 			fvec = fvec.replace("[", "").replace("]", "");
 			String[] parts = fvec.split("\\|");
@@ -94,78 +89,23 @@ public class FeatureVector {
 		}
 	}
 	public String toString() {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 
 		if (usepath) {
 			for (int i = 0; i < pathFeatures.size(); i++) {
 				if (i == pathFeatures.size() - 1) {
-					result += pathFeatures.get(i);
+					result.append(pathFeatures.get(i));
 				} else {
-					result += pathFeatures.get(i) + "|";
+					result.append(pathFeatures.get(i)).append("|");
 				}
 			}	
 		} else {
-			for (int i = 0; i < features.size(); i++) {
-				result += Utils.diffDoubles(features.get(i), 1.00) ? "0" : "1" ;
+			for (Double feature : features) {
+				result.append(Utils.diffDoubles(feature, 1.00) ? "0" : "1");
 			}
 		}
 		
 		return "[" + result +"]";
 	}
-	public static void main(String[] args) {
-		// Test
-		
-		
-		FeatureVector fvec = new FeatureVector();
-		fvec.usepath = false;
-		fvec.append(0);
-		fvec.append(0);
-		fvec.append(1);
-		fvec.append(0);
-		
-		System.out.println(fvec);
-		
-		FeatureVector fvec2 = new FeatureVector();
-		fvec2.usepath = false;
-		fvec2.append(0);
-		fvec2.append(1);
-		fvec2.append(1);
-		fvec2.append(0);
-		System.out.println(fvec2);
-		
-		//fvec.append(fvec2);
-		//System.out.println(fvec);
-		
-		FeatureVector fvec3 = new FeatureVector();
-		FeatureVector pvec1 = new FeatureVector();
-		FeatureVector pvec2 = new FeatureVector();
-		
-		pvec1.pathFeatures.add("0110");
-		pvec2.pathFeatures.add("1001");
-		fvec3.append(pvec1);
-		fvec3.append(pvec2);
-		
-		String saveStr = fvec3.toString();
-		System.out.println(saveStr);
-		FeatureVector vec = new FeatureVector();
-		vec.parseString(saveStr);
-		System.out.println(vec.toString());		
-		
-		
-		
-	}
 
-	public String toMatlabString() {
-		String result = "";
-
-		for (int i = 0; i < features.size(); i++) {
-			if (i != 0) {
-				result += " ";
-			}
-			result += Utils.diffDoubles(features.get(i), 1.00) ? "0" : "1" ;
-			
-		}
-		
-		return result;
-	}
 }

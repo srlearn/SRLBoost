@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Utils;
 
 import java.util.ArrayList;
@@ -9,21 +6,18 @@ import java.util.List;
 
 /**
  * @author tkhot
- *
  */
 public class VectorStatistics {
 
-	
 	private List<double[]> datapoints;
 	
 	private int size;
 	
 	public VectorStatistics() {
-		datapoints = new ArrayList<double[]>();
+		datapoints = new ArrayList<>();
 		size = 0;
 	}
-	
-	
+
 	public void addVector(double[] vec) {
 		datapoints.add(vec);
 		if (size != 0) {
@@ -119,7 +113,7 @@ public class VectorStatistics {
 		return result;
 	}
 
-	public static double[] exponentiate(double[] vec) {
+	static double[] exponentiate(double[] vec) {
 		double[] result = new double[vec.length];
 		
 		for (int i = 0; i < vec.length; i++) {
@@ -136,14 +130,12 @@ public class VectorStatistics {
 		return sum;
 	}
 
-
 	public static double[] createIndicator(int length, int index) {
 		double[] result = new double[length];
 		Arrays.fill(result, 0);
 		result[index] = 1;
 		return result;
 	}
-
 
 	public static double[] subtractVectors(double[] a, double[] b) {
 		if (a.length != b.length) {

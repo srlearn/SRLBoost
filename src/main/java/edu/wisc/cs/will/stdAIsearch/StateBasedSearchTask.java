@@ -349,7 +349,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
      */
     public void resetAllForReal() {
         resetAll(false);
-        clearClosedList(false);
+        clearClosedList();
         clearOpenList(false);
         
         //if (open   != null) {open.reportOpenSize();     }
@@ -375,9 +375,9 @@ public class StateBasedSearchTask<T extends SearchNode> {
         }
     }
     
-    public void clearClosedList(boolean withinInterativeDeepening) {
+    public void clearClosedList() {
         if (closed != null) {
-            closed.clearAnySavedInformation(withinInterativeDeepening);
+            closed.clearAnySavedInformation();
             closed.emptyClosedList();
         }   	
     }
@@ -395,8 +395,8 @@ public class StateBasedSearchTask<T extends SearchNode> {
         if (initializer       != null) { searchMonitor.clearAnySavedInformation(withinInterativeDeepening); } // Clear any remnants of any previous searches.
         if (terminator        != null) { terminator.clearAnySavedInformation(withinInterativeDeepening);    }
         if (searchMonitor     != null) { searchMonitor.clearAnySavedInformation(withinInterativeDeepening); }
-        if (strategy          != null) { strategy.clearAnySavedInformation(withinInterativeDeepening);      }
-        if (scorer            != null) { scorer.clearAnySavedInformation(withinInterativeDeepening);        }
+        if (strategy          != null) { strategy.clearAnySavedInformation();      }
+        if (scorer            != null) { scorer.clearAnySavedInformation();        }
         if (childrenGenerator != null) { childrenGenerator.clearAnySavedInformation(withinInterativeDeepening); }
 
         initialized = false;
@@ -593,7 +593,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
             }
             if (terminator != null && terminator.endSearch(lastNodeVisited)) {
                 done = true;
-                searchMonitor.searchEndedByTerminator(lastNodeVisited);
+                searchMonitor.searchEndedByTerminator();
                 if (verbosity > 3) { Utils.warning("Search ended for '" + taskName + "' by terminator for some reason."); }
             }
             if (!done) {

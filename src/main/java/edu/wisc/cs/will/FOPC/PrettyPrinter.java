@@ -1,27 +1,14 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.VariableCounter;
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
-import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
-import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.MessageType;
-import edu.wisc.cs.will.Utils.Utils;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 
 /**
- *
  * @author twalker
  */
 public class PrettyPrinter {
@@ -97,8 +84,6 @@ public class PrettyPrinter {
 
         data.pushIndent(Math.max(additionalLinesPrefix.length(), firstLinePrefix.length()));
 
-        //setupBindingsForSingletons(data, s);
-
         PPResult r = s.accept(PRETTY_PRINTER_VISITOR, data);
 
         StringBuilder stringBuilder = new StringBuilder();
@@ -114,35 +99,10 @@ public class PrettyPrinter {
         return stringBuilder.toString();
     }
 
-    private static void setupBindingsForSingletons(FOPCPrettyPrinterData data, Term s) {
-        if (data.options.isRenameVariables()) {
-            StringConstant underscore = s.getStringHandler().getStringConstant("_", false);
-            Map<Variable, Integer> counters = VariableCounter.countVariables(s);
-            for (Entry<Variable, Integer> entry : counters.entrySet()) {
-                if (entry.getValue() == 1 && data.variableBindings.getMapping(entry.getKey()) == null) {
-                    data.variableBindings.addBinding(entry.getKey(), underscore);
-                }
-            }
-        }
-    }
-
-    private static void setupBindingsForSingletons(FOPCPrettyPrinterData data, Sentence s) {
-        if (data.options.isRenameVariables()) {
-            StringConstant underscore = s.getStringHandler().getStringConstant("_", false);
-            Map<Variable, Integer> counters = VariableCounter.countVariables(s);
-            for (Entry<Variable, Integer> entry : counters.entrySet()) {
-                if (entry.getValue() == 1 && data.variableBindings.getMapping(entry.getKey()) == null) {
-                    data.variableBindings.addBinding(entry.getKey(), underscore);
-                }
-            }
-        }
-    }
-
     public static String print(BindingList bindingList, String firstLinePrefix, String additionalLinesPrefix, PrettyPrinterOptions options) {
         FOPCPrettyPrinterData data = new FOPCPrettyPrinterData();
 
         data.variableBindings = new BindingList();
-        //data.variableBindings.addBindings(bindingList);
 
         if (options != null) {
             data.options = options;
@@ -334,26 +294,6 @@ public class PrettyPrinter {
 
             data.popIndent();
 
-//        if (ConnectiveName.isaNOT(connective.name)) {
-//            if (precedence < precedenceOfCaller) {
-//                return result + connective + "(" + sentenceB.toPrettyString(newLineStarter, precedence, bindingList) + ")";
-//            }
-//            if (connective.name.equalsIgnoreCase("not")) {
-//                return result + connective + " " + sentenceB.toPrettyString(newLineStarter, precedence, bindingList);
-//            }
-//            return result + connective + sentenceB.toPrettyString(newLineStarter, precedence, bindingList);
-//        }
-//
-//        String firstSpacer = (connective.name.equals(",") ? "" : " ");
-//        if (precedence > precedenceOfCaller) {
-//            return result + "(" + sentenceA.toPrettyString(newLineStarter, precedence, bindingList) + firstSpacer + connective + " " + sentenceB.toPrettyString(newLineStarter, precedence, bindingList) + ")";
-//        }
-//        return result + sentenceA.toPrettyString(newLineStarter, precedence, bindingList) + firstSpacer + connective + " " + sentenceB.toPrettyString(newLineStarter, precedence, bindingList);
-//
-//
-//        Sentence a = sentence.sentenceA == null ? null : sentence.sentenceA.accept(this, data);
-//        Sentence b = sentence.sentenceB == null ? null : sentence.sentenceB.accept(this, data);
-
             return result;
         }
 
@@ -486,33 +426,6 @@ public class PrettyPrinter {
 
             PPResult result = s.accept(this, data);
 
-//            // This next bit really belongs in prettyPrintTerms so it can be handled across the
-//            // board...however, since this is one of the few (possibly the only?) case were
-//            // this can happen, we won't worry about it for now.
-//            if (s instanceof Literal == false) {
-//                StringBuilder stringBuilder = new StringBuilder();
-//
-//                stringBuilder.append("(");
-//                if (result.multiline) {
-//                    if (data.options.isNewLineAfterOpenParathesis()) {
-//                        stringBuilder.append("\n  ");
-//                    }
-//
-//                    appendWithPrefix(stringBuilder, result.resultString, "  ");
-//
-//                    if (data.options.isAlignParathesis()) {
-//                        stringBuilder.append("\n");
-//                    }
-//                }
-//                else {
-//                    stringBuilder.append(" ").append(result.resultString).append(" ");
-//
-//                }
-//                stringBuilder.append(")");
-//
-//                result = new PPResult(stringBuilder.toString(), result.isMultiline(), MIN_PRECEDENCE);
-//            }
-
             return result;
         }
 
@@ -555,31 +468,6 @@ public class PrettyPrinter {
 
             boolean multiline = false;
 
-//        if (literals.size() > 0) {
-//            for (int i = 0; i < literals.size(); i++) {
-//                Literal lit = literals.get(i);
-//
-//                if (i > 0) {
-//                    stringBuilder.append(", ");
-//                }
-//
-//                PPResult r = lit.accept(this, data);
-//
-//                if (data.options.multilineOutputEnabled) {
-//                    multiline = r.isMultiline() || multiline;
-//                }
-//
-//                if (multiline) {
-//                    stringBuilder.append("\n");
-//                }
-//
-//                stringBuilder.append(r.getResultString());
-//            }
-//        }
-//
-//
-//        stringBuilder.append("(");
-
             if (literals.size() > 0) {
 
                 List<PPResult> list = new ArrayList<PPResult>(literals.size());
@@ -601,10 +489,6 @@ public class PrettyPrinter {
                 multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > data.options.getMaximumLineWidth() - data.getCurrentIndentation());
 
                 String prefix = "";
-
-//            if (multiline && data.options.newLineAfterOpenParathesis) {
-//                stringBuilder.append("\n").append(prefix);
-//            }
 
                 int maximumWidth = data.options.getMaximumLineWidth() - data.getCurrentIndentation();
 
@@ -891,9 +775,6 @@ public class PrettyPrinter {
 
                     appendWithPrefix(stringBuilder, tpp.resultString, prefix);
 
-                    // We really should be adding the maximum width of the last line
-                    // of the PPResult string.  However, if we are printing multiline
-                    // statements, we will automatically add a
                     currentWidth += tpp.getMaximumWidth();
                     termsOnLine++;
                 }
@@ -917,8 +798,6 @@ public class PrettyPrinter {
 
     public static class FOPCPrettyPrinterData {
 
-        StringBuilder outputBuffer;
-
         Queue<PrecedenceInfo> precedenceInfo = new LinkedList<PrecedenceInfo>();
 
         PrettyPrinterOptions options = new PrettyPrinterOptions();
@@ -927,26 +806,26 @@ public class PrettyPrinter {
 
         int renamedVariableIndex = 0;
 
-        public FOPCPrettyPrinterData() {
+        FOPCPrettyPrinterData() {
             pushPrecedence(0);
         }
 
-        public void pushIndent(int additionalIndentation) {
+        void pushIndent(int additionalIndentation) {
 
             String newPrefix = getPrefix() + spaces(additionalIndentation);
 
             precedenceInfo.add(new PrecedenceInfo(newPrefix));
         }
 
-        public final void pushPrecedence(int precedence) {
+        final void pushPrecedence(int precedence) {
             precedenceInfo.add(new PrecedenceInfo(precedence));
         }
 
-        public PrecedenceInfo getCurrentPrecedence() {
+        PrecedenceInfo getCurrentPrecedence() {
             return precedenceInfo.peek();
         }
 
-        public void popIndent() {
+        void popIndent() {
             precedenceInfo.remove();
         }
 
@@ -954,11 +833,11 @@ public class PrettyPrinter {
             return getCurrentPrecedence().prefix;
         }
 
-        public int getCurrentIndentation() {
+        int getCurrentIndentation() {
             return getCurrentPrecedence().currentIndentation;
         }
 
-        public StringConstant getNextVariableName(Variable variable) {
+        StringConstant getNextVariableName(Variable variable) {
             StringConstant variableName = variable.getStringHandler().getAlphabeticalVariableName(renamedVariableIndex++);
 
             while (isNameUsed(variableName)) {
@@ -997,11 +876,11 @@ public class PrettyPrinter {
             this.precedence = precedence;
         }
 
-        public PrecedenceInfo(String prefix) {
+        PrecedenceInfo(String prefix) {
             this.prefix = prefix;
         }
 
-        public PrecedenceInfo(int currentIndentation) {
+        PrecedenceInfo(int currentIndentation) {
             this.currentIndentation = currentIndentation;
         }
     }
@@ -1030,98 +909,37 @@ public class PrettyPrinter {
             return "PPResult{" + "resultString=" + getResultString() + ", multi=" + isMultiline() + ", prec=" + getPrecedence() + ", maxWidth=" + getMaximumWidth() + '}';
         }
 
-        /**
-         * @return the resultString
-         */
-        public String getResultString() {
+        String getResultString() {
             return resultString;
         }
 
-        /**
-         * @param resultString the resultString to set
-         */
-        public void setResultString(String resultString) {
+        void setResultString(String resultString) {
             this.resultString = resultString;
             setMaximumWidth(getMaxLineLength(resultString));
         }
 
-        /**
-         * @return the multiline
-         */
-        public boolean isMultiline() {
+        boolean isMultiline() {
             return multiline;
         }
 
-        /**
-         * @param multiline the multiline to set
-         */
-        public void setMultiline(boolean multiline) {
+        void setMultiline(boolean multiline) {
             this.multiline = multiline;
         }
 
-        /**
-         * @return the precedence
-         */
         public int getPrecedence() {
             return precedence;
         }
 
-        /**
-         * @param precedence the precedence to set
-         */
         public void setPrecedence(int precedence) {
             this.precedence = precedence;
         }
 
-        /**
-         * @return the maximumWidth
-         */
-        public int getMaximumWidth() {
+        int getMaximumWidth() {
             return maximumWidth;
         }
 
-        /**
-         * @param maximumWidth the maximumWidth to set
-         */
-        public void setMaximumWidth(int maximumWidth) {
+        void setMaximumWidth(int maximumWidth) {
             this.maximumWidth = maximumWidth;
-        }
-    }
-
-    public static void main(String[] args) {
-
-        Utils.addFilteredMessageType(EnumSet.allOf(MessageType.class));
-
-        HornClauseContext context = new DefaultHornClauseContext();
-        FileParser parser = context.getFileParser();
-
-        Literal litA = parser.parseLiteral("a.");
-        Literal negation = context.getStringHandler().getLiteral(
-                context.getStringHandler().standardPredicateNames.negationByFailure,
-                context.getStringHandler().getSentenceAsTerm(
-                context.getStringHandler().getClause(null, litA), ""));
-
-        System.out.println(PrettyPrinter.print(negation));
-
-
-
-    }
-
-    private static void print(String s, FileParser parser, PrettyPrinter pp) {
-        List<Sentence> sentences;
-
-
-        if (s.endsWith(".") == false) {
-            s = s + ".";
-        }
-        sentences = parser.parse(s);
-
-        for (Sentence sentence : sentences) {
-            System.out.println("Sentence: " + s);
-            System.out.println("");
-            System.out.println(pp.print(sentence, "%%   |", new PrettyPrinterOptions()));
-            System.out.println("");
-
         }
     }
 

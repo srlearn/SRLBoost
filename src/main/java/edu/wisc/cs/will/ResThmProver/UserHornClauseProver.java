@@ -1,13 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ResThmProver;
 
 import java.util.List;
 
-import edu.wisc.cs.will.FOPC.AbstractUserDefinedBooleanLiteral;
-import edu.wisc.cs.will.FOPC.AbstractUserDefinedFunctionAsLiteral;
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.CallbackRegister;
 import edu.wisc.cs.will.FOPC.Clause;
@@ -30,12 +24,8 @@ public class UserHornClauseProver implements HornClauseContext, CallbackRegister
 
     protected HornClauseContext context;
 
-    public UserHornClauseProver() {
+    UserHornClauseProver() {
         this.context = new DefaultHornClauseContext();
-    }
-
-    protected UserHornClauseProver(HandleFOPCstrings stringHandler, FileParser parser) {
-        this.context = new DefaultHornClauseContext(stringHandler, parser);
     }
 
     /** Attempts to prove the willConceptString given the specified parameters.
@@ -90,7 +80,7 @@ public class UserHornClauseProver implements HornClauseContext, CallbackRegister
 
             for (Clause clause : clauses) {
 
-                if (clause.isDefiniteClause() == false) {
+                if (!clause.isDefiniteClause()) {
                     throw new IllegalArgumentException("Clause obtained from willConceptString contained is not definite: " + sentence.toPrettyString());
                 }
 
@@ -112,7 +102,6 @@ public class UserHornClauseProver implements HornClauseContext, CallbackRegister
 
             }
         }
-
         return null;
     }
 
@@ -171,20 +160,6 @@ public class UserHornClauseProver implements HornClauseContext, CallbackRegister
         context.assertSentences(sentences);
     }
 
-    /** Asserts a procedurally defined predicate.
-     *
-     * @param predicateName Name of the predicate.
-     *
-     * @param literalDefinition UserDefinedLiteral object defining the predicate.
-     * The abstract classes {@link AbstractUserDefinedBooleanLiteral} and {@link AbstractUserDefinedFunctionAsLiteral}
-     * can be easily extended to create a UserDefinedLiteral by implementing the relevant evaluateMe() methods.
-     *
-     * @throws IllegalStateException Throws an IllegalStateException if the predicateName/arity is already defined.
-     */
-    public void assertProcedurallyDefinedLiteral(String predicateName, UserDefinedLiteral literalDefinition) throws IllegalStateException {
-        getStringHandler().registerCallback(predicateName, literalDefinition);
-    }
-
     @Override
     public void registerCallback(String predicateName, UserDefinedLiteral literalDefinition) throws IllegalStateException {
         getStringHandler().registerCallback(predicateName, literalDefinition);
@@ -195,33 +170,6 @@ public class UserHornClauseProver implements HornClauseContext, CallbackRegister
         context.loadLibrary(libraryName);
     }
 
-    public void loadAllLibraries() throws Exception {
-        List<Sentence> sentences = this.getFileParser().loadAllLibraries();
-        for (Sentence sentence : sentences) {
-            if (sentence instanceof Clause) {
-                Clause clause = (Clause) sentence;
-                if (clause.isDefiniteClause()) {
-                    assertDefiniteClause(clause);
-                }
-            }
-            else if (sentence instanceof Literal) {
-                Literal literal = (Literal) sentence;
-                getClausebase().assertBackgroundKnowledge(literal);
-            }
-            else {
-                List<Clause> clauses2 = sentence.convertToClausalForm();
-                for (Clause clause : clauses2) {
-                    if (clause.isDefiniteClause()) {
-                        assertDefiniteClause(clause);
-                    }
-                    else {
-                        throw new IllegalArgumentException("Logic sentence '" + sentence + "' is not a definite clause.");
-                    }
-                }
-            }
-        }
-    }
-
     public void removeProofListener(ProofListener proofListener) {
         context.removeProofListener(proofListener);
     }
@@ -230,43 +178,4 @@ public class UserHornClauseProver implements HornClauseContext, CallbackRegister
         context.addProofListener(proofListener);
     }
 
-    
-
-    public static void main(String[] args) {
-        UserHornClauseProver prover = new UserHornClauseProver();
-
-        prover.assertDefiniteClause("p(X,Y) :- \\+q(X,Y).");
-        prover.assertDefiniteClause("okIfUnknown: q/2.");
-        prover.assertDefiniteClause("q(a,b).");
-
-        String goal;
-        BindingList result;
-        @SuppressWarnings("unused")
-		String[] arr = {"c", "b"};
-        
-        goal = "p(c,b)";
-        result = prover.prove(goal);
-        System.out.println(goal + " = " + (result == null ? "fail." : "true. " + result));
-
-
-        goal = "p(a,b)";
-        result = prover.prove(goal);
-        System.out.println(goal + " = " + (result == null ? "fail." : "true. " + result));
-
-
-        System.out.println("-----------");
-
-// Replace p :- !q by p:- q
-        prover.getClausebase().retractAllClauseWithHead(prover.getFileParser().parseLiteral("p(_,_)"));
-        prover.assertDefiniteClause("p(X,Y) :- q(X,Y).");
-
-        goal = "p(c,b)";
-        result = prover.prove(goal);
-        System.out.println(goal + " = " + (result == null ? "fail." : "true. " + result));
-
-
-        goal = "p(a,b)";
-        result = prover.prove(goal);
-        System.out.println(goal + " = " + (result == null ? "fail." : "true. " + result));
-    }
 }

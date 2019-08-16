@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
 
 import java.io.Serializable;
@@ -13,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
@@ -37,9 +33,6 @@ import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.ILP.Regression.BranchStats;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder;
-import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForMLN;
-import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForRDN;
-import edu.wisc.cs.will.ILP.Regression.RegressionVectorInfoHolderForRDN;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
@@ -48,15 +41,12 @@ import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
 
 /**
  * @author shavlik
- *
  */
 @SuppressWarnings("serial")
 public class SingleClauseNode extends SearchNode implements Serializable{
 	private final static boolean renameAllVariablesWheneverPrinting = true;
 	
 	protected Literal literalAdded    = null;
-	//protected Literal formForPruning  = null; // This and the next are used for pruning.
-	//protected Map<Variable,NumericConstant> variablesToNumbers = null;
 	protected double  score           = Double.NaN; // Cache these to save recomputing (recomputing fast except for regression?).
 	private double  posCoverage     = -1.0;     //   Also, each child node only stores the extensions to the clause body.
 	protected double  negCoverage     = -1.0; // Everything is done with WEIGHTED examples (including the seeds).
@@ -626,12 +616,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (theILPtask.totalWeightOnPosSeeds > 0.0 && theILPtask.seedPosExamples != null) {
 			if (LearnOneClause.debugLevel > 1) { Utils.println("   Score this on pos seeds: " + toString()); }
 			posSeedWgtedCount = wgtedCountOfPosExamplesCovered(theILPtask.seedPosExamples);			
-			//	Utils.println("posSeedWgtedCount = "  + posSeedWgtedCount + "   " + this);
 
-//			if (theILPtask.clausesMustCoverFractPosSeeds * theILPtask.totalWeightOnPosSeeds <= Double.MIN_VALUE) {
-//				Utils.waitHere("Do we want 'clausesMustCoverFractPosSeeds * totalWeightOnPosSeeds' to be: " + theILPtask.clausesMustCoverFractPosSeeds * theILPtask.totalWeightOnPosSeeds);
-//			}
-			
 			if (posSeedWgtedCount < theILPtask.clausesMustCoverFractPosSeeds * theILPtask.totalWeightOnPosSeeds) { 
 				if (LearnOneClause.debugLevel > 2) { Utils.println("   Discard '" + toString() + "' because not enough pos seed examples covered: " + posSeedWgtedCount + " of the total wgt'ed sum of " + theILPtask.totalWeightOnPosSeeds); }
 				return false;
@@ -1342,22 +1327,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		}
 		
 		if (getPosCoverage() < 0 && negCoverage < 0) return result; // This node is only a candidate and has not yet been scored.
-	//	return result + ".  [covers " 
-	//                      + Utils.truncate(posCoverage) + "/" + Utils.truncate(theILPtask.totalPosWeight) + " pos, " 
-	//						+ Utils.truncate(negCoverage) + "/" + Utils.truncate(theILPtask.totalNegWeight) + " neg] depthOfArgs=" + depthOfArgs;
-//		if (extraString == null) {
-//			extraString = Example.makeLabel(collectExamplesReachingThisNode()); // A bit wasteful to collect all the examples rather than walking through them.  But the latter would require repeating the makeLabel code.
-//			if (extraString == null) { extraString = ""; } // Mark that it has been processed (i.e., it is non-null).
-//			else                     { extraString = " " + extraString; }
-//		}
-//		if (theILPtask.regressionTask) {
-//			try {
-//				return result + ".  [E(var) = " + Utils.truncate(regressionFit(true), 4) + ", covers " + Utils.truncate(posCoverage) + "/" + Utils.truncate(theILPtask.totalPosWeight) + " examples]" + extraString;
-//			} catch (SearchInterrupted e) {
-//				Utils.reportStackTrace(e);
-//				Utils.error("Problem in SingleClauseNode.");
-//			}
-//		}
+
 		return result + ".  [covers " 
 		                    + Utils.truncate(getPosCoverage()) + "/" + Utils.truncate(theILPtask.totalPosWeight) + " pos, " 
 		                    + Utils.truncate(negCoverage) + "/" + Utils.truncate(theILPtask.totalNegWeight) + " neg]" + (extraString == null ? "" : extraString);
@@ -1368,29 +1338,10 @@ public class SingleClauseNode extends SearchNode implements Serializable{
     // Code for regression trees.  Assumes LEAVES HOLD CONSTANTS (i.e., the group's mean).
     // and that we care to score examples not covered by the clause the same as those covered
     // (this makes sense when learning a TREE; if just learning rules, can set theILPtask.multiplerOnFailedRegressionExamples = 0 or a small positive number).
-    
-    public double penaltyForNonDiscrNode() throws SearchInterrupted {
-    	// TODO(MLNTEST)
-		//RegressionNodeInfoHolderForMLN holder = getRegressionNodeInfoHolderForMLN();
-    	RegressionInfoHolder holder = getRegressionInfoHolder();
-		double s1 = getPenaltyForNonDisc(holder.getTrueStats());
-		double s2 = getPenaltyForNonDisc(holder.getFalseStats());
 
-		return s1 + s2; 	
-    }
-    private double getPenaltyForNonDisc(BranchStats stats) {
-    	double pos = stats.getNumPositiveOutputs();
-    	double neg = stats.getNumNegativeOutputs();
-    	double p = pos/(pos+neg);
-    	if (pos+neg==0) { 
-    		return 0;
-    	}
-    	return 1 - (Math.pow(p, 2) + Math.pow((1-p), 2));	
-    }
+	protected double square(double x) { return x * x; }
     
-    protected double square(double x) { return x * x; }
-    
-    public double oneClassScore() throws SearchInterrupted {
+    double oneClassScore() throws SearchInterrupted {
     	LearnOneClause loc = ((LearnOneClause)this.task);
     	List<Example> failedEgs = posExampleFailedAtNode();
     	
@@ -1401,10 +1352,10 @@ public class SingleClauseNode extends SearchNode implements Serializable{
     				failedEgs, depth);
     }
     
-	public double regressionFit() throws SearchInterrupted {
+	double regressionFit() throws SearchInterrupted {
 		return regressionFit(true);
 	}
-	public double regressionFitForMLNs() throws SearchInterrupted {
+	double regressionFitForMLNs() throws SearchInterrupted {
 		LearnOneClause  theILPtask = (LearnOneClause) task;
 		
 		if (!theILPtask.constantsAtLeaves) { Utils.error("Have not yet implemented constantsAtLeaves = false."); }
@@ -1414,66 +1365,25 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 					" as it timed out. The examples on true and false branch are incorrect.");
 			return Double.POSITIVE_INFINITY;  
 		}
-		//TODO(MLNTEST)
 		RegressionInfoHolder holder = getRegressionInfoHolder();
 		if (holder.totalExampleWeightAtSuccess() < theILPtask.getMinPosCoverage() ||
-			holder.totalExampleWeightAtFailure() < theILPtask.getMinPosCoverage()) { 
-			//Utils.println("minpos" + theILPtask.getMinPosCoverage() + "tbs: " + holder.trueBranchStats.getNumExamples() + " " + holder.falseBranchStats.getNumExamples() );
+			holder.totalExampleWeightAtFailure() < theILPtask.getMinPosCoverage()) {
 			return Double.POSITIVE_INFINITY;  // Bad clauses get posCoverage=0 and we don't want to keep such clauses.  Remember we NEGATE the score, so a high score here is bad.
 		}
 		double result = 0;
 		if (holder.getTrueStats() != null) { result += getMLNCost(holder.getTrueStats()); } else { Utils.waitHere("Why is true stats null?" + this.literalAdded); }
 		if (holder.getFalseStats() != null) { result += getMLNCost(holder.getFalseStats()); } else { Utils.waitHere("Why is false stats null?"+ this.literalAdded); }
-		
-//		RegressionNodeInfoHolderForMLN holder = getRegressionNodeInfoHolderForMLN();
-//		if (holder.trueBranchStats.getNumExamples() < theILPtask.getMinPosCoverage() ||
-//			holder.falseBranchStats.getNumExamples() < theILPtask.getMinPosCoverage()) { 
-//			//Utils.println("minpos" + theILPtask.getMinPosCoverage() + "tbs: " + holder.trueBranchStats.getNumExamples() + " " + holder.falseBranchStats.getNumExamples() );
-//			return Double.POSITIVE_INFINITY;  // Bad clauses get posCoverage=0 and we don't want to keep such clauses.  Remember we NEGATE the score, so a high score here is bad.
-//		}
-//		
-//		double result = 0;
-//		if (holder.trueBranchStats != null) {
-//			double trueCost = getMLNCost(holder.trueBranchStats);
-//			result += trueCost;
-//			if (result == 0) {
-//				//Utils.println("true: "  + holder.trueBranchStats.toString());
-//			}
-//		//	Utils.println("True Result: " + result);
-//		}
-//		if (holder.falseBranchStats != null) {
-//			double falseCost = getMLNCost(holder.falseBranchStats);
-//			result += falseCost;
-//			if (result == 0) {
-//				//Utils.println("false: "  + holder.falseBranchStats.toString());
-//			}
-//			if (falseCost == 0 && result != 0) {
-//				//Utils.waitHere("true:"+ holder.trueBranchStats.toString());
-//			}
-//			
-//		}
-//		//Utils.println("True+False Result: " + result + "/ " + (holder.trueBranchStats.numExamples+holder.falseBranchStats.numExamples) + " for " + this.getClause(true));
-//		Utils.println("Score for:" + this.getClause(true) + ":" + result);
-//		if (!Utils.diffDoubles(result, 0.0)) {
-//			return Double.POSITIVE_INFINITY;  
-//		}
+
 		return result;
 	}
 	
 	
 	
 	private double getMLNCost(BranchStats stats) {
-		//double lambda = stats.getLambda();
 		double result = 0;
 		if (stats.getSumOfNumGroundingSquared() > 0) {
-			//Utils.println(stats.toString());
-			result = stats.getWeightedVariance(); //stats.sumOfOutputSquared - (Math.pow(stats.sumOfOutputAndNumGrounding, 2)/stats.getSumOfNumGroundingSquared());
+			result = stats.getWeightedVariance();
 		}
-		// lambda * lambda * stats.sumOfNumGroundingSquared
-				// - 2 * lambda * stats.sumOfOutputAndNumGrounding 
-				// + stats.sumOfOutputSquared;
-		
-		// Scaled by number of examples
 		if (stats.getNumExamples() == 0) {
 			if (result != 0) {
 				Utils.println(stats.toString());
@@ -1490,11 +1400,9 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				result=0;
 			}
 		}
-	//	Utils.println(stats.toString());
-		// result /= stats.numExamples;
 		return result;
 	}
-	public double regressionFit(boolean computeWeightedAverage) throws SearchInterrupted { // This is the expected variance after this node is evaluated (divided by the wgt'ed number of examples if computeWeightedAverage=true).
+	private double regressionFit(boolean computeWeightedAverage) throws SearchInterrupted { // This is the expected variance after this node is evaluated (divided by the wgt'ed number of examples if computeWeightedAverage=true).
 		LearnOneClause  theILPtask = (LearnOneClause) task;
 		
 		if (!theILPtask.constantsAtLeaves) { Utils.error("Have not yet implemented constantsAtLeaves = false."); }
@@ -1509,47 +1417,11 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 			}
 			return Double.POSITIVE_INFINITY;  // Bad clauses get posCoverage=0 and we don't want to keep such clauses.  Remember we NEGATE the score, so a high score here is bad.
 		}
-			
-		
-		// TODO(test)
+
 		if (!computeWeightedAverage) {
 			return getRegressionInfoHolder().variance();
 		}
-		
-		
 		return getRegressionInfoHolder().weightedVarianceAtSuccess() + getRegressionInfoHolder().weightedVarianceAtFailure();
-		/*
-		RegressionNodeInfoHolder holder = getRegressionNodeInfoHolder();
-		// Utils.println("Regression score for " + this.getClause(true));
-		if (holder.weightedCountOfExamplesThatSucceed < theILPtask.getMinPosCoverage() || holder.weightedCountOfExamplesThatFail < theILPtask.getMinPosCoverage()) { 
-			if (LearnOneClause.debugLevel > 2) {
-				Utils.println("regressionFit:\n weightedCountOfExamplesThatSucceed = " + holder.weightedCountOfExamplesThatSucceed 
-									      + "\n weightedCountOfExamplesThatFail    = " + holder.weightedCountOfExamplesThatFail
-									      + "\n getMinPosCoverage                  = " + theILPtask.getMinPosCoverage());
-			}
-			return Double.POSITIVE_INFINITY;  // Bad clauses get posCoverage=0 and we don't want to keep such clauses.  Remember we NEGATE the score, so a high score here is bad.
-		}
-		//Utils.println("minCov = " + theILPtask.getMinPosCoverage() + " posWgt = " + holder.weightedCountOfExamplesThatSucceed + " negWgt = " +  holder.weightedCountOfExamplesThatFail + "  " + this);
-		
-		if (false) {
-			Utils.println("");
-			Utils.println("% weightedCountOfExamplesThatFailed    = " + holder.weightedCountOfExamplesThatFail);
-			Utils.println("% weightedCountOfExamplesThatSucceeded = " + holder.weightedCountOfExamplesThatSucceed);
-			Utils.println("% meanOnExamplesThatFailed             = " + (holder.totalOfOutputValuesOfExamplesThatFail   / holder.weightedCountOfExamplesThatFail));
-		//	Utils.println("% meanOnExamplesThatFailed             = " + meanIfFalse());
-			Utils.println("% meanOnExamplesThatSucceeded          = " + (holder.totalOfOutputValuesOfExamplesThatSucceed / holder.weightedCountOfExamplesThatSucceed));
-		//	Utils.println("% meanOnExamplesThatSucceeded          = " + meanIfTrue());
-			Utils.println("% varianceOnExamplesThatFailed         = " + holder.varianceOnExamplesThatFail);
-			Utils.println("% varianceOnExamplesThatSucceeded      = " + holder.varianceOnExamplesThatSucceed);
-		//	Utils.println("% OVERALL AVERAGE (should be constant): " + ( (getTotalOfOutputValuesOfExamplesThatFailed() + holder.totalOfOutputValuesOfExamplesThatSucceededHere) / (holder.weightedCountOfExamplesThatFailed + holder.weightedCountOfExamplesThatSucceeded)));
-		}
-		
-		// Normalize to a 'per example' value so that other penalty terms can be added to a normalized number (assuming that the outputs are normalized to, say, [0,1] or [-0.5, 0,5].  TODO - do this normalization.
-		return        (holder.weightedCountOfExamplesThatFail * holder.varianceOnExamplesThatFail + holder.weightedCountOfExamplesThatSucceed * holder.varianceOnExamplesThatSucceed)
-				/ (computeWeightedAverage 
-					? (holder.weightedCountOfExamplesThatFail                                     + holder.weightedCountOfExamplesThatSucceed)
-				    : 1);
-				    */
 	}
 
 	
@@ -1562,121 +1434,38 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (parent != null) { return cachedLocalRegressionInfoHolder.getFalseStats().addFailureStats(parent.getTotalFalseBranchHolder()); }
 		return cachedLocalRegressionInfoHolder.getFalseStats();
 	}
-	
-	// TODO(test)	
-//	public BranchStats getTotalFalseBranchStats() {
-//		if (this == ((LearnOneClause) task).currentStartingNode) {
-//			return new BranchStats(); 
-//		} // For this calculation don't want to go past the current root (but for other cases we do - i.e., when looking for eligible variables to reuse).
-//		if (posCoverage < 0) { Utils.error("This should not happen."); } // Should only call via regressionFit (or at least after regressionFit is called). 
-//		SingleClauseNode parent = getParentNode();
-//		if (parent != null) { return getLocalFalseBranchStats().add(parent.getTotalFalseBranchStats()); }
-//		return getLocalFalseBranchStats();
-//	}
-//	public BranchStats getLocalFalseBranchStats() {
-//		if (cachedLocalRegressionInfoHolder == null) {
-//			Utils.println("Clause:"+getClause());
-//			return new BranchStats(); 
-//		}
-//		return cachedLocalRegressionInfoHolder.localFalseStats;
-//	}
 
-	/*
-	public double getTotalProbabilityScoreThatFailed() {
-		if (this == ((LearnOneClause) task).currentStartingNode) { return 0.0; } // For this calculation don't want to go past the current root (but for other cases we do - i.e., when looking for eligible variables to reuse).
-		if (posCoverage < 0) { Utils.error("This should not happen."); } // Should only call via regressionFit (or at least after regressionFit is called). 
-		SingleClauseNode parent = getParentNode();
-		if (parent != null) { return getLocalProbabilityScoreThatFailed() + parent.getTotalProbabilityScoreThatFailed(); }
-		return getLocalProbabilityScoreThatFailed();
-	}
-	private double getLocalProbabilityScoreThatFailed() {
-		if (cachedLocalRegressionInfoHolder == null) { return 0.0; } // This should always exist at this point, but play it safe.
-		return cachedLocalRegressionInfoHolder.totalProbabilityScoreThatFailedHere;
-	}
-	
-	protected double getTotalSquaredOfOutputValuesThatFailed() {
-		if (this == ((LearnOneClause) task).currentStartingNode) { return 0.0; } // For this calculation don't want to go past the current root (but for other cases we do - i.e., when looking for eligible variables to reuse).
-		if (posCoverage < 0) { Utils.error("This should not happen."); } // Should only call via regressionFit (or at least after regressionFit is called). 
-		SingleClauseNode parent = getParentNode();
-		if (parent != null) { return getLocalTotalSquaredOfOutputValuesThatFailed() + parent.getTotalSquaredOfOutputValuesThatFailed(); }
-		return getLocalTotalSquaredOfOutputValuesThatFailed();
-	}
-	private double getLocalTotalSquaredOfOutputValuesThatFailed() {
-		if (cachedLocalRegressionInfoHolder == null) { return 0.0; } // This should always exist at this point, but play it safe.
-		return cachedLocalRegressionInfoHolder.totalSquaredOfOutputValuesThatFailedHere;
-	}
-	
-	protected double getTotalOfOutputValuesOfExamplesThatFailed() {
-		if (this == ((LearnOneClause) task).currentStartingNode) { return 0.0; }  // See comment above.
-		if (posCoverage < 0) { Utils.error("This should not happen."); } // Should only call via regressionFit (or at least after regressionFit is called). 
-		SingleClauseNode parent = getParentNode();
-		if (parent != null) { return  getLocalTotalOfOutputValuesOfExamplesThatFailed() + parent.getTotalOfOutputValuesOfExamplesThatFailed(); }
-		return getLocalTotalOfOutputValuesOfExamplesThatFailed();
-	}	
-	private double getLocalTotalOfOutputValuesOfExamplesThatFailed() {
-		if (cachedLocalRegressionInfoHolder == null) { return 0.0; } // This should always exist at this point, but play it safe.
-		return cachedLocalRegressionInfoHolder.totalOfOutputValuesOfExamplesThatFailedHere;
-	}
-	*/
-	
-	public double[] meanVectorIfTrue() {
+	double[] meanVectorIfTrue() {
 		return getRegressionInfoHolder().meanVectorAtSuccess();
 	}
 	
-	public double[] meanVectorIfFalse() {
+	double[] meanVectorIfFalse() {
 		return getRegressionInfoHolder().meanVectorAtFailure();
 	}
 	
-	public double meanIfTrue() throws SearchInterrupted {
-		// TODO(test)
-		// Utils.println("Calculated mean from " + getRegressionInfoHolder().totalExampleWeightAtSuccess());
+	double meanIfTrue() {
 		return getRegressionInfoHolder().meanAtSuccess();
-		/*
-		RegressionNodeInfoHolder holder = getRegressionNodeInfoHolder();	
-		if (((LearnOneClause)task).useProbabilityWeights) {
-			//Utils.error("Disabled prob wts");
-			return holder.totalOfOutputValuesOfExamplesThatSucceed /holder.weightedProbabilityScoreThatSucceed;  
-		}
-		return holder.totalOfOutputValuesOfExamplesThatSucceed / holder.weightedCountOfExamplesThatSucceed;
-		*/ 
 	}
 	
-	public double meanIfFalse() throws SearchInterrupted {
-		// TODO(test)
+	double meanIfFalse() {
 		return getRegressionInfoHolder().meanAtFailure();
-		
-		/*
-		RegressionNodeInfoHolder holder = getRegressionNodeInfoHolder();
-		if (((LearnOneClause)task).useProbabilityWeights) {
-			//Utils.error("Disabled prob wts");
-			return holder.totalOfOutputValuesOfExamplesThatFail / holder.weightedProbabilityScoreThatFail;  
-		}
-
-		return holder.totalOfOutputValuesOfExamplesThatFail /holder.weightedCountOfExamplesThatFail;
-		*/
 	}
-	public double mlnRegressionForTrue() throws SearchInterrupted {
-		// TODO(MLNTEST)
-		//RegressionNodeInfoHolderForMLN holder = getRegressionNodeInfoHolderForMLN();
-		//return holder.trueBranchStats.getLambda(((LearnOneClause)task).useProbabilityWeights);
+	double mlnRegressionForTrue() {
 		RegressionInfoHolder holder = getRegressionInfoHolder();
 		return holder.meanAtSuccess();
 	}
-	public double mlnRegressionForFalse() throws SearchInterrupted {
-		// TODO(MLNTEST)
-		//RegressionNodeInfoHolderForMLN holder = getRegressionNodeInfoHolderForMLN();
-		//return holder.falseBranchStats.getLambda(((LearnOneClause)task).useProbabilityWeights);
+	double mlnRegressionForFalse() {
 		RegressionInfoHolder holder = getRegressionInfoHolder();
 		return holder.meanAtFailure();
 	}
 	
-	public SingleClauseNode getStartingNodeForReset() {
+	SingleClauseNode getStartingNodeForReset() {
 		return startingNodeForReset;
 	}
-	public void setStartingNodeForReset(SingleClauseNode startingNodeForReset) {
+	void setStartingNodeForReset(SingleClauseNode startingNodeForReset) {
 		this.startingNodeForReset = startingNodeForReset;
 	}
-	public String reportRegressionRuleAsString(boolean examplesFlipFlopped) throws SearchInterrupted {
+	String reportRegressionRuleAsString(boolean examplesFlipFlopped) throws SearchInterrupted {
 		String result = "FOR " + getClauseHead() + " ";
 		
 		List<Literal> bodyLits = getClauseBody();
@@ -1694,7 +1483,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	
 	// If TRUE, then this branch will become a LEAF.
-	public boolean acceptableScoreFalseBranch(double minAcceptableScore) throws SearchInterrupted {
+	boolean acceptableScoreFalseBranch(double minAcceptableScore) throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;	
 		if (theILPtask.regressionTask) {
 			// TODO(test)
@@ -1724,15 +1513,14 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		double negCoverageFailed = 0.0;
 		for (Example posEx : theILPtask.getPosExamples()) if (posExampleAlreadyExcluded(posEx)) { posCoverageFailed += posEx.getWeightOnExample(); }
 		for (Example negEx : theILPtask.getNegExamples()) if (negExampleAlreadyExcluded(negEx)) { negCoverageFailed += negEx.getWeightOnExample(); }
-			
-		// Assume this clause covers the m-estimated NEG examples but NOT the m-estimated POS examples.
+
 		return posCoverageFailed / (posCoverageFailed + negCoverageFailed + theILPtask.getMEstimateNeg());
 	}
 	
-	public double getVarianceTrueBranch() throws SearchInterrupted {
+	double getVarianceTrueBranch() throws SearchInterrupted {
 		return getVarianceTrueBranch(false);
 	}
-	public double getVarianceTrueBranch(boolean computeMean) throws SearchInterrupted {
+	double getVarianceTrueBranch(boolean computeMean) throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
 		if (theILPtask.oneClassTask) {
 			return theILPtask.occScorer.getVariance(PairWiseExampleScore.removeFromCopy(theILPtask.getPosExamples(), posExampleFailedAtNode()));
@@ -1742,43 +1530,31 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 			RegressionInfoHolder holder = getRegressionInfoHolder();
 			if (computeMean && holder.totalExampleWeightAtSuccess() > 0.0) { return  holder.varianceAtSuccess(); }
 			return holder.weightedVarianceAtSuccess();
-			/*
-			RegressionNodeInfoHolder holder = getRegressionNodeInfoHolder();
-			if (computeMean && holder.weightedCountOfExamplesThatSucceed > 0.0) { return  holder.varianceOnExamplesThatSucceed /  holder.weightedCountOfExamplesThatSucceed; }
-			return holder.varianceOnExamplesThatSucceed;*/
 		}
 		return -1.0; // If discrete-valued return this to indicate "not relevant."
 	}
 
 	
-	public double getVarianceFalseBranch() throws SearchInterrupted {
+	double getVarianceFalseBranch() throws SearchInterrupted {
 		return getVarianceFalseBranch(false);
 	}
-	public double getVarianceFalseBranch(boolean computeMean) throws SearchInterrupted {
+	double getVarianceFalseBranch(boolean computeMean) throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
 		
 		if (theILPtask.oneClassTask) {
 			return theILPtask.occScorer.getVariance(this.posExampleFailedAtNode());
 		}
 		if (theILPtask.regressionTask) {
-			// TODO(test)
-						RegressionInfoHolder holder = getRegressionInfoHolder();
-						if (computeMean && holder.totalExampleWeightAtFailure() > 0.0) { return  holder.varianceAtFailure(); }
-						return holder.weightedVarianceAtFailure();
-						/*
-			RegressionNodeInfoHolder holder = getRegressionNodeInfoHolder();
-			if (computeMean && holder.weightedCountOfExamplesThatFail > 0.0) { return  holder.varianceOnExamplesThatFail /  holder.weightedCountOfExamplesThatFail; }
-			return holder.varianceOnExamplesThatFail;*/
+			RegressionInfoHolder holder = getRegressionInfoHolder();
+			if (computeMean && holder.totalExampleWeightAtFailure() > 0.0) { return  holder.varianceAtFailure(); }
+			return holder.weightedVarianceAtFailure();
 		}
 		return -1.0; // If discrete-valued return this to indicate "not relevant."
 	}
-	
-	// If TRUE, then this branch will become a LEAF.
-	public boolean acceptableScoreTrueBranch(double acceptableScore) throws SearchInterrupted {	
+
+	boolean acceptableScoreTrueBranch(double acceptableScore) throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
-		if (theILPtask.regressionTask) {	
-			// TODO(test)
-			//if (!theILPtask.mlnRegressionTask) {
+		if (theILPtask.regressionTask) {
 				double variance = 0;
 				if (theILPtask.oneClassTask) {
 					variance = getVarianceTrueBranch();
@@ -1788,49 +1564,23 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				}	
 				
 				return variance <= acceptableScore;
-			//} else {
-//				RegressionNodeInfoHolderForMLN holder = getRegressionNodeInfoHolderForMLN();
-				//return (holder.trueBranchStats.getWeightedVariance() / holder.trueBranchStats.getNumExamples()) <= acceptableScore;
-			//}
 		}
 		
 		double precision = precision();
 		if (precision       >= acceptableScore) { return true; } // Have a sufficiently pure POS set after splitting.
-		if ((1 - precision) >= acceptableScore) { return true; } // Have a sufficiently pure NEG set after splitting.
-		
-		return false;
+		return (1 - precision) >= acceptableScore;
 	}
 	
-	protected LocalRegressionInfoHolder cachedLocalRegressionInfoHolder  = null; // Waste a little space for non-regression problems, but only one pointer.
+	private LocalRegressionInfoHolder cachedLocalRegressionInfoHolder  = null; // Waste a little space for non-regression problems, but only one pointer.
 	
 	// TODO(test)
 	private RegressionInfoHolder getRegressionInfoHolder() {
 		if (cachedLocalRegressionInfoHolder == null) { 
 			cachedLocalRegressionInfoHolder = new LocalRegressionInfoHolder();
 		}
-        // TODO(test)
-		/*
-		if (cachedLocalRegressionInfoHolder.resultsHolder == null) {
-			LearnOneClause theILPtask = (LearnOneClause) task;
-			cachedLocalRegressionInfoHolder.resultsHolder = new RegressionNodeInfoHolder(theILPtask, this);
-		}
-		*/
+
 		LearnOneClause theILPtask = (LearnOneClause) task;
 
-		/*
-		if (!theILPtask.mlnRegressionTask && cachedLocalRegressionInfoHolder.resultsHolder == null) {
-			cachedLocalRegressionInfoHolder.resultsHolder = new RegressionInfoHolderForRDN();
-			if (cachedLocalRegressionInfoHolder.cachedFalseStats == null) {
-				cachedLocalRegressionInfoHolder.cachedFalseStats =  new RegressionInfoHolderForRDN();
-			}
-		}
-		if (theILPtask.mlnRegressionTask && cachedLocalRegressionInfoHolder.resultsHolder == null) {
-			cachedLocalRegressionInfoHolder.resultsHolder = new RegressionInfoHolderForMLN();
-			if (cachedLocalRegressionInfoHolder.cachedFalseStats == null) {
-				cachedLocalRegressionInfoHolder.cachedFalseStats =  new RegressionInfoHolderForRDN();
-			}
-		}
-		*/
 		if (cachedLocalRegressionInfoHolder.resultsHolder == null) {
 			cachedLocalRegressionInfoHolder.resultsHolder = theILPtask.getNewRegressionHolderForTask();
 			if (cachedLocalRegressionInfoHolder.cachedFalseStats == null) {
@@ -1845,35 +1595,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		}
 		return cachedLocalRegressionInfoHolder.resultsHolder;
 	}
-	// TODO(test)
-	/*
-	private RegressionNodeInfoHolder getRegressionNodeInfoHolder() throws SearchInterrupted {
-		if (cachedLocalRegressionInfoHolder == null) { 
-			cachedLocalRegressionInfoHolder = new LocalRegressionInfoHolder();
-		}
- 
-		if (cachedLocalRegressionInfoHolder.resultsHolder == null) {
-			LearnOneClause theILPtask = (LearnOneClause) task;
-			cachedLocalRegressionInfoHolder.resultsHolder = new RegressionNodeInfoHolder(theILPtask, this);
-		}
-		
-	return cachedLocalRegressionInfoHolder.resultsHolder;
-	
-	}*/
-	
-//	public RegressionNodeInfoHolderForMLN getRegressionNodeInfoHolderForMLN() throws SearchInterrupted {
-//		if (cachedLocalRegressionInfoHolder == null) { 
-//			cachedLocalRegressionInfoHolder = new LocalRegressionInfoHolder();
-//		}
-//		if (cachedLocalRegressionInfoHolder.mlnResultsHolder == null) {
-//			LearnOneClause theILPtask = (LearnOneClause) task;
-//			cachedLocalRegressionInfoHolder.mlnResultsHolder = new RegressionNodeInfoHolderForMLN(theILPtask, this);
-//		}
-//		return cachedLocalRegressionInfoHolder.mlnResultsHolder;
-//	}
 
-	// Used when creating a recursive call in a tree-structured task.
-	protected void resetAssumingAllExamplesCovered() throws SearchInterrupted {
+	void resetAssumingAllExamplesCovered() throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
 		setPosCoverage(Example.getWeightOfExamples(theILPtask.getPosExamples()));
 		negCoverage = Example.getWeightOfExamples(theILPtask.getNegExamples());
@@ -1881,23 +1604,14 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (theILPtask.regressionTask) { resetRegressionNodeInfoHolder(); }
 	}
 	
-	protected void resetRegressionNodeInfoHolder() throws SearchInterrupted {
+	private void resetRegressionNodeInfoHolder() throws SearchInterrupted {
 		if (cachedLocalRegressionInfoHolder == null) {
 			return; 
 		}
 		cachedLocalRegressionInfoHolder.reset();
-        // TODO(test)
-		/*
-		if (cachedLocalRegressionInfoHolder.resultsHolder != null) {
-			cachedLocalRegressionInfoHolder.resultsHolder.reset((LearnOneClause) task, this);
-		}
-		if (cachedLocalRegressionInfoHolder.mlnResultsHolder != null) {
-			cachedLocalRegressionInfoHolder.mlnResultsHolder.reset((LearnOneClause) task, this);
-		}
-		*/ 
 	}
 	
-	public int numberOfBridgersInBody(SingleClauseNode nodeAtWhichThisSearchStarted) {
+	int numberOfBridgersInBody(SingleClauseNode nodeAtWhichThisSearchStarted) {
 		if (this == nodeAtWhichThisSearchStarted) { return 0; } // Only count bridgers locally in tree-structured runs.
 		int total = (endsWithBridgerLiteral() ? 1 : 0);
 		if (getParentNode() == null) { return total; }
@@ -1913,136 +1627,29 @@ public class SingleClauseNode extends SearchNode implements Serializable{
     }
     
 
-    class LocalRegressionInfoHolder {	// These are used for regression, so lower nodes can be scored quickly (at the cost of another instance variable,. but designed to only 'waste' one pointer when not doing regressiion.
-        // TODO(test)
-		 //protected double totalOfOutputValuesOfExamplesThatFailedHere = 0.0;
-        //protected double  totalSquaredOfOutputValuesThatFailedHere    = 0.0;
-        // private double totalProbabilityScoreThatFailedHere = 0.0;
-        // protected BranchStats localFalseStats 			=	new BranchStats();
-    	
-        // TODO(test)
-        // protected RegressionNodeInfoHolder resultsHolder;
-        // protected RegressionNodeInfoHolderForMLN mlnResultsHolder;
-        
-        // TODO(test)
-        protected RegressionInfoHolder resultsHolder;
+    static class LocalRegressionInfoHolder {	// These are used for regression, so lower nodes can be scored quickly (at the cost of another instance variable,. but designed to only 'waste' one pointer when not doing regressiion.
+
+        RegressionInfoHolder resultsHolder;
         // Keep it separate from the results holder that is used for computing mean/variance
         // Maybe not needed but better to be safe.
-        protected RegressionInfoHolder cachedFalseStats;
+		RegressionInfoHolder cachedFalseStats;
         
-        public LocalRegressionInfoHolder() {
+        LocalRegressionInfoHolder() {
         }
 
-
-        public RegressionInfoHolder getFalseStats() {
-        	
-        	// TODO(test)
+        RegressionInfoHolder getFalseStats() {
         	return cachedFalseStats;
         }
         protected void reset() {
-            // TODO(test)
-        	
-            //totalOfOutputValuesOfExamplesThatFailedHere = 0.0;
-            //totalSquaredOfOutputValuesThatFailedHere    = 0.0;
-            // localFalseStats = new BranchStats();
         	cachedFalseStats = null;
             
         }
 
     }
 
-    // TODO(test)
-    /*
-    class RegressionNodeInfoHolder {
-
-        protected double totalOfOutputValuesOfExamplesThatSucceed = 0.0;
-        protected double totalSquaredOfOutputValuesThatSucceed    = 0.0;
-        protected double totalOfOutputValuesOfExamplesThatFail    = 0.0;
-        protected double totalSquaredOfOutputValuesThatFail       = 0.0;
-        protected double weightedCountOfExamplesThatSucceed       = 0.0;
-        protected double weightedCountOfExamplesThatFail          = 0.0;
-        protected double weightedProbabilityScoreThatSucceed	  = 0.0;
-        protected double weightedProbabilityScoreThatFail		  = 0.0;
-        protected double varianceOnExamplesThatSucceed            = 0.0;
-        protected double varianceOnExamplesThatFail               = 0.0;
-
-		public RegressionNodeInfoHolder(LearnOneClause theILPtask, SingleClauseNode caller) throws SearchInterrupted {
-            reset(theILPtask, caller);
-        }
-
-        protected void reset(LearnOneClause theILPtask, SingleClauseNode caller) throws SearchInterrupted {
-            totalOfOutputValuesOfExamplesThatSucceed = 0.0;
-            totalSquaredOfOutputValuesThatSucceed    = 0.0;
-            totalOfOutputValuesOfExamplesThatFail    = 0.0;
-            totalSquaredOfOutputValuesThatFail       = 0.0;
-            weightedCountOfExamplesThatSucceed       = 0.0;
-            weightedCountOfExamplesThatFail          = 0.0;
-            weightedProbabilityScoreThatSucceed		 = 0.0;
-            weightedProbabilityScoreThatFail		 = 0.0;
-            varianceOnExamplesThatSucceed            = 0.0;
-            varianceOnExamplesThatFail               = 0.0;
-            if (!theILPtask.regressionTask) { Utils.error("Should call this when NOT doing regression."); }
-            if (caller.posCoverage < 0.0) { caller.computeCoverage(); }
-            for (Example posEx : theILPtask.getPosExamples()) {
-                double weight = posEx.getWeightOnExample();
-                double output = ((RegressionExample) posEx).getOutputValue();
-                double deno = 1;
-                if (theILPtask.useProbabilityWeights) {
-                	double prob   = ((RegressionRDNExample)posEx).getProbOfExample();
-                	//boolean truth = ((RegressionRDNExample)posEx).isOriginalTruthValue();
-                	deno   = prob * (1-prob);
-                	if (deno < 0.1) {
-                		deno = 0.1; 
-                	}
-                }
-                
-                if (!caller.posExampleAlreadyExcluded(posEx)) {
-                    totalOfOutputValuesOfExamplesThatSucceed += output * posEx.getWeightOnExample();
-                    totalSquaredOfOutputValuesThatSucceed    += caller.square(output) * posEx.getWeightOnExample();
-                    weightedCountOfExamplesThatSucceed       += weight;
-                    weightedProbabilityScoreThatSucceed      += weight * deno; 
-                }
-//             NOTE: cannot do this, since we only want to go back as far as examples that reached the currentStartingNode.
-//                else {
-//                	if (caller.getParentNode() == null ||
-//                		!caller.getParentNode().posExampleAlreadyExcluded(posEx)) {
-//                		totalOfOutputValuesOfExamplesThatFail    += output;
-//                		totalSquaredOfOutputValuesThatFail       += caller.square(output);
-//                		weightedCountOfExamplesThatFail          += weight;
-//                	}
-//                }
-//                
-            }
-
-            if(((LearnOneClause)caller.task).currentStartingNode == caller) {
-				Utils.waitHere("Starting node is same as current node for " + caller.getClause());
-			}
-            weightedCountOfExamplesThatFail       = theILPtask.totalPosWeight - weightedCountOfExamplesThatSucceed;
-           totalOfOutputValuesOfExamplesThatFail = caller.getTotalOfOutputValuesOfExamplesThatFailed(); //caller.getTotalOfOutputValuesOfExamplesThatFailed();
-           totalSquaredOfOutputValuesThatFail    = caller.getTotalSquaredOfOutputValuesThatFailed(); //getTotalSquaredOfOutputValuesThatFailed();
-           if (theILPtask.useProbabilityWeights) {
-        	   weightedProbabilityScoreThatFail = caller.getTotalProbabilityScoreThatFailed();
-           }
-            varianceOnExamplesThatFail
-                    = (weightedCountOfExamplesThatFail    <= 0.0 ? 0.0
-                            : (totalSquaredOfOutputValuesThatFail                        / weightedCountOfExamplesThatFail)
-                                - caller.square(totalOfOutputValuesOfExamplesThatFail    / weightedCountOfExamplesThatFail));
-
-            varianceOnExamplesThatSucceed
-                    = (weightedCountOfExamplesThatSucceed <= 0.0 ? 0.0
-                            :  (totalSquaredOfOutputValuesThatSucceed                    / weightedCountOfExamplesThatSucceed)
-                                - caller.square(totalOfOutputValuesOfExamplesThatSucceed / weightedCountOfExamplesThatSucceed));
-        }
-    }
-*/
-   
     
-    public HashMap<Example, Set<BindingList>> cachedBindingLists = new HashMap<Example, Set<BindingList>>();
-    private boolean cacheBLs = false;
-	public void resetGroundingCache() {
-		cachedBindingLists = null;
-	}
-	
+    private HashMap<Example, Set<BindingList>> cachedBindingLists = new HashMap<Example, Set<BindingList>>();
+
 	public long getNumberOfGroundingsForRegressionEx(Example eg) {
 		initGroundingCalc();
 		LearnOneClause learnClause = ((LearnOneClause)task);
@@ -2056,24 +1663,12 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if(cachedBindingLists.containsKey(eg)) {
 			cachedBindingLists.remove(eg);
 		}
-		/*
-		if (cachedBindingLists.containsKey(eg)) {
-			Set<BindingList> bls = cachedBindingLists.get(eg);
-			for (BindingList bl : bls) {
-				Utils.println(bl.toString());
-			}
-			 Utils.waitHere("Already cached bl for " + eg + " at " + this.getClause() + " Num: " + bls.size());
-			
-			return bls.size();
-		}*/
-		// Utils.println(theta.toString());
 		long num = 0;
 		if (getParentNode() != getRootNode() &&
 			getParentNode() != null && getParentNode().cachedBindingLists.containsKey(eg)) {
 			for (BindingList bl : getParentNode().cachedBindingLists.get(eg)) {
 				BindingList bl2 = new BindingList(theta.collectBindingsInList());
 				bl2.addBindings(bl);
-				// Utils.println("Partial:" + bl2);
 				num += getNumberOfGroundingsForRegressionEx(eg, bl2, true);
 			}
 		} else {
@@ -2107,7 +1702,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		}
 	}
 	
-	public long getNumberOfGroundingsForRegressionEx(Example eg, BindingList theta, boolean isPartial) {
+	private long getNumberOfGroundingsForRegressionEx(Example eg, BindingList theta, boolean isPartial) {
 		//LearnOneClause learnClause = ((LearnOneClause)task);
 		long num = 1;
 		// Check if we can just re-use the groundings from before
@@ -2124,56 +1719,15 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 						return num;	
 					}
 					Utils.waitHere("num gndings shouldn't be 0 for " + eg + " Lit:" + localLit + " BL: " + theta + " Clause: " + this.getClause());
-					//((RegressionExample)eg).cacheNumGroundings(this, 0);
 					return 0;
 				}
 			}
 		}
 		
 		List<Literal> new_body = theta.applyTheta(this.getClauseBody());
-		//Clause clause = learnClause.getStringHandler().getClause(new_body, true);
-		/*
-		List<Literal> newNeg=theta.applyTheta(this.getClauseBody());
-		List<Literal> newPos=theta.applyTheta(this.getClause().posLiterals);
-		Clause clause = learnClause.getStringHandler().getClause(newPos, newNeg);
-		
 		Set<BindingList> blSet = null;
-		if (cacheBLs) { blSet = new HashSet<BindingList>();}
-		// Add this example 
-		learnClause.getContext().getClausebase().assertFact(eg);
-		long pos_num = learnClause.numberOfGroundings(clause, blSet); 
-		learnClause.getContext().getClausebase().retractAllClausesWithUnifyingBody(eg);
-		long neg_num = learnClause.numberOfGroundings(clause, blSet);
-		num = pos_num - neg_num;
-		*/
-		Set<BindingList> blSet = null;
-		if (cacheBLs) { blSet = new HashSet<BindingList>();}
-		//num = learnClause.numberOfGroundings(clause, blSet);
-		num = groundingsCalc.countGroundingsForConjunction(new_body, new ArrayList<Literal>(), blSet);
-		if (num <= 0) {
-			// Utils.waitHere("Number of groundings: " + num + " for " + eg + " in " + this.getClause());
-		}
-		if (cacheBLs) {
-			for (BindingList new_bl : blSet) {
-				new_bl.addBindings(theta);
-			}
-		
-			if (!cachedBindingLists.containsKey(eg)) {
-				if (!blSet.isEmpty()) {
-					cachedBindingLists.put(eg, blSet);
-				}
-			} else {
-				if (!isPartial) {
-					Set<BindingList> cachedbl = cachedBindingLists.get(eg);
-						for (BindingList bindingList : cachedbl) {
-							Utils.println(bindingList.toString());
-						}
-					Utils.waitHere("Already has cached bindings for " + eg + " at " + this.getClause()+ "but no cached groundings: " + ((RegressionExample)eg).lookupCachedGroundings(this));
-				}
-				cachedBindingLists.get(eg).addAll(blSet);
-			}
-		}
-	
+		boolean cacheBLs = false;
+		num = groundingsCalc.countGroundingsForConjunction(new_body, new ArrayList<>(), blSet);
 		return num;
 	}
 	
@@ -2186,93 +1740,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	/**
 	 * @param posCoverage the posCoverage to set
 	 */
-	public void setPosCoverage(double posCoverage) {
+	private void setPosCoverage(double posCoverage) {
 		this.posCoverage = posCoverage;
 	}
-
-
-	// TODO(tvk) find what common with regression node info 
-//
-//	class RegressionNodeInfoHolderForMLN {
-//
-//		protected BranchStats trueBranchStats=null;
-//		protected BranchStats falseBranchStats=null;
-//
-//		public RegressionNodeInfoHolderForMLN(LearnOneClause theILPtask, SingleClauseNode caller) throws SearchInterrupted {
-//			reset(theILPtask, caller);
-//		}
-//
-//		protected void reset(LearnOneClause theILPtask, SingleClauseNode caller) throws SearchInterrupted {
-//			trueBranchStats = new BranchStats();
-//			
-//			falseBranchStats = new BranchStats();
-//			
-//
-//			if (!theILPtask.regressionTask) { Utils.error("Should call this when NOT doing regression."); }
-//			int size = 0;
-//			for (Example posEx : theILPtask.getPosExamples()) {
-//				if (!caller.posExampleAlreadyExcluded(posEx)) {
-//					size++;
-//				}
-//			}
-//			int fraction = (size / (theILPtask.maxExamplesToSampleForScoring*2))+1;
-//			double prob = 1.0/(double)fraction;
-//			if (!theILPtask.sampleForScoring) {fraction =1; prob=1;}
-//			// Utils.println("True fraction=" + fraction + " prob=" + prob);
-//			if (caller.getPosCoverage() < 0.0) { caller.computeCoverage(); }
-//			for (Example posEx : theILPtask.getPosExamples()) {
-//				//double weight = posEx.getWeightOnExample();
-//				
-//				// Weight handled inside addNumOutput
-//				double output = ((RegressionExample) posEx).getOutputValue();
-//				if (!caller.posExampleAlreadyExcluded(posEx)) {
-//					if (Utils.random() < prob) {
-//						long num = 1;
-//						if (caller != caller.getRootNode()) {
-//							num  = caller.getNumberOfGroundingsForRegressionEx(posEx);
-//						}
-//						if (num == 0) {
-//							Utils.waitHere("Number of groundings = 0 for " + posEx + " with " + caller.getClause());
-//							num = 1;
-//						}
-//						//Utils.println("adding "  + num + ":" + output + ":" + fraction);
-//						trueBranchStats.addNumOutput(num, output, fraction*posEx.getWeightOnExample(),((RegressionRDNExample) posEx).getProbOfExample().getProbOfBeingTrue());
-//					}
-//				}
-//				/* else {
-//                	if (theILPtask.isaTreeStructuredTask()) {
-//                		if (caller.getParentNode() == null ||
-//                			!caller.getParentNode().posExampleAlreadyExcluded(posEx)) {
-//                			long num = 1;
-//                			if (caller.getParentNode() != null) {
-//                				num = ((RegressionExample)posEx).lookupCachedGroundings(caller.getParentNode());
-//                				if (num == -1) {
-//                					Utils.error("The parent node for " + caller.getClause() + " has no cache for " + posEx);
-//                				}
-//                			}
-//                			falseBranchStats.addNumOutput(num, output);
-//                		}
-//                	}
-//                }*/
-//			}
-//				//if (theILPtask.isaTreeStructuredTask()) {
-//			if(((LearnOneClause)caller.task).currentStartingNode == caller) {
-//				Utils.waitHere("Starting node is same as current node for " + caller.getClause());
-//			}
-//			
-//		// TODO(test)
-//			 falseBranchStats = new BranchStats().add(caller.getTotalFalseBranchStats());
-//		
-//			if (!theILPtask.isaTreeStructuredTask()) {
-//				// Automatically has weight of zero.
-//				falseBranchStats.setZeroLambda();
-//			}
-//			if (falseBranchStats.getNumExamples() == 0) {
-//				//Utils.println("No examples on false branch:"+caller.toString());
-//			}
-//			
-//		}
-//	}
-//
 
 }

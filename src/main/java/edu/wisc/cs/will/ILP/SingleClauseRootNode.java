@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
 
 import java.util.HashMap;
@@ -10,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;
-import edu.wisc.cs.will.FOPC.Constant;
 import edu.wisc.cs.will.FOPC.Function;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName;
@@ -25,28 +21,18 @@ import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
 
 /**
  * @author shavlik
- *
- *
  */
 @SuppressWarnings("serial")
 public class SingleClauseRootNode extends SingleClauseNode {
 	protected Literal        target;          // For now, only work on one target (at a time? to do).
 	protected List<ArgSpec>  targetArgSpecs;  // The info about the target argument being used and the variable matched with the type.
-	protected List<Term>     variablesInTarget             = null;  // These should be typed.
-	protected Set<Variable>  requiredBodyVariablesInTarget = null;
-	protected PredicateName  targetPredicate               = null;
-	protected int            targetPredicateArity          =   -1;
-	
-	/**
-	 * @param task
-	 * @param head
-	 * @param enabler
-	 * @param typesPresentInHead
-	 * @param typesMapInHead
-	 * @throws SearchInterrupted 
-	 */
-	public SingleClauseRootNode(StateBasedSearchTask task, Literal head, List<ArgSpec> argSpecs, List<Term> variables,
-								PredicateSpec enabler, List<Type> typesPresentInHead, Map<Type,List<Term>> typesMapInHead) throws SearchInterrupted {
+	List<Term>     variablesInTarget             = null;  // These should be typed.
+	Set<Variable>  requiredBodyVariablesInTarget = null;
+	private PredicateName  targetPredicate               = null;
+	private int            targetPredicateArity          =   -1;
+
+	SingleClauseRootNode(StateBasedSearchTask task, Literal head, List<ArgSpec> argSpecs, List<Term> variables,
+						 PredicateSpec enabler, List<Type> typesPresentInHead, Map<Type, List<Term>> typesMapInHead) throws SearchInterrupted {
 		super(task);
 		target               = head;
 		targetArgSpecs       = argSpecs;  // Utils.println("% targetArgSpecs: " + targetArgSpecs);  // DOES THIS ONLY DO THE TOP-LEVEL OF TERMS?  OR ALL VARIABLES DEEPLY EMBEDDED?
@@ -54,7 +40,7 @@ public class SingleClauseRootNode extends SingleClauseNode {
 		targetPredicateArity = head.numberArgs();
 		variablesInTarget    = variables;
 		literalAdded = head; // The root has with the empty body (i.e., it is an implicit 'true').  So we'll store the head literal here.
-		depthOfArgs = new HashMap<Term,Integer>(head.numberArgs());
+		depthOfArgs = new HashMap<>(head.numberArgs());
 		markDepthOfLeafTerms(head.getArguments(), 0); // The depth of all the 'leaf' terms in the root (i.e., the head) is zero.
 		this.enabler = enabler;
 		typesPresent = typesPresentInHead;
@@ -66,10 +52,7 @@ public class SingleClauseRootNode extends SingleClauseNode {
 		}
 		computeCoverage();
 		Utils.println(MessageType.ILP_INNERLOOP, "\n% target           = " + target);
-		//Utils.println(  "%   targetArgSpecs = " + targetArgSpecs);
 		checkForRequiredBodyVars(target.getArguments());
-		//Utils.println(  "%   requiredBodyVariablesInTarget: " + requiredBodyVariablesInTarget); 
-		//nodeID = nodeCounter++;
 	}
 	
 	private void checkForRequiredBodyVars(List<Term> arguments) {
@@ -81,16 +64,14 @@ public class SingleClauseRootNode extends SingleClauseNode {
 				for (ArgSpec aSpec : targetArgSpecs) if (aSpec.arg == var && aSpec.typeSpec.mustBeInBody()) {
 					addRequiredBodyVariable((Variable) arg);
 				}
-			} else if (arg instanceof Constant) {
-				 
 			} else if (arg instanceof Function) { // Should be ok to dive into ConsCells here.
 				Function f = (Function) arg;
 				checkForRequiredBodyVars(f.getArguments());
 			} else { Utils.error("Should never reach here."); }
 		}
 	}
-	
-	public void addRequiredBodyVariable(Variable var) {
+
+	private void addRequiredBodyVariable(Variable var) {
 		if (requiredBodyVariablesInTarget == null) {
 			requiredBodyVariablesInTarget = new HashSet<Variable>(4);
 		}

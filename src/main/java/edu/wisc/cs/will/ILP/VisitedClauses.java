@@ -1,9 +1,5 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.ILP.LearnOneClause;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,32 +46,18 @@ public class VisitedClauses extends ClosedList {
 	 * 	sort the literals in the clause (including the head though that might not be necessary)
 	 *  see if variants
 	 */
-	public VisitedClauses() {
+	private VisitedClauses() {
 		literalComparator = new LiteralComparator();
 		canonicalClauses  = new HashMap<Integer,Map<PredicateName,List<List<Literal>>>>(64);
 		tempBindings      = new BindingList();
 	}
-	public VisitedClauses(int maxSize) {
+	VisitedClauses(int maxSize) {
 		this();
 		this.maxSize = maxSize;		
 	}
-	public VisitedClauses(boolean sortLiterals) {
-		this();
-		this.sortLiterals = sortLiterals;
-		literalComparator = new LiteralComparator();
-		canonicalClauses  = new HashMap<Integer,Map<PredicateName,List<List<Literal>>>>(64);
-		tempBindings      = new BindingList();
-	}
-	public VisitedClauses(int maxSize, boolean sortLiterals) {
-		this(maxSize);
-		this.sortLiterals = sortLiterals;
-	}
 
-	
-	public void reduceSize() {
-		reduceSize(fractionToKeep);
-	}
-	public void reduceSize(double fraction) { // Reduce the size to about this fraction of its current size.		
+
+	private void reduceSize(double fraction) { // Reduce the size to about this fraction of its current size.
 		if (fraction <= 0.0) { emptyClosedList(); return; } // Negative fractions interpreted as 'clear all.'
 		if (fraction >= 1.0) { return; }
 		
@@ -156,8 +138,6 @@ public class VisitedClauses extends ClosedList {
 		for (Literal lit : literals) { newLiterals.add(lit.copy(true)); }
 		stringHandler.popVariableHash();
 		if (sortLiterals) { Collections.sort(newLiterals, literalComparator); } // Sorting is done in place.
-		// Utils.println("\nOld literals: " + literals);
-		// Utils.println(  "New literals: " + newLiterals + "\n");
 		return newLiterals;
 	}
 	
@@ -195,27 +175,16 @@ public class VisitedClauses extends ClosedList {
 		List<Literal>    literals   = createCanonicalClause(clauseNode);
 		addListOfLiteralsToClosed(literals);
 	}
-	public void addClauseToClosed(HandleFOPCstrings stringHandler, Clause clause) {
+	void addClauseToClosed(HandleFOPCstrings stringHandler, Clause clause) {
 		List<Literal>    literals   = createCanonicalClause(stringHandler, clause);
 		addListOfLiteralsToClosed(literals);
 	}
-	public List<Literal>  addListOfUnsortedLiteralsToClosed(HandleFOPCstrings stringHandler, List<Literal> literals) {
-		if (literals == null) { return null; }
-		List<Literal>    newLiterals = new ArrayList<Literal>(literals.size());
-		stringHandler.pushVariableHash(); // Want to have all new variables in these.
-		for (Literal lit : literals) { newLiterals.add(lit.copy(true)); }
-		stringHandler.popVariableHash();
-		if (sortLiterals) { Collections.sort(newLiterals, literalComparator); }
-		addListOfLiteralsToClosed(newLiterals);
-		return newLiterals;
-	}
+
 	private void addListOfLiteralsToClosed(List<Literal> literals) {
 		Integer          primaryKey   = getPrimaryKey(  literals);
 		PredicateName    secondaryKey = getSecondaryKey(literals);
 		Map<PredicateName,List<List<Literal>>> hashObj1 = canonicalClauses.get(primaryKey);		
-		
-		//if (LearnOneClause.debugLevel > 2) { Utils.println(">>>>>>> ADD >>>>>>>>>>> '" + clauseNode + "' primaryKey = " + primaryKey + ", secondary = " + secondaryKey + " [current size=" + size + "]"); }
-		
+
 		size++;
 		if (maxSize > 0 && maxSize - size < maxSize / 10) { reduceSize(fractionToKeep); }  // Reduce if within 10% of full.
 		if (hashObj1 == null) { // No items yet with this primary key.
@@ -262,17 +231,11 @@ public class VisitedClauses extends ClosedList {
 		if (LearnOneClause.debugLevel > 2 && oldLits != null) { Utils.println("  ***** '" + node + "' is a variant of: " + oldLits); }
 		return oldLits != null;
 	}
-	public List<Literal> alreadyInClosedList(HandleFOPCstrings stringHandler, Clause clause) {
+	List<Literal> alreadyInClosedList(HandleFOPCstrings stringHandler, Clause clause) {
 		List<Literal>    literals  = createCanonicalClause(stringHandler, clause);
 		return alreadyInClosedList(literals);
 	}
-	public List<Literal> alreadyInClosedListAfterSorting(List<Literal> literals) {
-		if (literals == null) { return null; }
-		List<Literal>    newLiterals = new ArrayList<Literal>(literals.size());
-		newLiterals.addAll(literals);
-		if (sortLiterals) { Collections.sort(newLiterals, literalComparator); }
-		return alreadyInClosedList(newLiterals);
-	}
+
 	private List<Literal> alreadyInClosedList(List<Literal>    literals) {
 		Integer          primaryKey   = getPrimaryKey(  literals);
 		PredicateName    secondaryKey = getSecondaryKey(literals);
@@ -304,10 +267,6 @@ public class VisitedClauses extends ClosedList {
 		if (LearnOneClause.debugLevel > 2 && size > 0) { Utils.println("\n^^^^^^ Clearing CLOSED ^^^^^^ (size=" + size + ")"); }
 		size = 0;
 		if (canonicalClauses != null) { canonicalClauses.clear(); }		
-	}	
-	
-	public void reportClosedSize() {
-		Utils.println("% |Closed| = " + Utils.comma(size) + ", |canonicalClauses| = " + Utils.comma(canonicalClauses));
 	}
 
 	public String toString() {

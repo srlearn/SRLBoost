@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.Utils;
 
 import java.util.Comparator;
@@ -10,14 +6,14 @@ public class AlphanumComparator implements Comparator<String> {
 
     public static final AlphanumComparator ALPHANUM_COMPARATOR = new AlphanumComparator();
 
-    char[] numbers = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
+    private char[] numbers = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
 
     private AlphanumComparator() {
     }
 
     private boolean isIn(char ch, char[] chars) {
-        for (int i = 0; i < chars.length; i++) {
-            if (ch == chars[i]) {
+        for (char aChar : chars) {
+            if (ch == aChar) {
                 return true;
             }
         }
@@ -30,7 +26,9 @@ public class AlphanumComparator implements Comparator<String> {
         }
 
         char s0 = s.charAt(0);
-        int chunkType = 0;   // 0 = alphabetic, 1 = numeric
+
+        // 0 = alphabetic, 1 = numeric
+        int chunkType = 0;
 
         if (isIn(s0, numbers)) {
             chunkType = 1;
@@ -39,11 +37,7 @@ public class AlphanumComparator implements Comparator<String> {
         if ((chunkType == 0) && (isIn(ch, numbers))) {
             return false;
         }
-        if ((chunkType == 1) && (!isIn(ch, numbers))) {
-            return false;
-        }
-
-        return true;
+        return (chunkType != 1) || (isIn(ch, numbers));
     }
 
     @Override
@@ -51,13 +45,12 @@ public class AlphanumComparator implements Comparator<String> {
         // This is soo much easier in a pattern-matching
         // language like Perl!
 
-
         int thisMarker = 0;
-        int thisNumericChunk = 0;
-        String thisChunk = new String();
+        int thisNumericChunk;
+        String thisChunk;
         int thatMarker = 0;
-        int thatNumericChunk = 0;
-        String thatChunk = new String();
+        int thatNumericChunk;
+        String thatChunk;
 
         while ((thisMarker < s1.length()) && (thatMarker < s2.length())) {
             char thisCh = s1.charAt(thisMarker);

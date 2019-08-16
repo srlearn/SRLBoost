@@ -13,22 +13,22 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 @SuppressWarnings("serial")
 public class SavedClause implements Serializable {
-	protected long             nodeCountWhenSaved;
-	protected long             acceptableNodeCountWhenSaved;	
-	protected boolean          examplesFlipFlopped;
-	protected String           annotation; // Holds a string that will be printed when the clause is dumped.
-	protected String           clauseCreator; // Annotation about what created this clause.
-	protected double posCoverage;
-	protected double negCoverage;
+	long nodeCountWhenSaved;
+	long acceptableNodeCountWhenSaved;
+	boolean examplesFlipFlopped;
+	String annotation; // Holds a string that will be printed when the clause is dumped.
+	String clauseCreator; // Annotation about what created this clause.
+	double posCoverage;
+	double negCoverage;
 	protected double precision;
 	protected double recall;
 	protected double F1;
 	protected double score;
-	protected Set<Example> uncoveredPos;
-	protected Set<Example> uncoveredNeg;
-	protected String       ruleAsString;
+	Set<Example> uncoveredPos;
+	Set<Example> uncoveredNeg;
+	String ruleAsString;
 	
-	public SavedClause(Gleaner caller, SingleClauseNode clause, long nodeCountWhenSaved, long acceptableNodeCountWhenSaved, boolean examplesFlipFlopped, String annotation, String clauseCreator) {
+	SavedClause(Gleaner caller, SingleClauseNode clause, long nodeCountWhenSaved, long acceptableNodeCountWhenSaved, boolean examplesFlipFlopped, String annotation, String clauseCreator) {
 		this.nodeCountWhenSaved           = nodeCountWhenSaved;
 		this.acceptableNodeCountWhenSaved = acceptableNodeCountWhenSaved;
 		this.examplesFlipFlopped          = examplesFlipFlopped;
@@ -47,15 +47,11 @@ public class SavedClause implements Serializable {
 			if (((LearnOneClause) caller.getTaskBeingMonitored()).regressionTask && !((LearnOneClause) caller.getTaskBeingMonitored()).oneClassTask) {
 				ruleAsString = "\n " + clause.reportRegressionRuleAsString(examplesFlipFlopped);
 			} else {
-				ruleAsString         = (examplesFlipFlopped ? "not_" : "") + caller.handleInlinersIfPossible(clause.getClause()).toPrettyString("   ", Integer.MAX_VALUE) + ".";
+				ruleAsString = (examplesFlipFlopped ? "not_" : "") + caller.handleInlinersIfPossible(clause.getClause()).toPrettyString("   ", Integer.MAX_VALUE) + ".";
 			}
 		} catch (Exception e) {
 			Utils.reportStackTrace(e);
 			Utils.error();
 		}
-		// Utils.waitHere("SavedClause: annotation = " + annotation + " and creator = " + clauseCreator);
 	}
-	
-	
-
 }

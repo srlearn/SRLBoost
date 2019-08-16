@@ -11,8 +11,7 @@ public class BreadthFirstSearch extends SearchStrategy {
     /**
      * Default constructor. Does nothing.
      */
-    public BreadthFirstSearch() {
-    }
+    BreadthFirstSearch() {}
 
     /**
      * Adds the given node to the end of the open list so that the nearest

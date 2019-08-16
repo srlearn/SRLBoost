@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
@@ -58,14 +54,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
  * @author twalker
  */
 public class RelevantClauseInformation implements Cloneable, RelevantInformation {
 
-    public static final SentenceGeneralizer GENERALIZER_SENTENCE_VISITOR = new SentenceGeneralizer();
+    private static final SentenceGeneralizer GENERALIZER_SENTENCE_VISITOR = new SentenceGeneralizer();
 
-    public static final ConstantMarkerAdderSV CONSTANT_MARKER_ADDER_SV = new ConstantMarkerAdderSV();
+    private static final ConstantMarkerAdderSV CONSTANT_MARKER_ADDER_SV = new ConstantMarkerAdderSV();
 
     private static final SentenceGeneralizerVisitor SENTENCE_GENERALIZER_VISITOR = new SentenceGeneralizerVisitor();
 
@@ -91,13 +86,13 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     private Set<Variable> outputVariables = null;
 
-    public RelevantClauseInformation(Example example, Sentence generalizeAdviceSentence, List<TypeSpec> typeSpecList) {
+    private RelevantClauseInformation(Example example, Sentence generalizeAdviceSentence, List<TypeSpec> typeSpecList) {
         this.example = example;
         this.sentence = generalizeAdviceSentence;
         this.typeSpecList = typeSpecList;
     }
 
-    public RelevantClauseInformation(Example generalizedExample, Sentence sentence) {
+    RelevantClauseInformation(Example generalizedExample, Sentence sentence) {
         this.example = generalizedExample;
         this.sentence = sentence;
 
@@ -108,25 +103,17 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return sentence;
     }
 
-    public Clause getClauseWithConstantsMarker() {
-
-
+    Clause getClauseWithConstantsMarker() {
         Clause origClause = sentence.asClause();
-
         ConstantMarkerData data = new ConstantMarkerData(constantPositions);
-
-        Clause newClause = (Clause) origClause.accept(CONSTANT_MARKER_ADDER_SV, data);
-
-
-
-        return newClause;
+        return (Clause) origClause.accept(CONSTANT_MARKER_ADDER_SV, data);
     }
 
     public Example getExample() {
         return example;
     }
 
-    public ConnectedSentence getImpliedSentence() {
+    private ConnectedSentence getImpliedSentence() {
         ConnectedSentence newSentence = example.getStringHandler().getConnectedSentence(getSentence(), ConnectiveName.IMPLIES, example);
         return newSentence;
     }
@@ -141,61 +128,11 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         Example newExample = new Example(GENERALIZER_SENTENCE_VISITOR.generalize(groundExample, null, termToVariableMap));
         Sentence newSentence = GENERALIZER_SENTENCE_VISITOR.generalize(groundSentence, constantPositions, termToVariableMap);
 
-
-        // I turned off the following.  I think it might be necessary for PossiblyMarkAncestorsWithPriority, but
-        // it definitely breaks others, so I am disabling it for now.
-//        // Sometimes a generalization is too general.  For example,
-//        // when we encounter a list [xxx] and the constant xxx,
-//        // the first will be generalized to variable A and the
-//        // second will be generalized to variable B.
-//        // We would rather have [xxx] generalized to [B] since
-//        // xxx is a subterm.
-//        //
-//        // To that end, we look for term in the termToVariableMap
-//        // for which this occurs.
-//        BindingList undoGeneralizationList = new BindingList();
-//        Map<Term,Term> newMappings = new HashMap<Term, Term>();
-//
-//        for (Map.Entry<Term, Term> entry : termToVariableMap.entrySet()) {
-//            Term termToSearchFor = entry.getKey();
-//
-//            for (Term termToSearch : termToVariableMap.keySet()) {
-//                if ( termToSearch != termToSearchFor && isSubterm(termToSearch, termToSearchFor) ) {
-//                    // we found one...
-//                    // now replace occurances of termToSearchFor
-//                    // in term to search with the termToSearchFor
-//                    // generalization.
-//
-//                    Term newTermToSearch = TermReplacer.replaceTerms(termToSearch, Collections.singletonMap(termToSearchFor, entry.getValue()));
-//
-//                    Term originalToValue = termToVariableMap.get(termToSearch);
-//
-//                    if ( originalToValue instanceof Variable ) {
-//                        undoGeneralizationList.addBinding((Variable)originalToValue, newTermToSearch); // This maps from A -> [B]
-//                        newMappings.put(termToSearch, newTermToSearch); // This maps from [xxx] -> [B]
-//                    }
-//                }
-//            }
-//        }
-//
-//        // Apply the undoGeneralizationList to both the example and the newSentence
-//        if ( undoGeneralizationList.isEmpty() == false ) {
-//            newExample = newExample.applyTheta(undoGeneralizationList);
-//            newSentence = newSentence.applyTheta(undoGeneralizationList);
-//
-//            // Also update the termToVariableMap...
-//            termToVariableMap.putAll(newMappings);
-//        }
-
         RelevantClauseInformation newRCI = this.copy();
         newRCI.example = newExample;
         newRCI.setSentence(newSentence);
         newRCI.mappings = termToVariableMap;
         newRCI.constantPositions = constantPositions;
-
-//        if (leaveSingleConstants) {
-//            newRCI.undoSingletonMappings();
-//        }
 
         return newRCI;
     }
@@ -381,7 +318,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return newGAC;
     }
 
-    public RelevantClauseInformation getInlined(HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
+    RelevantClauseInformation getInlined(HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
 
 
         Sentence newSentence = Inliner.getInlinedSentence(sentence, context, supportClauses);
@@ -398,7 +335,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
 
         RelevantClauseInformation result = this;
-        if (sentence.equals(newSentence) == false) {
+        if (!sentence.equals(newSentence)) {
             result = copy();
             result.setSentence(newSentence);
         }
@@ -422,7 +359,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return rci;
     }
 
-    public RelevantClauseInformation removeDuplicateDeterminates() {
+    RelevantClauseInformation removeDuplicateDeterminates() {
 
 
         Sentence newSentence = DuplicateDeterminateRemover.removeDuplicates(sentence);
@@ -433,7 +370,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return rci;
     }
 
-    public RelevantClauseInformation removeDoubleNegations() {
+    RelevantClauseInformation removeDoubleNegations() {
 
 
         Sentence newSentence = DoubleNegationByFailureRemover.removeDoubleNegationByFailure(sentence);
@@ -444,7 +381,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return rci;
     }
 
-    public RelevantClauseInformation applyPruningRules(AdviceProcessor ap) {
+    RelevantClauseInformation applyPruningRules(AdviceProcessor ap) {
 
         RelevantClauseInformation result = this;
 
@@ -452,7 +389,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
             ConnectedSentence implication = getImpliedSentence();
             ConnectedSentence newSentence = (ConnectedSentence)SentencePruner.pruneSentence(ap.getContext(), implication, ap.getPruningRules());
 
-            if ( implication.equals(newSentence) == false ) {
+            if (!implication.equals(newSentence)) {
                 result = copy();
                 result.setSentence(newSentence.getSentenceA());
                 result.example = new Example(newSentence.getSentenceB().asClause().getPosLiteral(0));
@@ -472,9 +409,9 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     }
 
-    public List<RelevantClauseInformation> expandNonOperationalPredicates(HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
+    List<RelevantClauseInformation> expandNonOperationalPredicates(HornClauseContext context) {
 
-        List<? extends Sentence> sentences = NonOperationalExpander.getExpandedSentences(context, sentence, supportClauses);
+        List<? extends Sentence> sentences = NonOperationalExpander.getExpandedSentences(context, sentence);
 
         int expansionCount = sentences.size();
 
@@ -482,14 +419,13 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
             Utils.waitHere("Number of non-operation exapansions exceeds 64.  RCI:\n" + this + ".");
         }
 
-
         List<RelevantClauseInformation> result;
 
-        if (sentences == null || sentences.size() == 1) {
+        if (sentences.size() == 1) {
             result = Collections.singletonList(this);
         }
         else {
-            result = new ArrayList<RelevantClauseInformation>();
+            result = new ArrayList<>();
 
             for (Sentence newSentence : sentences) {
                 RelevantClauseInformation newRCI = copy();
@@ -501,19 +437,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return result;
     }
 
-//    public RelevantClauseInformation getDisjunction(RelevantClauseInformation that) {
-//
-//    }
-//    public Sentence getFinalSentence() {
-////        return clause;
-//        if (isRelevanceFromPositiveExample()) {
-//            return getSentence();
-//        }
-//        Clause negatedGACforNegativeByFailureArgument = getStringHandler().getClause(null, getSentence().posLiterals);
-//        Literal negatedLiteral = getStringHandler().getLiteral(getStringHandler().standardPredicateNames.negationByFailure, getStringHandler().getSentenceAsTerm(negatedGACforNegativeByFailureArgument, null));
-//        Clause newClause = getStringHandler().getClause(negatedLiteral, true);
-//        return newClause;
-//    }
     @Override
     public String toString() {
         return toString("");
@@ -558,30 +481,12 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         this.containsAllAdvicePieces = containsAllAdvicePieces;
     }
 
-    public RelevanceStrength getOriginalRelevanceStrength() {
-        return getRelevanceStrength();
-    }
-
-    public void setOriginalRelevanceStrength(RelevanceStrength relevanceStrength) {
+    void setOriginalRelevanceStrength(RelevanceStrength relevanceStrength) {
         this.setRelevanceStrength(relevanceStrength);
     }
 
-    public RelevanceStrength getFinalRelevanceStrength() {
+    RelevanceStrength getFinalRelevanceStrength() {
         return relevanceStrength;
-//        if (isConstantsSplit() == false && isContainsAllAdvicePieces() == true) {
-//            if (true || isRelevanceFromPositiveExample()) {
-//                return RelevanceStrength.getStrongestRelevanceStrength();
-//            }
-//            else {
-//                return RelevanceStrength.POSSIBLE_ANSWER_NEG;
-//            }
-//        }
-//        else if (isConstantsSplit() == true && isContainsAllAdvicePieces() == false) {
-//            return RelevanceStrength.getWeakestRelevanceStrength();
-//        }
-//        else {
-//            return RelevanceStrength.getDefaultRelevanceStrength();
-//        }
     }
 
     public RelevantClauseInformation copy() {
@@ -807,14 +712,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return result;
     }
 
-//    public void replacePositiveTerm(TermPosition position, Term newTerm) {
-//        Literal lit = getSentence().getPosLiteral(position.literalPosition);
-//
-//        Variable v = (Variable) lit.getArgument(position.termPosition);
-//
-//        lit.setArgument(position.termPosition, newTerm);
-//        mappings.put(v, newTerm);
-//    }
     private void markConstants() {
         ConstantMarkerRemover sv = new ConstantMarkerRemover();
         ConstantMarkerData data = new ConstantMarkerData();
@@ -904,22 +801,19 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return true;
     }
 
-    /**
-     * @param clause the clause to set
-     */
     public void setSentence(Sentence sentence) {
         this.sentence = sentence;
     }
 
-    public boolean addOutputVariable(Variable e) {
+    void addOutputVariable(Variable e) {
         if (outputVariables == null) {
             outputVariables = new HashSet<Variable>();
         }
 
-        return outputVariables.add(e);
+        outputVariables.add(e);
     }
 
-    public Set<Variable> getOutputVariables() {
+    Set<Variable> getOutputVariables() {
         if (outputVariables == null) {
             return Collections.EMPTY_SET;
         }
@@ -972,13 +866,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
             this.currentMappings = currentMappings;
         }
 
-        public GeneralizerData(Map<Term, Term> currentMappings) {
-            if (currentMappings == null) {
-                currentMappings = new HashMap<Term, Term>();
-            }
-            this.currentMappings = currentMappings;
-        }
-
         public boolean isCurrentPositionConstant() {
             return constantPositions != null && constantPositions.contains(getCurrentPosition());
         }
@@ -991,8 +878,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     public static class ConstantMarkerRemover extends DefaultFOPCVisitor<ConstantMarkerData> {
 
-        public ConstantMarkerRemover() {
-        }
+        ConstantMarkerRemover() {}
 
         public Clause visitClause(Clause clause, ConstantMarkerData data) {
             List<Literal> positiveLits = null;

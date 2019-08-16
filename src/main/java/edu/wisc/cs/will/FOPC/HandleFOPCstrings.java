@@ -1220,7 +1220,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 		PredicateName result = new PredicateName(name, this); // Store using the first version seen.
 		predicateNameHash.put(stdName, result);
-        if ( stdName.equals(name) == false ) {
+        if (!stdName.equals(name)) {
             // TAW: This is a bit of a hack to add both the standardized name
             // TAW: and the non-standard, but cleaned name to the predicateNameHash.
             // TAW: This resolves an issue that occurs when the ignoreCaseOfStringsOtherThanFirstChar
@@ -1265,9 +1265,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
     * This is used to look up PredicateNames when we are de-serializing.  We attempt to maintain
     * some information if possible about the predicateName.  However, in most cases, the predicateNames
     * will already be instantiated and we will probably lose the serialized predicateName information anyway.
-    *
-    * @param pName
-    * @return
     */
     protected PredicateName getPredicateName(PredicateName pName) {
 		String name    = pName.name; // cleanString(pName.name); // should already be cleaned..
@@ -1314,7 +1311,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return getVariableOrConstant(spec, name, false); // The default is to NOT create new variables.
 	}
 	public Term getVariableOrConstant(TypeSpec spec, String name, boolean createNewVariable) {
-		//Utils.println("getVariableOrConstant/3: " + name);
 		if (isaConstantType(name)) { return getStringConstant(spec, name); } else { return getExternalVariable(spec, name, createNewVariable); }
 	}
 
@@ -1322,7 +1318,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return getVariableOrConstant(name, false);
 	}
 	public Term getVariableOrConstant(String name, boolean createNewVariable) {
-		//Utils.println("getVariableOrConstant/2: " + name);
 		String typeIfNumber = isaNumericConstant(name);
 
 		if (typeIfNumber == null) {
@@ -1335,7 +1330,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return null;
 	}
 
-	public String isaNumericConstant(String name) {
+	private String isaNumericConstant(String name) {
 		if (name == null || name.length() < 1) { return null; }
 		switch (name.charAt(0)) {
 			case '-':
@@ -1362,12 +1357,11 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	}
 
 	// Should this be interpreted as a Constant (or a Variable)?
-	public boolean isaConstantType(String name) {
+	boolean isaConstantType(String name) {
 		if (name == null || name.length() < 1) { return false; } // Only variables can be nameless.
-		Character char0 = name.charAt(0);
+		char char0 = name.charAt(0);
 		if (char0 == '_') { return false; } // Underscore always indicates variable ala' YAP.
 		if (doVariablesStartWithQuestionMarks()) { return char0 != '?'; }
-		if (name.equals("")) { return true; }
 		// Ellipsis in range: is considered a constant
 		if (name.equals("...")) { return true; }
 		switch (char0) {
@@ -1392,7 +1386,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	}
 
 	private Map<String,Integer> mapForGetUniqueStringConstant = new HashMap<String,Integer>(4);
-	public StringConstant getUniqueStringConstant(String string) {
+	StringConstant getUniqueStringConstant(String string) {
 		Integer lookup = mapForGetUniqueStringConstant.get(string);
 		if (lookup == null) {
 			lookup = 0;
@@ -1411,7 +1405,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 			if (lookup > 123456) { Utils.error("getUniqueStringConstant: string =" + string); }
 		}
 	}
-	public StringConstant getUnCleanedStringConstant(String name) { // This means we'll keep quote marks here (and so wont match to unquoted version) - so use carefully!
+	StringConstant getUnCleanedStringConstant(String name) { // This means we'll keep quote marks here (and so wont match to unquoted version) - so use carefully!
 		return getStringConstant(null, name, false);
 	}
 	public StringConstant getStringConstant(String name) {
@@ -1443,12 +1437,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 				nameRaw = nameRaw.substring(1, nameRaw.length() - 1); // Drop the first and last characters (i.e., the quote marks).
 				hadQuotesOriginally = true;
 			}
-			//Utils.println("*** INNER NAME FOR [" + name + "] is [" + hashName.toLowerCase() + "].");
-		} // else { Utils.println("***** No quotes in " + name + "."); }
+		}
 
 		String name = (cleanString ? cleanString(nameRaw, hadQuotesOriginally) : nameRaw);
 		if (name == null)      { name = "nullString";  }
-//		if (name.length() < 1) { name = "emptyString"; } // Changed by JWS 5/11.
 
 		String         stdName     = standardize(name, cleanString, hadQuotesOriginally); // Hash case-independently.
 		StringConstant hashedValue = stringConstantHash.get(stdName);
@@ -1457,7 +1449,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 			return hashedValue;
 		}
 
-		// NOTE: "!clean" below had been "!clean|| hadQuotesOriginally
 		StringConstant result = new StringConstant(this, name, !cleanString, doVariablesStartWithQuestionMarks(), usingStdLogicNotation(), spec); // Use the first name encountered.
 		stringConstantHash.put(stdName, result);
 		return result;
@@ -1486,202 +1477,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 				return null;
 			}
 		}
-	}
-
-	/* THIS CODE IS NO LONGER USED SINCE THE SAME TERM CAN HAVE MULTIPLE NAMES - JWS, 5/09
-	// This is used for terms of the form:  p(x=1, y=2).  Ie, the termNames are the 'x' and the 'y' in this example.
-	// NOTE: for now, this code is written all in one method, rather than via object-oriented style.
-	// If named arguments get more use, this should be cleaned up.  TODO
-	public Term assignTermName(Term term, String termName) {
-		if (term     == null) { Utils.error("Cannot have term=null here."); }
-		if (termName == null) { Utils.error("Cannot have termName=null here."); }
-		if (termName.equalsIgnoreCase(term.argumentName)) { return term; } // Already properly named.
-		if (term instanceof Variable) {
-			Variable       var       = (Variable) term;
-			String         varName   = var.name;
-			String         stdName   = (termName + "=" + varName).toLowerCase();
-			Stack<Variable> hashedStackOfValues = variableHash.get(stdName);
-			if (hashedStackOfValues != null && !hashedStackOfValues.empty()) {
-				Variable result = hashedStackOfValues.peek();  // Return the top of the stack.
-				if (result == null) { Utils.error("This should never happen."); }
-				if (result.argumentName == null) {
-					result.argumentName = termName;
-				}
-				else if (!result.argumentName.equalsIgnoreCase(termName)) {
-					Utils.error("This variable is already named: '" + result.argumentName + "' so cannot name to '" + termName + "'.  Variable: " + term);
-				}
-				if (result.getTypeSpec() != term.getTypeSpec()) {
-					Utils.error("These type spec's should match '" + term.getTypeSpec() + "' and '" + result.getTypeSpec() + "'.");
-				}
-				return result;
-			}
-
-			Variable        result = new Variable(this, varName, overallCounter++, term.getTypeSpec());
-			Stack<Variable> stack  = new Stack<Variable>();
-			stack.push(result);
-			variableHash.put(stdName, stack);  // TODO - will these unify?  and if not, are constants also buggy????
-			variableNamesSeen.add(stdName);
-			// Utils.println(" add variable (version 2) " + stdName);
-			result.argumentName = termName;
-			return result;
-		}
-		if (term instanceof StringConstant) {
-			String         constName   = ((StringConstant) term).name;
-			String         stdName     = (termName + "=" + constName). toLowerCase(); // Hash case-independently.
-			StringConstant hashedValue = stringConstantHash.get(stdName);
-			if (hashedValue != null) {
-				if (hashedValue.argumentName == null) {
-					Utils.error("Should have an argument name: '" + hashedValue + "'.");
-					// hashedValue.argumentName = termName;
-				}
-				else if (!hashedValue.argumentName.equalsIgnoreCase(termName)) {
-					Utils.error("This string constant is already named: '" + hashedValue.argumentName + "' so cannot name to '" + termName + "'.  Constant: " + term);
-				}
-				return hashedValue;
-			}
-
-			StringConstant result = new StringConstant(this, constName, doVariablesStartWithQuestionMarks(), lowercaseMeansVariable, term.getTypeSpec());
-			stringConstantHash.put(stdName, result);
-			result.argumentName = termName;
-			return result;
-		}
-		if (term instanceof NumericConstant) {
-			NumericConstant numConst = (NumericConstant) term;
-			String stdName = (termName + "=" + numConst.getName()).toLowerCase(); // Hash case-independently.
-			NumericConstant hashedValue = numericConstantHash.get(stdName);
-
-			if (hashedValue != null) {
-				if (hashedValue.argumentName == null) {
-					Utils.error("Should have an argument name: '" + hashedValue + "'.");
-					//hashedValue.argumentName = termName;
-				}
-				else if (!hashedValue.argumentName.equalsIgnoreCase(termName)) {
-					Utils.error("This numeric constant is already named: '" + hashedValue.argumentName + "' so cannot name to '" + termName + "'.  Constant: " + term);
-				}
-				return hashedValue;
-			}
-
-			NumericConstant result = new NumericConstant(this, numConst.value, numConst.getType(), numConst.getTypeSpec());
-			numericConstantHash.put(stdName, result);
-			result.argumentName = termName;
-			return result;
-		}
-		if (Function.isaConsCell(term)) { // In order to get lists to pretty-print nicely, need to handle this specially.
-			ConsCell termAsCons   = (ConsCell) term;
-			String   functName = termAsCons.functionName.name;
-			// Not necessary to put the '=' here, since function instances aren't checked via '==' anyway.	Instead, just copy.
-			ConsCell newConsCell = getConsCell(getFunctionName(functName), termAsCons.getTypeSpec());
-			newConsCell.getArguments() = termAsCons.getArguments();
-			newConsCell.argumentName = termName;
-			return newConsCell;
-		}
-		if (term instanceof Function) {
-			Function termAsF   = (Function) term;
-			String   functName = termAsF.functionName.name;
-			// Not necessary to put the '=' here, since function instances aren't checked via '==' anyway.	Instead, just copy.
-			Function newFunction = getFunction(getFunctionName(functName), termAsF.getArguments(), termAsF.getTypeSpec());
-			newFunction.argumentName = termName;
-			return newFunction;
-		}
-		Utils.error("Unknown type of term: '" + term + "'.");
-		return null;
-	}
-
-	public Term unassignTermName(Term term) {
-		if (term.argumentName == null) { return term; } // Already  unnamed.
-		if (term instanceof NumericConstant) {
-			NumericConstant numConst = (NumericConstant) term;
-			String stdName = numConst.getName().toLowerCase(); // Hash case-independently.
-			NumericConstant hashedValue = numericConstantHash.get(stdName);
-
-			if (hashedValue != null) {
-				if (hashedValue.argumentName != null) {
-					Utils.error("This numeric constant has a name: '" + hashedValue.argumentName + "', so cannot be unnamed.  StdName='" + stdName + "'.\n hashedValue='" + hashedValue + "'  hashMap=" + numericConstantHash);
-				}
-				return hashedValue;
-			}
-
-			NumericConstant result = new NumericConstant(this, numConst.value, numConst.getType(), numConst.getTypeSpec());
-			numericConstantHash.put(stdName, result);
-			result.argumentName = null;
-			return result;
-		}
-		if (term instanceof StringConstant) {
-			String         constName   = ((StringConstant) term).name;
-			String         stdName     = constName.toLowerCase(); // Hash case-independently.
-			StringConstant hashedValue = stringConstantHash.get(stdName);
-			if (hashedValue != null) {
-				if (hashedValue.argumentName != null) {
-					Utils.error("This string constant has a name: '" + hashedValue.argumentName + "', so cannot be unnamed.");
-				}
-				return hashedValue;
-			}
-
-			StringConstant result = new StringConstant(this, constName, doVariablesStartWithQuestionMarks(), lowercaseMeansVariable, term.getTypeSpec());
-			stringConstantHash.put(stdName, result);
-			result.argumentName = null;
-			return result;
-		}
-		if (term instanceof Variable) {
-			Variable       var       = (Variable) term;
-			String         varName   = var.name;
-			String         stdName   = varName.toLowerCase();
-			Stack<Variable> hashedStackOfValues = variableHash.get(stdName);
-			if (hashedStackOfValues != null && !hashedStackOfValues.empty()) {
-				Variable result = hashedStackOfValues.peek();  // Return the top of the stack.
-				if (result == null) { Utils.error("This should never happen."); }
-				if (result.argumentName != null) {
-					Utils.error("This variable has a name: '" + result.argumentName + "', so cannot be unnamed.");
-				}
-				if (result.getTypeSpec() != term.getTypeSpec()) {
-					Utils.error("These type spec's should match '" + term.getTypeSpec() + "' and '" + result.getTypeSpec() + "'.");
-				}
-				return result;
-			}
-
-			Variable        result = new Variable(this, varName, overallCounter++, term.getTypeSpec());
-			Stack<Variable> stack  = new Stack<Variable>();
-			stack.push(result);
-			variableHash.put(stdName, stack); //  Utils.println(" add variable (version 3) " + stdName);
-			variableNamesSeen.add(stdName);
-			result.argumentName = null;
-			return result;
-		}
-		if (Function.isaConsCell(term)) { // See explanation above for why ConsCell needs to be treated specially.
-			ConsCell termAsCons   = (ConsCell) term;
-			String   functName    = termAsCons.functionName.name;
-			ConsCell newConsCell  = getConsCell(getFunctionName(functName), termAsCons.getTypeSpec());
-			newConsCell.getArguments() = termAsCons.getArguments();
-			newConsCell.argumentName = null;
-			return newConsCell;
-		}
-		if (term instanceof Function) {
-			Function    termAsF  = (Function) term;
-			String    functName  = termAsF.functionName.name;
-			Function newFunction = getFunction(getFunctionName(functName), termAsF.getArguments(), termAsF.getTypeSpec());
-			newFunction.argumentName = null;
-			return newFunction;
-		}
-		Utils.error("Unknown term type: '" + term + "'.");
-		return null;
-	}
-	*/
-
-
-	public boolean needsToBeQuoted(String name) {
-		if (name == null || name.length() < 1) { return false; }
-		if (doVariablesStartWithQuestionMarks()) { return false; } // WAS:  name.charAt(0) == '?'; }
-		if (name.length() == 0) { return true; }
-		if ((usingStdLogicNotation() && Character.isLowerCase(name.charAt(0))) || // Need to quote to override current variable-versus-constant 'rule.'
-		    (usingPrologNotation()   && Character.isUpperCase(name.charAt(0)))) { return true; }
-
-		char[] characters = name.toCharArray();
-		for (int i = 0; i < name.length(); i++) {
-			if (!Character.isLetterOrDigit(characters[i])) { return true; }
-
-		}
-		return false;
-
 	}
 
 	protected int chooseStringForDouble(double value) { // NOTE: need to extend to handle long's. TODO
@@ -1850,8 +1645,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		if (callAddIsa) { isaHandler.addISA(constant, type); } // Keep the ISA hetrarchy and the information about constants consistent.  Also, avoid a circularity (wouldn't be an infinite loop due to other checking, but nevertheless would waste some cycles).
 	}
 
-	////////////////////// Variables ////////////////////
-
 	public void pushVariableHash() { // Utils.println(" pushVariableHash");
 		if (variableHash == null) { Utils.error("variableHash should not be null!"); }
 		stackOfVariableHashes.push(variableHash);
@@ -1935,10 +1728,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		for (Variable var : vars) { Utils.print(" " + var.getName() + ":" + var.counter); }
 		Utils.println("");
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// This is used to keep track of the parent of a variable when it arises from copying.  Currently only Variable.copy() adds to it.
-	// It is used when in a hack for the WisconsinRelevanceInterpreter and should not be used elsewhere.
-	// The same map is used here as in Binding so applyTheta can be used to reverse these copies where doing so is needed.
 	public Map<Variable,Term> parentVarMap = new HashMap<Variable,Term>(4);
 	private boolean recordParentVariables = false;
 	public void recordParentVariable(Variable newVar, Variable oldVar) {
@@ -1955,7 +1744,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		parentVarMap.clear();
 		recordParentVariables = false;
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public String getVariablePrefix() {
 		if (doVariablesStartWithQuestionMarks()) { return "?"; }
@@ -1973,10 +1761,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return getExternalVariable(name, false);
 	}
 	public Variable getExternalVariable(String name, boolean createNewVariable) {
-	//	if (isaConstantType(name)) {  CONVERT AS NEEDED
-	//		if (doVariablesStartWithQuestionMarks()) { Utils.error("Since variablesStartWithQuestionMarks=" + doVariablesStartWithQuestionMarks() + ", '" + name + "' cannot be the name of a variable."); }
-	//		Utils.error("Since lowercaseMeansVariable=" + lowercaseMeansVariable + ", '" + name + "' cannot be the name of a variable.");
-	//	}
 		return getExternalVariable(null, convertToVarString(name), createNewVariable);
 	}
 	public Variable getExternalVariable(TypeSpec spec, String name, boolean createNewVariable) {
@@ -1986,33 +1770,11 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private Variable getExternalVariable(TypeSpec spec, String name) {
 		Variable variable = help_getVariable(spec, name, false);
 		if (name == null) { Utils.waitHere("getVariable: name=null"); }
-//		if ( name != null ) variableNamesSeen.add(name);
         variableNamesSeen.add(name);
 		return variable;
 	}
-    public Variable getExternalVariable(String type, String postfix, long counter) {
-		if (doVariablesStartWithQuestionMarks()) {
-			String newType = (type.charAt(0) == '?' ? type : "?" + type);
-			return getExternalVariable(null, newType + postfix + "_" + counter);  // These could be GENERATED vars if we knew there were no name clashes when printed out and read back in.
-		}
-		String VtoUse = (usingStdLogicNotation() ? "v" : "V");
-		return getExternalVariable(null, VtoUse + (++var2Counter) +  "_" + type + postfix);
-	}
-
-    public Variable getTypedExternalVariable(String type, char modeAsChar, long counter) {
-		if (doVariablesStartWithQuestionMarks()) {
-			String newType = (type.charAt(0) == '?' ? type : "?" + type);
-			return getExternalVariable(new TypeSpec(modeAsChar, type, this), newType + "_" + counter);
-		}
-		String VtoUse = (usingStdLogicNotation() ? "v" : "V");
-		return getExternalVariable(new TypeSpec(modeAsChar, type, this), VtoUse + counter +  "_" + type);
-	}
 
 	public Variable getGeneratedVariable(String name, boolean createNewVariable) {
-	//	if (isaConstantType(name)) {
-	//		if (doVariablesStartWithQuestionMarks()) { Utils.error("Since variablesStartWithQuestionMarks=" + doVariablesStartWithQuestionMarks() + ", '" + name + "' cannot be the name of a variable."); }
-	//		Utils.error("Since lowercaseMeansVariable=" + lowercaseMeansVariable + ", '" + name + "' cannot be the name of a variable.");
-	//	}
 		return getGeneratedVariable(null, convertToVarString(name), createNewVariable);
 	}
 	public Variable getGeneratedVariable(TypeSpec spec, String name, boolean createNewVariable) {
@@ -2046,9 +1808,9 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		Variable        variable = new Variable(this, name, overallCounter++, spec, generatedVar);
 		Stack<Variable> stack    = new Stack<Variable>();
 		stack.push(variable);
-//        if (name != null) {
-            variableHash.put(name, stack);  // Utils.println(" add variable " + name);
-//        }
+
+		variableHash.put(name, stack);  // Utils.println(" add variable " + name);
+
         return variable;
 	}
 
@@ -2123,35 +1885,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 			}
 		}
 	}
-	/*  Trevor (or whoever): these might be needed in the Student.  See me on how to replace after I cleaned up some things in here.
-	public Variable getNewVariable(String type) {	MAYBE CHANGE "Variable" TO "V2var" in these names?
-		return getNewVariable(type, "");
-	}
-	public Variable getNewVariable(String type, String postfix) {
-		return getNewVariable(type, postfix, ++var2Counter);
-	}
-	public Variable getNewVariable(String type, String postfix, long counter) {
-		if (doVariablesStartWithQuestionMarks()) {
-			String newType = (type.charAt(0) == '?' ? type : "?" + type);
-			return getExternalVariable(null, newType + postfix + "_" + counter);  // These could be GENERATED vars if we knew there were no name clashes when printed out and read back in.
-		}
-		String VtoUse = (lowercaseMeansVariable ? "v" : "V");
-		return getExternalVariable(null, VtoUse + (++var2Counter) +  "_" + type + postfix);
-	}
-
-	public Variable getNewTypedVariable(String type, char modeAsChar) {
-		return getNewTypedVariable(type, modeAsChar, ++var2Counter);
-	}
-	public Variable getNewTypedVariable(String type, char modeAsChar, long counter) {
-		if (doVariablesStartWithQuestionMarks()) {
-			String newType = (type.charAt(0) == '?' ? type : "?" + type);
-			return getExternalVariable(new TypeSpec(modeAsChar, type, this), newType + "_" + counter);
-		}
-		String VtoUse = (lowercaseMeansVariable ? "v" : "V");
-		return getExternalVariable(new TypeSpec(modeAsChar, type, this), VtoUse + counter +  "_" + type);
-	}
-	*/
-
 
 	public Term createNewSkolem(List<Variable> outerUniversalVars, TypeSpec typeSpec) {
 		if (outerUniversalVars == null) {
@@ -2165,55 +1898,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		Function result = this.getFunction(fName, arguments, null);
 		result.typeSpec = typeSpec;
 		return result;
-	}
-
-	protected RecordHandler getRecordHandler() {
-		return recordHandler;
-	}
-
-	public boolean allArgumentsConstant(Literal lit) {
-		return help_allArgumentsConstant(lit.getArguments());
-	}
-	public boolean help_allArgumentsConstant(List<Term> items) {
-		if (items == null) { return true; }
-		for (Term term : items) {
-			if (  term instanceof Function)  {
-				if (!help_allArgumentsConstant(((Function) term).getArguments())) { return false; }
-			}
-			else if (!(term instanceof Constant)) { return false; }
-		}
-		return true;
-	}
-
-	// NOTE: this method has the SIDE EFFECT of adding 'lit' to 'hashedFactsByAllArgs' if not already in there, AND all the lit's arguments are constants.
-	public boolean existingVariableFreeLiteral(Literal lit, Map<PredicateName,Map<List<Term>,List<Literal>>> hashedFactsByAllArgs) { // NOTE: this does NOT handle cases with variables.
-		List<Term> args = lit.getArguments();
-		int numbArgs = lit.numberArgs();
-		if (!allArgumentsConstant(lit)) {
-			return false;  // Need ALL arguments to be constants to use this hash.
-		}
-		List<Term> argsAsConstants = (numbArgs == 0 ? null : new ArrayList<Term>(numbArgs));
-		if (args != null) for (Term term : args) {
-			if (term == null) { Utils.error("Have arg=null in '" + lit); }
-			argsAsConstants.add(term);
-		}
-		Map<List<Term>,List<Literal>> entry = hashedFactsByAllArgs.get(lit.predicateName);
-
-		if (entry == null) { // New entry.
-			entry = new HashMap<List<Term>,List<Literal>>(4);
-			hashedFactsByAllArgs.put(lit.predicateName, entry);
-		}
-		List<Literal> listOfLiterals = entry.get(argsAsConstants);
-		if (listOfLiterals == null) {
-			listOfLiterals = new ArrayList<Literal>(4);
-			entry.put(argsAsConstants, listOfLiterals);
-		}
-		else {
-			// Utils.println("DUP: " + lit + " in " + entry);
-			return true;
-		}
-		listOfLiterals.add(lit);
-		return false;
 	}
 
 	public void setPredicatesHaveCosts(boolean value) {
@@ -2250,14 +1934,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		recordSetParameter(paramName, paramValue, "set by call in code", -1);
 	}
 	public void recordSetParameter(String paramName, String paramValue, String fileName, int lineno) {
-		/*
-		SetParamInfo lookup = hashOfSetParameters.get(paramName);
-		if (lookup != null) {
-			if (lookup.parameterValue.equals(paramValue)) { return; }
-			Utils.error("Have already set '" + paramName + "' to " + lookup.parameterValue + " and now asking to set it to " + paramValue);
-		}
-		*/
-		//Utils.waitHere(paramName);
 		hashOfSetParameters.put(paramName, new SetParamInfo(paramName, paramValue, fileName, lineno));
 	}
 	public String getParameterSetting(String paramName) {
@@ -2282,14 +1958,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
     public void setInventedPredicateNameSuffix(String inventedPredicateNameSuffix) {
         this.inventedPredicateNameSuffix = inventedPredicateNameSuffix;
     }
-
-	public void complainAboutBadSetting(String paramName, String msgs) {
-		SetParamInfo lookup = hashOfSetParameters.get(paramName);
-
-		if (lookup == null) { Utils.error("Should not complain about parameter name that wasn't stored: '" + paramName + "'."); }
-		Utils.error("Parameter '" + paramName + " was set to an illegal value: '" + lookup.parameterValue +
-					" (line " + Utils.comma(lookup.lineNumber) + " of file '" + lookup.fileName + "'.");
-	}
 
 
 	public void addQueryPredicate(PredicateName predicate, int arity) {
@@ -2367,10 +2035,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return Utils.createSafeStringConstantForWILL(string, this);
 	}
 
-	public String createSafeStringVariableForWILL(String string) {
-		return Utils.createSafeStringVariableForWILL(string, this);
-	}
-
 	public boolean usingStrictEqualsForLiterals() {
 		return useStrictEqualsForLiterals;
 	}
@@ -2408,11 +2072,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
         return clauseOptimizer;
     }
 
-    public Clause getOptimizedClause(Clause clause) {
-        return getClauseOptimizer().rewriteWithCuts(clause);
-    }
-
-    protected String cleanString(String str) {
+	protected String cleanString(String str) {
     	return cleanString(str, false);
     }
     protected String cleanString(String str, boolean hadQuotesOriginally) {
@@ -2424,16 +2084,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
     }
 
 
-    /** Sets both the variant fact and variant rule handling to action.
-     *
-     * @param action the new VariantClauseAction action.
-     */
-    public void setVarientClauseHandling(VariantClauseAction action) {
-        this.variantFactHandling = action;
-        this.variantRuleHandling = action;
-    }
-
-    public StringConstant getAlphabeticalVariableName(int variableIndex) {
+	public StringConstant getAlphabeticalVariableName(int variableIndex) {
         StringBuilder stringBuilder = new StringBuilder();
 
         while (true) {
@@ -2461,18 +2112,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
         return getStringConstant(null, anonymousName, false);
     }
-
-	public static void main(String[] args)  {
-		args = Utils.chopCommentFromArgs(args);
-		HandleFOPCstrings stringHandler = new HandleFOPCstrings(VarIndicator.uppercase);
-
-		Utils.println("cleanString:                                " + Utils.cleanString("world1Ex2neg", null));
-		Utils.println("createSafeStringConstantForWILL(lowerCase): " + Utils.createSafeStringConstantForWILL("world1Ex2neg", stringHandler));
-		stringHandler.useStdLogicNotation();
-		Utils.println("createSafeStringConstantForWILL(upperCase): " + Utils.createSafeStringConstantForWILL("world1Ex2neg", stringHandler));
-		Utils.waitHere();
-
-	}
 
     /**
      * @return the knownModes
@@ -2521,13 +2160,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
         starModeMap = value;
     }
 	public int     getStarMode()          { return starModeMap; }
-	public String  getStarModeString()    { return TypeSpec.getModeString(starModeMap); }
 
-//    public void    setStarModeMap(int value) {        starModeMap = value; }
-//	public int     getStarModeMap()          { return starModeMap; }
-//	public String  getStarModeString()    { return TypeSpec.getModeString(starModeMap); }
-
-    class SetParamInfo {
+	class SetParamInfo {
         protected String parameterName; // Don't really need to store this, but might as well for completeness.
         protected String parameterValue;
         protected String fileName;
@@ -2558,8 +2192,4 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public Map<Type,Set<Term>> getKnownConstantsOfThisType() {
 		return knownConstantsOfThisType;
 	}
-
-
 }
-
-

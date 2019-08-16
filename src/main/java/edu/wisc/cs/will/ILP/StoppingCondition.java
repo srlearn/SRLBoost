@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.ILP;
 
 /** Generic stopping condition interface for a search process.
@@ -18,5 +13,5 @@ public interface StoppingCondition<L> {
      * whatever is evaluating this condition should stop executing.  False
      * indicates that the stopping conditions were not met.
      */
-    public boolean isStoppingConditionMet(L search);
+    boolean isStoppingConditionMet(L search);
 }

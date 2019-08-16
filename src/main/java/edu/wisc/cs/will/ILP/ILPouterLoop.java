@@ -29,12 +29,9 @@ import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -1268,7 +1265,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
    private long hold_NumericConstant_instancesCreated = 0;
    public void resetAll() {
       //  Utils.println("resetAll(before): " + Utils.reportSystemInfo());
-        innerLoopTask.resetAll(false);  // Clean up the inner loop in case we are starting a new fold...
+        innerLoopTask.resetAll();  // Clean up the inner loop in case we are starting a new fold...
       //  Utils.println("resetAll(after resetAll for inner loop): " + Utils.reportSystemInfo());
         outerLoopState.clearAll();
       //  Utils.println("resetAll(after resetAll for outer loop state): " + Utils.reportSystemInfo());
@@ -1672,20 +1669,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         
         return result;
 	}
-
-   /** Bridge method to ILPMain.main(String[]) method.
-    *
-    * Please update your code to use ILPMain.main() instead of ILPouterLoop.main().
-    *
-	* @param args
-	* @throws SearchInterrupted
-    * @throws IOException 
-    * @deprecated
-	*/
-	@Deprecated
-	public static void main(String[] args) throws SearchInterrupted, IOException {
-       ILPMain.main(args);
-   }
 
     /**
      * @return the outerLoopState

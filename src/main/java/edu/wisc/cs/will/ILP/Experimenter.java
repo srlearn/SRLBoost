@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.ILP;
 
 import java.io.BufferedReader;
@@ -10,8 +5,6 @@ import java.io.File;import java.io.FileNotFoundException;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,20 +17,12 @@ import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Theory;
 import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.ILP.TuneParametersForILP.ReasonToStopEarly;
 import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.Permute;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.WILLjumpOutOfHere;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.stdAIsearch.BestFirstSearch;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
-import java.io.FileReader;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  *
@@ -225,40 +210,7 @@ public class Experimenter { // TODO - maybe this should be ExperimentWithSimulat
 				targetPredicateName = learnOneClause.getPosExamples().get(0).predicateName; // WILL CRASH IF NO POS EXAMPLES.
 			} else {
 				targetPredicateName = learnOneClause.targets.get(0).predicateName;
-			}			
-			
-			/* THIS IS NO LONGER NEEDED SINCE NOW WE CREATE A SEPARATE FILE FOR EACH SETTING OF fractionOfTrainingExamplesToUse.  TODO - delete this code if still here after Nov 1, 2010.
-			// We deal with LEARNING CURVE experiments here, by changing the set of examples that outerLooper has.  This avoids needing to write files to disk.			
-			if (fractionOfTrainingExamplesToUse < 1.0 && !createAdviceNoiseFiles && !createDataFilesOnly) {
-				List<Example> allPosEx = learnOneClause.getPosExamples();
-				List<Example> allNegEx = learnOneClause.getNegExamples();
-				int numPosEx  = Utils.getSizeSafely(allPosEx);
-				int numNegEx  = Utils.getSizeSafely(allNegEx);
-				int posToKeep = (int) Math.round(numPosEx * fractionOfTrainingExamplesToUse); // Keep FRACTIONS of the examples.
-				int negToKeep = (int) Math.round(numNegEx * fractionOfTrainingExamplesToUse);
-				List<Example> newPosEx = null;
-				List<Example> newNegEx = null;
-				
-				if (posToKeep < numPosEx) {
-					newPosEx = new ArrayList<Example>(posToKeep);
-					for (int i = 0; i < posToKeep; i++) { newPosEx.add(allPosEx.get(i)); }
-				} else {
-					newPosEx = allPosEx;
-				}
-				if (negToKeep < numNegEx) {
-					newNegEx = new ArrayList<Example>(negToKeep);
-					for (int i = 0; i < negToKeep; i++) { newNegEx.add(allNegEx.get(i)); }
-				} else {
-					newNegEx = allNegEx;
-				}
-				
-				learnOneClause.setPosExamples(newPosEx);
-				learnOneClause.setNegExamples(newNegEx);
-				Utils.println("% Since fractionOfTrainingExamplesToUse = " + Utils.truncate(fractionOfTrainingExamplesToUse, 3) + " < 1, have reduced to " + Utils.comma(newPosEx) + " pos and " + Utils.comma(newNegEx) + " neg examples.");
 			}
-			*/
-			
-			
         } catch (IOException e) {
         	Utils.reportStackTrace(e);
 			Utils.error("Error: " + e);
@@ -330,52 +282,8 @@ public class Experimenter { // TODO - maybe this should be ExperimentWithSimulat
 		 Utils.truncate(fractionOfExamplesUsedForTuning, 2) + ")/maxNodesExpanded("                + 
 		 maxNodesExpanded                                   + ")]";
     }
-    
-    
-    public LearnOneClause createLearnOneClauseForLesson()  {
-        try {
-            String[] newArgList = new String[4];
-            newArgList[0] = getPosTrainExamplesFileName(creatingInitialBIGdata || createAdviceNoiseFiles || createDataFilesOnly);
-            newArgList[1] = getNegTrainExamplesFileName(creatingInitialBIGdata || createAdviceNoiseFiles || createDataFilesOnly);
-            newArgList[2] = getBKfileName();
-            newArgList[3] = getFactsFileName();
-            for (int i = 0; i <= 3; i++) { Utils.println("  " + newArgList[i]);}
-            LearnOneClause loc = new LearnOneClause(directory, null, newArgList[0], newArgList[1], newArgList[2], newArgList[3], null, null);
-
-            String posExtra = nameForShavlikGroup + "projects/BootstrapLearning/BL_1Kexamples/" + prefix + "BIG/" + prefix + "_Extra01_noAdvice_pos." + fileExtension;
-
-            List<Example> posExtraList = loc.readExamples(new BufferedReader( new CondorFileReader(posExtra)), posExtra);
-
-            String negExtra = nameForShavlikGroup + "projects/BootstrapLearning/BL_1Kexamples/" + prefix + "BIG/" + prefix + "_Extra01_noAdvice_neg." + fileExtension;
-
-            List<Example> negExtraList = loc.readExamples(new BufferedReader( new CondorFileReader(negExtra)), negExtra);
-
-            loc.getPosExamples().addAll(posExtraList);
-            loc.getNegExamples().addAll(negExtraList);
-
-            // This is hacked up (by Trevor :-) to handle the case of needing an extra example for one lesson.
-            File pos1More = new CondorFile(nameForShavlikGroup + "projects/BootstrapLearning/BL_1Kexamples/" + prefix + "BIG/" + prefix + "_onePosTwoNeg_pos." + fileExtension);
-            if ( pos1More.exists() ) {
-                List<Example> posExtraList2 = loc.readExamples(new BufferedReader( new CondorFileReader(pos1More)), posExtra);
-                loc.getPosExamples().addAll(posExtraList2);
-            }
-
-            File neg1More = new CondorFile(nameForShavlikGroup + "projects/BootstrapLearning/BL_1Kexamples/" + prefix + "BIG/" + prefix + "_onePosTwoNeg_neg." + fileExtension);
-            if ( neg1More.exists() ) {
-                List<Example> posExtraList2 = loc.readExamples(new BufferedReader( new CondorFileReader(neg1More)), posExtra);
-                loc.getNegExamples().addAll(posExtraList2);
-            }
 
 
-            return loc;
-        } catch (Exception e) {
-            Utils.reportStackTrace(e);
-            Utils.println("createLearnOneClauseForLesson error: " + e);
-            Utils.waitHere("Unable to load lesson ILP files for lesson " + prefix + " in directory " + directory + "/" + prefix + ".");
-        }
-        return null;        
-    }
-    
     public boolean isTheoryNothingLearned(File theoryFile) {
     	BufferedReader r = null;
     	try {
@@ -394,6 +302,7 @@ public class Experimenter { // TODO - maybe this should be ExperimentWithSimulat
     }
 
     public int correctionsByTrevor = 0;
+
     public CrossValidationFoldResult extractVerifyResultsFromTheory(File theoryFile, File resultsFile) {
         CrossValidationFoldResult result = null;
 
@@ -488,25 +397,6 @@ public class Experimenter { // TODO - maybe this should be ExperimentWithSimulat
                     Utils.copyFile(resultsFile, new CondorFile(resultsFile + ".autocorrected"));
                     
                     saveResultsToFile(training.getAccuracy(), tuning.getAccuracy(), testing.getAccuracy());
-                    /*BufferedWriter writer = null;
-                    try {
-                        Utils.copyFile(resultsFile, new CondorFile(resultsFile + ".autocorrected"));
-                        writer = new BufferedWriter(new CondorFileWriter(resultsFile));
-                        writer.append(stringBuilder.toString());
-
-                        Utils.println("Corrected results file " + resultsFile + ".");
-                    } catch (IOException iOException) {
-                        Utils.warning("Error occurred rewriting results file " + resultsFile + "\n  " + iOException);
-                        if ( writer != null ) writer.close();
-                    } finally {
-
-                        if (writer != null) {
-                            try {
-                                writer.close();
-                            } catch (IOException ex) {
-                            }
-                        }
-                    }*/
                 }
             }
             else {
@@ -614,316 +504,20 @@ public class Experimenter { // TODO - maybe this should be ExperimentWithSimulat
         freshL1C.setMEstimatePos(0); // M-estimates are to help avoid overfitting the training set, so not needed here (though 'error bars' would be nice).
         freshL1C.setMEstimateNeg(0);
         CoverageScore results = freshL1C.getWeightedCoverage(theoryAnew);
-        // Utils.println("theory:        " + theory);
-        // Utils.println("theoryClauses: " + theoryClauses);
-        // Utils.println("targetPname:   " + targetPname);
-        // Utils.println("theoryAnew:    " + theoryAnew);
         Utils.println("\n%getTestSetScore(" + targetPname + (theory.isNegated() ? ", flipped" : "") + ")'s performance:\n" + results.toShortString());
         return results;
     }
 
-    public static void mainTAW(String[] args)  {
-
-//        LearnOneClause learnOneClause = createLearnOneClauseForLesson("/u/shavlikgroup/" + experimentName + "/Testbeds/BL/", "ReadyToFly");
-//
-//        File theoryFile = new CondorFile("/u/shavlikgroup/" + experimentName + "/Testbeds/BL/ReadyToFly/theories/ReadyToFly_theory_5Pexamples_exampleNoise7_run8_allAdvice.txt");
-//
-//        //testTheory(learnOneClause, theoryFile, null);
-
-           // extractVerifyResultsFromTheory(new CondorFile("/u/shavlikgroup/" + experimentName + "/Testbeds/BL/tawTestTheory.txt"), new CondorFile("/u/shavlikgroup/" + experimentName + "/Testbeds/BL/tawTestResults.txt"));
-
-    }
-    
     // TODO - we really should only need to look in POS or NEG, but with the possibility of flip-flopping deciding which is appropriate is tricky. So simply look in both. 
     private boolean isAnAdviceExample(Example ex) {
     	if (posExamplesWithAdvice != null && posExamplesWithAdvice.contains(ex)) { return true; }
     	if (negExamplesWithAdvice != null && negExamplesWithAdvice.contains(ex)) { return true; }
     	return false;
     }
-    
-    private int countNumberOfExamplesWithAdvice(Collection<Example> examples) {
-    	int result = 0;
-    	if (examples != null) for (Example ex : examples) if (isAnAdviceExample(ex)) { result++; }
-    	return result;
-    }
-    
-    private static boolean createTestSets = true; // If false, add NOISE to ALL the data (since presumably the testset has been pulled out elsewhere).
-    private static String  lessonPostfix  = "";
+
     private static int     maxPosTrainExamples = 50;
     private static int     maxNegTrainExamples = 50;
-    private static int     maxPosTestExamples  = 50;
-    private static int     maxNegTestExamples  = 50;  
-    private static boolean maintainPosNegSkew  = true; // If we are short examples in one class, reduce the other to match.
-    
-    private boolean acceptableParametersForTrainingExamples() {
-    	if (probOfFlippingClassLabel <= 0.0) { return true;  } // No problem achieving zero category noise.
-    	if (probOfFlippingClassLabel > 50.0) { return false; }
-    	
-		int numberOfPosExamplesExpected = (int) (fractionOfTrainingExamplesToUse * maxPosTrainExamples);
-		// No need to subtract the advice examples since they will be at most HALF of these, and  probOfFlippingClassLabel <= 0.5, so at worst will need to flip ALL the non-advice examples.
-		if (numberOfPosExamplesExpected * probOfFlippingClassLabel < 1) { return false; } // Won't be able to create this much noise.
-		
-		int numberOfNegExamplesExpected = (int) (fractionOfTrainingExamplesToUse * maxNegTrainExamples);
-		if (numberOfNegExamplesExpected * probOfFlippingClassLabel < 1) { return false; } // Won't be able to create this much noise.
-		
-    	return true;
-    }
-    
-//	private boolean createFiles_forAdviceNoise  = true;
-    private void createNoisyDataFiles() { 
-    	if (!createDataFilesOnly) { return; }
-    	for (String lesson : lessonsToUse) if (lesson != null && !lesson.equals("")) {
-        	probOfDroppingLiteral    = 0.0;
-        	probOfFlippingClassLabel = 0.0;
-    		prefix         = lesson + lessonPostfix;
-        	runNumberFirst =  1;
-        	runNumberLast  = AdviceProcessor.numberOfRuns;
-        	useAdvice      = true; // Need to know which examples have advice.
-			directory      = mainWorkingDir + prefix;
-    		learnOneClause = createLearnOneClauseForLesson();
-    		outerLooper    = null; // We are by-passing this since we don't need it for this task.
-    		try {
-				setupRelevance(1, 0.0); // We want UNCORRUPTED (but de-DUPLICATED) advice here.  NEED TO USE runNumber in [1,N] to get de-dup'ed advice.   *DO NOT USE probOfDropping > 1 OR WE WILL GET ADVICE THAT HAS NOT BEEN DE-DUPLICATED.
-			//	continue; // TEMP!  Uncomment out if we are just collecting some stats on examples.
-			} catch (SearchInterrupted e) {
-				Utils.reportStackTrace(e);
-				Utils.error("Something went wrong ...");
-			}
-    		
-		    // Get the original examples.  Use LearnOneClause to do so.
-		    List<Example> allPosExamples = learnOneClause.getPosExamples();
-		    List<Example> allNegExamples = learnOneClause.getNegExamples();
 
-		    Utils.println("% |allPos| = " + Utils.getSizeSafely(learnOneClause.getPosExamples()));
-		    Utils.println("% |allNeg| = " + Utils.getSizeSafely(learnOneClause.getNegExamples()));
-		    
-		    
-		    int numbPosALL  = Utils.getSizeSafely(allPosExamples);
-		    int numbNegALL  = Utils.getSizeSafely(allNegExamples);
-		    int numbPosToUse = (fractionOfTrainingExamplesToUse > 1.0 ? (int) (maxPosTrainExamples * fractionOfTrainingExamplesToUse) : maxPosTrainExamples);
-		    int numbNegToUse = (fractionOfTrainingExamplesToUse > 1.0 ? (int) (maxNegTrainExamples * fractionOfTrainingExamplesToUse) : maxNegTrainExamples);
-        	
-		    // NOTE: if short of the TRAINING spec, then need to write some code.
-		    if (numbPosALL < numbPosToUse) { Utils.waitHere("% You requested " + Utils.comma(numbPosToUse) + " POSITIVE training examples for '" + prefix + "', but there are only " + Utils.comma(numbPosALL) + " available."); continue; }
-		    if (numbNegALL < numbNegToUse) { Utils.waitHere("% You requested " + Utils.comma(numbNegToUse) + " NEGATIVE training examples for '" + prefix + "', but there are only " + Utils.comma(numbNegALL) + " available."); continue; }
-		    
-		    List<Example> allPosExamplesForTraining = new ArrayList<Example>(numbPosToUse); // These array sizes are only approximate because noisy will moves examples around.
-		    List<Example> allNegExamplesForTraining = new ArrayList<Example>(numbNegToUse);			    
-		    
-		    for (int i = 0; i < numbPosToUse; i++) { // It really isn't necessary to make a new list, but do so for safety.  Otherwise we might by mistake but some examples in both the train and test sets.
-		    	allPosExamplesForTraining.add(allPosExamples.get(i)); // TODO - could rewrite to REMOVE the first example to be extra safe.
-		    }
-		    for (int i = 0; i < numbNegToUse; i++) {
-		    	allNegExamplesForTraining.add(allNegExamples.get(i));
-		    }
-		    
-		    if (createTestSets && fractionOfTrainingExamplesToUse <= 1.0) {		
-		    	probOfFlippingClassLabel = 0.0; // No noise added to the test sets!
-		    	boolean shortSomeTestsetPos = false;
-		    	boolean shortSomeTestsetNeg = false;
-			    if (numbPosALL < maxPosTrainExamples + maxPosTestExamples) { shortSomeTestsetPos = true; Utils.waitHere("% You requested " + Utils.comma(maxPosTrainExamples + maxPosTestExamples) + " POSITIVE (training + testing) examples for '" + prefix + "', but there are only " + Utils.comma(numbPosALL) + " available.\n% If you continue, the testset will be short."); }
-			    if (numbNegALL < maxNegTrainExamples + maxNegTestExamples) { shortSomeTestsetNeg = true; Utils.waitHere("% You requested " + Utils.comma(maxNegTrainExamples + maxNegTestExamples) + " NEGATIVE (training + testing) examples for '" + prefix + "', but there are only " + Utils.comma(numbNegALL) + " available.\n% If you continue, the testset will be short."); }
-			    
-			    List<Example> allPosExamplesForTesting = new ArrayList<Example>(maxPosTestExamples);
-			    List<Example> allNegExamplesForTesting = new ArrayList<Example>(maxNegTestExamples);			    
-			    
-			    int lastNumberForPosTestExamples = Math.min(maxPosTrainExamples + maxPosTestExamples, numbPosALL);
-			    int lastNumberForNegTestExamples = Math.min(maxNegTrainExamples + maxNegTestExamples, numbNegALL);
-			    for (int i = maxPosTrainExamples; i < lastNumberForPosTestExamples; i++) { // For testing, if short of examples, so be it.  (There is a warning above.)
-			    	allPosExamplesForTesting.add(allPosExamples.get(i)); // Ideally we would use MAINTAIN THE TRAIN/TEST skew by discarding examples of one category or another.  TODO
-			    }
-			    for (int i = maxNegTrainExamples; i < lastNumberForNegTestExamples; i++) {
-			    	allNegExamplesForTesting.add(allNegExamples.get(i));
-			    }
-			    
-			    if (maintainPosNegSkew && (shortSomeTestsetPos || shortSomeTestsetNeg)) {
-			    	int numbPosTEST = Utils.getSizeSafely(allPosExamplesForTesting);
-			    	int numbNegTEST = Utils.getSizeSafely(allNegExamplesForTesting);
-			    	
-			    	double desiredPosNegSkew = maxPosTestExamples / (double)(maxNegTestExamples); 
-			    	if (shortSomeTestsetPos && shortSomeTestsetNeg) {
-			    		Utils.writeMe();
-			    	} else if (shortSomeTestsetPos) {
-			    		// Need to get rid of some negatives.  PosToNegSkew = P / N so N = P / PosToNegSkew.
-			    		int newNumbNeg = (int) Math.round(numbPosTEST / desiredPosNegSkew);
-			    		
-			    		Utils.waitHere("Have " + Utils.comma(numbNegTEST) + " negative testset examples, but only want " + Utils.comma(newNumbNeg) + " to maintain a pos/neg ratio of " + Utils.truncate(desiredPosNegSkew, 3));
-			    		
-			    		for (int i = 0; i < (numbNegTEST - newNumbNeg); i++) {
-			    			allNegExamplesForTesting.remove(allNegExamplesForTesting.size() - 1); // Remove the LAST one in case there is meaning in the order.
-			    		}
-			    	} else if (shortSomeTestsetNeg) {
-			    		// Need to get rid of some positives.  PosToNegSkew = P / N so P = N * PosToNegSkew.
-			    		int newNumbPos = (int) Math.round(numbNegTEST * desiredPosNegSkew);
-			    		
-			    		Utils.waitHere("Have " + Utils.comma(numbPosTEST) + " positive testset examples, but only want " + Utils.comma(newNumbPos) + " to maintain a pos/neg ratio of " + Utils.truncate(desiredPosNegSkew, 3));
-			    		
-			    		for (int i = 0; i < (numbPosTEST - newNumbPos); i++) {
-			    			allPosExamplesForTesting.remove(allPosExamplesForTesting.size() - 1); // Remove the LAST one in case there is meaning in the order.
-			    		}			    		
-			    	}
-			    }			    
-			    
-			    // Write new pos/neg TEST examples to files.
-			    Example.writeObjectsToFile(getPosTestExamplesFileName(), allPosExamplesForTesting, ".", "// Intended to be a (noise-free) testset (" + Utils.comma(allPosExamplesForTesting) + " examples).");
-	            Example.writeObjectsToFile(getNegTestExamplesFileName(), allNegExamplesForTesting, ".", "// Intended to be a (noise-free) testset (" + Utils.comma(allNegExamplesForTesting) + " examples).");
-	            
-	            Utils.println("% Have created the pos and neg TESTSETs for '" + prefix + "'.");
-	    	}
-		    
-	//	    if (true) continue; // Use this if we only want to recreate the TESTSET examples. 
-		    
-		    int numbPos       = (fractionOfTrainingExamplesToUse > 1.0 ? (int) (maxPosTrainExamples * fractionOfTrainingExamplesToUse) : Utils.getSizeSafely(allPosExamplesForTraining));
-		    int numbNeg       = (fractionOfTrainingExamplesToUse > 1.0 ? (int) (maxNegTrainExamples * fractionOfTrainingExamplesToUse) : Utils.getSizeSafely(allNegExamplesForTraining));
-        	int withAdvicePos = countNumberOfExamplesWithAdvice(allPosExamplesForTraining);
-        	int withAdviceNeg = countNumberOfExamplesWithAdvice(allNegExamplesForTraining);
-        	
-        	if (numbPos >  Utils.getSizeSafely(allPosExamplesForTraining)) {
-        		Utils.waitHere("numbPos = " + Utils.comma(numbPos) + " but |allPosExamplesForTraining| = " + Utils.getSizeSafely(allPosExamplesForTraining));
-        	}
-        	if (numbNeg >  Utils.getSizeSafely(allNegExamplesForTraining)) {
-        		Utils.waitHere("numbNeg = " + Utils.comma(numbNeg) + " but |allNegExamplesForTraining| = " + Utils.getSizeSafely(allNegExamplesForTraining));
-        	}
-        	
-        	// Create the NOISE files (including ZERO noise) for use as TRAIN SETS.
-        	// NOTE: we do NOT ensure that all those examples that are noisy at, say, prob=0.25 are also noisy when the noise level = 0.50.
-        	//       It would be nice to do this, but due to our WHILE loop below this is hard to enforce.
-        	
-
-		    List<Example> advicePosExamples    = new ArrayList<Example>(withAdvicePos);
-		    List<Example> adviceNegExamples    = new ArrayList<Example>(withAdviceNeg);
-		    List<Example> nonAdvicePosExamples = new ArrayList<Example>(numbPos - withAdvicePos);
-		    List<Example> nonAdviceNegExamples = new ArrayList<Example>(numbNeg - withAdviceNeg);		    
-            if (allPosExamples != null) {
-                for (int i = 0; i < numbPos; i++) {
-                	Example ex = allPosExamples.get(i);
-                	if (isAnAdviceExample(ex)) { advicePosExamples.add(ex); } else { nonAdvicePosExamples.add(ex); }
-                }
-            }		    
-            if (allNegExamples != null) {
-                for (int i = 0; i < numbNeg; i++) {
-                	Example ex = allNegExamples.get(i);
-                	if (isAnAdviceExample(ex)) { adviceNegExamples.add(ex); } else { nonAdviceNegExamples.add(ex); }
-                }
-            }	
-        	
-			for (int level = 0; level < classLabelProbs.length; level++)   { 
-
-	    		probOfFlippingClassLabel = classLabelProbs[level];
-		    	if (fractionOfTrainingExamplesToUse > 1.0 && probOfFlippingClassLabel > 0.0) { continue; }
-		    	Utils.println("\n% Category Noise = " + Utils.truncate(probOfFlippingClassLabel, 3) + ".");	    	
-				
-	    		for (int e = 0; e < fractExamples.length; e++) {
-					fractionOfTrainingExamplesToUse = fractExamples[e];	
-					
-					if (!acceptableParametersForTrainingExamples()) { 
-						Utils.println("% Skipping this iteration because the settings are not achievable: fractionOfTrainingExamplesToUse=" + fractionOfTrainingExamplesToUse + " and probOfFlippingClassLabel=" + probOfFlippingClassLabel);
-						continue;
-					}
-					
-					int numberOfPosExamplesExpected = (int) (fractionOfTrainingExamplesToUse * maxPosTrainExamples);
-					int numberOfNegExamplesExpected = (int) (fractionOfTrainingExamplesToUse * maxNegTrainExamples);
-					// DESIGN DECISION:  At most HALF the examples can come with advice if there is CATEGORY NOISE.
-					int withAdvicePosToUse = Math.min(withAdvicePos, (probOfFlippingClassLabel > 0 ? numberOfPosExamplesExpected / 2 : numberOfPosExamplesExpected));
-					int withAdviceNegToUse = Math.min(withAdviceNeg, (probOfFlippingClassLabel > 0 ? numberOfNegExamplesExpected / 2 : numberOfNegExamplesExpected));
-				    int numberNonAdvicePosTrainExamplesNeeded = numberOfPosExamplesExpected - withAdvicePosToUse;
-				    int numberNonAdviceNegTrainExamplesNeeded = numberOfNegExamplesExpected - withAdviceNegToUse;
-				    
-					Utils.println("\n% Fraction of examples to use = " + Utils.truncate(fractionOfTrainingExamplesToUse, 3) + ".");
-				    int numberNonAdviceExamplesNeeded = (int) Math.round(fractionOfTrainingExamplesToUse * (maxPosTrainExamples + maxNegTrainExamples) - (withAdvicePosToUse + withAdviceNegToUse));					    
-				    Utils.println("%   Need " + numberNonAdviceExamplesNeeded + " examples without advice (there are " + withAdvicePosToUse + " pos and " + withAdviceNegToUse + " neg examples with advice).");
-				    if (numberNonAdviceExamplesNeeded < 0) { 
-				    	Utils.waitHere("Cannot reach fractionOfTrainingExamplesToUse = " + Utils.truncate(fractionOfTrainingExamplesToUse, 3) + " and still include all the " + Utils.comma(withAdvicePosToUse + withAdviceNegToUse)+ " examples with advice!");
-				    	continue; // Should we create a special file that means 'skip this experiment'?
-				    }	    				    
-				    
-				    
-		            double correctedFractionPosToFlip = (probOfFlippingClassLabel <= 0 
-		            										? 0 
-		            										: (numberOfPosExamplesExpected / (double) numberNonAdvicePosTrainExamplesNeeded) * probOfFlippingClassLabel);
-		            double correctedFractionNegToFlip = (probOfFlippingClassLabel <= 0 
-		            										? 0
-		            										: (numberOfNegExamplesExpected / (double) numberNonAdviceNegTrainExamplesNeeded) * probOfFlippingClassLabel);
-				    
-		            Utils.println("%   Need " + withAdvicePosToUse + " positive examples with advice and " + Utils.comma(numberNonAdvicePosTrainExamplesNeeded) + " without, since fractionOfTrainingExamplesToUse = " + Utils.truncate(fractionOfTrainingExamplesToUse, 3) + ".");
-		            Utils.println("%   Need " + withAdviceNegToUse + " negative examples with advice and " + Utils.comma(numberNonAdviceNegTrainExamplesNeeded) + " without, since fractionOfTrainingExamplesToUse = " + Utils.truncate(fractionOfTrainingExamplesToUse, 3) + ".");
-		            Utils.println("%   We'll need a noise rate of " +  Utils.truncate(100 * correctedFractionPosToFlip, 3) + "% on the positive non-advice examples.");
-		            Utils.println("%   We'll need a noise rate of " +  Utils.truncate(100 * correctedFractionNegToFlip, 3) + "% on the negative non-advice examples.");			            
-		            if (correctedFractionPosToFlip > 1.0) { Utils.waitHere("Cannot have this high of a positive sampling rate!"); continue; }
-		            if (correctedFractionNegToFlip > 1.0) { Utils.waitHere("Cannot have this high of a negative sampling rate!"); continue; }	
-		            if (correctedFractionPosToFlip < 0.0) { Utils.waitHere("Cannot have this low of a positive sampling rate!");  continue; }
-		            if (correctedFractionNegToFlip < 0.0) { Utils.waitHere("Cannot have this low of a negative sampling rate!");  continue; }	
-		            if (Double.isNaN(correctedFractionPosToFlip)) { Utils.waitHere("Cannot have this positive sampling rate!");   continue; }	
-		            if (Double.isNaN(correctedFractionNegToFlip)) { Utils.waitHere("Cannot have this negative sampling rate!");   continue; }		            
-		            
-		            int numberOfPosToFlip = (int) Math.round(correctedFractionPosToFlip * numberNonAdvicePosTrainExamplesNeeded);
-		            int numberOfNegToFlip = (int) Math.round(correctedFractionNegToFlip * numberNonAdviceNegTrainExamplesNeeded);
-		            Utils.println("%   We'll need to flip " + numberOfPosToFlip + " pos and " + numberOfNegToFlip + " neg examples.");
-		            
-		            if (probOfFlippingClassLabel > 0.0 && numberOfPosToFlip < 1) { Utils.waitHere("Must flip at least one positive example when category noise > 0!");   continue; }
-		            if (probOfFlippingClassLabel > 0.0 && numberOfNegToFlip < 1) { Utils.waitHere("Must flip at least one negative example when category noise > 0!");   continue; }
-
-				    for (runNumberInUse = runNumberFirst; runNumberInUse <= runNumberLast; runNumberInUse++) {
-
-						if (probOfFlippingClassLabel <= 0.0 && runNumberInUse > runNumberFirst) { continue; } // No variation (i.e., no noise), so only need ONE run.
-						
-			            List<Example> newPosExamples = new ArrayList<Example>((int) fractionOfTrainingExamplesToUse * numbPos); // These initial array sizes are only approximate because noise will move examples around.
-					    List<Example> newNegExamples = new ArrayList<Example>((int) fractionOfTrainingExamplesToUse * numbNeg);
-					    
-					    // Add the advice examples (possibly just a subset).
-					    if (withAdvicePosToUse > 0) { newPosExamples.addAll(advicePosExamples.subList(0, withAdvicePosToUse)); } // The advice-examples never are flipped.
-					    if (withAdvicePosToUse > 0) { newNegExamples.addAll(adviceNegExamples.subList(0, withAdviceNegToUse)); }
-					   
-					    List<Example> permutedNonAdvicePosExamples = new ArrayList<Example>(nonAdvicePosExamples.size());
-					    List<Example> permutedNonAdviceNegExamples = new ArrayList<Example>(nonAdviceNegExamples.size());
-					    permutedNonAdvicePosExamples.addAll(nonAdvicePosExamples);
-					    permutedNonAdviceNegExamples.addAll(nonAdviceNegExamples);
-					    Permute.permute(permutedNonAdvicePosExamples); // These could come in any order.
-					    Permute.permute(permutedNonAdviceNegExamples); // So permute then grab the necessary number of them.
-					    
-					    for (int i = 0; i < numberOfPosToFlip; i++) { // Grab the number of noisy examples we need.
-					    	newNegExamples.add(permutedNonAdvicePosExamples.get(i));
-					    }
-					    for (int i = 0; i < numberOfNegToFlip; i++) {
-					    	newPosExamples.add(permutedNonAdviceNegExamples.get(i));
-					    }
-					    for (int i = numberOfNegToFlip; i < numberNonAdvicePosTrainExamplesNeeded; i++) { // Get the needed number of non-noisy examples.
-					    	newPosExamples.add(permutedNonAdvicePosExamples.get(i));
-					    }
-					    for (int i = numberOfPosToFlip; i < numberNonAdviceNegTrainExamplesNeeded; i++) {
-					    	newNegExamples.add(permutedNonAdviceNegExamples.get(i));
-					    }
-					    newPosExamples = randomizeExampleOrder(newPosExamples); // This will make sure the advice examples appear in their proper location.
-					    newNegExamples = randomizeExampleOrder(newNegExamples);
-	
-					    // If this happens for ONE run it will happen for all, but for now we will kill jobs that don't have at least 1 pos and 1 neg flipped.  Tests above should prevent this from occurring, but double check here as well.
-					    Utils.println("% There are " + Utils.comma(newPosExamples) + " positive and " + Utils.comma(newNegExamples) + " negative examples for this run.");
-					    if (newPosExamples.size() < 1) { Utils.waitHere("There needs to be at least 1 positive example!"); continue; }
-					    if (newNegExamples.size() < 1) { Utils.waitHere("There needs to be at least 1 negative example!"); continue; }
-					    
-					    if (newPosExamples.size() != newNegExamples.size()) {
-					    	Utils.waitHere("Sizes differ!  |newPosExamples| = " + newPosExamples + " |newNegExamples| = " + newNegExamples.size());
-					    }
-					    if ((int) (fractionOfTrainingExamplesToUse * (maxPosTrainExamples + maxNegTrainExamples)) != newPosExamples.size() + newNegExamples.size()) {
-					    	Utils.waitHere("  Expected " + Utils.truncate(fractionOfTrainingExamplesToUse * (maxPosTrainExamples + maxNegTrainExamples), 0) + " examples but |newPosExamples + newNegExamples| = " + (newPosExamples.size() + newNegExamples.size()));					    	
-					    }
-					    
-			            Utils.println("% Run #" + runNumberInUse + ": create file " + getPosTrainExamplesFileName(false));
-			            Utils.println("% Run #" + runNumberInUse + ": create file " + getNegTrainExamplesFileName(false) + "\n");
-			            
-					    // Write new pos/neg TRAIN examples to files.
-					    Example.writeObjectsToFile(getPosTrainExamplesFileName(false), newPosExamples, ".", "// TRAIN set (" + Utils.comma(newPosExamples) + " examples; " + Utils.comma(withAdvicePosToUse) + " had advice and were protected) with noise level: " + Utils.truncate(probOfFlippingClassLabel, 4));
-					    Example.writeObjectsToFile(getNegTrainExamplesFileName(false), newNegExamples, ".", "// TRAIN set (" + Utils.comma(newNegExamples) + " examples; " + Utils.comma(withAdviceNegToUse) + " had advice and were protected) with noise level: " + Utils.truncate(probOfFlippingClassLabel, 4));
-		
-			            if (runNumberInUse >= runNumberLast) { Utils.println("\n% Have created the pos and neg TRAINSETs for example noise at prob = " + Utils.truncate(probOfFlippingClassLabel, 3) + " for '" + prefix + "'."); }
-			        //  if (runNumberInUse == 1 && probOfFlippingClassLabel > 0.0) { Utils.waitHere(); }
-			    	}
-			    	Utils.println("");
-		    	}
-		    }
-    	}
-    }
-    
     private String getBKfileName() {
     	if (fractionOfTrainingExamplesToUse > 1.0) {
     		if (probOfDroppingLiteral > 0 || probOfFlippingClassLabel > 0) { Utils.error("Should only use more than 100% of the examples if there is no noise."); }					
@@ -968,105 +562,9 @@ public class Experimenter { // TODO - maybe this should be ExperimentWithSimulat
     		return directory + "/" + prefix + "_test_neg." + fileExtension;
     	}
     	 return directory + "/examplesForExperiments/" + prefix + "_test_neg" + fileExtensionWithPeriod;
-    }    
-    
-    public void runILP() throws SearchInterrupted, IOException {
-        if (outerLooper != null) { outerLooper.initialize(false); }
-        long start1 = System.currentTimeMillis();
-		long end1;
-		try {
-			if        (Utils.getSizeSafely(outerLooper.innerLoopTask.getPosExamples()) < 0) {
-				reportDoc("Did not bother training, since no positive examples.", 0.5, 0.5, 0.5);
-				noTheoryWasLearned(); // TODO - only works when the data is 50-50.  we need to write more generally!  Ie, make theory: head :- false
-				return;
-			} else if (Utils.getSizeSafely(outerLooper.innerLoopTask.getNegExamples()) < 0) {
-				reportDoc("Did not bother training, since no negative examples.", 0.5, 0.5, 0.5);
-				noTheoryWasLearned(); // TODO - only works when the data is 50-50.  we need to write more generally!  Ie, make theory: head :- true
-				return;
-			} else if (useOnion) {
-				TuneParametersForILP onion = new TuneParametersForILP(outerLooper, numberOfFolds);
-				// NOTE: by this point the data will already have been reduced if fractionOfTrainingExamplesToUse < 1.0.  SO BE SURE TO NOT REDUCE TWICE.
-				if (fractionOfTrainingExamplesToUse >= thresholdForUsingTuningSets 
-						&& thresholdForUsingTuningSets     >= 0.0 && thresholdForUsingTuningSets     <= 1.0
-						&& fractionOfExamplesUsedForTuning >= 0.0 && fractionOfExamplesUsedForTuning <= 1.0) {
-					double boundary = (1.0 - fractionOfExamplesUsedForTuning);
-					onion.setSingleTrainTuneSplitRanges(0.0, boundary, boundary, 1.0); // Remember: we need the tuning examples AFTER the training, since advice appears early.
-					onion.setUseSingleTrainTuneSplit(true);
-				} else {
-					onion.setUseSingleTrainTuneSplit(false);
-				}
-				
-				// Utils.println("maxTimeInMilliseconds = " + maxTimeInMilliseconds);
-				onion.setMaxSecondsToSpend((int) Math.min(Integer.MAX_VALUE, maxTimeInMilliseconds / 1000));
-				onion.theReasonToStopEarly = the_reasonToStopEarly;
-                onion.setFilter(onionFilter);
-				onion.run();
-
-				bestTheory = onion.getTheoryFromBestFold();
-				Utils.println("\n% ------------------------------------------------");
-				if (bestTheory == null || bestTheory.isEmpty()) {
-					Utils.println("\n% The ONION was unable to find an acceptable theory.");
-					noTheoryWasLearned();
-					reportDoc(onion.descriptionOfOnionProcessingNeeded, 0.5, 0.5, 0.5);
-				} else {
-					bestTheory.collectAnyRemainingInliners();
-					if (bestTheory.isNegated()) { bestTheory.rewriteFlipFloppedTheory(); }
-                    bestTheoryTrainingScore       = onion.getBestFold().getTrainingCoverageScore();
-                    double bestTheoryTuningScore  = getAccuracy(onion.getBestFold().getEvaluationCoverageScore());
-                    CoverageScore testsetCoverage = getTestSetScore(targetPredicateName, bestTheory);
-    				reportDoc(onion.descriptionOfOnionProcessingNeeded, bestTheoryTrainingScore.getAccuracy(), bestTheoryTuningScore, testsetCoverage.getAccuracy());
-                    double bestTheoryTestingScore = getAccuracy(testsetCoverage); 
-					Utils.println("\n\n% Best Theory Chosen by the Onion" + (bestTheory.isNegated() ? " (via Flip-Flopping)" : "") + ":");
-					Utils.println(bestTheory.toPrettyString("    "));
-					Utils.println("\n" + onion.getBestFold()); // was getResultsFromBestFold()
-					Utils.print(  "\n\n% Chosen Parameter Settings:");
-					Utils.println(onion.bestSetting.toString(true));				
-	
-			        // Save the theory file.
-			        File theoryFile = Utils.ensureDirExists(directory + "/theories/"       + prefix + "_theory"       + getFilePostfix() + "." + fileExtension);
-			        try {
-			            boolean hold = AllOfFOPC.truncateStrings;
-			            AllOfFOPC.truncateStrings = false;
-			        	String theoryAsString = bestTheory.toPrettyString("");
-			        	AllOfFOPC.truncateStrings = hold;
-			        	theoryAsString += "\n\nimportLibrary: bootstrapBKinLogic.\n";
-			        	theoryAsString += "\n/*\n\n" + onion.getBestFold() + "\n%%% Fresh TESTING Coverage Score:\n" + testsetCoverage.toLongString() + "\n\n*/\n";
-			        	new CondorFileWriter(theoryFile, false).append(theoryAsString).close();
-			        } catch (IOException e) {
-			        	Utils.waitHere("% Could not save the learned theory to file:\n%  " + theoryFile + "\n%  " + e);
-			        }
-			        // Save the result score in a CSV format.
-			        saveResultsToFile(getAccuracy(bestTheoryTrainingScore), bestTheoryTuningScore, bestTheoryTestingScore);
-				}
-				Utils.println("\n% ------------------------------------------------");
-			} else {
-				waitHereUnlessCondorJob("This method has mainly been tested with the (above) Onion.  So the calls below might be out of date.");
-				ILPCrossValidationLoop cvLoop = new ILPCrossValidationLoop(outerLooper, numberOfFolds, 0, 0);
-	            cvLoop.setFlipFlopPositiveAndNegativeExamples(flipFlopPosNeg);
-	            cvLoop.setMaximumCrossValidationTimeInMillisec(maxTimeInMilliseconds);
-				cvLoop.executeCrossValidation();
-	        //	ILPCrossValidationResult results = cvLoop.getCrossValidationResults();
-			}
-		}
-        catch (StackOverflowError e) {
-        	Utils.reportStackTrace(e);
-        	Utils.error("Something went wrong ...");
-        }
-
-
-		end1 = System.currentTimeMillis();
-		// Use 'err' here so we see these.
-		Utils.printlnErr("\n% Took "    + Utils.convertMillisecondsToTimeSpan(end1 - start1, 3) + ".");
-        Utils.printlnErr(  "% Executed "  + Utils.comma(getLearnOneClause().getTotalProofsProved()) + " proofs " + String.format("in %.2f seconds (%.2f proofs/sec).", getLearnOneClause().getTotalProofTimeInNanoseconds()/1.0e9, getLearnOneClause().getAverageProofsCompletePerSecond()));
-        Utils.printlnErr(  "% Performed " + Utils.comma(Unifier.getUnificationCount()) + " unifications while proving Horn clauses.");
     }
-    
-    private double getAccuracy(CoverageScore score) {
-    	if (score == null) { return -1; }
-		return score.getAccuracy();
-	}
 
-	private String getFilePostfix() {
+    private String getFilePostfix() {
 		// TODO - either make this a local var only or clean up its usage.
 		boolean includeRunNumber = ( (probOfDroppingLiteral    > 0.0 && probOfDroppingLiteral    <= 1.0) && // Only include here if not included by getInnerNameForExampleNoiseFile().
 		 				            !(probOfFlippingClassLabel > 0.0 && probOfFlippingClassLabel <= 1.0));
@@ -1615,297 +1113,14 @@ public class Experimenter { // TODO - maybe this should be ExperimentWithSimulat
 					  + "\ncountOfBothMissing          = " + Utils.comma(countOfBothMissing));
 		System.exit(0);
     }
-    
-    private void runAllRequestedExperiments(boolean overWriteOldResults) throws SearchInterrupted, IOException {
-
-		if (!acceptableParametersForTrainingExamples()) { 
-			Utils.println("Skipping the run because the settings are not achievable: fractionOfTrainingExamplesToUse=" + fractionOfTrainingExamplesToUse + " and probOfFlippingClassLabel " + probOfFlippingClassLabel);
-			return; 
-		}
-		
-		if (probOfDroppingLiteral > 0 && probOfFlippingClassLabel > 0) { waitHereUnlessCondorJob("Do we want both of these positive? drop=" + probOfDroppingLiteral + "  noise=" + probOfFlippingClassLabel); }
-		
-	    for (runNumberInUse = runNumberFirst; runNumberInUse <=  runNumberLast; runNumberInUse++) {
-	    	if (Experimenter.createAdviceNoiseFiles && runNumberInUse > runNumberFirst) { continue; } // The AdviceProcessor handles the multiple runs when creating noise.
-			for (String str : lessonsToUse) if (!str.isEmpty() && !lessonsToSkip.contains(str)) {
-				Utils.println("\n% ********** " + str + " [" + runNumberFirst + "," + runNumberLast + "] **********");
-				
-				prefix    = str + lessonPostfix;
-				directory = mainWorkingDir + prefix;
-				String[] theseArgs = new String[1]; // Have set useOnion=true elsewhere, but force it here?  If not, we still something to send to setup, even if just an empty list.
-				theseArgs[0]   = "-onion"; // Turn on variables that we want.  TODO - should this be done earlier so callers can overwrite or should we force it?
-				boolean continueThisRun = setup(theseArgs, false, !DOING_TEMP_HACK);// || !overWriteOldResults);
-				Utils.println("% continueThisRun=" + continueThisRun + " overWriteOldResults=" + overWriteOldResults + " lessonsToSkip: " + lessonsToSkip + "\n\n% *****\n% " + str + ":  runNumberInUse=" + runNumberInUse + " [runNumberFirst,runNumberLast] = [" + runNumberFirst + "," + runNumberLast + "], probOfDroppingLiteral = " + Utils.truncate(probOfDroppingLiteral, 2) + ", probOfFlippingClassLabel = " + Utils.truncate(probOfFlippingClassLabel, 2));
-				if (!continueThisRun || DOING_TEMP_HACK) { cleanup(); continue; }
-				
-				try {
-                    if ( !createAdviceNoiseFiles ) {
-                        if (outerLooper != null) {
-                            outerLooper.setGleanerFileName(           directory + "/gleaners/" + prefix + "_gleaner"   + getFilePostfix()); // Include foldN in here?  Can we get it?
-                            outerLooper.setGleanerFileNameFlipFlopped(directory + "/gleaners/" + prefix + "_gleanerFF" + getFilePostfix()); // Don't want the extension here since it is added elsewhere.
-                            outerLooper.waitWhenBodyModesAreEmpty = false;
-
-                            outerLooper.innerLoopTask.addILPSearchListener(new RecordActiveAdviceSearchListener());
-                        }
-                        runILP();
-                        cleanup();
-                    }
-                    else {
-                        outerLooper.innerLoopTask.getAdviceProcessor().createNoisyBackgroundFiles(outerLooper.getPosExamples(), outerLooper.getNegExamples());
-                    }
-				} catch (WILLjumpOutOfHere e) {
-					Utils.println("Caught WILLjumpOutOfHere for '" + str + "'.");
-				}
-				//waitHereUnlessCondorJob("Done with this lesson: " + str);
-			} else if (false) {
-				waitHereUnlessCondorJob("Skip this lesson: " + str);
-			}
-	    }
-    }	    
 
     public void setupUserOverrides() {
 
     }
 
-    /** Free any objects that are being held by Experimenter but aren't needed...
-     *
-     */
-    private void cleanup() {
 
-        Utils.println("% Freeing memory after runILP: outLooper = null, learnOneClause = null, context = null, bestTheory = null, bestTheoryTrainingScore = null.");
-
-        outerLooper    = null;
-        learnOneClause = null;
-        context        = null;
-
-        // We might want to keep these.
-        bestTheory              = null;
-        bestTheoryTrainingScore = null;
-
-        targetPredicateName   = null;
-        posExamplesWithAdvice = null;
-        negExamplesWithAdvice = null;
-    }
-
-    private List<Example> randomizeExampleOrder(List<Example> newPosExamples) {
-        List<Example> randomizedList = new ArrayList<Example>();
-        Map<Integer, Example> adviceOrderMap = new LinkedHashMap<Integer, Example>();
-
-        for (int i = 0; i < newPosExamples.size(); i++) {
-            Example example = newPosExamples.get(i);
-            if ( isAnAdviceExample(example) == false ) {
-                randomizedList.add(example);
-            }
-            else {
-                adviceOrderMap.put(i, example);
-            }
-        }
-
-        Permute.permute(randomizedList);
-
-        for (Map.Entry<Integer, Example> entry : adviceOrderMap.entrySet()) {
-            randomizedList.add(entry.getKey(), entry.getValue());
-        }
-        
-        return randomizedList;
-    }
-
-    public static void mainJWS(String[] args) throws SearchInterrupted, IOException {
-    	mainJWS(args, false);
-    }
-	/**
-	 * @param args
-	 * @throws SearchInterrupted
-	 * @throws IOException 
-	 */
-
-    public static void mainJWS(String[] args, boolean calledFromWindows) throws SearchInterrupted, IOException {
-        Experimenter main = new Experimenter();
-        experimentName                = "people/Jude/Testbeds/BLex10/";
-    //	experimentName                = "projects/BootstrapLearning/BL_1Kexamples/";
-	//	lessonPostfix                 = "BIG";
-		main.probOfFlippingClassLabel = 0.0;
-        mainJWS(args, calledFromWindows, main);
-    }
-
-	public static void mainJWS(String[] args, boolean calledFromWindows, Experimenter main) throws SearchInterrupted, IOException {
-		Utils.doNotCreateDribbleFiles  = true;  // Be sure to notice the NOT.
-		Utils.doNotPrintToSystemDotOut = false; // Ditto.
-
-		long start = System.currentTimeMillis();
-
-		if (calledFromWindows) { 
-			main.nameForShavlikGroup = "S:\\";
-			main.runningInWindows = true;
-		} else {
-			main.nameForShavlikGroup = "/u/shavlikgroup/migrated/";
-			main.runningInWindows = false;
-		}// Utils.waitHere(nameForShavlikGroup);
-		main.mainWorkingDir = main.nameForShavlikGroup + Experimenter.experimentName;
-		///////////////////////////
-		
-		// Set for the default run (i.e., if there are no arguments).
-		main.useAdvice = true;  // <--------- set this to false to NOT use any advice
-		main.useOnion  = true;
-		main.maxTimeInMilliseconds = 6 * 60 * 60 * 1000; // This is for any ONE task (but over ALL Onion layers for that task).
-		main.fractionOfTrainingExamplesToUse = 1.0;
-		main.runNumberFirst = 1;
-		main.runNumberLast  = (Experimenter.createAdviceNoiseFiles ? 1 : main.numberOfRunsToUse); // All N relevance files will be produced from the 1st run; no need for more. 
-		main.probOfDroppingLiteral    = 0.00;
-		main.probOfFlippingClassLabel = 0.00;
-		AdviceProcessor.createNoisyBKfile = Experimenter.createAdviceNoiseFiles;
-
-        main.setupUserOverrides();
-
-		if (main.probOfDroppingLiteral <= 0.0 && main.probOfFlippingClassLabel <= 0.0) { main.runNumberLast = 1; }
-		
-		if ((Experimenter.createDataFilesOnly && !Experimenter.creatingInitialBIGdata) || Experimenter.createAdviceNoiseFiles) { main.fractionOfTrainingExamplesToUse = 1.0; } // We want ALL the data in these cases.
-		
-		if (Experimenter.checkWhatIsMissing) { main.reportExperimentStatusAndCleanAsNeeded(); Utils.waitHere("DONE: reportExperimentStatusAndCleanAsNeeded"); }
-    	if (Experimenter.createDataFilesOnly && !Experimenter.createAdviceNoiseFiles) { // Need advice de-dup'ed before example noise is created.  Let's simply do two runs.
-		//	Utils.waitHere("mainWorkingDir=" + main.mainWorkingDir + "  fractionOfTrainingExamplesToUse = " + main.fractionOfTrainingExamplesToUse);
-			if (creatingInitialBIGdata) for (int i = 0; i < fractExamples.length; i++) {
-				main.fractionOfTrainingExamplesToUse = fractExamples[i];
-				main.probOfDroppingLiteral    = 0.0;
-				main.probOfFlippingClassLabel = 0.0;
-				main.createNoisyDataFiles();
-			} else {
-				main.createNoisyDataFiles();
-			}
-			// Use 'err' here so we see these.
-			Utils.printlnErr("Done with createNoisyDataFiles().  Took " + Utils.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + "."); 
-			return;
-		}
-		
-		main.processFlagArguments(args);
-		boolean runThemAll          = false && !Experimenter.createAdviceNoiseFiles && main.runningInWindows;
-		boolean runSkippedCondorJWS = false && !Experimenter.createAdviceNoiseFiles && main.runningInWindows;
-		if (!createDataFilesOnly && !checkWhatIsMissing && !Experimenter.creatingInitialBIGdata && runThemAll) {
-		//	main.maxNodesExpanded = 10; // Go for very short runs when doing runThemAll on one machine.
-			for (int advice = 1; advice >= 0 && advice <= 1; advice--) {
-				if (advice > 0) { main.useAdvice = true; } else { main.useAdvice = false; }
-				for (int d = 0; d < droppingProbs.length; d++) {
-					main.probOfDroppingLiteral = droppingProbs[d];
-					if (!main.useAdvice && main.probOfDroppingLiteral > 0) { continue; }
-	
-					for (int f = 0; f < classLabelProbs.length; f++) {
-						main.probOfFlippingClassLabel = classLabelProbs[f];
-						if (main.probOfDroppingLiteral > 0 && main.probOfFlippingClassLabel > 0) { continue; }
-						main.runNumberFirst = 1;
-						
-						// FOR NOW ONLY DO ONE FOLD IN ALL CASES.  THIS WILL SUFFICE FOR, SAY, THE LEARNING CURVES.
-						if (true || (main.probOfDroppingLiteral <= 0.0 && main.probOfFlippingClassLabel <= 0.0)) { main.runNumberLast = 1; } else { main.runNumberLast = 10; }	
-						
-						for (int e = 0; e < fractExamples.length; e++) {
-							main.fractionOfTrainingExamplesToUse = fractExamples[e];	
-							
-							if (main.fractionOfTrainingExamplesToUse > 1.0 && (main.probOfDroppingLiteral > 0 || main.probOfFlippingClassLabel > 0)) { continue; }					
-							long thisStart = System.currentTimeMillis();
-							
-							main.runAllRequestedExperiments(main.overWriteOldResults);
-							// Use 'err' here so we see these.
-							Utils.printlnErr("% Overall took " + Utils.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start, 3) + " so far.\n% Took " + Utils.convertMillisecondsToTimeSpan(System.currentTimeMillis() - thisStart, 3) + " on this call to runAllRequestedExperiments().");
-						//	Utils.waitHere();
-						}
-					}
-				}
-			}
-		} else if (!createDataFilesOnly && !checkWhatIsMissing && !Experimenter.creatingInitialBIGdata && runSkippedCondorJWS) {
-			for (int advice = 1; advice >= 0 && advice <= 1; advice--) {
-				if (advice > 0) { main.useAdvice = true; } else { main.useAdvice = false; }
-				for (int d = 0; d < droppingProbs.length; d++) {
-					main.probOfDroppingLiteral = droppingProbs[d];
-					if (!main.useAdvice && main.probOfDroppingLiteral > 0) { continue; }
-	
-					for (int f = 0; f < classLabelProbs.length; f++) {
-						main.probOfFlippingClassLabel = classLabelProbs[f];
-						if (main.probOfDroppingLiteral > 0 && main.probOfFlippingClassLabel > 0) { continue; }
-						main.runNumberFirst = 1;
-						main.runNumberLast  = 1;	
-						
-						for (int e = 0; e < fractExamples.length; e++) {
-							main.fractionOfTrainingExamplesToUse = fractExamples[e];						
-							if (main.fractionOfTrainingExamplesToUse > 1.0 && (main.probOfDroppingLiteral > 0 || main.probOfFlippingClassLabel > 0)) { continue; }					
-							long thisStart = System.currentTimeMillis();
-
-							main.runAllRequestedExperiments(main.overWriteOldResults);
-							// Use 'err' here so we see these.
-							Utils.printlnErr("% Overall took " + Utils.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start, 3) + " so far.\n% Took " + Utils.convertMillisecondsToTimeSpan(System.currentTimeMillis() - thisStart, 3) + " on this call to runAllRequestedExperiments().");					
-						}
-					}
-				}
-			}			
-		}
-		else {
-			main.runAllRequestedExperiments(main.overWriteOldResults);
-		}	    
-		// Use 'err' here so we see these.
-		Utils.printlnErr("\n\n%  DONE!  Took " + Utils.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start, 3) + " overall."); 
-	}
-	
-	// Let's always leave this AFTER all the special versions so new users can easily find it.
-    public static void mainDefault(String[] args) throws SearchInterrupted, IOException {
-		Experimenter main = new Experimenter();
-		main.setup(args);
-		main.runILP();
-    }
-    
     private static boolean creatingInitialBIGdata = false;
-    public static void main(String[] rawArgs) throws SearchInterrupted, IOException { // TOD - catch the IOException closer to its source ...
-    	String[] args = Utils.chopCommentFromArgs(rawArgs);
-		if (args.length > 0) for (int i = 0; i < args.length; i++) {
-			Utils.println("% MAIN: arg[" + i + "] = " + args[i]);
-		}// waitHereUnlessCondorJob();
-		
-		String userName = Utils.getUserName();
-	//	waitHereUnlessCondorJob("user name = " + userName);
-		
-		// To do a fresh everything:
-		//      make sure 'experimentName' is properly set
-		//		set createAdviceNoiseFiles = true then run this main (under the IF for "shavlik")
-		//      set createAdviceNoiseFiles = false and createDataFilesOnly = true and run again
-		//      set createAdviceNoiseFiles = false and createDataFilesOnly = false and run your experiment
 
-		
-		if      ("shavlik".equals(userName)) { 
-			createAdviceNoiseFiles = false; 
-			checkWhatIsMissing     = false;
-
-			//////////////////////////////////////////////////////////
-			// For use when using more than 100 training examples:  NOTE: no advice nor example noise used here.
-		//	double[] fractExamplesForMegaSets = { 9.5 }; // {1.50, 2.00, 2.50, 3.00, 3.50, 4.00, 4.50, 5.00, 5.50, 6.00, 6.50, 7.00, 7.50, 8.00, 8.50, 9.00, 9.50, 10.00}; // 
-		//	double[] classLabelProbsHold      = {0.00};
-			//overWriteOldResults = true;  <------ REMEMBER TO CHANGE BACK TO FALSE!!!!!!!!!!!!
-		//	fractExamples          = fractExamplesForMegaSets;
-		//	classLabelProbs        = classLabelProbsHold;
-		//	experimentName         = "projects/BootstrapLearning/BL_1Kexamples/";
-		//	lessonPostfix          = "BIG";
-		//	creatingInitialBIGdata = true;			
-			//////////////////////////////////////////////////////////
-			
-			createDataFilesOnly    = false; // creatingInitialBIGdata;			
-			mainJWS(args, true, new Experimenter()); System.exit(0); }
-	//	else if ("kunapg".equals( userName)) { mainGK(args); } // IF YOU ADD AN ENTRY, BE SURE TO USE *ELSE* OTHERWISE mainDefault will also be called.
-		else if ("twalker".equals(userName)) {
-            createAdviceNoiseFiles = false;
-			checkWhatIsMissing     = false;
-
-			//////////////////////////////////////////////////////////
-			// For use when using more than 100 training examples:  NOTE: no advice nor example noise used here.
-			//double[] fractExamplesForMegaSets = {1.50, 2.00, 2.50, 3.00, 3.50, 4.00};
-			//fractExamples          = fractExamplesForMegaSets;
-			//experimentName         = "projects/BootstrapLearning/BLex5/";
-			//lessonPostfix          = "BIG";
-		//	creatingInitialBIGdata = true;
-			//////////////////////////////////////////////////////////
-
-			createDataFilesOnly    = false;
-			mainJWS(args, true, new Experimenter());
-            System.exit(0);
-        }
-		// else if () { mainYOU(args); }
-		else { mainDefault(args); System.exit(0); }
-	}
 
     public class RecordActiveAdviceSearchListener implements ILPSearchListener {
         ILPparameterSettings currentOnionSettings = null;

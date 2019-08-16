@@ -444,7 +444,7 @@ public class TuneParametersForILP {
 	                            
 	                            temp.setFlipFlopPosAndNegExamples(flipFlop == 1);
 	                            temp.setModesToUse();
-	                            if (filter == null || !filter.skipThisSetting(temp, true)) {
+	                            if (filter == null || !filter.skipThisSetting(temp)) {
 	                                Utils.println("%   Add combo #" + counter + (filter != null ? " via filter = '" + filter + "'." : "."));
                                     Utils.println("%     " + temp.toStringShort());
 	                                onionLayers.add(temp);

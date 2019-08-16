@@ -1,17 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.Utils;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.Reader;
-import java.nio.CharBuffer;
 
 /**
- *
  * @author twalker
  */
 public class NamedReader extends BufferedReader {
@@ -28,11 +20,9 @@ public class NamedReader extends BufferedReader {
         this.name = name;
     }
 
-    
     @Override
     public String toString() {
         return name;
     }
-
 
 }

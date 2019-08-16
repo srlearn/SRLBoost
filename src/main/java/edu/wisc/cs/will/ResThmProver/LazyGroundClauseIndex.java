@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.DefiniteClause;
@@ -9,17 +5,12 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /** This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground heads.
- *
- * @param <DefiniteClause> Type of object to be indexed.
  *
  * @author twalker
  */
@@ -50,11 +41,10 @@ public class LazyGroundClauseIndex {
     private Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundArgs = new HashMap<PredicateNameAndArity, DefiniteClauseList>();
 
     public LazyGroundClauseIndex(HornClausebase clausebase) {
-    	maximumIndexSize = maximumIndexSizeDefault;
         this.clausebase = clausebase;
     }
 
-    public void indexDefiniteClause(PredicateNameAndArity key, DefiniteClause definiteClause) {
+    void indexDefiniteClause(PredicateNameAndArity key, DefiniteClause definiteClause) {
 
         if (definiteClausesAllArgsIndex.containsKey(key)) {
             Literal headLiteral = definiteClause.getDefiniteClauseHead();
@@ -248,9 +238,6 @@ public class LazyGroundClauseIndex {
             throw new IllegalStateException("LazyGroundClauseIndex.buildIndexForKey(): Predicate " + key + " already indexed.");
         }
 
-
-
-
         indicesConstructed++;
 
         if (LazyHornClausebase.DEBUG >= 1) {
@@ -282,12 +269,7 @@ public class LazyGroundClauseIndex {
                 Utils.println("% [ LazyGroundClauseIndex ]  Building full index for " + key + " with " + Utils.comma(clauses) + " assertions.");
             }
 
-            if (LazyHornClausebase.DEBUG >= 1) {
-                mapForKey = new DebuggingHashMap<List<Term>, DefiniteClauseList>((int) Math.max(16, clauses.size() / 0.75 + 10), "LazyGroundClauseIndex:" + key, LazyHornClausebase.DEBUG);
-            }
-            else {
-                mapForKey = new HashMap<List<Term>, DefiniteClauseList>((int) Math.max(16, clauses.size() / 0.75 + 10));
-            }
+            mapForKey = new HashMap<>((int) Math.max(16, clauses.size() / 0.75 + 10));
 
             for (DefiniteClause definiteClause : clauses) {
                 Literal headLiteral = definiteClause.getDefiniteClauseHead();
@@ -314,39 +296,17 @@ public class LazyGroundClauseIndex {
             }
 
             definiteClausesAllArgsIndex.put(key, mapForKey);
-
         }
-
 
         return mapForKey;
     }
 
     private class LRUMap extends LinkedHashMap<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> {
 
-    //	protected boolean useJWSvariant = true;
-    	
     	protected boolean removeEldestEntry(Map.Entry<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> eldest) {     	
         	
             if (size() > maximumIndexSize) {          	
-/*
-            	if (useJWSvariant && maximumIndexSize > 8) {
-            		// Remove the SMALLEST item in the OLDEST QUARTER (?).
-            		int smallestSize = Integer.MAX_VALUE;
-            		Map.Entry<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> removeMe = null;
-            		
-            		for (int i = 0; i < maximumIndexSize / 4; i++) {
-            			Map.Entry<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> ithOldest     = this;
-            			int                                                                   ithOldestSize = ithOldest.getValue().keySet().size();
-            			if (ithOldestSize < smallestSize) {
-            				smallestSize = ithOldestSize;
-            				removeMe = ithOldest;
-            			}
-            		}
-                    definiteClausesWithUngroundArgs.remove(removeMe.getKey());
-                    indicesRemoved++;
-                    return true;
-            	}
-*/
+
                 definiteClausesWithUngroundArgs.remove(eldest.getKey());
                 indicesRemoved++;
                 return true;

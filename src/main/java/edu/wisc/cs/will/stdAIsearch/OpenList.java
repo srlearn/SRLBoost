@@ -1,6 +1,3 @@
-/**
- * Keep an ordered list of search nodes being considered.  Method for inserting new items depends on the search strategy being used.
- */
 package edu.wisc.cs.will.stdAIsearch;
 
 import java.util.Iterator;
@@ -8,6 +5,8 @@ import java.util.LinkedList;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
+ * Keep an ordered list of search nodes being considered.
+ * Method for inserting new items depends on the search strategy being used.
  * @author shavlik
  *
  */
@@ -15,9 +14,9 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
 
     private static final long serialVersionUID = 1L;
 
-    public StateBasedSearchTask<T> task;
+    public StateBasedSearchTask task;
 
-    private int countOfAdds = 0; //jwsjws
+    private int countOfAdds = 0;
 
     public OpenList(StateBasedSearchTask task) {
         this.task = task;
@@ -56,12 +55,12 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
         throw new UnsupportedOperationException("Programmer error: Do not use add() to add to the open list.  Use a method that also informs the search monitor.");
     }
 
-    public boolean addToEndOfOpenList(T node) {
+    public void addToEndOfOpenList(T node) {
         if (node == null) {
             Utils.error("Cannot have node=null!");
         }
         if (task.closed != null && task.closed.alreadyInClosedList(node)) {
-            return false;
+            return;
         }
         super.add(node);
         recordNodeCreation(node);
@@ -72,15 +71,14 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
         if (task.beamWidth > 0) {
             checkBeamWidth();
         }
-        return true;
     }
 
-    public boolean addToFrontOfOpenList(T node) {
+    public void addToFrontOfOpenList(T node) {
         if (node == null) {
             Utils.error("Cannot have node=null!");
         }
         if (task.closed != null && task.closed.alreadyInClosedList(node)) {
-            return false;
+            return;
         }
         super.add(0, node);
         recordNodeCreation(node);
@@ -91,10 +89,10 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
         if (task.beamWidth > 0) {
             checkBeamWidth();
         }
-        return true;
     }
 
-    public boolean insertByScoreIntoOpenList(T node, double minAcceptableScore, boolean tiesOK) throws SearchInterrupted { // HIGHER SCORES ARE BETTER (since that is the convention in heuristic search).
+    private void insertByScoreIntoOpenList(T node, double minAcceptableScore, boolean tiesOK) throws SearchInterrupted {
+        // HIGHER SCORES ARE BETTER (since that is the convention in heuristic search).
         if (node == null) {
             Utils.error("Cannot have node=null!");
         }
@@ -102,7 +100,7 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
             if (task.verbosity > 2) {
                 Utils.println(" Already in closed: " + node);
             }
-            return false;
+            return;
         }
         double score = task.scorer.scoreThisNode(node);
         if (task.verbosity > 2) {
@@ -112,47 +110,60 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
             if (task.verbosity > 2) {
                 Utils.println("  Discard since score less than minAcceptableScore (" + minAcceptableScore + ").");
             }
-            return false;
+            return;
         }
         if (!tiesOK && score <= minAcceptableScore) {
             if (task.verbosity > 2) {
                 Utils.println("  Discard since score does not exceeed minAcceptableScore (" + minAcceptableScore + ").");
             }
-            return false;
+            return;
         }
         if (Double.isNaN(score)) {
-            return false;
-        } // Allow scorers to return NaN to indicate 'do not keep.'
-        double bonusScore = task.scorer.computeBonusScoreForThisNode(node); // Used to play tricks when inserting into OPEN, but where the "real" score should be provided to the search monitor.
+            // Allow scorers to return NaN to indicate 'do not keep.'
+            return;
+        }
+
+        // Used to play tricks when inserting into OPEN, but where the "real" score should be provided to the search monitor.
+        double bonusScore = task.scorer.computeBonusScoreForThisNode(node);
+
         double totalScore = score + bonusScore;
-        boolean acceptable = true; // See if this node is an acceptable for setting 'bestScoreSeenSoFar.'
+
+        // See if this node is an acceptable for setting 'bestScoreSeenSoFar.'
+        boolean acceptable = true;
 
         if (task.verbosity > 2) {
             Utils.println("Consider adding this to OPEN: [#" + (++countOfAdds) + "] " + node);
         }
-        if (task.discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar
-                && task.scorer.computeMaxPossibleScore(node) <= task.bestScoreSeenSoFar) { // TODO allow this to be '<=' or '<'
+        if (task.discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar &&
+                task.scorer.computeMaxPossibleScore(node) <= task.bestScoreSeenSoFar) {
+            // TODO(?): allow this to be '<=' or '<'
             if (task.verbosity > 2) {
                 Utils.println("   Discard '" + node + "' because its best possible score (" + task.scorer.computeMaxPossibleScore(node) + ") cannot exceed the best score seen so far (" + task.bestScoreSeenSoFar + " of [" + task.nodeWithBestScore + "]).");
             }
             task.nodesNotAddedToOPENsinceMaxScoreTooLow++;
-            return false;
+            return;
         }
 
-        // Don't tell the monitor if pruned, since the monitor may want to compute something cpu-intensive for a node that is being rejected.
+        // Don't tell the monitor if pruned, since the monitor may want to compute something
+        // cpu-intensive for a node that is being rejected.
         if (task.searchMonitor != null) {
-            acceptable = task.searchMonitor.recordNodeBeingScored(node, score); // Use 'real' score for the search monitor. TODO - also pass in the bonus so the monitor can see if if it wants.
+            // TODO(?): also pass in the bonus so the monitor can see if if it wants.
+
+            // Use 'real' score for the search monitor.
+            acceptable = task.searchMonitor.recordNodeBeingScored(node, score);
         }
 
-        if (acceptable && score > task.bestScoreSeenSoFar) { // TODO - allow '<' and '<=' the best score
+        if (acceptable && score > task.bestScoreSeenSoFar) {
+            // TODO(?): allow '<' and '<=' the best score
             if (task.verbosity > 2) {
                 Utils.println("NEW BEST SCORING (" + score + ") node: " + node);
             }
-            task.bestScoreSeenSoFar = score; // Do not use BONUS here, since that should only impact sorting in the list.
+            // Do not use BONUS here, since that should only impact sorting in the list.
+            task.bestScoreSeenSoFar = score;
             task.nodeWithBestScore = node;
             if (task.discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar) {
-                // Remove items from OPEN that cannot beat.  TODO - allow '<' and '<=' the best score.
-                // for (SearchNode n : this) { Utils.println("   Best possible score (" + task.scorer.computeMaxPossibleScore(n) + ") for OPEN member: " + n); }
+                // TODO(?): allow '<' and '<=' the best score.
+                // Remove items from OPEN that cannot beat.
                 for (Iterator<T> iter = this.iterator(); iter.hasNext();) {
                     T n = iter.next();
                     if (task.scorer.computeMaxPossibleScore(n) <= score) {
@@ -173,11 +184,11 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
             if (task.verbosity > 2) {
                 Utils.println("   Do NOT insert into OPEN: " + node);
             }
-            return false;
+            return;
         }
 
-        node.score = score;   // Record the score.
-        node.bonusScore = bonusScore; // And any bonus.
+        node.score = score;
+        node.bonusScore = bonusScore;
 
         int position = 0;
         boolean found = false;
@@ -195,7 +206,8 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
             }
             position++;
         }
-        if (!found) { // Don't forget this might need to be the LAST item.
+        if (!found) {
+            // Don't forget this might need to be the LAST item.
             super.add(node);
             recordNodeCreation(node);
             if (task.verbosity > 2) {
@@ -209,15 +221,10 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
         if (task.verbosity > 3) {
             reportOpenListScores();
         }
-        return true;
     }
 
-    public boolean insertByScoreIntoOpenList(T node) throws SearchInterrupted {
-        return this.insertByScoreIntoOpenList(node, task.minAcceptableScore, task.allowToTieMinAcceptableScore);
-    }
-
-    public void reportOpenSize() {
-        Utils.println("% |open| = " + Utils.comma(size()));
+    public void insertByScoreIntoOpenList(T node) throws SearchInterrupted {
+        this.insertByScoreIntoOpenList(node, task.minAcceptableScore, task.allowToTieMinAcceptableScore);
     }
 
     private void checkBeamWidth() {
@@ -233,7 +240,7 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
         }
     }
 
-    public void reportOpenListScores() {
+    private void reportOpenListScores() {
         Utils.print("  OPEN = [");
         boolean firstTime = true;
 

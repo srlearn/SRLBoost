@@ -390,10 +390,6 @@ public class FileParser {
 		return literalsToThreshold == null ? Collections.EMPTY_SET : literalsToThreshold;
 	}
 
-	public void clearLiteralsToThreshold() {
-		literalsToThreshold.clear();
-	}
-
 	// Return what seems to be the working directory for the current task.
 	public void setDirectoryName(String name) {
 		checkDirectoryName(name);
@@ -421,9 +417,7 @@ public class FileParser {
 			stringHandler.dontPrintUnlessImportant = true;
 		}
 		List<Sentence> sentences = readFOPCfile(fName);
-		
-	//	Utils.println("readLiteralsInFile: |sentences| = " + Utils.comma(sentences));
-		
+
 		if (sentences == null) { 
 			dontPrintUnlessImportant               =               hold_dontPrintUnlessImportant; 
 			stringHandler.dontPrintUnlessImportant = hold_stringHandler_dontPrintUnlessImportant;
@@ -517,7 +511,6 @@ public class FileParser {
 	public List<Sentence> readFOPCfile(String fName) {
 		List<Sentence> results = readFOPCfile(fName, false);
 
-	//	Utils.println("readFOPCfile/1: |sentences| = " + results.size());
 		return results;
 	}
 
@@ -531,14 +524,6 @@ public class FileParser {
 		}
 	}
 
-	/**
-         * A variant of readFOPCfile(String fileName) where no complaint is
-         * thrown if the file does not exist.
-         *
-         * @param fileName
-         * @param okIfNoSuchFile
-         * @return A list of sentences, the contents of the given file.
-         */
 	public List<Sentence> readFOPCfile(String fNameRaw, boolean okIfNoSuchFile) {		
 		String fName = Utils.replaceWildCardsAndCheckForExistingGZip(fNameRaw);
 		
@@ -3514,16 +3499,6 @@ public class FileParser {
 		return false;
 	}
 
-	/**
-         * Expecting a comma, say in a list of arguments, but can also "peek"
-         * for other tokens that close the list.
-         *
-         * @param rightParenOk
-         * @param rightBraceOK
-         * @param okEOL
-         * @param partOfErroMsg
-         * @throws ParsingException
-         */
 	private void checkForComma(boolean rightParenOK, boolean rightBraceOK, boolean okEOL, String partOfErrorMsg) throws ParsingException, IOException {
 		if (checkAndConsume(',')) { return; }
 		if (rightParenOK && checkAndConsume(')')) { tokenizer.pushBack(); return; }
@@ -3633,56 +3608,6 @@ public class FileParser {
 		return convertTermToLiteral(possibleTerm);
 	}
 
-//    /** Reads a (positive) literal from the stream.
-//     *
-//     * The literal is a formula consisting of a predicate symbol and it's terms:
-//     *
-//     * Literal =>
-//     *      (
-//     *          <IDENTIFIER>
-//     *
-//     *          [
-//     *              <LEFTPARAN> listOfTerms() <RIGHTPARAN>
-//     *          |
-//     *              infixOperator() term()
-//     *          ]
-//     *      )
-//     *   |
-//     *      <VARIABLE> infixOperator() term()
-//     *
-//     *
-//     *
-//     * A look-ahead of 1 is required to disambiguate between Infix and Non-infix symbols.
-//     *
-//     * @param argumentsMustBeTyped
-//     * @return
-//     * @throws ParsingException
-//     * @throws IOException
-//     */
-//    private boolean processLiteralTAW(ReturnValue<Literal> literal, boolean argumentsMustBeTyped) throws ParsingException, IOException {
-//
-//        ReturnValue<String> predicateName;
-//
-//        if ( processIdentifierTAW(predicateName)) {
-//
-//        }
-//
-//    private boolean processPredicateSymbolTAW(ReturnValue<String> string) {
-//        String name = getPredicateOrFunctionName();
-//        List<Term> terms = null;
-//
-//    }
-
-    /** Reads a list of Terms from the stream.
-     *
-     * Assumes that the initial '(' has already been read and that the terminating ')' will be
-     * consumed.
-     * 
-     * @param argumentsMustBeTyped
-     * @return
-     * @throws ParsingException
-     * @throws IOException
-     */
     private NamedTermList processListOfTerms(char openingBracket, boolean argumentsMustBeTyped) throws ParsingException, IOException {
 
         List<Term> terms = new ArrayList<Term>();
@@ -4528,7 +4453,6 @@ public class FileParser {
 
 	/**
 	 * Read an FOPC sentence.
-	 *
 	 */
     private Sentence processFOPC_sentence(int insideLeftParenCount) throws ParsingException, IOException {
     	return  processFOPC_sentence(insideLeftParenCount, false);
@@ -4723,135 +4647,14 @@ public class FileParser {
         return literals;
     }
 
-	// A simplistic way to get around the use of '-' as a 'dash.'
-	public String convertDashToUnderscore(String str) {
-		if (str == null || str.length() < 3) { return str; }
-		boolean foundDashToUnderscore = false;
-		boolean haveSeenLetter        = false;
-		StringBuilder result = new StringBuilder(str.length());
-		char a = ' ';
-		char b = str.charAt(0);
-		char c = str.charAt(1);
-		result.append(b); // If the first char is a '-' it is ok (i.e., it must be a minus sign).
-		for (int i = 1; i < str.length() - 1; i++) {
-			if (Character.isLetter(a) && !haveSeenLetter) { haveSeenLetter = true; }
-			a = b;
-			b = c;
-			c = str.charAt(i + 1);
-			// A '-' is OK after an equals sign, after white space (bug if space is escaped?), or between two digits that have not been proceeded by a letter.
-			if (b != '-' || a == '=' || Character.isWhitespace(a) || (!haveSeenLetter && !foundDashToUnderscore && Character.isDigit(a) && Character.isDigit(c))) {
-				result.append(b);    // if (b == '-') Utils.println("--KEEP-->"   + a + b + c);
-			} else if (b == '-' && i > 1 && Character.isDigit(str.charAt(i - 2)) && (a == 'E' || a == 'e') && Character.isDigit(c)) {
-				result.append(b); // Assume this is a minus sign in scientific notation.
-			} else {
-				if (!foundDashToUnderscore) { foundDashToUnderscore = true; }
-				result.append('_');	 //               Utils.println("--CHANGE-->" + a + b + c);
-			}
-			if (b == '=' || (a != '\\' && Character.isWhitespace(b))) {
-				foundDashToUnderscore = false;  // Reset if '=' or whitespace found.  Also handle an overriding backslash before the whitespace.
-				haveSeenLetter        = false;
-			}
-		}
-		result.append(str.charAt(str.length() - 1));
-		//Utils.println("ORIGINAL");
-		//Utils.println(str);
-		//Utils.println("CONVERTED");
-		//Utils.println(result.toString());
-		return result.toString();
-	}
-
-    private class ReturnValue<T> {
+	private class ReturnValue<T> {
         T value;
     }
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		args = Utils.chopCommentFromArgs(args);
-		Utils.createDribbleFile("dribble" + Utils.defaultFileExtensionWithPeriod);
-		HandleFOPCstrings stringHandler = new HandleFOPCstrings();
-		FileParser        parser        = new FileParser(stringHandler);
-
-		parser.readFOPCfile("debugParser" + Utils.defaultFileExtensionWithPeriod);
-		Utils.waitHere();
-
-		stringHandler.useStdLogicNotation();
-
-		//List<Sentence> sentences = parser.readFOPCfile(args[0] + Utils.defaultFileExtensionWithPeriod);
-		//List<Sentence> sentences = parser.readFOPCstream("(A v B v C) ^ (D v E v F) ^ (G v H) => Concept;");
-	//	List<Sentence> sentences = parser.readFOPCstream("P1 v P2 v ... v Pn v NOT(N1 v N2 v Nm)  => Concept;");
-	//	List<Sentence> sentences = parser.readFOPCstream("((P1 v P2 v Pn) and NOT(N1 v N2 v Nm))  => Concept;");
-	//	List<Sentence> sentences = parser.readFOPCstream("((P1 v P2 v Pn) and Not_N1 and Not_N2 and Not_Nm)  => Concept;");
-		// Eight combinations of: {combine with AND or OR} x {negate or not} x {predict concept or negation of concept}
-		List<Sentence> sentences1 = parser.readFOPCstream("(    P1 ^     P2 ^     P3)  =>     Concept;");
-		List<Sentence> sentences2 = parser.readFOPCstream("(    P1 ^     P2 ^     P3)  => not Concept;");
-		List<Sentence> sentences3 = parser.readFOPCstream("(not P1 ^ not P2 ^ not P3)  =>     Concept;");
-		List<Sentence> sentences4 = parser.readFOPCstream("(not P1 ^ not P2 ^ not P3)  => not Concept;");
-		List<Sentence> sentences5 = parser.readFOPCstream("(    P1 v     P2 v     P3)  =>     Concept;");
-		List<Sentence> sentences6 = parser.readFOPCstream("(    P1 v     P2 v     P3)  => not Concept;");
-		List<Sentence> sentences7 = parser.readFOPCstream("(not P1 v not P2 v not P3)  =>     Concept;");
-		List<Sentence> sentences8 = parser.readFOPCstream("(not P1 v not P2 v not P3)  => not Concept;");
-		// Might want to edit: public  static final int defaultNumberOfLiteralsPerRowInPrintouts = 1;
-		for (Sentence sentence : sentences1) {
-			Utils.println("\nFROM:\n  " + sentence.toPrettyString() + ";\n TO:");
-			for (Clause c : sentence.convertToClausalForm()) {
-				Utils.println("  " + c.toPrettyString(Integer.MAX_VALUE) + ";");
-			}
-		}
-		for (Sentence sentence : sentences2) {
-			Utils.println("\nFROM:\n  " + sentence.toPrettyString() + ";\n TO:");
-			for (Clause c : sentence.convertToClausalForm()) {
-				Utils.println("  " + c.toPrettyString(Integer.MAX_VALUE) + ";");
-			}
-		}
-		for (Sentence sentence : sentences3) {
-			Utils.println("\nFROM:\n  " + sentence.toPrettyString() + ";\n TO:");
-			for (Clause c : sentence.convertToClausalForm()) {
-				Utils.println("  " + c.toPrettyString(Integer.MAX_VALUE) + ";");
-			}
-		}
-		for (Sentence sentence : sentences4) {
-			Utils.println("\nFROM:\n  " + sentence.toPrettyString() + ";\n TO:");
-			for (Clause c : sentence.convertToClausalForm()) {
-				Utils.println("  " + c.toPrettyString(Integer.MAX_VALUE) + ";");
-			}
-		}
-		for (Sentence sentence : sentences5) {
-			Utils.println("\nFROM:\n  " + sentence.toPrettyString() + ";\n TO:");
-			for (Clause c : sentence.convertToClausalForm()) {
-				Utils.println("  " + c.toPrettyString(Integer.MAX_VALUE) + ";");
-			}
-		}
-		for (Sentence sentence : sentences6) {
-			Utils.println("\nFROM:\n  " + sentence.toPrettyString() + ";\n TO:");
-			for (Clause c : sentence.convertToClausalForm()) {
-				Utils.println("  " + c.toPrettyString(Integer.MAX_VALUE) + ";");
-			}
-		}
-		for (Sentence sentence : sentences7) {
-			Utils.println("\nFROM:\n  " + sentence.toPrettyString() + ";\n TO:");
-			for (Clause c : sentence.convertToClausalForm()) {
-				Utils.println("  " + c.toPrettyString(Integer.MAX_VALUE) + ";");
-			}
-		}
-		for (Sentence sentence : sentences8) {
-			Utils.println("\nFROM:\n  " + sentence.toPrettyString() + ";\n TO:");
-			for (Clause c : sentence.convertToClausalForm()) {
-				Utils.println("  " + c.toPrettyString(Integer.MAX_VALUE) + ";");
-			}
-		}
-
-	}
-	/**
-	 * @param numberOfPrecomputeFiles the numberOfPrecomputeFiles to set
-	 */
 	public void setNumberOfPrecomputeFiles(int numberOfPrecomputeFiles) {
 		this.numberOfPrecomputeFiles = numberOfPrecomputeFiles;
 	}
-	/**
-	 * @return the numberOfPrecomputeFiles
-	 */
+
 	public int getNumberOfPrecomputeFiles() {
 		return numberOfPrecomputeFiles;
 	}

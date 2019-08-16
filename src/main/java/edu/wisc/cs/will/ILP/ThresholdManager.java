@@ -3,11 +3,9 @@
  */
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.ILP.LearnOneClause;
-
 import java.io.FileNotFoundException;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
-import java.io.IOException;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +17,6 @@ import java.util.Set;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.Function;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.LiteralToThreshold;
@@ -127,7 +124,7 @@ public class ThresholdManager {
 			Literal    query         = stringHandler.getLiteral(literalToThreshold.predicateName, argList);			
 			Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%   query = " + query);
 			
-			List<Term> groundings    = innerLoopForILP.getProver().getAllUniqueGroundings(query, innerLoopForILP.getParser()); // Note: this can be very cpu intensive!
+			List<Term> groundings    = innerLoopForILP.getProver().getAllUniqueGroundings(query); // Note: this can be very cpu intensive!
 			Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%   |groundings| = " + Utils.getSizeSafely(groundings));			
 			if (groundings == null) { return; }
 			

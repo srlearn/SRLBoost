@@ -1,46 +1,26 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.OneClass;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
-import edu.wisc.cs.will.Boosting.MLN.MLNInference;
-import edu.wisc.cs.will.Boosting.RDN.ConditionalModelPerPredicate;
-import edu.wisc.cs.will.Boosting.RDN.InferBoostedRDN;
-import edu.wisc.cs.will.Boosting.RDN.JointModelSampler;
-import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
-import edu.wisc.cs.will.Boosting.RDN.LearnBoostedRDN;
-import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
-import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author tkhot
- *
  */
 public class RunOneClassModel extends RunBoostedModels {
 
-	
 	private Map<String, PropositionalizationModel> fullModel;
-	/**
-	 * 
-	 */
+
 	public RunOneClassModel() {
-		fullModel = new HashMap<String, PropositionalizationModel>();
+		fullModel = new HashMap<>();
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.Boosting.Common.RunBoostedModels#learn()
-	 */
 	@Override
 	public void learn() {
-		//PropositionalizationModel model = new PropositionalizationModel();
-		Map<String, LearnOCCModel> learners = new HashMap<String, LearnOCCModel>();
+		Map<String, LearnOCCModel> learners = new HashMap<>();
 		int minTreesInModel = Integer.MAX_VALUE;
 		
 		
@@ -59,9 +39,7 @@ public class RunOneClassModel extends RunBoostedModels {
 	
 	
 		int iterStepSize = 1;
-		//if (cmdArgs.getTargetPredVal().size() == 1) {
-			iterStepSize = cmdArgs.getMaxTreesVal();
-		//}
+		iterStepSize = cmdArgs.getMaxTreesVal();
 
 		if (cmdArgs.getRdnIterationStep() != -1) {
 			iterStepSize  = cmdArgs.getRdnIterationStep();
@@ -76,7 +54,6 @@ public class RunOneClassModel extends RunBoostedModels {
 				}
 				int currIterStep =  (i+iterStepSize) - fullModel.get(pred).getNumTrees();
 				Utils.println("% Learning " + currIterStep + " trees in this iteration for " + pred);
-				newModel = true;
 				learners.get(pred).learnNextModel(this, fullModel.get(pred), currIterStep);
 			}
 		}
@@ -89,13 +66,10 @@ public class RunOneClassModel extends RunBoostedModels {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.Boosting.Common.RunBoostedModels#loadModel()
-	 */
 	@Override
 	public void loadModel() {
 		if (fullModel == null) {
-			fullModel = new HashMap<String, PropositionalizationModel>(); 
+			fullModel = new HashMap<>();
 		}
 
 		Utils.println("\n% Getting occ's target predicates.");
@@ -119,35 +93,11 @@ public class RunOneClassModel extends RunBoostedModels {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.Boosting.Common.RunBoostedModels#infer()
-	 */
 	@Override
 	public void infer() {
 		InferOCCModel infer = new InferOCCModel(cmdArgs, setup);
 		infer.runInference(fullModel);
 
-	}
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		args = Utils.chopCommentFromArgs(args); 
-		CommandLineArguments cmd = RunBoostedModels.parseArgs(args);
-		if (cmd == null) {
-			Utils.error(CommandLineArguments.getUsageString());
-		}
-		RunBoostedModels runClass = null;
-		runClass = new RunOneClassModel();
-		if (cmd.isLearnMLN()) {
-			Utils.error("Use RunBoostedModels or RunBoostedMLN, if you want to learn MLNs(-mln) instead of RunOneClassModel");
-		}
-		if (!cmd.isLearnOCC()) {
-			Utils.waitHere("Set \"-occ\"  in cmdline arguments to ensure that we intend to learn OCC. Will now learn an OCC.");
-		}
-		runClass.setCmdArgs(cmd);
-		runClass.runJob();
 	}
 
 }

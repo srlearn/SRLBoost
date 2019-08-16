@@ -14,9 +14,8 @@ public class ScoreOCCNode extends ScoreSingleClauseByAccuracy {
 	public ScoreOCCNode() {
 		super();
 	}
-	
-	
-	public double computeMaxPossibleScore(SearchNode nodeRaw) throws SearchInterrupted {
+
+	public double computeMaxPossibleScore(SearchNode nodeRaw) {
 		SingleClauseNode node = (SingleClauseNode)nodeRaw;
 		
 		if (debugLevel > 1) { Utils.println("%     computeMaxPossibleScore = " + (-scalingPenalties * getPenalties(node, false, true)) + " for " + node); }
@@ -24,31 +23,24 @@ public class ScoreOCCNode extends ScoreSingleClauseByAccuracy {
 	}
 	
 	public double scoreThisNode(SearchNode nodeRaw) throws SearchInterrupted {
-		
-		
+
 		SingleClauseNode node  = (SingleClauseNode)nodeRaw;
 		System.out.println("TEMP: Calculating score for " + node);
-	//	node.computeCoverage(); // Do we need this?
 		if (!Double.isNaN(node.score)) { return node.score; }
 		
-		double fit     = node.oneClassScore();
-		double penalty = scalingPenalties * (getPenalties(node, true, true)); // + 0.01*node.penaltyForNonDiscrNode());
+		double fit = node.oneClassScore();
+		double penalty = scalingPenalties * (getPenalties(node, true, true));
 		
 		double score   = fit + penalty; // Add small penalties as a function of length and the number of singleton variables (so shorter better if accuracy the same).
-		// Uncomment this for debugging TempEval (TVK)
-		//String litString = node.literalAdded.toString();
-		// if (debugLevel > -1 || litString.contains("Ve") || litString.contains("Property")) {
-		if (debugLevel > -1) {  
-			Utils.println("%     Score = " + Utils.truncate(-score, 6) + " (regressionFit = " + Utils.truncate(fit, 6) + ", penalties=" + penalty + ") for clause:  " + node); 
-		}
-		
-		//if (node.posCoverage < Double.MIN_VALUE) { return Double.NaN; } // If a node cannot meet the minPosCoverage or theorem proving times out, score as NaN, which will prevent it from being added to OPEN.
+		Utils.println("%     Score = " + Utils.truncate(-score, 6) + " (regressionFit = " + Utils.truncate(fit, 6) + ", penalties=" + penalty + ") for clause:  " + node);
+
 		node.score = -score;
-		// if (score < 0) { Utils.error("Should not have a negative score: " + Utils.truncate(-score, 6) + " (regressionFit = " + Utils.truncate(fit, 6) + ", penalties=" + penalty + ") for clause:  " + node); }
-		return -score; // Since the code MAXIMIZES, negate here.
+
+		// Since the code MAXIMIZES, negate here.
+		return -score;
 	}
 	
-	public double computeBonusScoreForThisNode(SearchNode nodeRaw) throws SearchInterrupted { // ADD this to the normal score.
+	public double computeBonusScoreForThisNode(SearchNode nodeRaw) {
 		// If a clause ends with a DETERMINATE literal, we want to allow it to be expanded
 		// since the determinate literal by itself is (usually) of no help.
 		SingleClauseNode node  = (SingleClauseNode)nodeRaw; 

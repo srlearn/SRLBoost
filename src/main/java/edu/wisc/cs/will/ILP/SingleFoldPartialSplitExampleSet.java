@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
@@ -10,22 +6,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * @author twalker
  */
-public class SingleFoldPartialSplitExampleSet extends CrossValidationExampleSets {
+class SingleFoldPartialSplitExampleSet extends CrossValidationExampleSets {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
-	
-	public  double firstTrainExample  = -1; // These are FRACTIONS of the full set.
-    public  double lastTrainExample   = -1;
-    public  double firstEvalExample   = -1;
-    public  double lastEvalExample    = -1;
 
-    public SingleFoldPartialSplitExampleSet(List<Example> allPosExamples, List<Example> allNegExamples, double firstTrainExample, double lastTrainExample, double firstEvalExample, double lastEvalExample) {
+    private  double firstTrainExample  = -1; // These are FRACTIONS of the full set.
+    private  double lastTrainExample   = -1;
+    private double firstEvalExample   = -1;
+    private double lastEvalExample    = -1;
+
+    SingleFoldPartialSplitExampleSet(List<Example> allPosExamples, List<Example> allNegExamples, double firstTrainExample, double lastTrainExample, double firstEvalExample, double lastEvalExample) {
         this(firstTrainExample, lastTrainExample, firstEvalExample, lastEvalExample);
 
         setAllPositiveExamples(allPosExamples);
@@ -33,7 +25,7 @@ public class SingleFoldPartialSplitExampleSet extends CrossValidationExampleSets
         createFoldData();
     }
 
-    public SingleFoldPartialSplitExampleSet(double firstTrainExample, double lastTrainExample, double firstEvalExample, double lastEvalExample) {
+    private SingleFoldPartialSplitExampleSet(double firstTrainExample, double lastTrainExample, double firstEvalExample, double lastEvalExample) {
         super(1);
 
         this.firstTrainExample = firstTrainExample;
@@ -42,7 +34,6 @@ public class SingleFoldPartialSplitExampleSet extends CrossValidationExampleSets
         this.lastEvalExample   = lastEvalExample;
     }
 
- 
     /** Creates the cross validation data sets.
      *
      * ILPCrossValidationLoop could be subclasses to replace this method if you want a different
@@ -51,18 +42,18 @@ public class SingleFoldPartialSplitExampleSet extends CrossValidationExampleSets
      */
     private void createFoldData() {
 
-        if (foldsInitialized == true) {
+        if (foldsInitialized) {
             throw new IllegalStateException("The folds have already been created.  createFoldData should only be called once.");
         }
 
         foldsInitialized = true;
 
         for (int fold = 0; fold < getNumberOfFolds(); fold++) {
-            List<Example> foldPositivesTrainingExamples = new ArrayList<Example>();
-            List<Example> foldPositivesEvalExamples     = new ArrayList<Example>();
+            List<Example> foldPositivesTrainingExamples = new ArrayList<>();
+            List<Example> foldPositivesEvalExamples     = new ArrayList<>();
 
-            List<Example> foldNegativesTrainingExamples = new ArrayList<Example>();
-            List<Example> foldNegativesEvalExamples     = new ArrayList<Example>();
+            List<Example> foldNegativesTrainingExamples = new ArrayList<>();
+            List<Example> foldNegativesEvalExamples     = new ArrayList<>();
 
             int exNumber;
 
@@ -94,7 +85,6 @@ public class SingleFoldPartialSplitExampleSet extends CrossValidationExampleSets
             Utils.println("%  |negTRAIN| = " + Utils.getSizeSafely(foldNegativesTrainingExamples));
             Utils.println("%  |posEval|  = " + Utils.getSizeSafely(foldPositivesEvalExamples));
             Utils.println("%  |negEval|  = " + Utils.getSizeSafely(foldNegativesEvalExamples));
-       //   Utils.waitHere("[" + firstTrainExample + "," + lastTrainExample + "] [" + firstEvalExample + ", " + lastEvalExample + "]");
             
             
             if (Utils.getSizeSafely(foldNegativesEvalExamples) + Utils.getSizeSafely(foldPositivesEvalExamples) < 1) {
@@ -124,6 +114,4 @@ public class SingleFoldPartialSplitExampleSet extends CrossValidationExampleSets
 		return false;
     	
     }
-
-   
 }

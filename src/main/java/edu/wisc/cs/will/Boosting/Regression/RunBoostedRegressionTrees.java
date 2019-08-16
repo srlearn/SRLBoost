@@ -7,7 +7,6 @@ import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
 import edu.wisc.cs.will.Boosting.RDN.LearnBoostedRDN;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
-import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
@@ -101,24 +100,6 @@ public class RunBoostedRegressionTrees extends RunBoostedModels {
 			return Boolean.parseBoolean(lookup);
 		}
 		return false;
-	}
-
-	public static void main(String[] args) {
-		// TODO(@hayesall): This can most likely be removed since edu.wisc.cs.will.Boosting.Common.RunBoostedModels is the main class.
-
-		args = Utils.chopCommentFromArgs(args);
-		CommandLineArguments cmd = RunBoostedModels.parseArgs(args);
-		if (cmd == null) {
-			Utils.error(CommandLineArguments.getUsageString());
-		}
-		RunBoostedModels runClass;
-		runClass = new RunBoostedRegressionTrees();
-		if (!cmd.isLearnRegression()) {
-			Utils.waitHere("Set \"-reg\"  in cmdline arguments to ensure that we intend to learn regression trees. Will now learn regression trees.");
-			cmd.setLearnRegression(true);
-		}
-		runClass.setCmdArgs(cmd);
-		runClass.runJob();
 	}
 }
 

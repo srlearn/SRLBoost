@@ -1,27 +1,17 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
 import java.io.File;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.Theory;
 import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.stdAIsearch.BestFirstSearch;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
-import java.io.FileWriter;
 
 /**
  *
@@ -47,13 +37,9 @@ public final class ILPMain {
 
     public boolean checkpointEnabled = false;
 
-    private long maxTimeInMilliseconds = 3 * 24 * 60 * 60 * 1000L; // As a default, allow a max of three days (e.g., overnight plus the weekend).  This is in milliseconds, but remember that the max time, command-line argument is in seconds!
-
     public boolean useRRR = false;
 
     public boolean flipFlopPosNeg = false;
-
-    public boolean lowerCaseMeansVariable = false; // TODO - allow user to specify this.
 
     public String fileExtension = Utils.defaultFileExtension;
 
@@ -61,13 +47,7 @@ public final class ILPMain {
 
     public Boolean relevanceEnabled = true;
 
-    public OnionFilter onionFilter = null;
-
     private static final String testBedsPrefix = "../Testbeds/"; // But DO include the backslash here.
-
-    public Theory bestTheory = null;
-
-    public CoverageScore bestTheoryTrainingScore = null;
 
     public ILPMain() {
     }
@@ -127,72 +107,6 @@ public final class ILPMain {
         setupRelevance();
     }
 
-    public void runILP() throws SearchInterrupted {
-
-        outerLooper.initialize(false);
-
-        long start1 = System.currentTimeMillis();
-        long end1;
-
-        if (useOnion) {
-            TuneParametersForILP onion = new TuneParametersForILP(outerLooper, numberOfFolds);
-            onion.setFilter(onionFilter);
-            // Utils.println("maxTimeInMilliseconds = " + maxTimeInMilliseconds);
-            onion.setMaxSecondsToSpend((int) Math.min(Integer.MAX_VALUE, maxTimeInMilliseconds / 1000));
-            onion.run();
-            bestTheory = onion.getTheoryFromBestFold();
-            Utils.println("\n% ------------------------------------------------");
-            if (bestTheory == null) {
-                Utils.println("\n% The ONION was unable to find an acceptable theory.");
-            }
-            else {
-                Utils.println("\n\n% Best Theory Chosen by the Onion:");
-                Utils.println(bestTheory.toPrettyString("    "));
-                Utils.println("\n" + onion.getResultsFromBestFold());
-
-                if (onion.bestSetting != null) {
-                    Utils.print("\n\n% Chosen Parameter Settings:");
-                    Utils.println(onion.bestSetting.toString(true));
-                }
-
-                CrossValidationFoldResult bestFold = onion.getBestFold();
-
-                if (bestFold != null) {
-                    bestTheoryTrainingScore = bestFold.getTrainingCoverageScore();
-                }
-            }
-            Utils.println("\n% ------------------------------------------------");
-        }
-        else {
-            ILPCrossValidationLoop cvLoop = new ILPCrossValidationLoop(outerLooper, numberOfFolds, firstFold, lastFold);
-            cvLoop.setFlipFlopPositiveAndNegativeExamples(flipFlopPosNeg);
-            cvLoop.setMaximumCrossValidationTimeInMillisec(maxTimeInMilliseconds);
-            cvLoop.executeCrossValidation();
-            //	ILPCrossValidationResult results = cvLoop.getCrossValidationResults();
-        }
-
-        end1 = System.currentTimeMillis();
-        Utils.println("\n% Took " + Utils.convertMillisecondsToTimeSpan(end1 - start1, 3) + ".");
-        Utils.println("% Executed " + Utils.comma(getLearnOneClause().getTotalProofsProved()) + " proofs " + String.format("in %.2f seconds (%.2f proofs/sec).", getLearnOneClause().getTotalProofTimeInNanoseconds() / 1.0e9, getLearnOneClause().getAverageProofsCompletePerSecond()));
-        Utils.println("% Performed " + Utils.comma(Unifier.getUnificationCount()) + " unifications while proving Horn clauses.");
-    }
-
-    public void writeLearnedTheory(String prologueString) {
-
-        if (bestTheory != null) {
-            if (directory != null && prefix != null) {
-                File theoryFile = new File(directory, prefix + "_theory.txt");
-                try {
-                    String theoryAsString = prologueString + bestTheory.toPrettyString("") + "\n";
-
-                    new CondorFileWriter(theoryFile).append(theoryAsString).close();
-                } catch (IOException except) {
-                    Utils.printlnErr("Could not save the learned theory to a file: " + except.toString() + ".");
-                }
-            }
-        }
-    }
-
     private void processFlagArguments(String[] args) throws IllegalArgumentException {
         // Allow these three to come in any order.
         for (int arg = 1; arg < args.length; arg++) {
@@ -236,10 +150,8 @@ public final class ILPMain {
             else if (args[arg].startsWith("-maxTime=")) {
                 int i = Integer.parseInt(args[arg].substring(args[arg].indexOf("=") + 1));
                 if (i <= 0) {
-                    maxTimeInMilliseconds = Long.MAX_VALUE;
                 }
                 else {
-                    maxTimeInMilliseconds = i * 1000L;
                 }
             }
             else if (args[arg].startsWith("useOnion") || args[arg].equalsIgnoreCase("-useOnion")) {
@@ -285,7 +197,6 @@ public final class ILPMain {
         //		if (args.length > 3) { getLearnOneClause().setMinPosCoverage(Double.parseDouble(args[3])); }
         //		if (args.length > 4) { getLearnOneClause().setMinPrecision(  Double.parseDouble(args[4]));   }
         // Set some additional parameters for the inner-loop runs.
-        maxTimeInMilliseconds = 12 * 60 * 60 * 1000; // This is for any ONE task (but over ALL Onion layers for that task).
         getLearnOneClause().setMaxNodesToConsider(10000); // <-----------------------
         getLearnOneClause().setMaxNodesToCreate(100000);
         getLearnOneClause().maxSearchDepth = 1000;
@@ -345,14 +256,6 @@ public final class ILPMain {
         return relevanceEnabled == null ? getRelevanceFile().exists() : relevanceEnabled;
     }
 
-    public void setRelevanceEnabled(Boolean relevanceEnabled) {
-        this.relevanceEnabled = relevanceEnabled;
-    }
-
-    public boolean isRelevanceEnableSet() {
-        return relevanceEnabled != null;
-    }
-
     public File getRelevanceFile() {
         File relevanceFile = new CondorFile(directory + "/" + prefix + "_bkRel." + fileExtension);
 
@@ -363,40 +266,4 @@ public final class ILPMain {
         return outerLooper.innerLoopTask;
     }
 
-    public Theory getBestTheory() {
-        return bestTheory;
-    }
-
-    public static void mainJWS(String[] args) throws SearchInterrupted, IOException {
-        //	Experimenter.mainJWS(args);
-        ExperimenterMR.mainJWS(args);
-    }
-
-    public static void main(String[] args) throws SearchInterrupted, IOException {
-        String userName = Utils.getUserName();
-        //	waitHereUnlessCondorJob("user name = " + userName);
-        if ("shavlik".equals(userName)) {
-            mainJWS(args);
-            System.exit(0);
-        } // IF YOU ADD AN ENTRY, BE SURE TO USE *ELSE* OTHERWISE mainDefault will also be called.
-        else if ("twalker".equals(userName)) {
-            mainJWS(args);
-            System.exit(0);
-        }
-        //	else if ("kunapg".equals( userName)) { mainGK( args);  System.exit(0); }
-        //  else if () { mainYOU(args); }
-        else {
-            mainDefault(args);
-        }
-    }
-
-    /**
-     * @param args
-     * @throws SearchInterrupted
-     */
-    public static void mainDefault(String[] args) throws SearchInterrupted {
-        ILPMain main = new ILPMain();
-        main.setup(args);
-        main.runILP();
-    }
 }

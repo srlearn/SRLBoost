@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
 
 import java.util.List;
@@ -38,32 +35,15 @@ public class PruneILPsearchTree {
 	public PruneILPsearchTree(LearnOneClause task) {
 		this.task = task;	
 	}
-	
-	/**
-         * @param node
-	 * @param typesOfNewTerms 
-         * @return Whether the given node should be pruned.
-         */
-	public boolean prune(SingleClauseNode node, Map<Term,Type> typesOfNewTerms) {
-/*		if (node.formForPruning == null) {
-			//protected Literal formForPruning  = null; // This and the next are used for pruning.
-			//protected Map<Variable,NumericConstant> variablesToNumbers = null;
 
-			SingleClauseNode parent = (SingleClauseNode) node.parentNode;
-			Map<Term,Type> parentsNewTerms = parent.typesOfNewTerms;
-			for (Term arg : node.literalAdded.arguments) {
-				
-			}
-		}
-*/
-		//Utils.println("%  prune1 " + node.literalAdded);
+	public boolean prune(SingleClauseNode node, Map<Term,Type> typesOfNewTerms) {
+
 		if (pruneBasedOnIntervalAnalysis(node)) {
 			if (LearnOneClause.debugLevel > 2) { Utils.println("*** PRUNE " + node + " based on overlapping-interval analysis.");}
 			nodesPrunedDueToIntervalAnalysis++;
 			if (nodesPrunedDueToIntervalAnalysis % pruneReportInterval == 0) { Utils.println("% Have pruned " + Utils.comma(nodesPrunedDueToIntervalAnalysis) + " nodes due to overlapping-interval analysis."); }
 			return true;
 		}
-		//Utils.println("%  prune2 " + node.literalAdded);
 		if (pruneBasedOnSingletonHeads(node)) {
 			if (LearnOneClause.debugLevel > 2) { Utils.println("*** PRUNE " + node + " based on 'prune' instructions.");}
 			nodesPrunedDueToSingleClauseAnalysis++;
@@ -87,15 +67,12 @@ public class PruneILPsearchTree {
 	}
 	
 	/**
-         * See if this node's literal is in the BODY of some 'singleton' clause
-         * whose head is already in the clause being built. I.e., if 'p(x) =>
-         * q(x)' is the ONLY way to deduce q(x), and q(x) in the clause, no need
-         * to consider adding p(x) since we know it must be true.
-         * 
-         * @param node
-         * @return TODO Whether pruning occurred?
-         */
-	protected boolean pruneBasedOnSingletonHeads(SingleClauseNode node) { // This is a bit of a misnomer since hand-created prune's can happen for any reason.
+	 * See if this node's literal is in the BODY of some 'singleton' clause
+	 * whose head is already in the clause being built. I.e., if 'p(x) =>
+	 * q(x)' is the ONLY way to deduce q(x), and q(x) in the clause, no need
+	 * to consider adding p(x) since we know it must be true.
+	 */
+	private boolean pruneBasedOnSingletonHeads(SingleClauseNode node) { // This is a bit of a misnomer since hand-created prune's can happen for any reason.
 		// First see if this node's literal is even in a singleton body.
 		Literal       lit   = node.literalAdded;
 		PredicateName pName = lit.predicateName;
@@ -232,10 +209,10 @@ public class PruneILPsearchTree {
 		return false;		
 	}
 	
-	public int countMatchingDefiniteClauses(Literal head, Iterable<Clause> clauses, Unifier unifier) {
+	private int countMatchingDefiniteClauses(Literal head, Iterable<Clause> clauses, Unifier unifier) {
 		return countMatchingDefiniteClauses(head, clauses, unifier, false);
 	}
-	public int countMatchingDefiniteClauses(Literal head, Iterable<Clause> clauses, Unifier unifier, boolean reportMatches) {
+	private int countMatchingDefiniteClauses(Literal head, Iterable<Clause> clauses, Unifier unifier, boolean reportMatches) {
 		if (clauses == null) { return 0; }
 		int counter = 0;
 		for (Clause clause : clauses) if (clause.isDefiniteClause()) {

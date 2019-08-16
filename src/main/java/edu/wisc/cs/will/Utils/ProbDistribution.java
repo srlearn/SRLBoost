@@ -86,15 +86,13 @@ public class ProbDistribution {
 		if (add == null) {
 			return;
 		}
-		
 		if (isHasDistribution()) {
 			probDistribution = VectorStatistics.addVectors(this.probDistribution, add.probDistribution);
 		} else {
 			probOfBeingTrue += add.probOfBeingTrue;
 		}
 	}
-	
-	
+
 	@Override
 	public String toString() {
 		if (isHasDistribution()) {
@@ -103,10 +101,7 @@ public class ProbDistribution {
 			return probOfBeingTrue+"";
 		}
 	}
-	
-	/**
-	 * @return the probOfBeingTrue
-	 */
+
 	public double getProbOfBeingTrue() {
 		if (isHasDistribution()) {
 			Utils.error("Expected single probability value but contains distribution");
@@ -114,9 +109,6 @@ public class ProbDistribution {
 		return probOfBeingTrue;
 	}
 
-	/**
-	 * @param probOfBeingTrue the probOfBeingTrue to set
-	 */
 	private void setProbOfBeingTrue(double probOfBeingTrue) {
 		if (probOfBeingTrue > 1) {
 			Utils.error("Probability greater than 1!!: " +  probOfBeingTrue);
@@ -125,9 +117,6 @@ public class ProbDistribution {
 		this.probOfBeingTrue = probOfBeingTrue;
 	}
 
-	/**
-	 * @return the probDistribution
-	 */
 	public double[] getProbDistribution() {
 		if (!isHasDistribution()) {
 			Utils.error("Expected distribution but contains single probability value");
@@ -135,24 +124,15 @@ public class ProbDistribution {
 		return probDistribution;
 	}
 
-	/**
-	 * @param probDistribution the probDistribution to set
-	 */
 	private void setProbDistribution(double[] probDistribution) {
 		setHasDistribution(true);
 		this.probDistribution = probDistribution;
 	}
 
-	/**
-	 * @return the hasDistribution
-	 */
 	public boolean isHasDistribution() {
 		return hasDistribution;
 	}
 
-	/**
-	 * @param hasDistribution the hasDistribution to set
-	 */
 	private void setHasDistribution(boolean hasDistribution) {
 		this.hasDistribution = hasDistribution;
 	}
@@ -160,9 +140,7 @@ public class ProbDistribution {
 	public double norm() {
 		if (isHasDistribution()) {
 			return Math.sqrt(VectorStatistics.dotProduct(probDistribution, probDistribution));
-		} 
-		
-		
+		}
 		return probOfBeingTrue;
 	}
 

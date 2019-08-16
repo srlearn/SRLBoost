@@ -1,15 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.Utils;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- *
  * @author twalker
  */
 public class NamedInputStream extends InputStream {
@@ -62,6 +56,4 @@ public class NamedInputStream extends InputStream {
     public String toString() {
         return name;
     }
-
-
 }

@@ -1,38 +1,17 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.ConnectedSentence;
-import edu.wisc.cs.will.FOPC.Constant;
 import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.ListAsTerm;
 import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.LiteralAsTerm;
 import edu.wisc.cs.will.FOPC.LiteralOrFunction;
-import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.QuantifiedSentence;
 import edu.wisc.cs.will.FOPC.visitors.ReplaceLiteralsVisitor;
-import edu.wisc.cs.will.FOPC.visitors.ReplacePredicatesVisitor;
 import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.SentenceAsTerm;
-import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
-import edu.wisc.cs.will.FOPC.StringConstant;
 import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
-import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.MapOfSets;
-import edu.wisc.cs.will.Utils.Utils;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,17 +23,13 @@ import java.util.Set;
  *
  * @author twalker
  */
-public class NonOperationalExpander {
+class NonOperationalExpander {
 
-//    private static final NonOperationalExpanderVisitor NON_OPERATIONAL_EXPANDER_VISITOR = new NonOperationalExpanderVisitor();
-//
-//    private static final NonOperationExpansionCountVisitor EXPANSION_COUNT_VISITOR = new NonOperationExpansionCountVisitor();
     private static final CollectNonOperationalLiteralsVisitor COLLECT_NON_OPERATIONAL_LITERALS_VISITOR = new CollectNonOperationalLiteralsVisitor();
 
-    private NonOperationalExpander() {
-    }
+    private NonOperationalExpander() {}
 
-    public static List<? extends Sentence> getExpandedSentences(HornClauseContext context, Sentence sentence, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
+    static List<? extends Sentence> getExpandedSentences(HornClauseContext context, Sentence sentence) {
 
         List<Sentence> results = null;
 
@@ -80,11 +55,6 @@ public class NonOperationalExpander {
         }
 
         return results;
-
-
-//        ExpansionData data = new ExpansionData(context, supportClauses);
-//
-//        return sentence.accept(NON_OPERATIONAL_EXPANDER_VISITOR, data);
     }
 
     private static Map<Literal, Literal> getNonOperationalExpansionMap(List<Literal> nonOperationalLiterals, List<Literal> operationalLiterals) {

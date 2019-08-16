@@ -1,6 +1,9 @@
 package edu.wisc.cs.will.MLN_Inference;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import edu.wisc.cs.will.MLN_Task.Block;
 import edu.wisc.cs.will.MLN_Task.GroundLiteral;
@@ -33,7 +36,7 @@ public class Gibbs  extends AllOfInference {
 		fixedLiterals = new HashSet<GroundLiteral>();
 	}
 	
-	public int getStepsPerSample() {
+	int getStepsPerSample() {
 		return 1; // Could argue this should be the number of literals to consider, but that isn't how the others are counted.
 	}
 	
@@ -126,10 +129,6 @@ public class Gibbs  extends AllOfInference {
 										  + ", choice = "      + literal.getValue() + " for " + literal);
 			}			
 		}
-	}
-
-	public Set<GroundLiteral> getFixedLiterals() {
-		return fixedLiterals;
 	}
 
 	public void setFixedLiterals(Set<GroundLiteral> fixedLiterals) {

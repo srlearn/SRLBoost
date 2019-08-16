@@ -36,7 +36,7 @@ public class DefaultProof implements Proof {
     private void setupProver(HornClausebase clausebase) {
         this.clausebase = clausebase;
         this.stringHandler = clausebase.getStringHandler();
-        this.prover = new HornClauseProver(stringHandler, this.clausebase, true);
+        this.prover = new HornClauseProver(this.clausebase, true);
     }
 
     private void setQuery(SLDQuery query) {

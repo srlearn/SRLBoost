@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
@@ -10,7 +6,6 @@ import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.ConnectedSentence;
 import edu.wisc.cs.will.FOPC.ConnectiveName;
 import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.visitors.Inliner;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.RelevanceStrength;
@@ -24,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * @author twalker
  */
 public class RelevantModeInformation implements RelevantInformation, Cloneable {
@@ -37,7 +31,7 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
 
     private RelevanceStrength relevanceStrength;
 
-    public RelevantModeInformation(Example example, boolean relevanceFromPositiveExample, Literal mode, RelevanceStrength relevanceStrength) {
+    RelevantModeInformation(Example example, boolean relevanceFromPositiveExample, Literal mode, RelevanceStrength relevanceStrength) {
         this.example = example;
         this.relevanceFromPositiveExample = relevanceFromPositiveExample;
         this.mode = mode;
@@ -171,7 +165,6 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
     }
 
     public boolean isValidAdvice(AdviceProcessor ap) {
-        //Set<PredicateNameAndArity> usedPredicate =
         return true;
     }
 
@@ -225,8 +218,4 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
     public boolean subsumes(RelevantInformation that) {
         return false;
     }
-
-
-    
-    
 }

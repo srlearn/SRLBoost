@@ -5,7 +5,6 @@ import java.io.File;  import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -242,37 +241,16 @@ public class ComputeAUC {
 		}
 	}
 
-
-	/**
-	 * @return the area under the ROC curve.
-	 */
 	public double getROC() {
 		return ROC;
 	}
 
-
-	/**
-	 * @return the area under the PR curve.
-	 */
 	public double getPR() {
 		return PR;
 	}
 	
 	public double getCLL() {
 		return CLL;
-	}
-	
-	
-	/*
-	 * Test code
-	 */
-	public static void main(String[] args) {
-		Double[] positiveProb = {0.5, 0.6, 0.7, 0.8};
-		Double[] negativeProb = {0.1, 0.2, 0.3, 0.4, 0.5};
-		
-		ComputeAUC auc = new ComputeAUC(Arrays.asList(positiveProb), Arrays.asList(negativeProb), "fromAUCmain_okToDeleteMe_");
-		Utils.println("ROC = " + auc.getROC());
-		Utils.println("PR  = " + auc.getPR());
 	}
 	
 }

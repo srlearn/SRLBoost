@@ -1,30 +1,20 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
-
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PrettyPrinter;
-import edu.wisc.cs.will.FOPC.PrettyPrinterOptions;
-import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
-import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import edu.wisc.cs.will.FOPC.Clause;
+import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
+import edu.wisc.cs.will.FOPC.Literal;
+import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.Utils.Utils;
+
 /**
  * @author vsc
  * 
  * This is a clause optimiser in the style of  [VSC,AS,HB et al, JMLR03].
- * 
- *      
  */
 public class ClauseOptimiser {
 
@@ -59,13 +49,8 @@ public class ClauseOptimiser {
         }
     }
 
-    /** Constructs a new optimised clause.
-     *
-     * @param head
-     * @param body
-     * @return
-     *
-     *
+    /**
+     * Constructs a new optimised clause.
      */
     protected int[] clauseToComponents(Literal head, List<Literal> body) {
         Collection<Variable> headvars = head.collectAllVariables();
@@ -240,104 +225,4 @@ public class ClauseOptimiser {
         return total_components;
     }
 
-    public static void main(String[] args) {
-
-        HornClauseContext context = new DefaultHornClauseContext();
-        ClauseOptimiser co = new ClauseOptimiser(context.getStringHandler());
-        context.getStringHandler().setVariablesStartWithQuestionMarks();
-
-        FileParser fp = context.getFileParser();
-
-        String string = " mega_posAnd_notNegOr0(?A, ?B, ?C, ?D, ?E) :- "
-                + "               ilField_TheList_list(?A, theOfficialCPTList, ?F, ?E), "
-                + "               member(?G, ?F), "
-                + "               ilType_ConditionalProbability_Types(?A, ?G, ?E), "
-                + "               compositeSymbolMap(?A, ?H, ?B, ?E), "
-                + "               ilField_Composite_name(?A, ?H, ?B, ?E), "
-                + "               member(?I, ?F), "
-                + "               ilField_ConditionalProbability_Types_arg1(?A, ?I, ?B, ?E), "
-                + "               sameAsIL(?A, ?B, ?B, ?E), "
-                + "               compositeSymbolMap(?A, ?J, ?C, ?E), "
-                + "               ilField_Composite_name(?A, ?J, ?C, ?E), "
-                + "               member(?K, ?F), "
-                + "               ilField_ConditionalProbability_Types_arg2(?A, ?K, ?C, ?E), "
-                + "               sameAsIL(?A, ?C, ?C, ?E), "
-                + "               ilField_ConditionalProbability_Types_arg3(?A, ?L, ?M, ?E), "
-                + "               member(?L, ?F), "
-                + "               ilType_AtLeastPlausible(?A, ?M, ?E), "
-                + "               member(?N, ?F), "
-                + "               compositeSymbolMap(?A, ?P, ?B, ?E), "
-                + "               ilField_Composite_name(?A, ?P, ?B, ?E), "
-                + "               ilField_ConditionalProbability_Types_arg1(?A, ?N, ?B, ?E), "
-                + "               compositeSymbolMap(?A, ?Q, ?C, ?E), "
-                + "               ilPred_Ancestors(?A, ?N, ?Q, iLBoolean_true, ?E), "
-                + "               ilField_ConditionalProbability_Types_arg3(?A, ?N, ?R, ?E), "
-                + "               ilType_AtLeastPlausible(?A, ?R, ?E), "
-                + "               compositeSymbolMap(?A, ?S, ?B, ?E), "
-                + "               ilField_Composite_name(?A, ?S, ?B, ?E), "
-                + "               ilField_ConditionalProbability_Types_arg1(?A, ?T, ?B, ?E), "
-                + "               member(?T, ?F), "
-                + "               ilField_ConditionalProbability_Types_arg3(?A, ?U, ?W, ?E), "
-                + "               member(?U, ?F), "
-                + "               ilType_AtLeastPlausible(?A, ?W, ?E), "
-                + "               compositeSymbolMap(?A, ?X, ?B, ?E), "
-                + "               ilField_Composite_name(?A, ?X, ?B, ?E), "
-                + "               member(?Y, ?F), "
-                + "               ilField_ConditionalProbability_Types_arg1(?A, ?Y, ?B, ?E), "
-                + "               member(?Z, ?F), "
-                + "               ilField_ConditionalProbability_Types_arg3(?A, ?Z, ?AB, ?E), "
-                + "               ilType_AtLeastPlausible(?A, ?AB, ?E), "
-                + "               \\+("
-                + "                  neverTrue("
-                + "                            ?BB, ?F, "
-                + "                            ("
-                + "                              compositeSymbolMap(?A, ?CB, ?B, ?E), "
-                + "                              ilField_Composite_name(?A, ?CB, ?B, ?E), "
-                + "                              ilField_ConditionalProbability_Types_arg1(?A, ?BB, ?DB, ?E), "
-                + "                              sameAsIL(?A, ?B, ?DB, ?E)"
-                + "                            )"
-                + "                           )"
-                + "                 ), "
-                + "               \\+("
-                + "                  neverTrue("
-                + "                            ?EB, ?F, "
-                + "                            ("
-                + "                              compositeSymbolMap(?A, ?FB, ?C, ?E), "
-                + "                              ilPred_Ancestors(?A, ?EB, ?FB, iLBoolean_true, ?E)"
-                + "                            )"
-                + "                           )"
-                + "                 ), "
-                + "               \\+("
-                + "                  neverTrue("
-                + "                            ?GB, ?F, "
-                + "                            ("
-                + "                              compositeSymbolMap(?A, ?HB, ?B, ?E), "
-                + "                              ilField_Composite_name(?A, ?HB, ?B, ?E), "
-                + "                              ilField_ConditionalProbability_Types_arg1(?A, ?GB, ?IB, ?E), "
-                + "                              sameAsIL(?A, ?B, ?IB, ?E), "
-                + "                              compositeSymbolMap(?A, ?JB, ?C, ?E), "
-                + "                              ilField_Composite_name(?A, ?JB, ?C, ?E), "
-                + "                              ilField_ConditionalProbability_Types_arg2(?A, ?GB, ?KB, ?E), "
-                + "                              sameAsIL(?A, ?C, ?KB, ?E), "
-                + "                              ilField_ConditionalProbability_Types_arg3(?A, ?GB, ?LB, ?E), "
-                + "                              ilType_AtLeastPlausible(?A, ?LB, ?E)"
-                + "                            )"
-                + "                           )"
-                + "                 ).";
-
-
-        Clause clause = fp.parseDefiniteClause(string);
-
-        Clause clause2 = co.rewriteWithCuts(clause);
-
-        PrettyPrinterOptions ppo = new PrettyPrinterOptions();
-        ppo.setMaximumLiteralsPerLine(1);
-        ppo.setSentenceTerminator("");
-        ppo.setMaximumIndentationAfterImplication(10);
-        ppo.setNewLineAfterImplication(true);
-
-        System.out.println(PrettyPrinter.print(clause2, "", ppo));
-
-
-    }
 }

@@ -1,11 +1,3 @@
-/*
- * CoverageScore.java
- *
- * Created on December 3, 2007, 9:04 AM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.Utils.Utils;
@@ -13,7 +5,6 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 /**
- *
  * @author twalker
  */
 @SuppressWarnings("serial")
@@ -160,169 +151,68 @@ public class CoverageScore implements Serializable {
         return toLongString();
     }
 
-
-
-    /**
-     * Increment true positives by add
-     * @param add
-     */
     public void addToTruePositive(double add) {
     	truePositives += add;
     }
-    
-    /**
-     * Increment false positives by add
-     * @param add
-     */
+
     public void addToFalsePositive(double add) {
     	falsePositives += add;
     }
-    
-    /**
-     * Increment true negatives by add
-     * @param add
-     */
+
     public void addToTrueNegative(double add) {
     	trueNegatives += add;
     }
-    
-    /**
-     * Increment false negatives by add
-     * @param add
-     */
+
     public void addToFalseNegative(double add) {
     	falseNegatives += add;
     }
-    
-    
 
-    /**
-     * @return the truePositives
-     */
     public double getTruePositives() {
         return truePositives;
     }
 
-    /**
-     * @param truePositives the truePositives to set
-     */
     public void setTruePositives(double truePositives) {
         this.truePositives = truePositives;
     }
 
-    /**
-     * @return the falsePositives
-     */
     public double getFalsePositives() {
         return falsePositives;
     }
 
-    /**
-     * @param falsePositives the falsePositives to set
-     */
     public void setFalsePositives(double falsePositives) {
         this.falsePositives = falsePositives;
     }
 
-    /**
-     * @return the trueNegatives
-     */
     public double getTrueNegatives() {
         return trueNegatives;
     }
 
-    /**
-     * @param trueNegatives the trueNegatives to set
-     */
     public void setTrueNegatives(double trueNegatives) {
         this.trueNegatives = trueNegatives;
     }
 
-    /**
-     * @return the falseNegatives
-     */
     public double getFalseNegatives() {
         return falseNegatives;
     }
 
-    /**
-     * @param falseNegatives the falseNegatives to set
-     */
     public void setFalseNegatives(double falseNegatives) {
         this.falseNegatives = falseNegatives;
     }
 
-    public static void main(String[] args) {
-
-        CoverageScore score;
-
-        score = new CoverageScore(100, 200, 12, 30);
-        System.out.println(score.toString() + "\n\n");
-
-        score = new CoverageScore(100.23, 232200.11, 12.43, 30.22);
-        System.out.println(score.toString() + "\n\n");
-
-        score = new CoverageScore(1, 1, 1, 1, 1, 1);
-        System.out.println(score.toString() + "\n\n");
-
-        score = new CoverageScore(100, 0, 0, 0, 1, 1);
-        System.out.println(score.toString() + "\n\n");
-    }
-
-    /**
-     * @return the truePositiveMEstimate
-     */
-    public double getTruePositiveMEstimate() {
-        return truePositiveMEstimate;
-    }
-
-    /**
-     * @param truePositiveMEstimate the truePositiveMEstimate to set
-     */
-    public void setTruePositiveMEstimate(double truePositiveMEstimate) {
-        this.truePositiveMEstimate = truePositiveMEstimate;
-    }
-
-    /**
-     * @return the falsePositiveMEstimate
-     */
     public double getFalsePositiveMEstimate() {
         return falsePositiveMEstimate;
     }
 
-    /**
-     * @param falsePositiveMEstimate the falsePositiveMEstimate to set
-     */
     public void setFalsePositiveMEstimate(double falsePositiveMEstimate) {
         this.falsePositiveMEstimate = falsePositiveMEstimate;
     }
 
-    /**
-     * @return the falseNegativeMEstimate
-     */
     public double getFalseNegativeMEstimate() {
         return falseNegativeMEstimate;
     }
 
-    /**
-     * @param falseNegativeMEstimate the falseNegativeMEstimate to set
-     */
     public void setFalseNegativeMEstimate(double falseNegativeMEstimate) {
         this.falseNegativeMEstimate = falseNegativeMEstimate;
-    }
-
-    /**
-     * @return the trueNegativeMEstimate
-     */
-    public double gettrueNegativeMEstimate() {
-        return trueNegativeMEstimate;
-    }
-
-    /**
-     * @param trueNegativeMEstimate the trueNegativeMEstimate to set
-     */
-    public void settrueNegativeMEstimate(double trueNegativeMEstimate) {
-        this.trueNegativeMEstimate = trueNegativeMEstimate;
     }
 
     public static class AccuracyComparator implements Comparator<CoverageScore> {
