@@ -19,12 +19,12 @@ public interface PhiFunction {
 	 * @param alpha Step length
 	 * @return the value of phi at alpha
 	 */
-	public double phiAt(double alpha);
+	double phiAt(double alpha);
 	
 	/**
 	 * 
 	 * @param alpha Step length
 	 * @return the derivative of phi at alpha
 	 */
-	public double phiDashAt(double alpha);
+	double phiDashAt(double alpha);
 }

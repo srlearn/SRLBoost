@@ -94,7 +94,7 @@ public class BoostingUtils {
 	}
 
 	public static List<PredicateNameAndArity> convertBodyModesToPNameAndArity(Set<PredicateNameAndArity> pnames) {
-		List<PredicateNameAndArity> pars = new ArrayList<PredicateNameAndArity>();
+		List<PredicateNameAndArity> pars = new ArrayList<>();
 		for (PredicateNameAndArity predicate : pnames) {
 			// For each spec for the predicate
 			for (PredicateSpec spec : predicate.getPredicateName().getTypeList()) {

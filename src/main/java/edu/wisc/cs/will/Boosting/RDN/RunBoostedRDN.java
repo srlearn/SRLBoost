@@ -6,33 +6,14 @@ import java.util.Map;
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
-import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
- * The main class to call the boosting code.
  * @author Tushar Khot
- *
  */
 public class RunBoostedRDN extends RunBoostedModels {
 
-	public static void main(String[] args) {
-
-		args = Utils.chopCommentFromArgs(args);
-		CommandLineArguments cmd = RunBoostedModels.parseArgs(args);
-		if (cmd == null) {
-			Utils.error(CommandLineArguments.getUsageString());
-		}
-		RunBoostedModels runClass = null;
-		runClass = new RunBoostedRDN();
-		if (cmd.isLearnMLN()) {
-			Utils.error();
-		}
-		runClass.setCmdArgs(cmd);
-		runClass.runJob();
-	}
-
-	JointRDNModel fullModel;
+	private JointRDNModel fullModel;
 	public RunBoostedRDN() {
 		fullModel = null;
 	}
@@ -58,10 +39,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 	// 		Each 'tree' in the sequence of the trees is really a forest of this size.
 	public static int numbModelsToMake = 1;
 
-	// TODO(?): TODO - allow this to be settable.
-	// 		This is the number of separate complete predictions of TESTSET probabilities to combine.
-	public static int numbFullTheoriesToCombine = 10;
-
 	// "Run1"; // NOTE: file names will look best if this starts with a capital letter.  If set (ie, non-null), will write testset results out.
 	public static String nameOfCurrentModel = null;
 
@@ -70,8 +47,8 @@ public class RunBoostedRDN extends RunBoostedModels {
 	
 	public void learn() {
 		fullModel = new JointRDNModel();
-		String yapFile = cmdArgs.getYapBiasVal();
-		Map<String, LearnBoostedRDN> learners = new HashMap<String, LearnBoostedRDN>();
+		String yapFile;
+		Map<String, LearnBoostedRDN> learners = new HashMap<>();
 		int minTreesInModel = Integer.MAX_VALUE;
 
 		for (String pred : cmdArgs.getTargetPredVal()) {
@@ -87,11 +64,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 			minTreesInModel = Math.min(fullModel.get(pred).getNumTrees(), minTreesInModel);
 		}
 
-		if (!cmdArgs.isDisableAdvice()) {
-			String adviceFile = setup.getOuterLooper().getWorkingDirectory() + "/" + cmdArgs.getPriorAdvice();
-			BoostingUtils.loadAdvice(setup, fullModel, adviceFile, true);
-		}
-		
 		int iterStepSize = cmdArgs.getMaxTreesVal();
 		if ((cmdArgs.getHiddenStrategy().equals("EM") || cmdArgs.getHiddenStrategy().equals("MAP"))
 			&& setup.getHiddenExamples() != null) {
@@ -165,7 +137,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 				Utils.println("% Learning " + currIterStep + " trees in this iteration for " + pred);
 				learners.get(pred).learnNextModel(this, sampler, fullModel.get(pred), currIterStep); 
 			}
-			// iterStepSize++;
 		}
 
 		// Only clear checkpoint after all models are learned.
@@ -182,8 +153,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 	private String getYapFileForPredicate(String target, String yapFile) {
 		if (yapFile.isEmpty()) { return ""; }
 		int pos = yapFile.lastIndexOf("/");
-		String result = yapFile.substring(0, pos+1) + target + "_" + yapFile.substring(pos + 1, yapFile.length());
-		return result;
+		return yapFile.substring(0, pos+1) + target + "_" + yapFile.substring(pos + 1);
 	}
 
 	public void loadModel() {
@@ -193,7 +163,8 @@ public class RunBoostedRDN extends RunBoostedModels {
 
 		Utils.println("\n% Getting bRDN's target predicates.");
 		for (String pred : cmdArgs.getTargetPredVal()) {
-			ConditionalModelPerPredicate rdn = null;
+			ConditionalModelPerPredicate rdn;
+
 			if (fullModel.containsKey(pred)) {
 				rdn = fullModel.get(pred);
 				rdn.reparseModel(setup);
@@ -213,10 +184,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 				rdn.setNumTrees(cmdArgs.getMaxTreesVal());
 				fullModel.put(pred, rdn);
 			}
-		}
-		if (!cmdArgs.isDisableAdvice()) {
-			String adviceFile = setup.getOuterLooper().getWorkingDirectory() + "/" + cmdArgs.getPriorAdvice();
-			BoostingUtils.loadAdvice(setup, fullModel, adviceFile, false);
 		}
 	}
 	

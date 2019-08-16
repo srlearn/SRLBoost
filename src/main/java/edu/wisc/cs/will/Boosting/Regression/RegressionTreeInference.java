@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.Regression;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
@@ -17,8 +14,9 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 public class RegressionTreeInference extends SRLInference {
 
-	private ConditionalModelPerPredicate conditionalModel = null ;
-	public RegressionTreeInference(ConditionalModelPerPredicate model, WILLSetup setup) {
+	private ConditionalModelPerPredicate conditionalModel;
+
+	RegressionTreeInference(ConditionalModelPerPredicate model, WILLSetup setup) {
 		super(setup);
 		this.conditionalModel=model;
 	}
@@ -28,8 +26,10 @@ public class RegressionTreeInference extends SRLInference {
 	 */
 	@Override
 	public ProbDistribution getExampleProbability(Example eg) {
+
 		// Currently sets the probability value to regression values. 
 		// Hence probabilities could be < 0 or > 1
+
 		RegressionValueOrVector reg = conditionalModel.returnModelRegressionWithPrior(eg);
 		if (reg.isHasVector()) {
 			Utils.error("Pure regression tree learning doesn't learn vectors!!");

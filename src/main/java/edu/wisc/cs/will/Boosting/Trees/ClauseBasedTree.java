@@ -24,15 +24,16 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
 public class ClauseBasedTree  {
-	protected WILLSetup setup;
-	protected ArrayList<Clause> regressionClauses;
-	protected ArrayList<Clause> suppClauses;
-	protected boolean breakAfterFirstMatch;
-	protected boolean addLeafId;
 
-	public ClauseBasedTree(WILLSetup setup) {
-		regressionClauses = new ArrayList<Clause>();
-		suppClauses = new ArrayList<Clause>();
+	protected WILLSetup setup;
+	ArrayList<Clause> regressionClauses;
+	ArrayList<Clause> suppClauses;
+	private boolean breakAfterFirstMatch;
+	boolean addLeafId;
+
+	ClauseBasedTree(WILLSetup setup) {
+		regressionClauses = new ArrayList<>();
+		suppClauses = new ArrayList<>();
 		breakAfterFirstMatch = true;
 		addLeafId = false;
 		setSetup(setup);
@@ -65,12 +66,9 @@ public class ClauseBasedTree  {
 					}
 					break;
 				}
-			} else {
-			//	Utils.println("No regression value for " + ex + " in " + clause);
 			}
 		}
 		// Possible for inference using mlns
-		//if (sum == null) { Utils.error("No clause matches for example:" + ex);}
 		if (sum == null) {
 			if (ex instanceof RegressionRDNExample) {
 				RegressionRDNExample rex = (RegressionRDNExample)ex;
@@ -99,7 +97,6 @@ public class ClauseBasedTree  {
 		Literal head = clause.posLiterals.get(0);
 		Term    y    = head.getArgument(head.numberArgs() - 1);
 		if (! ( y instanceof Variable)) {
-			// double value = ((NumericConstant) y).value.doubleValue();
 			RegressionValueOrVector value = BoostingUtils.getRegressionValueOrVectorFromTerm(y);
 			
 			List<Literal> new_body = clause.getDefiniteClauseBody();
@@ -122,7 +119,7 @@ public class ClauseBasedTree  {
 			Literal new_head_lit = head.copy(false);
 			new_head_lit.removeArgument(y);
 			
-			List<Literal> new_head = new ArrayList<Literal>();
+			List<Literal> new_head = new ArrayList<>();
 			new_head.add(new_head_lit);
 			
 			Clause cl = new Clause(setup.getHandler(), new_head, new_body);
@@ -149,14 +146,14 @@ public class ClauseBasedTree  {
 		return BoostingUtils.getRegressionValueOrVectorFromTerm(val);
 	}
 
-	protected Clause createRegressionClause(Clause clause, double regressionValue) {
+	Clause createRegressionClause(Clause clause, double regressionValue) {
 		HandleFOPCstrings handler = setup.getHandler();
 		Literal head = clause.posLiterals.get(0);
 		head.addArgument(handler.getNumericConstant(regressionValue));
 		return clause;
 	}
 
-	public void printTrees() {
+	void printTrees() {
 		for (Clause clause : regressionClauses) {
 			System.out.println(clause);
 		}
@@ -183,18 +180,19 @@ public class ClauseBasedTree  {
 
 	public void saveToFile(String filename) throws IOException {
 		Utils.ensureDirExists(filename);
-		BufferedWriter wr = new BufferedWriter(new CondorFileWriter(filename, false)); // Create a new file.
+		// Create a new file.
+		BufferedWriter wr = new BufferedWriter(new CondorFileWriter(filename, false));
 		saveToStream(wr);
 		wr.close();
 	}
 
-	public void saveToStream(BufferedWriter wr) throws IOException {
+	void saveToStream(BufferedWriter wr) throws IOException {
 		boolean oldAnon = setup.getHandler().underscoredAnonymousVariables;
 		setup.getHandler().underscoredAnonymousVariables=false;
-		//AllOfFOPC.renameVariablesWhenPrinting = true;
 	
 		wr.write(setup.getInnerLooper().getStringHandler().getStringToIndicateStringCaseSensitivity() + "\n");
-		wr.write(setup.getHandler().getStringToIndicateCurrentVariableNotation()+ "\n\n");  // Assume we don't change the variable indicator mid-run.
+		// Assume we don't change the variable indicator mid-run.
+		wr.write(setup.getHandler().getStringToIndicateCurrentVariableNotation()+ "\n\n");
 		for (Clause cl : regressionClauses) {
 			wr.write(cl.toString() + ".");
 			wr.newLine();
@@ -211,12 +209,12 @@ public class ClauseBasedTree  {
 		help_load(sentences);
 	}
 
-	public void loadFromStream(BufferedReader rdr) throws IOException {
+	void loadFromStream(BufferedReader rdr) throws IOException {
 		List<Sentence> sentences = setup.getInnerLooper().getParser().readFOPCreader(rdr, null);
 		help_load(sentences);
 	}
 
-	protected void help_load(List<Sentence> sentences) {
+	private void help_load(List<Sentence> sentences) {
 		for (Sentence sentence : sentences) {
 			List<Clause> clauses = sentence.convertToClausalForm();
 			if (clauses.size() == 1) {
@@ -234,45 +232,24 @@ public class ClauseBasedTree  {
 		}
 	}
 
-	/**
-	 * @return the setup
-	 */
 	public WILLSetup getSetup() {
 		return setup;
 	}
 
-	/**
-	 * @param setup the setup to set
-	 */
 	public void setSetup(WILLSetup setup) {
 		this.setup = setup;
 	}
 
 	public void addClause(Clause regressionClause) {
-		//Utils.waitHere("Adding " + regressionClause);
 		regressionClauses.add(regressionClause);
 	}
 
-	public void addSupportingClause(Clause regressionClause) {
+	void addSupportingClause(Clause regressionClause) {
 		suppClauses.add(regressionClause);
 	}
 
-	/**
-	 * @return the regressionClauses
-	 */
 	public ArrayList<Clause> getRegressionClauses() {
 		return regressionClauses;
-	}
-
-	/**
-	 * @return the suppClauses
-	 */
-	public ArrayList<Clause> getSuppClauses() {
-		return suppClauses;
-	}
-
-	public boolean isBreakAfterFirstMatch() {
-		return breakAfterFirstMatch;
 	}
 
 	public void setBreakAfterFirstMatch(boolean breakAfterFirstMatch) {

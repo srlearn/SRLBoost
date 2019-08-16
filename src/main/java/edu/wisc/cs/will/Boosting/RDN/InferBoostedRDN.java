@@ -703,7 +703,7 @@ public class InferBoostedRDN {
 		List<PredicateNameAndArity> pars = setup.getListOfPredicateAritiesForNeighboringFacts();
 
 		// Should be set somewhere else
-		List<Boolean> bit_mask = setup.getBitMaskForNeighboringFactArguments(target);		
+		List<Boolean> bit_mask = setup.getBitMaskForNeighboringFactArguments(target);
 
 		// Write all examples to a query.db file
 		// Results/Probs to results.db

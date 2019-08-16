@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.Trees;
 
 import edu.wisc.cs.will.Boosting.OneClass.FeatureVector;
@@ -14,16 +11,12 @@ import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author tkhot
- *
  */
 public class FeatureTree extends ClauseBasedTree {
 
-		
 	public FeatureTree(WILLSetup setup) {
-		super(setup);			
+		super(setup);
 	}
-
-
 
 	public void parseTheory(Theory th) {
 		if (th.getClauses() == null) {
@@ -44,8 +37,7 @@ public class FeatureTree extends ClauseBasedTree {
 			}
 		}
 	}
-	
-	
+
 	public FeatureVector getFeatureVector(RegressionRDNExample ex) {
 		FeatureVector result = new FeatureVector();
 		for (Clause clause : regressionClauses) {
@@ -56,7 +48,8 @@ public class FeatureTree extends ClauseBasedTree {
 					Utils.error("Can not handle multi class examples: " + ex);
 					return result;
 				}
-				result.append(1); // FIX(TVK): wt.getSingleRegressionValue());
+				result.append(1);
+				// TODO(@TVK): wt.getSingleRegressionValue());
 				if (result.usepath) {
 					result.pathFeatures.add("" + (int)wt.getSingleRegressionValue());
 					return result;
@@ -72,11 +65,9 @@ public class FeatureTree extends ClauseBasedTree {
 		Utils.error("Can not get regression value for feature tree");
 		return null;
 	}
+
 	public void reparseFeatureTree() {
 		reparseRegressionTrees();
 	}
-	
-	
-	
-	
+
 }

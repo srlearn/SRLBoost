@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.RDN;
 
 import java.io.BufferedWriter;
@@ -16,18 +13,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.RDN.Models.PhiFunctionForRDN;
-import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.Trees.LearnRegressionTree;
 import edu.wisc.cs.will.Boosting.Trees.RegressionTree;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
@@ -85,7 +78,7 @@ public class LearnBoostedRDN {
 		if (cmdArgs.isDisabledBoosting()) {
 			disableBoosting=true;
 		}
-		egSubSampler = new ExampleSubSampler(setup, cmdArgs);
+		egSubSampler = new ExampleSubSampler(setup);
 	}
 
 	/**
@@ -99,13 +92,6 @@ public class LearnBoostedRDN {
 		setYapSettingsFile(yapFile);
 		targetPredicate = predicate;
 		ConditionalModelPerPredicate rdn = new ConditionalModelPerPredicate(setup);
-		if (!cmdArgs.isDisableAdvice()) {
-			String adviceFile = setup.getOuterLooper().getWorkingDirectory() + "/" + cmdArgs.getPriorAdvice();
-			JointRDNModel fullModel = new JointRDNModel();
-			fullModel.put(targetPredicate, rdn);
-			// TODO (TVK) repeated work here. We are loading the same advice over and over for each target predicate.
-			BoostingUtils.loadAdvice(setup, fullModel, adviceFile, false);
-		}
 		SingleModelSampler sampler = new SingleModelSampler(rdn, setup, null, false);
 		learnNextModel(caller, sampler, rdn, maxTrees);
 		return rdn;

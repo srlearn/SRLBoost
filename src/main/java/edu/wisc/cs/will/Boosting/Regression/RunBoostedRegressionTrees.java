@@ -1,15 +1,10 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.Regression;
 
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.RDN.ConditionalModelPerPredicate;
-import edu.wisc.cs.will.Boosting.RDN.InferBoostedRDN;
 import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
 import edu.wisc.cs.will.Boosting.RDN.LearnBoostedRDN;
-import edu.wisc.cs.will.Boosting.RDN.SingleModelSampler;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
@@ -25,31 +20,30 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 public class RunBoostedRegressionTrees extends RunBoostedModels {
 
-	JointRDNModel fullModel = null;
+	private JointRDNModel fullModel = null;
 	
 	public void learn() {
+
 		fullModel = new JointRDNModel();
 		String yapFile = cmdArgs.getYapBiasVal();
+
 		for (String pred : cmdArgs.getTargetPredVal()) {
 			if (cmdArgs.getTargetPredVal().size() > 1) {
 				yapFile = getYapFileForPredicate(pred, cmdArgs.getYapBiasVal());
 				Utils.println("% Using yap file:" + yapFile);
 			}
+
 			LearnBoostedRDN      learner       = new LearnBoostedRDN(cmdArgs, setup);
 			String               saveModelName = BoostingUtils.getModelFile(cmdArgs, pred, true);
 			learner.setYapSettingsFile(yapFile);
 			learner.setTargetPredicate(pred);
+
 			ConditionalModelPerPredicate model = new ConditionalModelPerPredicate(setup);
-			if (!cmdArgs.isDisableAdvice()) {
-				String adviceFile = setup.getOuterLooper().getWorkingDirectory() + "/" + cmdArgs.getPriorAdvice();
-				JointRDNModel fullModel = new JointRDNModel();
-				fullModel.put(pred, model);
-				// TODO (TVK) repeated work here. We are loading the same advice over and over for each target predicate.
-				BoostingUtils.loadAdvice(setup, fullModel, adviceFile, false);
-			}
+
 			SRLInference sampler = new RegressionTreeInference(model, setup);
 			learner.learnNextModel(this, sampler, model, cmdArgs.getMaxTreesVal());
-			model.saveModel(saveModelName); // Do a final save since learnModel doesn't save every time (though we should make it do so at the end).
+			model.saveModel(saveModelName);
+			// Do a final save since learnModel doesn't save every time (though we should make it do so at the end).
 			// No need for checkpoint file anymore
 			clearCheckPointFiles(saveModelName);
 			fullModel.put(pred, model); 
@@ -57,23 +51,23 @@ public class RunBoostedRegressionTrees extends RunBoostedModels {
 	
 	}
 
-	
 	private String getYapFileForPredicate(String target, String yapFile) {
 		if (yapFile.isEmpty()) { return ""; }
 		int pos = yapFile.lastIndexOf("/");
-		String result = yapFile.substring(0, pos+1) + target + "_" + yapFile.substring(pos + 1, yapFile.length());
-		return result;
+		return yapFile.substring(0, pos+1) + target + "_" + yapFile.substring(pos + 1);
 	}
 	
 	
 	public void loadModel() {
+
 		if (fullModel == null) {
 			fullModel = new JointRDNModel();
 		}
 
 		Utils.println("\n% Getting bRDN's target predicates.");
+
 		for (String pred : cmdArgs.getTargetPredVal()) {
-			ConditionalModelPerPredicate rdn = null;
+			ConditionalModelPerPredicate rdn;
 			if (fullModel.containsKey(pred)) {
 				rdn = fullModel.get(pred);
 				rdn.reparseModel(setup);
@@ -94,10 +88,6 @@ public class RunBoostedRegressionTrees extends RunBoostedModels {
 				fullModel.put(pred, rdn);
 			}
 		}
-		if (!cmdArgs.isDisableAdvice()) {
-			String adviceFile = setup.getOuterLooper().getWorkingDirectory() + "/" + cmdArgs.getPriorAdvice();
-			BoostingUtils.loadAdvice(setup, fullModel, adviceFile, false);
-		}
 	}
 	
 	public void infer() {
@@ -112,19 +102,16 @@ public class RunBoostedRegressionTrees extends RunBoostedModels {
 		}
 		return false;
 	}
-	
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
-		
-		args = Utils.chopCommentFromArgs(args); 
+		// TODO(@hayesall): This can most likely be removed since edu.wisc.cs.will.Boosting.Common.RunBoostedModels is the main class.
+
+		args = Utils.chopCommentFromArgs(args);
 		CommandLineArguments cmd = RunBoostedModels.parseArgs(args);
 		if (cmd == null) {
 			Utils.error(CommandLineArguments.getUsageString());
 		}
-		RunBoostedModels runClass = null;
+		RunBoostedModels runClass;
 		runClass = new RunBoostedRegressionTrees();
 		if (!cmd.isLearnRegression()) {
 			Utils.waitHere("Set \"-reg\"  in cmdline arguments to ensure that we intend to learn regression trees. Will now learn regression trees.");

@@ -126,9 +126,6 @@ public class CommandLineArguments {
 	
 	private static final String resultsDir = "results";
 	private String resultsDirVal = null;
-	
-	private static final String adviceFile = "advice";
-	private String adviceFileVal = null;
 
 	private static final String yapBin = "yapBin";
 	private String yapBinVal = "/u/t/u/tushar/code/yap/bin/yap";
@@ -166,9 +163,6 @@ public class CommandLineArguments {
 	private static final String disableChkPtFlag = "disableChkPts";
 	private boolean noCheckPointing=false;
 
-	private static final String disableAdviceFlag = "disableAdvice";
-	private boolean disableAdvice = false;
-
 	private static final String regressionFlag = "reg";
 	private boolean learnRegression = false;
 
@@ -177,9 +171,6 @@ public class CommandLineArguments {
 
 	private static final String disableMultiClassFlag = "noMulti";
 	private boolean disableMultiClass = false;
-
-	private static final String priorAdviceFlag = "priorAdvice";
-	private String priorAdvice="advice.txt";
 
 	private static final String maxInteriorNodeLits = "maxNodeLits";
 	private int maxLiteralsInAnInteriorNodeVal = 1;
@@ -255,7 +246,7 @@ public class CommandLineArguments {
 			if (argMatches(args[i], indicatorOfModN)) {
 				modN = Integer.parseInt(args[++i]);
 				continue;
-			}			
+			}
 			if (argMatches(args[i], indicatorOfDoEveryNth)) {
 				doInferenceIfModNequalsThis = Integer.parseInt(args[++i]);
 				continue;
@@ -491,10 +482,6 @@ public class CommandLineArguments {
 				setResultsDirVal(args[++i]);
 				continue; 
 			}
-			if (argMatches(args[i], adviceFile )) {
-				setAdviceFileVal(args[++i]);
-				continue; 
-			}
 			if (argMatches(args[i], yapBin)) {
 				yapBinVal = args[++i];
 				continue;
@@ -505,19 +492,19 @@ public class CommandLineArguments {
 			}
 			if (argMatches(args[i], targetPred)) {
 				String targetStr = args[++i];
-				targetPredVal = new HashSet<String>();
+				targetPredVal = new HashSet<>();
 				targetPredVal.addAll(Arrays.asList(targetStr.split(",")));
 				continue;
 			}
 			if (argMatches(args[i], hiddenPredFlag)) {
 				String targetStr = args[++i];
-				hiddenPredVal = new HashSet<String>();
+				hiddenPredVal = new HashSet<>();
 				hiddenPredVal.addAll(Arrays.asList(targetStr.split(",")));
 				continue;
 			}
 			if (argMatches(args[i], loadModelPredFlag)) {
 				String targetStr = args[++i];
-				loadPredModelVal = new HashSet<String>();
+				loadPredModelVal = new HashSet<>();
 				loadPredModelVal.addAll(Arrays.asList(targetStr.split(",")));
 				continue;
 			}
@@ -525,13 +512,6 @@ public class CommandLineArguments {
 				saveModelVal=true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					saveModelVal = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], disableAdviceFlag)) {
-				disableAdvice=true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					disableAdvice = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -547,10 +527,6 @@ public class CommandLineArguments {
 				if (isArgumentNotAFlag(args, i+1)) {
 					learnProbExamples = Utils.parseBoolean(args[++i]);
 				}
-				continue;
-			}
-			if (argMatches(args[i], priorAdviceFlag)) {
-				priorAdvice = args[++i];
 				continue;
 			}
 			if (argMatches(args[i], maxInteriorNodeLits)) {
@@ -773,10 +749,6 @@ public class CommandLineArguments {
 		return useProbabilityWeights;
 	}
 
-	public void setUseProbabilityWeights(boolean useProbabilityWeights) {
-		this.useProbabilityWeights = useProbabilityWeights;
-	}
-
 	private boolean checked_resultsDirVal = false;
 
 	public String getResultsDirVal() {
@@ -791,20 +763,9 @@ public class CommandLineArguments {
 		if (!(resultsDirVal.endsWith("/") || resultsDirVal.endsWith("\\"))) {  resultsDirVal += "/"; }
 		this.resultsDirVal = resultsDirVal;
 	}
-	
-	private void setAdviceFileVal(String fileName) {
-		adviceFileVal = Utils.replaceWildCards(fileName);
-		if (!Utils.fileExists(fileName)) {
-			Utils.waitHere("This specified advice file does not exist: \n  " + adviceFileVal);
-		}
-	}
-	
+
 	public boolean isNoTargetModesInitially() {
 		return noTargetModesInitially;
-	}
-
-	public String getAdviceFileVal() {
-		return adviceFileVal;
 	}
 
 	public String getYapBinVal() {
@@ -989,14 +950,6 @@ public class CommandLineArguments {
 
 	public boolean isLearnProbExamples() {
 		return learnProbExamples;
-	}
-
-	public boolean isDisableAdvice() {
-		return disableAdvice;
-	}
-
-	public String getPriorAdvice() {
-		return priorAdvice;
 	}
 
 	public boolean isUsingDefaultClausebase() {

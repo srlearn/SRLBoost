@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.Regression;
 
 import java.io.BufferedWriter;
@@ -18,25 +15,24 @@ import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author tkhot
- *
  */
-public class InferRegressionTrees {
+class InferRegressionTrees {
 	private CommandLineArguments cmdArgs;	
 	private WILLSetup            setup;
 	
-	public InferRegressionTrees(CommandLineArguments cmdArgs, WILLSetup setup) {
+	InferRegressionTrees(CommandLineArguments cmdArgs, WILLSetup setup) {
 		this.cmdArgs = cmdArgs;
 		this.setup   = setup;
 	}
 
-	public void runInference(JointRDNModel fullModel) {
+	void runInference(JointRDNModel fullModel) {
 		Map<String,List<RegressionRDNExample>> jointExamples = setup.getJointExamples(fullModel.keySet());
 		
-		for (String  pred : jointExamples.keySet()) {	
+		for (String  pred : jointExamples.keySet()) {
 			SRLInference regSampler = new RegressionTreeInference(fullModel.get(pred), setup);
 			regSampler.getProbabilities(jointExamples.get(pred));
 			double squaredError = 0;
-			int counter = 0;	
+			int counter = 0;
 			try {
 				BufferedWriter writer = new BufferedWriter(new FileWriter(getResultsFile(pred)));
 				for (RegressionRDNExample ex : jointExamples.get(pred)) {
@@ -50,21 +46,16 @@ public class InferRegressionTrees {
 				Utils.println("MeanSquaredError = " + (squaredError/counter));
 				writer.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
 		}
-		
 	}
 	
 	private String getResultsFile(String target) {
-		String suff ="";
+		String suff = "";
 		if (cmdArgs.getModelFileVal() != null) {
 			suff = cmdArgs.getModelFileVal() + "_";
 		}
 		return setup.getOuterLooper().getWorkingDirectory() + "/results_" + suff + target + ".db";
-
 	}
-
 }

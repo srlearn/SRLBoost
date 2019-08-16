@@ -217,7 +217,7 @@ public class JointModelSampler extends SRLInference {
 				if (examples.isEmpty()) {
 					continue;
 				}
-				setup.prepareFactsAndExamples(posEgs, negEgs, target, false, !forMarginalProbs, null);
+				setup.prepareFactsAndExamples(posEgs, negEgs, target, false, null);
 				SRLInference sampler;
 
 				if (useMLNInference) {
@@ -277,7 +277,7 @@ public class JointModelSampler extends SRLInference {
 				// then we need to compute the probabilities and generate a sample.
 				if(!hasNoTargetParents(target)) {
 					setup.prepareFactsAndExamples(posEgs, negEgs,
-							target, false,!forMarginalProbs, last_target);
+							target, false, last_target);
 
 					if (useMLNInference) {
 						MLNInference sampler = new MLNInference(setup, jointModel);

@@ -63,10 +63,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 			}
 			minTreesInModel = Math.min(fullModel.get(pred).getNumTrees(), minTreesInModel);
 		}
-		if (!cmdArgs.isDisableAdvice()) {
-			String adviceFile = setup.getOuterLooper().getWorkingDirectory() + "/" + cmdArgs.getPriorAdvice();
-			BoostingUtils.loadAdvice(setup, fullModel, adviceFile, true);
-		}
 		MLNInference sampler = new MLNInference(setup, fullModel);
 		
 		int iterStepSize = 1;
@@ -248,10 +244,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 				fullModel.put(pred, rdn);
 			}
 		}
-		if (!cmdArgs.isDisableAdvice()) {
-			String adviceFile = setup.getOuterLooper().getWorkingDirectory() + "/" + cmdArgs.getPriorAdvice();
-			BoostingUtils.loadAdvice(setup, fullModel, adviceFile, true);
-		}
 	}
 	
 	public void infer() {
@@ -265,27 +257,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 			return Boolean.parseBoolean(lookup);
 		}
 		return false;
-	}
-	
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		
-		args = Utils.chopCommentFromArgs(args); 
-		CommandLineArguments cmd = RunBoostedModels.parseArgs(args);
-		if (cmd == null) {
-			Utils.error(CommandLineArguments.getUsageString());
-		}
-		RunBoostedModels runClass = null;
-		runClass = new RunBoostedMLN();
-		if (!cmd.isLearnMLN()) {
-			Utils.waitHere("Set \"-mln\"  in cmdline arguments to ensure that we intend to learn MLNs. Will now learn an MLN.");
-		}
-		cmd.setLearnMLN(true);
-		runClass.setCmdArgs(cmd);
-		runClass.runJob();
 	}
 }
 

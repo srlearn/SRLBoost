@@ -1,17 +1,12 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.RDN;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.Constant;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName;
@@ -24,41 +19,35 @@ import edu.wisc.cs.will.Utils.VectorStatistics;
 
 /**
  * @author tkhot
- *
  */
 public class MultiClassExampleHandler {
 
-	
-	private WILLSetup setup;
 	/**
 	 * Use a list for class arg index since more than one argument (combined) may be a class arg.
 	 * E.g. genderAndGenre(person, gender!, genre!).
 	 */
-	Map<String, List<Integer>> predicateToClassArgIndex ;
-	
+	private Map<String, List<Integer>> predicateToClassArgIndex ;
 
 	Map<String, ConstantLookupList> constantsForPredicate;
 	
-	public MultiClassExampleHandler() {
-		this.setup = null;
+	MultiClassExampleHandler() {
 		constantsForPredicate = null;
 	}
-
 
 	/**
 	 * Initialize the class argument location for every predicate
 	 */
-	public void initArgumentLocation(WILLSetup setup) {
-		this.setup = setup;
-		predicateToClassArgIndex = new HashMap<String, List<Integer>>();
-		// For each predicate
+	void initArgumentLocation(WILLSetup setup) {
+		predicateToClassArgIndex = new HashMap<>();
+
 		for (PredicateNameAndArity pnaa : setup.getHandler().getKnownModes()) {
 			String predName = pnaa.getPredicateName().name;
 			if (predicateToClassArgIndex.containsKey(predName)) {
 				Utils.error("Already seen predicate name: " + predName);
 			}
-			List<Integer> classArg = new ArrayList<Integer>();
+			List<Integer> classArg = new ArrayList<>();
 			// For each pred spec
+
 			for (PredicateSpec pspec : pnaa.getPredicateSpecs()) {
 				// For each argument
 				for (int i = 0; i < pspec.getTypeSpecList().size(); i++) {
@@ -77,9 +66,16 @@ public class MultiClassExampleHandler {
 		}
 	}
 	
-	public RegressionRDNExample morphExample(Example eg) {
-		RegressionRDNExample regEx = new RegressionRDNExample(eg.getStringHandler(), eg.extractLiteral().copy(true),
-				  0, eg.provenance, eg.extraLabel, true);
+	RegressionRDNExample morphExample(Example eg) {
+
+		RegressionRDNExample regEx = new RegressionRDNExample(
+				eg.getStringHandler(),
+				eg.extractLiteral().copy(true),
+				0,
+				eg.provenance,
+				eg.extraLabel,
+				true);
+
 		String pname = eg.predicateName.name;
 		List<Term> constList = getConstantList(eg);
 		if (!constantsForPredicate.containsKey(pname)) {
@@ -88,7 +84,7 @@ public class MultiClassExampleHandler {
 		}
 		
 		int vecsize = constantsForPredicate.get(pname).size();
-		int index = constantsForPredicate.get(pname).getIndex(new ArgumentList<Term>(constList));
+		int index = constantsForPredicate.get(pname).getIndex(new ArgumentList<>(constList));
 		if (index == -1) {
 			Utils.error("Unexpected constant in " + eg);
 		}
@@ -96,7 +92,7 @@ public class MultiClassExampleHandler {
 		regEx.setSampledValue(Utils.random0toNminus1(vecsize));
 		double[] outputVector  = VectorStatistics.createIndicator(vecsize, index);
 		regEx.setOutputVector(outputVector);
-		// Not necessary, since the previous method internally sets hasregressionVector. 
+		// Not necessary, since the previous method internally sets hasregressionVector.
 		regEx.setHasRegressionVector(true);
 		
 		removeConstants(regEx);
@@ -122,17 +118,14 @@ public class MultiClassExampleHandler {
 		List<Term> constList = constantsForPredicate.get(pname).constants.get(constantIndex);
 		
 		List<Term> newArgs = addToArgumentList(rex.getArguments(), constList, predicateToClassArgIndex.get(pname));
-		
-		Example eg = new Example(rex.getStringHandler(), predNameObj, newArgs, rex.provenance, rex.extraLabel, rex.getAnnotationTerm());
-		
-		return eg;
+
+		return new Example(rex.getStringHandler(), predNameObj, newArgs, rex.provenance, rex.extraLabel, rex.getAnnotationTerm());
 	}
-	
-	
+
 	private List<Term> addToArgumentList(List<Term> arguments,
 										List<Term> constList, List<Integer> indexList) {
 		int newSize = arguments.size() + indexList.size();
-		List<Term> newArgs = new ArrayList<Term>(newSize);
+		List<Term> newArgs = new ArrayList<>(newSize);
 		int indexCtr = 0;
 		int argCtr   = 0;
 		for (int i = 0; i < newSize; i++) {
@@ -154,10 +147,9 @@ public class MultiClassExampleHandler {
 		
 	}
 
-
-	public void addConstantsFromLiterals(List<? extends Literal> facts) {
+	void addConstantsFromLiterals(List<? extends Literal> facts) {
 		if (constantsForPredicate == null) {
-			constantsForPredicate = new HashMap<String, MultiClassExampleHandler.ConstantLookupList>();
+			constantsForPredicate = new HashMap<>();
 		}
 		
 		for (Literal lit : facts) {
@@ -169,7 +161,7 @@ public class MultiClassExampleHandler {
 				if (!constantsForPredicate.containsKey(pName)) {
 					constantsForPredicate.put(pName, new ConstantLookupList());
 				}
-				constantsForPredicate.get(pName).addConstant(new ArgumentList<Term>(constList));
+				constantsForPredicate.get(pName).addConstant(new ArgumentList<>(constList));
 			}
 		}
 	}
@@ -193,7 +185,7 @@ public class MultiClassExampleHandler {
 	}
 	
 	private List<Term> getConstantList(Literal lit) {
-		List<Term> constList = new ArrayList<Term>();
+		List<Term> constList = new ArrayList<>();
 		String pName = lit.predicateName.name;
 		for (Integer index : predicateToClassArgIndex.get(pName)) {
 			constList.add(lit.getArgument(index));
@@ -203,13 +195,10 @@ public class MultiClassExampleHandler {
 
 
 	public boolean isMultiClassPredicate(String predicate) {
-		if (predicateToClassArgIndex != null && predicateToClassArgIndex.containsKey(predicate)) {
-			return true;
-		}
-		return false;
+		return predicateToClassArgIndex != null && predicateToClassArgIndex.containsKey(predicate);
 	}
 
-	public int numConstantsForPredicate(String predicate) {
+	int numConstantsForPredicate(String predicate) {
 		ConstantLookupList cll =  constantsForPredicate.get(predicate);
 		if (cll == null) {
 			return 2;
@@ -219,22 +208,20 @@ public class MultiClassExampleHandler {
 	
 	
 	public static class ConstantLookupList {
-		
-		
+
 		private final static String startList = "{";
 		private final static String endList = "}";
 		private final static String startTermList = "(";
 		private final static String endTermList = ")";
 		private final static String startTerm = "\"";
 		private final static String endTerm = "\"";
-		//private final static char delim = ',';
 		
 		public ConstantLookupList() {
-			this.constants = new ArrayList<ArgumentList<Term>>();
-			this.constantIndex = new HashMap<ArgumentList<Term>, Integer>();
+			this.constants = new ArrayList<>();
+			this.constantIndex = new HashMap<>();
 		}
 
-		public int getIndex(ArgumentList<Term> constList) {
+		int getIndex(ArgumentList<Term> constList) {
 			if (!constantIndex.containsKey(constList)) {
 				Utils.println("Unexpected constList: " + Utils.toString(constList, ",") + " in " + this.toString());
 				return -1;
@@ -249,7 +236,7 @@ public class MultiClassExampleHandler {
 		
 		private Map<ArgumentList<Term>, Integer> constantIndex;
 		
-		public void addConstant(ArgumentList<Term> addThis) {
+		void addConstant(ArgumentList<Term> addThis) {
 			if (!constantIndex.containsKey(addThis)) {
 				int index = constants.size();
 				constants.add(addThis);
@@ -267,7 +254,7 @@ public class MultiClassExampleHandler {
 			int index = startList.length();
 			line = line.substring(index);
 			while (!line.startsWith(endList)) {
-				ArgumentList<Term> constList = new ArgumentList<Term>();
+				ArgumentList<Term> constList = new ArgumentList<>();
 				if (!line.startsWith(startTermList)) {
 					Utils.error("Starts with wrong character: " + line);
 					return;
@@ -284,11 +271,9 @@ public class MultiClassExampleHandler {
 					Term constTerm  = setup.getHandler().getStringConstant(term);
 					constList.add(constTerm);
 					line = line.substring(end+1);
-					//if (line.charAt(0) == delim) { line = line.substring(1); }
 				}
 				addConstant(constList);
 				line = line.substring(endTermList.length());
-				//if (line.charAt(0) == delim) { line = line.substring(1); }
 			}
 			line = line.substring(endList.length());
 			if (!line.isEmpty()) {
@@ -297,7 +282,7 @@ public class MultiClassExampleHandler {
 		}
 		
 		public String toString() {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			sb.append(startList);
 			for (ArgumentList<Term> termList : constants) {
 				sb.append(startTermList);
@@ -311,32 +296,20 @@ public class MultiClassExampleHandler {
 			sb.append(endList);
 			return sb.toString();
 		}
-		
-		
 	}
 
 	public static class ArgumentList<T> extends ArrayList<T> {
 
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 5435503324007711494L;
 
-		public ArgumentList() {
+		ArgumentList() {
 			super();
-			// TODO Auto-generated constructor stub
 		}
 
-		public ArgumentList(Collection<? extends T> c) {
+		ArgumentList(Collection<? extends T> c) {
 			super(c);
-			// TODO Auto-generated constructor stub
 		}
 
-		public ArgumentList(int initialCapacity) {
-			super(initialCapacity);
-			// TODO Auto-generated constructor stub
-		}
-		
 		@Override
 		public int hashCode() {
 			int code = 0;
@@ -365,10 +338,5 @@ public class MultiClassExampleHandler {
 			}
 			return true;
 		}
-		
 	}
-	
-	
-	
-	
 }
