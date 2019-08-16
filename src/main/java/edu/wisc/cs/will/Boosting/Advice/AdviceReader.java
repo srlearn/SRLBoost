@@ -1,7 +1,8 @@
-/**
+/*
  *  Reads advice file for rules that should form the initial model for RFGB
  *  Reads from advice.txt in the WILL folder
  */
+
 package edu.wisc.cs.will.Boosting.Advice;
 
 import java.util.ArrayList;
@@ -17,21 +18,19 @@ import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author tkhot
- *
  */
 public class AdviceReader {
 	
-	FileParser parser  			=	null;
-	HornClauseContext context 	=	null;
-	HandleFOPCstrings handler	=	null;
+	private FileParser parser;
+	private HornClauseContext context;
+	private HandleFOPCstrings handler;
 	
 	public AdviceReader(FileParser parser, HornClauseContext context, HandleFOPCstrings handler) {
 		this.parser = parser;
 		this.context = context;
 		this.handler = handler;
 	}
-	
-	
+
 	/***
 	 * Reads advice from the file. Modes and bk rules are added to the background knowledge.
 	 * Horn clauses with weights are added to the advice. 
@@ -47,7 +46,7 @@ public class AdviceReader {
 		}
 		Utils.println("File: " + file + " used for loading advice");
 		List<Sentence> sentences = parser.readFOPCfile(file);
-		List<Sentence> nonAdviceBk = new ArrayList<Sentence>();
+		List<Sentence> nonAdviceBk = new ArrayList<>();
 		for (Sentence sentence : sentences) {
 			if (sentence.getWeightOnSentence() != Sentence.defaultWeight) {
 				Utils.println("Found advice: " + sentence);
@@ -56,11 +55,10 @@ public class AdviceReader {
 				nonAdviceBk.add(sentence);
 			}
 		}
-		
-		// Assert all non-advice bk 
+
+		// Assert all non-advice bk
 		context.assertSentences(nonAdviceBk);
 	}
-
 
 	private Sentence createRegressionClause(Sentence sentence) {
 		double weight  = sentence.getWeightOnSentence();

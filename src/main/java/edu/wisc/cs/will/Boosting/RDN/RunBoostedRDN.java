@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.RDN;
 
 import java.util.HashMap;
@@ -8,7 +5,6 @@ import java.util.Map;
 
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
-import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Utils.Utils;
@@ -19,6 +15,23 @@ import edu.wisc.cs.will.Utils.Utils;
  *
  */
 public class RunBoostedRDN extends RunBoostedModels {
+
+	public static void main(String[] args) {
+
+		args = Utils.chopCommentFromArgs(args);
+		CommandLineArguments cmd = RunBoostedModels.parseArgs(args);
+		if (cmd == null) {
+			Utils.error(CommandLineArguments.getUsageString());
+		}
+		RunBoostedModels runClass = null;
+		runClass = new RunBoostedRDN();
+		if (cmd.isLearnMLN()) {
+			Utils.error();
+		}
+		runClass.setCmdArgs(cmd);
+		runClass.runJob();
+	}
+
 	JointRDNModel fullModel;
 	public RunBoostedRDN() {
 		fullModel = null;
@@ -40,11 +53,20 @@ public class RunBoostedRDN extends RunBoostedModels {
 			Utils.println("\n% Total inference time (" + Utils.comma(cmdArgs.getMaxTreesVal()) + " trees): " + Utils.convertMillisecondsToTimeSpan(end - start, 3) + ".");
 		}
 	}
-	
-	public static int    numbModelsToMake          =  1; // Each 'tree' in the sequence of the trees is really a forest of this size. TODO - allow this to be settable.
-//	public static int    numbFullTheoriesToCombine = 10; // This is the number of separate complete predictions of TESTSET probabilities to combine.  TODO - allow this to be settable.
-	public static String nameOfCurrentModel        = null; // "Run1"; // NOTE: file names will look best if this starts with a capital letter.  If set (ie, non-null), will write testset results out.
-	public static String resultsFileMarker         = null; // Allow caller to put extra markers in results file names.
+
+	// TODO(?): Allow this to be settable.
+	// 		Each 'tree' in the sequence of the trees is really a forest of this size.
+	public static int numbModelsToMake = 1;
+
+	// TODO(?): TODO - allow this to be settable.
+	// 		This is the number of separate complete predictions of TESTSET probabilities to combine.
+	public static int numbFullTheoriesToCombine = 10;
+
+	// "Run1"; // NOTE: file names will look best if this starts with a capital letter.  If set (ie, non-null), will write testset results out.
+	public static String nameOfCurrentModel = null;
+
+	// Allow caller to put extra markers in results file names.
+	public static String resultsFileMarker = null;
 	
 	public void learn() {
 		fullModel = new JointRDNModel();
@@ -89,13 +111,14 @@ public class RunBoostedRDN extends RunBoostedModels {
 				HiddenLiteralSamples sampledStates = new HiddenLiteralSamples();
 				// Setup facts based on the true data
 				setup.addAllExamplesToFacts();
-				if ( i > minTreesInModel) { minTreesInModel = i; } 
+				if ( i > minTreesInModel) { minTreesInModel = i; }
+
+				// TODO(@hayesall): Which is it?
 				int maxSamples = 30*((minTreesInModel/iterStepSize) + 1);
 				maxSamples = 500;
-				// TODO (tvk) Get more samples but pick the 200 most likely states.
-				//if (cmdArgs.getNumberOfHiddenStates() > 0 ) {
-				//	maxSamples = cmdArgs.getNumberOfHiddenStates();
-				//}
+
+				// TODO(@tushar): Get more samples but pick the 200 most likely states.
+
 				if (cmdArgs.getHiddenStrategy().equals("MAP")) { 
 					maxSamples = -1; 
 				}
@@ -104,10 +127,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 					returnMap = true;
 				}
 				jtSampler.sampleWorldStates(setup.getHiddenExamples(), sampledStates, false, maxSamples, returnMap);
-//				if (cmdArgs.getHiddenStrategy().equals("MAP")) {
-//					sampledStates = sampledStates.getMostLikelyState();
-//					Utils.println("% Percent of true states:" + sampledStates.getWorldStates().get(0).percentOfTrues());
-//				}
+
 				if (sampledStates.getWorldStates().size() == 0) { Utils.waitHere("No sampled states");}
 				// This state won't change anymore so cache probs;
 				Utils.println("Building assignment map");
@@ -147,19 +167,14 @@ public class RunBoostedRDN extends RunBoostedModels {
 			}
 			// iterStepSize++;
 		}
-		
+
+		// Only clear checkpoint after all models are learned.
 		for (String pred : cmdArgs.getTargetPredVal()) {
-			//LearnBoostedRDN      learner       = new LearnBoostedRDN(cmdArgs, setup);
-			//String               saveModelName = BoostingUtils.getModelFile(cmdArgs, pred, true);
-			//ConditionalModelPerPredicate model         = learner.learnModel(pred, yapFile, this); // This will save the model every N trees.
-			//model.saveModel(saveModelName); // Do a final save since learnModel doesn't save every time (though we should make it do so at the end).
-			//fullModel.put(pred, model); 
-		}
-		// Only clear checkpoint after all models are learnt
-		for (String pred : cmdArgs.getTargetPredVal()) {
-			String               saveModelName = BoostingUtils.getModelFile(cmdArgs, pred, true);
-			fullModel.get(pred).saveModel(saveModelName); // Do a final save since learnModel doesn't save every time (though we should make it do so at the end).
-			// 	No need for checkpoint file anymore
+			String saveModelName = BoostingUtils.getModelFile(cmdArgs, pred,  true);
+			// Do a final save since learnModel() doesn't save every time (though we should make it do so at the end).
+			fullModel.get(pred).saveModel(saveModelName);
+
+			// No need for checkpoint file anymore.
 			clearCheckPointFiles(saveModelName);
 		}
 	}
@@ -170,8 +185,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 		String result = yapFile.substring(0, pos+1) + target + "_" + yapFile.substring(pos + 1, yapFile.length());
 		return result;
 	}
-	
-	
+
 	public void loadModel() {
 		if (fullModel == null) {
 			fullModel = new JointRDNModel();
@@ -217,26 +231,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 			return Boolean.parseBoolean(lookup);
 		}
 		return false;
-	}
-	
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		
-		args = Utils.chopCommentFromArgs(args); 
-		CommandLineArguments cmd = RunBoostedModels.parseArgs(args);
-		if (cmd == null) {
-			Utils.error(CommandLineArguments.getUsageString());
-		}
-		RunBoostedModels runClass = null;
-		runClass = new RunBoostedRDN();
-		if (cmd.isLearnMLN()) {
-			Utils.error("Use RunBoostedModels or RunBoostedMLN, if you want to learn MLNs(-mln) instead of RunBoostedRDN");
-		}
-		runClass.setCmdArgs(cmd);
-		runClass.runJob();
 	}
 }
 

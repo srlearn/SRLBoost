@@ -119,7 +119,6 @@ public class VectorStatistics {
 		return result;
 	}
 
-
 	public static double[] exponentiate(double[] vec) {
 		double[] result = new double[vec.length];
 		

@@ -1096,7 +1096,7 @@ public final class WILLSetup {
 			for (PredicateName pName : orderedPrecomputes) {
 				// Utils.println("% Deleting and recomputing facts for: " + pName);
 				deleteAllFactsForPredicate(pName);
-				recomputer.recomputeFactsFor(pName, true);
+				recomputer.recomputeFactsFor(pName);
 			}
 		}
 	}

@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.Utils;
 
 /**
- *
  * @author twalker
  */
 public enum TimeScale {
@@ -24,7 +18,7 @@ public enum TimeScale {
     double seconds;
     String unitSymbol;
 
-    private TimeScale(double seconds, String unitSymbol) {
+    TimeScale(double seconds, String unitSymbol) {
         this.seconds = seconds;
         this.unitSymbol = unitSymbol;
     }
@@ -39,10 +33,6 @@ public enum TimeScale {
 
     public double convertTo(double value, TimeScale newScale) {
         return value * ( this.seconds / newScale.seconds );
-    }
-
-    public TimeScale getBestTimeScale(double value) {
-        return getBestTimeScale(value, NANOSECOND, YEAR);
     }
 
     public TimeScale getBestTimeScale(double value, TimeScale lowestTimeScale, TimeScale highestTimeScale) {
@@ -79,10 +69,6 @@ public enum TimeScale {
      *  "%f%s" - Converted value followed by unit.
      *  "%2$s" - Unit only (the 2$ access the second argument).
      *  "%f"   - Converted value only.
-     *
-     * @param value
-     * @param format
-     * @return
      */
     public String getBestFormattedString(double value, String format) {
         return getBestFormattedString(value, format, NANOSECOND, YEAR);
@@ -99,12 +85,6 @@ public enum TimeScale {
      *  "%f%s" - Converted value followed by unit.
      *  "%2$s" - Unit only (the 2$ access the second argument).
      *  "%f"   - Converted value only.
-     *
-     * @param value
-     * @param format
-     * @param lowestTimeScale
-     * @param highestTimeScale
-     * @return
      */
     public String getBestFormattedString(double value, String format, TimeScale lowestTimeScale, TimeScale highestTimeScale) {
         TimeScale bestTimeScale = getBestTimeScale(value, lowestTimeScale, highestTimeScale);
@@ -112,14 +92,6 @@ public enum TimeScale {
         value = this.convertTo(value, bestTimeScale);
 
         return String.format(format, value, bestTimeScale.getUnitSymbol());
-    }
-
-    public boolean isShorter(TimeScale that) {
-        return this.seconds < that.seconds;
-    }
-
-    public TimeScale nextShorterScale() {
-        return values()[ordinal()+1];
     }
 
     public TimeScale nextLongerScale() {

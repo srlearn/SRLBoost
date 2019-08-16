@@ -1,10 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.Utils.condor;
 
-import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,12 +9,11 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 /**
- *
  * @author twalker
  */
 public class CompressedInputStream extends InputStream {
 
-    InputStream realStream = null;
+    private InputStream realStream;
 
     public CompressedInputStream(File file) throws IOException {
         
@@ -36,7 +30,7 @@ public class CompressedInputStream extends InputStream {
         }
     }
 
-    public CompressedInputStream(String fileName) throws FileNotFoundException, IOException {
+    CompressedInputStream(String fileName) throws IOException {
         this(new File(fileName));
     }
 

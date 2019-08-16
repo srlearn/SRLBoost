@@ -1,40 +1,29 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.Utils.condor;
 
 import edu.wisc.cs.will.Utils.condor.chirp.ChirpClient;
 import java.io.BufferedReader;
-import java.io.File;  import edu.wisc.cs.will.Utils.condor.CondorFile;
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Properties;
 
 /**
- *
  * @author twalker
  */
 public class TestCondor {
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) throws IOException {
-
 
         CondorFileInputStream is1 = new CondorFileInputStream("/tmp/t");
         BufferedReader r1 = new BufferedReader(new InputStreamReader(is1));
-        String line = null;
+        String line;
         System.out.println("-----------------------------");
         System.out.println("File /tmp/t:");
         while ((line = r1.readLine()) != null) {
             System.out.println(line);
         }
         System.out.println("-----------------------------");
-        System.out.println("");
 
         if (CondorUtilities.isChirp()) {
             try {
@@ -75,9 +64,6 @@ public class TestCondor {
             System.out.println(" " + propName + " = " + props.getProperty(propName));
         }
 
-        System.out.println("");
-
-
         String filename = System.getProperty("chirp.config");
         System.out.println("Chirp.config:" + filename);
         if (filename != null) {
@@ -91,30 +77,7 @@ public class TestCondor {
             }
         }
 
-        // CondorUtilities.setupLibraryPath();
-
         System.out.println("");
-
-//        int bits = Integer.parseInt(System.getProperty("sun.arch.data.model"));
-//        String libname = null;
-//        if ( bits == 32 ) {
-//            libname = "jnilapack-linux-x86";
-//        }
-//        else {
-//            libname = "jnilapack-linux-x86_64";
-//        }
-//
-//        try {
-//            System.loadLibrary(libname);
-//            System.out.println("Successfully loaded " + libname);
-//        }
-//        catch(Throwable e) {
-//            System.out.println("Unable to load library " + libname + ": " + e.toString());
-//        }
-
-//        if ( LAPACK.getInstance().getClass().getSimpleName().equals("JLAPACK") ) {
-//            Logger.getAnonymousLogger().warning("Native LAPACK library not found.  Using Java version.  Calculations may be slow!");
-//        }
     }
 
     private TestCondor() {

@@ -1,11 +1,6 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.Utils;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +9,6 @@ import java.util.Set;
 import edu.wisc.cs.will.Boosting.Advice.AdviceReader;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
-import edu.wisc.cs.will.Boosting.RDN.LearnBoostedRDN;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
@@ -27,12 +21,10 @@ import edu.wisc.cs.will.FOPC.ConsCell;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.PredicateSpec;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.ILP.LearnOneClause;
 import edu.wisc.cs.will.ResThmProver.DefaultProof;
@@ -47,59 +39,16 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 public class BoostingUtils {
 
-	// Unfortunately Map's need to know the type of the list as they have to create new lists
-	// This method assumes "ArrayList"
-	public static <T> void castMapToRegRDNEgToMapToEg(Map<T, List<RegressionRDNExample>> input_rex,
-			                                          Map<T, List<Example>> output_ex) {
-		if (input_rex == null) {
-			return;
-		}
-		if (output_ex == null) {
-			Utils.error("Must initialize output_ex");
-			Utils.waitHere();
-		}
-			
-		for (T key : input_rex.keySet()) {
-			output_ex.put(key, new ArrayList<Example>());
-			BoostingUtils.castCollectionOfRegressionRDNExampleToExamples(input_rex.get(key),
-								output_ex.get(key));
-		}
-	}
-
 	public static List<Example> convertToListOfExamples(List<RegressionRDNExample> examples) {
 		if (examples == null) { return null; }
-		List<Example> results = new ArrayList<Example>(examples.size());
-		for (RegressionRDNExample ex : examples) { results.add(ex); }
+		List<Example> results = new ArrayList<>(examples.size());
+		results.addAll(examples);
 		return results;
-	}
-
-	public static <T> Map<T,List<Example>> castHashMapToRegRDNEgToHashMapToEg(Map<T,List<RegressionRDNExample>> input_rex) {
-		if (input_rex == null) {
-			return null;
-		}
-		HashMap<T, List<Example>> output = new HashMap<T, List<Example>>();
-		castMapToRegRDNEgToMapToEg(input_rex, output);
-		return output;
-	}
-
-	public static void castCollectionOfRegressionRDNExampleToExamples(
-			Collection<RegressionRDNExample> input_rex,
-			Collection<Example> outputEgs) {
-		if (input_rex == null) {
-			return ;
-		}
-		if (outputEgs == null) {
-			Utils.error("Must initialize outputEgs");
-			Utils.waitHere();
-		}
-		for (RegressionRDNExample regressionRDNExample : input_rex) {
-			outputEgs.add(regressionRDNExample);
-		}
 	}
 
 	public static List<RegressionRDNExample> castToListOfRegressionRDNExamples(List<Example> examples) {
 		if (examples == null) { return null; }
-		List<RegressionRDNExample> results = new ArrayList<RegressionRDNExample>(examples.size());
+		List<RegressionRDNExample> results = new ArrayList<>(examples.size());
 		for (Example ex : examples) { results.add((RegressionRDNExample)ex); }
 		return results;
 	}
@@ -120,21 +69,6 @@ public class BoostingUtils {
 		}
 		Utils.error("Uknown type of constant in leaf: " + leafTerm.toPrettyString());
 		return null;
-	}
-
-	/**
-	 * Be very careful while using it. Use it only when the regression values dont matter. This method creates regression
-	 * examples with arbitrary regression values and should be used if it is going to be converted later.
-	 * Use castToListOfRegressionRDNExamples, if you know its only a type issue and dont want to create new RegressionRDNExample
-	 * @param examples
-	 * @param originalTruthValue
-	 * @return
-	 */
-	public static List<RegressionRDNExample> convertToListOfRegressionRDNExamples(List<Example> examples, boolean originalTruthValue) {
-		if (examples == null) { return null; }
-		List<RegressionRDNExample> results = new ArrayList<RegressionRDNExample>(examples.size());
-		for (Example ex : examples) { results.add(new RegressionRDNExample(ex, originalTruthValue)); }
-		return results;
 	}
 
 	public static String getLabelForModelNumber(int modelNumber) {
@@ -180,9 +114,7 @@ public class BoostingUtils {
 
 	public static Set<Literal> getRelatedFacts(Term input, List<PredicateNameAndArity> allPredicates,
 										LearnOneClause learnClause) {
-		Set<Literal> relatedFacts = new HashSet<Literal>();
-		//HornClauseProver prover = learnClause.getProver();
-		//FileParser parser = learnClause.getParser();
+		Set<Literal> relatedFacts = new HashSet<>();
 		HandleFOPCstrings handler = learnClause.getStringHandler();
 
 		// For each predicate
@@ -193,26 +125,22 @@ public class BoostingUtils {
 				continue;
 			}
 
-			List<Term> args = new ArrayList<Term>();
+			List<Term> args = new ArrayList<>();
 			// For each argument 
 			for (int i = 0; i < predicateArity.getArity(); i++) {
 				args.add(handler.getGeneratedVariable(handler.convertToVarString("Arg" + i), true));
 			}
 
-
 			// Now try putting the term as an argument at every location.
 			for (int i = 0; i < args.size(); i++) {
 				Term bkup = args.get(i);
-				// args.set(i, input);
 				Literal query = handler.getLiteral(predicateArity.getPredicateName(), args);
 
 				BindingList bl = new BindingList();
 				bl.addBinding((Variable)bkup, input);
-				// System.out.println("Querying " + query+ "  " + bl);
 
 				Literal boundQuery = query.applyTheta(bl);
-				//	System.out.println("Query: " + boundQuery);
-				BindingList proofBindings = null;
+				BindingList proofBindings;
 				Proof proof = new DefaultProof(learnClause.getContext(), boundQuery );
 
 				// Every call to prove() will return the next possible
@@ -226,8 +154,6 @@ public class BoostingUtils {
 					// If you want the full literal, just apply the bindings to the boundQuery.
 					Literal boundResult = boundQuery.applyTheta(proofBindings);
 					if (!boundResult.containsVariables()) {
-						//	   System.out.println(boundResult);
-						//	   done=true;
 						relatedFacts.add(boundResult);
 					}
 				}
@@ -246,7 +172,7 @@ public class BoostingUtils {
 			Utils.println("File: " + file + " doesnt exist.Hence no advice loaded");
 			return;
 		}
-		List<Sentence> advices = new ArrayList<Sentence>();
+		List<Sentence> advices = new ArrayList<>();
 		AdviceReader advReader = new AdviceReader(setup.getInnerLooper().getParser(), setup.getContext(), setup.getHandler());
 		advReader.readAdviceFromFile(file, advices);
 		for (String pred : fullModel.keySet()) {
@@ -289,7 +215,7 @@ public class BoostingUtils {
 		for (String predName : hiddenExamples.keySet()) {
 			for (RegressionRDNExample eg : hiddenExamples.get(predName)) {
 				ProbDistribution probDist = sampledStates.sampledProbOfExample(eg);
-				double prob = 1;
+				double prob;
 				if (probDist.isHasDistribution()) {
 					double[] probs = probDist.getProbDistribution();
 					

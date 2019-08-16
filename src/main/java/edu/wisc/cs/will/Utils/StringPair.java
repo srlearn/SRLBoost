@@ -1,12 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.Utils;
 
+import java.util.Objects;
+
 /**
- *
  * @author twalker
  */
 public class StringPair {
@@ -16,9 +12,6 @@ public class StringPair {
     public StringPair(String first, String second) {
         this.first = first;
         this.second = second;
-    }
-
-    public StringPair() {
     }
 
     public String getFirst() {
@@ -46,10 +39,10 @@ public class StringPair {
             return false;
         }
         final StringPair other = (StringPair) obj;
-        if ((this.first == null) ? (other.first != null) : !this.first.equals(other.first)) {
+        if (!Objects.equals(this.first, other.first)) {
             return false;
         }
-        if ((this.second == null) ? (other.second != null) : !this.second.equals(other.second)) {
+        if (!Objects.equals(this.second, other.second)) {
             return false;
         }
         return true;

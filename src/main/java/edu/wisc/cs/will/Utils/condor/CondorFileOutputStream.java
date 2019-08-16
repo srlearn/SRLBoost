@@ -1,26 +1,19 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.Utils.condor;
 
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.chirp.ChirpOutputStream;
-import java.io.File;  import edu.wisc.cs.will.Utils.condor.CondorFile;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
- *
  * @author twalker
  */
 public class CondorFileOutputStream extends OutputStream {
 
-    OutputStream stream = null;
+    private OutputStream stream;
 
     public CondorFileOutputStream(File file) throws FileNotFoundException {
         if (CondorUtilities.isChirp()) {

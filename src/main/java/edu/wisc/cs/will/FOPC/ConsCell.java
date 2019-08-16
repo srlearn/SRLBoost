@@ -1,11 +1,9 @@
 /**
- * 
+ *
  */
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
-import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +18,7 @@ import java.util.Set;
 
 /**
  * @author shavlik
- * 
+ *
  * This class is used to hold LISTS (since List is a standard Java construct, using the Lisp name of "cons[tructed] cell").
  * See http://en.wikipedia.org/wiki/Lisp_programming_language for more information.
  *
@@ -420,7 +418,7 @@ public class ConsCell extends Function implements Iterable<Term> {
     }
 
     @Override
-    public BindingList variants(Term other, BindingList bindings) {        
+    public BindingList variants(Term other, BindingList bindings) {
 
         if (other instanceof ConsCell == false ) {
             return null;
@@ -437,13 +435,13 @@ public class ConsCell extends Function implements Iterable<Term> {
 
                     Term car1 = consCell1.car();
                     Term car2 = consCell2.car();
-                    
+
                     if (car1 != car2 && (car1 == null || (bindings = car1.variants(car2, bindings) ) == null)) {
-                        // The cars are different.  The logic above is messy, but standard logic to take account 
+                        // The cars are different.  The logic above is messy, but standard logic to take account
                         // the possibility of one or both being null.
                         return null;
                     }
-                    
+
                     next1 = consCell1.cdr();
                     next2 = consCell2.cdr();
                 }
@@ -456,13 +454,13 @@ public class ConsCell extends Function implements Iterable<Term> {
                     return next1.variants(next2, bindings);
                 }
             }
-            
+
         }
 
         return bindings;
     }
-    
-    
+
+
 
     @Override
     public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
@@ -625,7 +623,7 @@ public class ConsCell extends Function implements Iterable<Term> {
     }
 
     /** Returns the ith element if the consCell was treated as a list.
-     * 
+     *
      * @param index
      * @return
      */
@@ -719,17 +717,17 @@ public class ConsCell extends Function implements Iterable<Term> {
     }
 
     public static ConsCell union(ConsCell a, ConsCell b) {
-    	if (a.length() <= b.length()) { // Walk through the smaller set.
-    		return a.union(b);
-    	} 
-    	return b.union(a);
+        if (a.length() <= b.length()) { // Walk through the smaller set.
+            return a.union(b);
+        }
+        return b.union(a);
     }
 
     public static ConsCell intersection(ConsCell a, ConsCell b) {
-    	if (a.length() <= b.length()) { // Walk through the smaller set.
-    		return a.intersection(b);
-    	} 
-    	return b.intersection(a);
+        if (a.length() <= b.length()) { // Walk through the smaller set.
+            return a.intersection(b);
+        }
+        return b.intersection(a);
     }
 
     // TODO - write an iterative version of this.
@@ -749,7 +747,7 @@ public class ConsCell extends Function implements Iterable<Term> {
     public <Return, Data> Return accept(TermVisitor<Return, Data> visitor, Data data) {
         return visitor.visitConsCell(this, data);
     }
-    
+
     public ConsCell intersection(ConsCell other) {
         if (this == other) {
             return this;
@@ -761,7 +759,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         // Collect the items in THIS that are in OTHER.
         List<Term> result = new ArrayList<Term>(1); // Assume no duplicates in 'this'.
         if (this.numberArgs() == 0) {
-        	 return convertListToConsCell(stringHandler, result, typeSpec);
+            return convertListToConsCell(stringHandler, result, typeSpec);
         }
         Term       first  = getArgument(0);
         ConsCell   rest   = ensureIsaConsCell(stringHandler, getArgument(1));
@@ -779,7 +777,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
         return convertListToConsCell(stringHandler, result, typeSpec); // Just use the original typeSpec (TODO - what if OTHER doesn't match?).
     }
-    
+
     public ConsCell union(ConsCell other) { // NOTE: since a Set is used, the order of the result is arbitrary.
         if (this == other) {
             return this;
@@ -789,7 +787,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
 
         // Collect the items in THIS that are in OTHER.
-        Set<Term> result = new HashSet<Term>(4); 
+        Set<Term> result = new HashSet<Term>(4);
         Term      first  = getArgument(0);
         ConsCell  rest   = ensureIsaConsCell(stringHandler, getArgument(1));
         result.addAll(other.convertConsCellToList()); // Collect everything in other.
@@ -1033,24 +1031,24 @@ public class ConsCell extends Function implements Iterable<Term> {
 
         return sb.toString();
     }
-    
+
     protected void appendToString(StringBuilder sb, int precedenceOfCaller, BindingList bindingList) {
         Term    term    = this;
         int     counter = 0; // Every N items, add a line feed.  TODO - have a flag to control this.
         boolean first   = true;
-        
+
         while(term != null && term != stringHandler.getNil()) {
-            
+
             if (term instanceof ConsCell) {
                 ConsCell consCell = (ConsCell) term;
                 Term car = consCell.car();
-                
+
                 if ( first == false ) {
                     sb.append(", "); counter++; if (counter % 10 == 0) { sb.append("\n               "); } // Added by JWS to allow easier reading of lists, though note this is buggy if the printing started more than 15 chars in ...
                 }
                 sb.append(car.toString(precedenceOfCaller, bindingList));
                 first = false;
-                
+
                 term = consCell.cdr();
             }
             else {
@@ -1061,8 +1059,8 @@ public class ConsCell extends Function implements Iterable<Term> {
                 term = null;
             }
         }
-        
-      
+
+
     }
 
     @Override

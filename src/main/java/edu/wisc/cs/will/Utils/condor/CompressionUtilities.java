@@ -1,26 +1,13 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.Utils.condor;
 
 import java.io.File;
 
 /**
- *
  * @author twalker
  */
-public class CompressionUtilities {
+class CompressionUtilities {
 
-    public static File getFile(File originalFile, boolean gzipped) {
-        if ( gzipped ) {
-            return getGZFile(originalFile);
-        }
-		return getNonGZFile(originalFile);
-    }
-
-    public static File getGZFile(File originalFile) {
+    static File getGZFile(File originalFile) {
 
         if (originalFile.getName().endsWith(".gz")) {
             return originalFile;
@@ -28,7 +15,7 @@ public class CompressionUtilities {
 		return new File( originalFile.getParent(), originalFile.getName() + ".gz");
     }
     
-    public static File getNonGZFile(File originalFile) {
+    static File getNonGZFile(File originalFile) {
 
         if (originalFile.getName().endsWith(".gz")) {
             String gzFileName   = originalFile.getName();
@@ -41,6 +28,4 @@ public class CompressionUtilities {
 
     private CompressionUtilities() {
     }
-
-
 }

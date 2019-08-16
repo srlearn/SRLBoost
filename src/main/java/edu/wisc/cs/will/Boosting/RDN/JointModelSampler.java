@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,7 +20,6 @@ import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode.PredicateTyp
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
-import edu.wisc.cs.will.DataSetUtils.ComputeAUC;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.Utils.ProbDistribution;
@@ -30,7 +28,7 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
 /**
- * The class sets the probability of examples, given a joint RDN model(i.e. RDN model 
+ * The class sets the probability of examples, given a joint RDN model (i.e. RDN model
  * for each predicate). 
  * 
  * @author Tushar Khot
@@ -40,20 +38,19 @@ public class JointModelSampler extends SRLInference {
 	
 	private int burnInSteps  = 200;
 	private int numOfSamples = 1000;
-	private boolean useMLNInference = false;
+	private boolean useMLNInference;
 	private CommandLineArguments cmdArgs;
-	// If set to -1, the AUC values are not printed.
-	private int printAUCAfterTheseManyIterations = -1;
-	
+
 	/**
 	 * 
 	 * @param model - The joint model to use
 	 * @param setup - The WILLSetup class with the facts
 	 * @param cmdArgs - Arguments set by user.
 	 */
-	public JointModelSampler(JointRDNModel model, WILLSetup setup, CommandLineArguments cmdArgs) {
+	JointModelSampler(JointRDNModel model, WILLSetup setup, CommandLineArguments cmdArgs) {
 		this(model, setup, cmdArgs, false);
 	}
+
 	public JointModelSampler(JointRDNModel model, WILLSetup setup, CommandLineArguments cmdArgs, boolean useMLNs) {
 		super(setup);
 		this.jointModel   = model;
@@ -63,8 +60,6 @@ public class JointModelSampler extends SRLInference {
 		// Use the model to obtain the RDN structure
 		rdn = new RelationalDependencyNetwork(model, setup);
 	}
-
-	
 
 	/**
 	 * This method computes the marginal probabilities of {@link RegressionRDNExample} by setting the 
@@ -81,8 +76,8 @@ public class JointModelSampler extends SRLInference {
 	public void sampleWorldStates(Map<String, List<RegressionRDNExample>> originalJointExamples,
 								  HiddenLiteralSamples sampledStates,
 								  boolean forMarginalProbs, int maxSamples, boolean returnMap) {
+		// TODO(@hayesall): This appears to be the only method which uses `printNetwork`
 
-		
 		// Get the order of the predicates for Gibbs sampling.
 		// We want to order predicates by the number of query/target predicate parents.
 		// For e.g., if "sameBib" has two query predicates as parents, while "sameTitle" has only one
@@ -94,20 +89,20 @@ public class JointModelSampler extends SRLInference {
 
 		// Making a copy of the original map, since we will update the map to handle multi-class examples. 
 		// Only the map is copied, the examples are still the same. So careful while modifying the actual examples in jointExamples
-		Map<String, List<RegressionRDNExample>> jointExamples = new HashMap<String, List<RegressionRDNExample>>(originalJointExamples);
+		Map<String, List<RegressionRDNExample>> jointExamples = new HashMap<>(originalJointExamples);
 		for (String target : originalJointExamples.keySet()) {
 			List<RegressionRDNExample> examples = originalJointExamples.get(target);
 			MultiClassExampleHandler mcExHandler= setup.getMulticlassHandler();
 			// Update examples if multi-class predicate
 			if (mcExHandler.isMultiClassPredicate(target)) {
 
-				List<RegressionRDNExample> newMulticlassExamples = new ArrayList<RegressionRDNExample>();
-				Set<String> seenExamples = new HashSet<String>();
+				List<RegressionRDNExample> newMulticlassExamples = new ArrayList<>();
+				Set<String> seenExamples = new HashSet<>();
 				for (RegressionRDNExample rex : examples) {
-					//					if (rex.isOriginalTruthValue()) {
-					RegressionRDNExample newRex = null;
-					if (rex.predicateName.name.startsWith(WILLSetup.multiclassPredPrefix)) { 
-						newRex = rex;  // Already a multi-class example 
+					RegressionRDNExample newRex;
+					if (rex.predicateName.name.startsWith(WILLSetup.multiclassPredPrefix)) {
+						// Already a multi-class example
+						newRex = rex;
 					} else {
 						newRex = mcExHandler.morphExample(rex);
 					}
@@ -118,16 +113,14 @@ public class JointModelSampler extends SRLInference {
 					} 
 					// }
 				}
-				examples = newMulticlassExamples;
 				jointExamples.put(target, newMulticlassExamples);
 			}
 		}
-		
-			
+
 		// Break into components for MAP inference
 		if (returnMap) {
 
-			List<Map<String, List<RegressionRDNExample>>> examplesPerComponent = new ArrayList<Map<String,List<RegressionRDNExample>>>();
+			List<Map<String, List<RegressionRDNExample>>> examplesPerComponent = new ArrayList<>();
 			long start = System.currentTimeMillis();
 			GroundDependencyNetwork gdn = new GroundDependencyNetwork(setup, jointExamples);
 			gdn.buildNetwork(jointModel);
@@ -136,10 +129,7 @@ public class JointModelSampler extends SRLInference {
 			printNetwork(gdn, gdnDotFile);
 			long end = System.currentTimeMillis();
 			Utils.println("Time to ground network= " + Utils.convertMillisecondsToTimeSpan(end-start));
-			if (examplesPerComponent != null && examplesPerComponent.size() == 1) {
-				// Utils.waitHere();
-			}
-			
+
 			if (sampledStates == null)  {Utils.error("sampledStates need to be set for MAP inference"); }
 
 			for (Map<String, List<RegressionRDNExample>> jointExampleSubset : examplesPerComponent) {
@@ -153,7 +143,6 @@ public class JointModelSampler extends SRLInference {
 				} else {
 					sampledStates.getWorldStates().get(0).addNewExamplesFromState(subState.getWorldStates().get(0));
 				}
-
 			}
 
 		} else {
@@ -178,28 +167,26 @@ public class JointModelSampler extends SRLInference {
 		
 		boolean needSampling = false;
 
-		Map<String,List<Example>>  posEgs = new HashMap<String,List<Example>>();
-		Map<String,List<Example>>  negEgs = new HashMap<String,List<Example>>();
+		Map<String,List<Example>>  posEgs = new HashMap<>();
+		Map<String,List<Example>>  negEgs = new HashMap<>();
+
 		// First init the pos and neg examples. The posEgs and negEgs are updated with
 		// each sample and become facts for the next round and hence need to be collected.
-		Set<String> onlyPrecomp = new HashSet<String>();
-		Map<String,List<double[]>>             counters = new HashMap<String,List<double[]>>();
+		Set<String> onlyPrecomp = new HashSet<>();
+		Map<String, List<double[]>> counters = new HashMap<>();
 
 		for (String target : jointExamples.keySet()) {
 			List<RegressionRDNExample> examples = jointExamples.get(target);
 
-			//Utils.println("\n% getMarginalProbabilities: |examples| = " + Utils.comma(examples) + " target=" + target);
-			posEgs.put(target, new ArrayList<Example>());
-			negEgs.put(target, new ArrayList<Example>());
+			posEgs.put(target, new ArrayList<>());
+			negEgs.put(target, new ArrayList<>());
 			if (examples.isEmpty()) {
 				continue;
 			}
 			// Based on the current sampled state(which would have been randomly assigned in the 
 			// RegressionRDNExample constructor), find out the current positive and negative examples.
 			updatePosNegWithSample(target, examples, posEgs, negEgs);
-		//	Utils.println("% getMarginalProbabilities: |posEgs| = " + Utils.comma(posEgs.get(target)));
-		//	Utils.println("% getMarginalProbabilities: |negEgs| = " + Utils.comma(negEgs.get(target)));
-			counters.put(target, new ArrayList<double[]>());
+			counters.put(target, new ArrayList<>());
 			// Find out what predicates are precomputed and are needed for predicting target predicates.
 			Collection<PredicateName> pnames = rdn.getAncestorsOfType(target, PredicateType.COMPUTED);
 			for (PredicateName pName : pnames) {
@@ -230,22 +217,20 @@ public class JointModelSampler extends SRLInference {
 				if (examples.isEmpty()) {
 					continue;
 				}
-				setup.prepareFactsAndExamples(posEgs, negEgs,
-						//BoostingUtils.castHashMapToRegRDNEgToHashMapToEg(posEgs),
-						//BoostingUtils.castHashMapToRegRDNEgToHashMapToEg(negEgs), 
-						target, false,!forMarginalProbs, last_target);
-				SRLInference sampler = null;
-				// Do the following only for RDNs
-				if (!useMLNInference) {
-					sampler = new SingleModelSampler(mod, setup, jointModel, false);
-				} else {
+				setup.prepareFactsAndExamples(posEgs, negEgs, target, false, !forMarginalProbs, null);
+				SRLInference sampler;
+
+				if (useMLNInference) {
 					sampler = new MLNInference(setup, jointModel);
+				} else {
+					sampler = new SingleModelSampler(mod, setup, jointModel, false);
 				}
 
 				/*
 				 * If we are using recursion for this target, tell SingleModelSampler to use Gibbs sampling 
-				 * for probabilities. TODO:move this check into singlemodelsampler.
+				 * for probabilities.
 				 */
+				// TODO(?): Move this check into singlemodelsampler.
 				if (isRecursive(target) && !useMLNInference) {
 					((SingleModelSampler)sampler).getProbabilitiesUsingSamples(examples);
 				} else {
@@ -291,9 +276,7 @@ public class JointModelSampler extends SRLInference {
 				// Double negation here. If "target" has a query predicate as parent,
 				// then we need to compute the probabilities and generate a sample.
 				if(!hasNoTargetParents(target)) {
-					setup.prepareFactsAndExamples(posEgs, negEgs, 
-							//BoostingUtils.castHashMapToRegRDNEgToHashMapToEg(posEgs),
-							//BoostingUtils.castHashMapToRegRDNEgToHashMapToEg(negEgs), 
+					setup.prepareFactsAndExamples(posEgs, negEgs,
 							target, false,!forMarginalProbs, last_target);
 
 					if (useMLNInference) {
@@ -332,68 +315,15 @@ public class JointModelSampler extends SRLInference {
 					// Update world state with sample
 					sampledStates.updateSample(jointExamples);
 				}
-				if (printAUCAfterTheseManyIterations > 0 &&
-						i % printAUCAfterTheseManyIterations == 0) {
-					Map<String, ComputeAUC> auc = getAUC(jointExamples, counters, i);
-					for (String pred : auc.keySet()) {
-						Utils.println("%   AUCPRIter " + i + " " + pred + " " + auc.get(pred).getPR());
-					}
-				}
 			}
 		}
 		if (forMarginalProbs) {
 			// Set the probability.
-			setProbabilityFromCounters(jointExamples, counters, numOfSamples);
+			setProbabilityFromCounters(jointExamples, counters);
 		} else {
 			sampledStates.setProbabilitiesFromCounters(numOfSamples);
 		}
 	}
-	
-	
-	
-	private Map<String, ComputeAUC> getAUC(Map<String,List<RegressionRDNExample>> jointExamples,
-										   Map<String,List<double[]>> counters, int total) {
-		Map<String, ComputeAUC> aucMap = new HashMap<String, ComputeAUC>();
-		for (String target : jointExamples.keySet()) {
-			int i=0;
-			List<Double> posExProb = new ArrayList<Double>();
-			List<Double> negExProb = new ArrayList<Double>();
-			// TODO (TVK) Handle multiclass
-			if (setup.getMulticlassHandler().isMultiClassPredicate(target)) {
-				// Don't add the auc for this predicate
-				// aucMap.put(target, null);
-				continue;
-			} 
-			for (RegressionRDNExample rex : jointExamples.get(target)) {
-				
-		
-				double[] c = counters.get(target).get(i);
-				double prob=0;
-				if (total == 0) {
-					prob = 0;
-				} else { 
-					// Prob of being true
-					prob = c[1]/(double)total;
-				}
-				if (rex.getOriginalValue() == 1) {
-					posExProb.add(prob);
-				} else {
-					negExProb.add(prob);
-				}
-				i++;
-			}
-			
-			// If models are being written somewhere, then also write AUC's there (this allows us to avoid writing in a dir that only contains INPUT files) - hence, multiple runs can simultaneously use the same input dir, yet write to different output dirs.
-			String aucTempDirectory = cmdArgs.getDirForAUCfiles(target, setup);		
-			String extraMarker      = cmdArgs.getExtraMarkerForFiles(true);
-			ComputeAUC auc = new ComputeAUC(posExProb, negExProb, aucTempDirectory, null, extraMarker, 0, cmdArgs.useLockFiles);
-			aucMap.put(target, auc);
-			
-		}
-		
-		return aucMap;
-	}
-
 
 	/**
 	 * Orders predicates by the number of query predicates that are ancestors of 
@@ -409,9 +339,9 @@ public class JointModelSampler extends SRLInference {
 			return keySet;
 		}
 		// Result stored here
-		ArrayList<String> orderedPreds = new ArrayList<String>();
+		ArrayList<String> orderedPreds = new ArrayList<>();
 		// Temporary array which is emptied 
-		ArrayList<String> newSet = new ArrayList<String>(keySet);
+		ArrayList<String> newSet = new ArrayList<>(keySet);
 		while(!newSet.isEmpty()) {
 			String bestPredicate= "";
 			int leastNeighbours = newSet.size() + 1;
@@ -435,19 +365,14 @@ public class JointModelSampler extends SRLInference {
 
 	/**
 	 * Used by getOrderedPredicates, to mark a predicate with a number
-	 * @param bestPredicate
-	 * @param number
 	 */
 	private void markBestPredicate(String bestPredicate, int number) {
 		DependencyPredicateNode node = rdn.getDependencyNode(setup.getHandler().getPredicateName(bestPredicate));
 		node.setOrder(number);
 	}
 
-
 	/**
 	 * Number of ancestors that are unmarked.
-	 * @param predicate
-	 * @return
 	 */
 	private int getNumUnmarkedParents(String predicate) {
 		Collection<PredicateName> ancestors = rdn.getQueryParents(predicate);
@@ -461,32 +386,30 @@ public class JointModelSampler extends SRLInference {
 		return count;
 	}
 
-	/**
-	 * 
-	 * @param examples
-	 * @param posEgs
-	 * @param negEgs
-	 */
 	private void updatePosNegWithSample(String target, List<RegressionRDNExample> examples,
 										Map<String,List<Example>> posEgs, 
 										Map<String,List<Example>> negEgs) {
 
 		// All examples are passed in, so reset the example list.
+
 		if (examples == null || examples.isEmpty()) {
 			Utils.error("Expected non-null and non-empty example list");
 		}
-		//String target = examples.get(0).predicateName.name;
+
 		posEgs.get(target).clear();
 		negEgs.get(target).clear();
+
 		List<Example> posList = posEgs.get(target);
 		List<Example> negList = negEgs.get(target);
-		int numVals = setup.getMulticlassHandler().numConstantsForPredicate(target);
+
+		int numberValues = setup.getMulticlassHandler().numConstantsForPredicate(target);
+
 		for (RegressionRDNExample rex : examples) {
-			if (!rex.predicateName.name.equals(target) && !rex.predicateName.name.equals(setup.multiclassPredPrefix + target)) {
-				Utils.error("Found example: '" + rex + "'\nwhile sampling for " + target); 
+			if (!rex.predicateName.name.equals(target) && !rex.predicateName.name.equals(WILLSetup.multiclassPredPrefix + target)) {
+				Utils.error("Found example: '" + rex + "'\nwhile sampling for " + target);
 			}
 			if (setup.getMulticlassHandler().isMultiClassPredicate(target)) {
-				for (int i = 0; i < numVals; i++) {
+				for (int i = 0; i < numberValues; i++) {
 					Example ex = setup.getMulticlassHandler().createExampleFromClass(rex, i);
 					if (rex.getSampledValue() == i) {
 						posList.add(ex);
@@ -501,32 +424,24 @@ public class JointModelSampler extends SRLInference {
 					negList.add(rex);
 				}
 			}
-			/*if (eg.getSampledTruthValue()) {
-				posList.add(eg);
-			} else {
-				negList.add(eg);
-			}*/
 		}
 	}
 
 	/**
 	 * Writes the RDN to a DOT file. Use GraphViz to convert it to an image.
-	 * @param rdn
 	 */
 	private void printNetwork(DependencyNetwork dn, String filename) {
 		try {
-			//String filename = setup.cmdArgs.getModelDirVal() + "bRDNs/dotFiles/rdn" + BoostingUtils.getLabelForCurrentModel() + ".dot";
 			Utils.ensureDirExists(filename);
-			BufferedWriter writer = new BufferedWriter(new CondorFileWriter(filename, false)); // Create a new file.
+			// Create a new file.
+			BufferedWriter writer = new BufferedWriter(new CondorFileWriter(filename, false));
 			dn.printNetworkInDOT(writer);
 			writer.close();
 		} catch (IOException e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Problem in printRDN.");
-		}	
+		}
 	}
-	
-
 
 	private void updateProbabilitiesForInput(Map<String, List<RegressionRDNExample>> originalJointExamples,
 											 Map<String, List<RegressionRDNExample>> jointExamples) {
@@ -538,7 +453,7 @@ public class JointModelSampler extends SRLInference {
 			for (RegressionRDNExample rex : jointExamples.get(target)) {
 				
 				if (setup.getMulticlassHandler().isMultiClassPredicate(target)) {
-					if (exampleProbabilities == null) { exampleProbabilities = new HashMap<String, Double>();}
+					if (exampleProbabilities == null) { exampleProbabilities = new HashMap<>();}
 					ProbDistribution distr = rex.getProbOfExample();
 					for (int index = 0; index < distr.getProbDistribution().length; index++) {
 						Example ex = setup.getMulticlassHandler().createExampleFromClass(rex, index);
@@ -554,7 +469,10 @@ public class JointModelSampler extends SRLInference {
 			// corresponding to each class 
 			if (exampleProbabilities != null) {
 				for (RegressionRDNExample rex : originalJointExamples.get(target)) {
-					if (rex.predicateName.name.startsWith(setup.multiclassPredPrefix)) { continue; } // Input was multi-class, no need to transfer probs
+
+					// Input was multi-class, no need to transfer probs
+					if (rex.predicateName.name.startsWith(WILLSetup.multiclassPredPrefix)) { continue; }
+
 					String rexstring = rex.toString();
 					if (exampleProbabilities.containsKey(rexstring)) {
 						double prob = exampleProbabilities.get(rexstring);
@@ -569,8 +487,7 @@ public class JointModelSampler extends SRLInference {
 		
 	}
 	private void setProbabilityFromCounters(Map<String, List<RegressionRDNExample>> jointExamples,
-											Map<String, List<double[]>> counters, 
-											int total) {
+											Map<String, List<double[]>> counters) {
 		for (String target : jointExamples.keySet()) {
 			int i=0;
 			List<double[]> valueCounts = counters.get(target);
@@ -600,8 +517,10 @@ public class JointModelSampler extends SRLInference {
 		}
 	}
 
-	private void getCountsForSample(Map<String, List<RegressionRDNExample>> jointExamples,
-									Map<String, List<double[]>> counters) {
+	private void getCountsForSample(
+			Map<String,
+			List<RegressionRDNExample>> jointExamples,
+			Map<String, List<double[]>> counters) {
 		for (String target : jointExamples.keySet()) {
 			int i=0;
 			int totalVals = setup.getMulticlassHandler().numConstantsForPredicate(target);
@@ -612,10 +531,6 @@ public class JointModelSampler extends SRLInference {
 				}
 				int val = rex.getSampledValue();
 				valueCounts.get(i)[val] += 1;
-				//if (rex.getSampledTruthValue()) {
-				//	int c = .get(i);
-				//	counters.get(target).set(i, c+1);
-				//}
 				i++;
 			}
 		}
@@ -624,19 +539,8 @@ public class JointModelSampler extends SRLInference {
 	private void getSampleForExamples(List<RegressionRDNExample> examples) {
 		for (RegressionRDNExample rex : examples) {
 			ProbDistribution prob = rex.getProbOfExample();
-			// System.out.println(rex);
 			int val = prob.randomlySelect();
 			rex.setSampledValue(val);
-			/*if (rex.predicateName.name.contains("thal")) {
-				if (!prob.isHasDistribution()) {
-					Utils.waitHere("TEMP: Expected multi class example: " + rex.toString());
-				}
-			}*/
-			/*if (Utils.random() < prob) {
-				rex.setSampledTruthValue(true);
-			} else {
-				rex.setSampledTruthValue(false);
-			}*/
 		}
 	}
 
@@ -645,13 +549,6 @@ public class JointModelSampler extends SRLInference {
 			model.setNumTrees(j);
 		}
 	}
-
-
-	public void setUseMLNInference(boolean useMLNInference) {
-		this.useMLNInference = useMLNInference;
-	}
-
-
 
 	@Override
 	public ProbDistribution getExampleProbability(Example eg) {

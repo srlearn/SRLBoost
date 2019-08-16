@@ -1,4 +1,3 @@
-
 package edu.wisc.cs.will.FOPC_MLN_ILP_Parser;
 
 import static edu.wisc.cs.will.Utils.MessageType.PARSER_VERBOSE_FILE_INCLUDES;
@@ -76,7 +75,7 @@ import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 
 
 
-// TODO - clean up so that the currentDirectory is always intelligently set (and rest after reading a file).
+// TODO(?): clean up so that the currentDirectory is always intelligently set (and rest after reading a file).
 
 // Note: WILL currently loads all of its built in libraries.  To prevent this, include:
 //																	setParam: loadAllLibraries  = false.
@@ -4843,26 +4842,6 @@ public class FileParser {
 			}
 		}
 
-		/*
-		Utils.println("\nRead these sentences:\n");
-		if (sentences != null) for (Sentence s : sentences) {
-			Utils.println("  "   + s + ".");
-			Utils.println("    " + Clause.toPrettyStringlistOfSentences("     ", s.convertToClausalForm()) + ".\n");
-		}
-
-		StringConstant constant = (StringConstant) stringHandler.getVariableOrConstant("dog");
-		List<Type> types = stringHandler.getTypesOfConstant(constant, false);
-		if (types == null) {
-			types = new ArrayList<Type>(1);
-			types.add(stringHandler.getIsaType(constant.getName()));
-		}
-		List<Constant> allInstances = new ArrayList<Constant>(16);
-		for (Type type : types) {
-			List<Constant> results = stringHandler.getAllInstances(type);
-			if (results != null) { allInstances.addAll(results); }
-		}
-		Utils.println("\n\ngetAllInstances(" + constant + "/" + types + ") = " + allInstances);
-		*/
 	}
 	/**
 	 * @param numberOfPrecomputeFiles the numberOfPrecomputeFiles to set

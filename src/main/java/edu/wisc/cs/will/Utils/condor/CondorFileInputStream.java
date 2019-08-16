@@ -1,29 +1,23 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.Utils.condor;
 
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.chirp.ChirpInputStream;
-import java.io.File;  import edu.wisc.cs.will.Utils.condor.CondorFile;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- *
  * @author twalker
  */
 public class CondorFileInputStream extends InputStream {
 
-    InputStream stream = null;
+    private InputStream stream;
 
     public CondorFileInputStream(File file) throws FileNotFoundException {
         if (CondorUtilities.isChirp()) {
             try {
-                //Logger.getLogger(CondorFileInputStream.class.getCanonicalName()).fine("Opening CondorFileInputStream on '" + file.toString() + "'");
                 stream = new ChirpInputStream(file.toString());
             } catch (IOException ex) {
                 Utils.waitHere("Error opening Condor chirp stream for " + file + ".");
@@ -76,7 +70,7 @@ public class CondorFileInputStream extends InputStream {
     }
 
     public boolean markSupported() {
-        return (stream == null ? false : stream.markSupported());
+        return (stream != null && stream.markSupported());
     }
 
     public synchronized void mark(int readlimit) {

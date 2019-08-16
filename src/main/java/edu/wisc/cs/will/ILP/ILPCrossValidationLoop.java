@@ -1,21 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.ILP.LearnOneClause;
-import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.Theory;
-import edu.wisc.cs.will.Utils.Stopwatch;
-import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidClassException;
@@ -29,6 +16,15 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import edu.wisc.cs.will.DataSetUtils.Example;
+import edu.wisc.cs.will.FOPC.Theory;
+import edu.wisc.cs.will.Utils.Stopwatch;
+import edu.wisc.cs.will.Utils.Utils;
+import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+import edu.wisc.cs.will.Utils.condor.CondorFile;
+import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
+import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 
 /** Cross Validation.
  *
@@ -90,64 +86,11 @@ import java.util.zip.GZIPOutputStream;
  */
 public class ILPCrossValidationLoop {
 
-    /*
-     * starting cross validation fold
-     *
-     * finished cross validation fold
-     *
-     * getWeightedCoverage(theory, posEx, negEx)
-     *
-     * getState
-     *
-     * getPosExamples
-     *
-     * getNegExamples
-     *
-     * getEvalSetPos
-     * getEvalSetNeg
-     *
-     * setState
-     *
-     * setPos
-     *
-     * setNeg
-     *
-     * setEvalPos
-     *
-     * setEvalNeg
-     *
-     * setGleaner
-     *
-     * setMaximumClock
-     *
-     * executeLoop
-     *
-     * reportSearchStats
-     *
-     * getLearnedTheory
-     *
-     * getGleaner
-     *
-     * setAdvice
-     *
-     * unsetAdvice
-     *
-     *
-     *
-     *
-     *
-     *
-     */
-
     private int firstFoldToRun;
 
     private int lastFoldToRun;
 
     private boolean filesystemUseEnabled = false;
-
-    private boolean removeTemporaryFilesAfterCompletion = true;
-
-    private boolean removeFoldResultFilesAfterConsolidation = false;
 
     private CrossValidationLoopState cvState;
 
@@ -199,8 +142,6 @@ public class ILPCrossValidationLoop {
      *
      * @param outerLoop OuterLoop to use during the search.  This should be the same for all folds.
      * @param numberOfFolds Number of folds to run.
-     * @param firstFoldToRun
-     * @param lastFoldToRun
      */
     public ILPCrossValidationLoop(ILPouterLoop outerLoop, int numberOfFolds, int firstFoldToRun, int lastFoldToRun) {
         this(outerLoop, numberOfFolds, null, firstFoldToRun, lastFoldToRun);
@@ -215,8 +156,6 @@ public class ILPCrossValidationLoop {
      * @param outerLoop OuterLoop to use during the search.  This should be the same for all folds.
      * @param numberOfFolds Number of folds to run.
      * @param ilpCrossValidationExampleSets Collection of examples to use for cross validation.
-     * @param firstFoldToRun
-     * @param lastFoldToRun
      */
     public ILPCrossValidationLoop(ILPouterLoop outerLoop, int numberOfFolds, CrossValidationExampleSets ilpCrossValidationExampleSets, int firstFoldToRun, int lastFoldToRun) {
         if (numberOfFolds == -1) {
@@ -249,11 +188,11 @@ public class ILPCrossValidationLoop {
         this.lastFoldToRun = lastFoldToRun;
 
         if (numberOfFolds == 1) {
-            setFilesystemUseEnabled(false); // Don't use the file system, by default, when we are doing only a single fold.
+            setFilesystemUseEnabled(); // Don't use the file system, by default, when we are doing only a single fold.
         }
     }
 
-    public void executeCrossValidation() throws SearchInterrupted {
+    void executeCrossValidation() throws SearchInterrupted {
 
         try {
             initializeState();
@@ -266,7 +205,6 @@ public class ILPCrossValidationLoop {
         }
 
         // Okay everything should be setup...
-        // Lets do this thing.
         StoppingCondition<ILPCrossValidationLoop> stoppingCondition = getEarlyStoppingCondition();
 
             for (int currentFold = firstFoldToRun; currentFold <= lastFoldToRun; currentFold++) {
@@ -297,19 +235,13 @@ public class ILPCrossValidationLoop {
             consolidateCrossValidationResults();
 
             // Clean up the disk files, if they exist...
-            if (removeTemporaryFilesAfterCompletion) {
-                removeResultFiles();
-            }
+            removeResultFiles();
         }
 
     }
 
-    /** Creates a CrossValidationFoldResult object and scores the training/testing sets.
-     *
-     * @param currentFold
-     * @param theory
-     * @param gleaner
-     * @return
+    /**
+     * Creates a CrossValidationFoldResult object and scores the training/testing sets.
      */
     private CrossValidationFoldResult createCVFoldResult(int fold, Theory theory, Gleaner gleaner) {
         CrossValidationFoldResult result = new CrossValidationFoldResult(fold, theory, gleaner);
@@ -344,11 +276,9 @@ public class ILPCrossValidationLoop {
 
         boolean isFoldComplete = isFoldCompleted(currentFold);
 
-        if (isFoldComplete == false) {
+        if (!isFoldComplete) {
 
-            if (LearnOneClause.debugLevel > -10) {
-                Utils.println("\n% Initializing fold " + Utils.comma(currentFold) + ".");
-            }
+            Utils.println("\n% Initializing fold " + Utils.comma(currentFold) + ".");
 
             Stopwatch s = new Stopwatch();
 
@@ -384,53 +314,45 @@ public class ILPCrossValidationLoop {
                 outerLoop.setMaximumClockTimeInMillisec(Long.MAX_VALUE);
             }
 
-            if (LearnOneClause.debugLevel > -10) {
-                Utils.println("%   Number of positive TRAIN examples = " + Utils.comma(outerLoop.getPosExamples()) + ".");
-                Utils.println("%   Number of negative TRAIN examples = " + Utils.comma(outerLoop.getNegExamples()) + ".");
-                //jws3      Utils.println("%   Number of positive TUNE  examples = " + Utils.comma(outerLoop.getTuneSetPosExamples()) + ".");
-                //      Utils.println("%   Number of negative TUNE  examples = " + Utils.comma(outerLoop.getTuneSetNegExamples()) + ".");
-                Utils.println("%   Number of positive EVAL  examples = " + Utils.comma(outerLoop.getEvalSetPosExamples()) + ".");
-                Utils.println("%   Number of negative EVAL  examples = " + Utils.comma(outerLoop.getEvalSetNegExamples()) + ".");
-            }
+            Utils.println("%   Number of positive TRAIN examples = " + Utils.comma(outerLoop.getPosExamples()) + ".");
+            Utils.println("%   Number of negative TRAIN examples = " + Utils.comma(outerLoop.getNegExamples()) + ".");
+            Utils.println("%   Number of positive EVAL  examples = " + Utils.comma(outerLoop.getEvalSetPosExamples()) + ".");
+            Utils.println("%   Number of negative EVAL  examples = " + Utils.comma(outerLoop.getEvalSetNegExamples()) + ".");
 
             // Wrap this the run in a try-catch so that the finally clause can restore the 
             // outerLoop to pre-CV values regardless of the outcome of the search.
             try {
                 setupAdvice(outerLoop);
 
-                    Theory theory = outerLoop.executeOuterLoop();
+                Theory theory = outerLoop.executeOuterLoop();
 
-                    theory.setNegated(getFlipFlopPositiveAndNegativeExamples());
+                theory.setNegated(getFlipFlopPositiveAndNegativeExamples());
 
-                    if (LearnOneClause.debugLevel > -10) {
-                        Utils.println(String.format("\n%% Finished fold %d (%.2fs):", currentFold, s.getTotalTimeInSeconds()));
-                        Utils.println("\n" + outerLoop.reportSearchStats());
-                        Utils.println("\n% " + outerLoop.getLearnedTheory().toPrettyString("% "));
-                    }
+                Utils.println(String.format("\n%% Finished fold %d (%.2fs):", currentFold, s.getTotalTimeInSeconds()));
+                Utils.println("\n" + outerLoop.reportSearchStats());
+                Utils.println("\n% " + outerLoop.getLearnedTheory().toPrettyString("% "));
 
-                    // Grab the gleaner from the innerLoop.
-                    // Not, we don't want to save the gleaner we created a couple lines
-                    // above since the outerLoop may have restored a different gleaner
-                    // from a saved checkpoint file.
-                    Gleaner gleaner = outerLoop.getGleaner();
+                // Grab the gleaner from the innerLoop.
+                // Not, we don't want to save the gleaner we created a couple lines
+                // above since the outerLoop may have restored a different gleaner
+                // from a saved checkpoint file.
+                Gleaner gleaner = outerLoop.getGleaner();
 
-                    // If outerLoop didn't throw an exception, lets assume everything worked.
-                    // We can add a check later...
-                    CrossValidationFoldResult result = createCVFoldResult(currentFold, theory, gleaner);
-                    setFoldResult(currentFold, result);
+                // If outerLoop didn't throw an exception, lets assume everything worked.
+                // We can add a check later...
+                CrossValidationFoldResult result = createCVFoldResult(currentFold, theory, gleaner);
+                setFoldResult(currentFold, result);
 
-                    // Delete the checkpoint since we know that this fold is done and
-                    // it won't be needed anymore...
-                    if (filesystemUseEnabled) {
-                        // Write the result out to disk.  This is how we will know that a run is complete in the
-                        // future...
-                        writeResult(result);
+                // Delete the checkpoint since we know that this fold is done and it won't be needed anymore...
+                //
+                if (filesystemUseEnabled) {
+                    // Write the result out to disk.  This is how we will know that a run is complete in the future.
+                    writeResult(result);
+                    outerLoop.deleteCheckpoint();
+                }
 
-                        outerLoop.deleteCheckpoint();
-                    }
+                outerLoop.innerLoopTask.fireOuterLoopFinished(outerLoop);
 
-                    outerLoop.innerLoopTask.fireOuterLoopFinished(outerLoop);
-                
             } catch (IOException ioe) {
                 // Hmmm...there was a problem saving the search...that is probably a bad thing...
                 // Let's throw an exception...
@@ -451,7 +373,7 @@ public class ILPCrossValidationLoop {
             try {
                 CrossValidationFoldResult result = readResultsForFold(currentFold);
                 setFoldResult(currentFold, result);
-            } catch (IOException ioe) {
+            } catch (IOException ignored) {
             }
         }
     }
@@ -470,22 +392,16 @@ public class ILPCrossValidationLoop {
      * occurs during consolidation.  Most likely this will be the result of an IO error
      * during the reading of the results.
      */
-    protected void consolidateCrossValidationResults() throws SearchInterrupted {
+    private void consolidateCrossValidationResults() throws SearchInterrupted {
 
-        if (filesystemUseEnabled == false) {
+        if (!filesystemUseEnabled) {
             throw new IllegalStateException("Filesystem Use disabled.  Cannot consolidate CV results.");
         }
         else {
             try {
                 waitForAllFoldsToFinish();
-
                 readAllFoldResults();
-
                 writeFinalReport();
-
-                if (removeFoldResultFilesAfterConsolidation) {
-                    removeResultFiles();
-                }
 
             } catch (IOException ex) {
                 throw new SearchInterrupted(ex);
@@ -502,13 +418,13 @@ public class ILPCrossValidationLoop {
      */
     private void waitForAllFoldsToFinish() {
 
-        TreeSet<Integer> unfinishedFolds = new TreeSet<Integer>();
+        TreeSet<Integer> unfinishedFolds = new TreeSet<>();
 
         for (int fold = 0; fold < getNumberOfFolds(); fold++) {
             unfinishedFolds.add(fold);
         }
 
-        while (unfinishedFolds.isEmpty() == false) {
+        while (!unfinishedFolds.isEmpty()) {
             for (Iterator<Integer> it = unfinishedFolds.iterator(); it.hasNext();) {
                 int fold = it.next();
 
@@ -517,15 +433,15 @@ public class ILPCrossValidationLoop {
                 }
             }
 
-            if (unfinishedFolds.isEmpty() == false) {
-                if (filesystemUseEnabled == false) {
+            if (!unfinishedFolds.isEmpty()) {
+                if (!filesystemUseEnabled) {
                     throw new IllegalStateException("Filesystem storage is disabled.  However, one or more folds are not complete.  This should not happen.");
                 }
 
                 Utils.println(Utils.getPrettyString("Waiting for fold", "to finish.  Will check again in 30 seconds.", unfinishedFolds));
                 try {
                     Thread.sleep(30000);
-                } catch (InterruptedException ex) {
+                } catch (InterruptedException ignored) {
                 }
             }
         }
@@ -544,8 +460,8 @@ public class ILPCrossValidationLoop {
      * @throws IOException An IOException will be throw if the results for one of the
      * folds does not exist.
      */
-    public void readAllFoldResults() throws IOException {
-        if (filesystemUseEnabled == false) {
+    private void readAllFoldResults() throws IOException {
+        if (!filesystemUseEnabled) {
             throw new IllegalStateException("Attempting to read fold results from disk while filesystem storage is disabled.");
         }
         else {
@@ -578,13 +494,13 @@ public class ILPCrossValidationLoop {
 
                 tries++;
 
-                if (done == false && tries < maxTries) {
+                if (!done && tries < maxTries) {
                     // One or more folds is corrupt, probably being written by a different process.
                     // Lets wait if we can.
                     Utils.println("One or more result files were corrupt.  Will attempt to read again in 30 seconds. " + (maxTries - tries) + " attempts remaining.");
                     try {
                         Thread.sleep(30000);
-                    } catch (InterruptedException ex) {
+                    } catch (InterruptedException ignored) {
                     }
                 }
             }
@@ -592,7 +508,7 @@ public class ILPCrossValidationLoop {
             if (!done) {
                 // Crap, we didn't get all of the runs...
                 // This really shouldn't have happened.
-                Set<Integer> unfinishedRuns = new TreeSet<Integer>();
+                Set<Integer> unfinishedRuns = new TreeSet<>();
                 for (int i = 0; i < getNumberOfFolds(); i++) {
                     if (getFoldResult(i) == null) {
                         unfinishedRuns.add(i);
@@ -622,32 +538,12 @@ public class ILPCrossValidationLoop {
         }
     }
 
-    /** Initializes the CrossValidationLoop and consolidates the results.
+    /**
+     * Indicates this run should consolidate everything.
      *
-     *
-     * @throws SearchInterrupted
-     */
-    public void initializeAndConsolidateCrossValidationResults() throws SearchInterrupted {
-        try {
-            initializeState();
-        } catch (IOException ioe) {
-            throw new SearchInterrupted("Something unexpected happened while initializing crossValidation: " + ioe.toString());
-        } catch (IncongruentSavedStateException isse) {
-            throw new SearchInterrupted("Error while restoring cross validation saved state: " + isse.toString() + "\n"
-                    + "This probably means that the saved state (" + getCVStateFile() + ") should be removed and the "
-                    + "search restarted.");
-        }
-
-        consolidateCrossValidationResults();
-    }
-
-    /** Indicates this run should consolidate everything.
-     *
-     * Theortically, you could have a run whose only job was to consolidate
+     * Theoretically, you could have a run whose only job was to consolidate
      * the results.  For now, just make the guy who did the first run the
      * consolidator.
-     *
-     * @return
      */
     private boolean isConsolidator() {
         return firstFoldToRun == 0;
@@ -663,9 +559,7 @@ public class ILPCrossValidationLoop {
         // Doesn't exist in memory, so check the disk...
         if (filesystemUseEnabled) {
             File f = new CondorFile(outerLoop.getResultFileNameForFold(currentFold));
-            if (f.exists()) {
-                return true;
-            }
+            return f.exists();
         }
 
         return false;
@@ -673,7 +567,7 @@ public class ILPCrossValidationLoop {
 
     private void initializeState() throws IOException, IncongruentSavedStateException {
 
-        CrossValidationLoopState savedCVState = null;
+        CrossValidationLoopState savedCVState;
 
         if (firstFoldToRun == 0) {
             savedCVState = readCVState(false);
@@ -724,7 +618,7 @@ public class ILPCrossValidationLoop {
                                 + "codebase.  Please remove the state file \"" + cvStateFile + "\" and restart all runs.");
                     } catch (ClassNotFoundException ex) {
                         throw new RuntimeException("Odd Error reading cross validation state. This probably shouldn't have happened.", ex);
-                    } catch (IOException ex) {
+                    } catch (IOException ignored) {
                     } finally {
                         try {
                             if (ois != null) {
@@ -733,7 +627,7 @@ public class ILPCrossValidationLoop {
                             else if (is != null) {
                                 is.close();
                             }
-                        } catch (IOException ex) {
+                        } catch (IOException ignored) {
                         }
                     }
 
@@ -743,7 +637,7 @@ public class ILPCrossValidationLoop {
                     Utils.println("Waiting for fold 0 to create cross validation state file \"" + cvStateFile + "\"...");
                     try {
                         Thread.sleep(30000);
-                    } catch (InterruptedException interruptedException) {
+                    } catch (InterruptedException ignored) {
                     }
                 }
 
@@ -758,7 +652,8 @@ public class ILPCrossValidationLoop {
         return readState;
     }
 
-    /** Initialized the CVState.
+    /**
+     * Initialized the CVState.
      *
      * Previously, this actually created a new state based on the existing cvState that
      * was created during the constructor.  However, since it was a direct clone
@@ -778,14 +673,13 @@ public class ILPCrossValidationLoop {
         return cvState;
     }
 
-    /** Merges the saved CVState into our existing cvState.
+    /**
+     * Merges the saved CVState into our existing cvState.
      *
      * This merges the two CVStates.  In a perfect world, the two states should be exactly
      * the same, parameter-wise.  verifyCVState() should confirm this.  If your parameters settings
      * are getting lost when resuming saved runs, it probably means you should be checking those settings
      * and starting the search over when things aren't the same.
-     *
-     * @param savedCVState
      */
     private void mergeCVState(CrossValidationLoopState savedCVState) {
         // We might be smarter about this, but for now,
@@ -821,7 +715,7 @@ public class ILPCrossValidationLoop {
                     else if (os != null) {
                         os.close();
                     }
-                } catch (IOException ex) {
+                } catch (IOException ignored) {
                 }
             }
         }
@@ -845,30 +739,20 @@ public class ILPCrossValidationLoop {
     /**
      * @return the outerLoop
      */
-    protected ILPouterLoop getOuterLoop() {
+    ILPouterLoop getOuterLoop() {
         return outerLoop;
     }
 
-    /**
-     * @param outerLoop the outerLoop to set
-     */
-    protected void setOuterLoop(ILPouterLoop outerLoop) {
-        this.outerLoop = outerLoop;
-    }
-
-    public int getNumberOfFolds() {
+    private int getNumberOfFolds() {
         return cvState.getNumberOfFolds();
     }
 
-    /** Reads a single result.
-     *
-     * @param fold
-     * @return
-     * @throws IOException
+    /**
+     * Reads a single result.
      */
-    protected CrossValidationFoldResult readResultsForFold(int fold) throws IOException {
+    private CrossValidationFoldResult readResultsForFold(int fold) throws IOException {
 
-        if (filesystemUseEnabled == false) {
+        if (!filesystemUseEnabled) {
             throw new IllegalStateException("Attempting to read fold results from disk while filesystem storage is disabled.");
         }
 
@@ -899,14 +783,14 @@ public class ILPCrossValidationLoop {
                 else if (is != null) {
                     is.close();
                 }
-            } catch (IOException ex) {
+            } catch (IOException ignored) {
             }
         }
     }
 
-    protected void writeResult(CrossValidationFoldResult result) throws IOException {
+    private void writeResult(CrossValidationFoldResult result) throws IOException {
 
-        if (filesystemUseEnabled == false) {
+        if (!filesystemUseEnabled) {
             throw new IllegalStateException("Attempting to write fold results from disk while filesystem storage is disabled.");
         }
         else {
@@ -930,19 +814,16 @@ public class ILPCrossValidationLoop {
                     else if (os != null) {
                         os.close();
                     }
-                } catch (IOException ex) {
+                } catch (IOException ignored) {
                 }
             }
         }
     }
 
-    /** Sets the CrossValidationResult for fold.
-     *
-     * @param fold
-     * @param result
-     * @throws IllegalStateException
+    /**
+     * Sets the CrossValidationResult for fold.
      */
-    protected void setFoldResult(int fold, CrossValidationFoldResult result) throws IllegalStateException {
+    private void setFoldResult(int fold, CrossValidationFoldResult result) throws IllegalStateException {
         if (crossValidationResult == null) {
             crossValidationResult = new CrossValidationResult(getNumberOfFolds());
         }
@@ -950,16 +831,13 @@ public class ILPCrossValidationLoop {
         crossValidationResult.setFoldResult(fold, result);
     }
 
-    /** Returns the CrossValidationResult for fold, null if that fold is not currently stored.
+    /**
+     * Returns the CrossValidationResult for fold, null if that fold is not currently stored.
      *
      * Only the run doing the consolidation of all the fold stores this information.  Other runs
      * never need it.
-     *
-     * @param fold
-     * @return
-     * @throws IllegalStateException
      */
-    protected CrossValidationFoldResult getFoldResult(int fold) throws IllegalStateException {
+    private CrossValidationFoldResult getFoldResult(int fold) throws IllegalStateException {
         if (crossValidationResult == null) {
             return null;
         }
@@ -967,14 +845,15 @@ public class ILPCrossValidationLoop {
         return crossValidationResult.getFoldResult(fold);
     }
 
-    /** Returns the Consolidated results for the Cross Validation.
+    /**
+     * Returns the Consolidated results for the Cross Validation.
      *
      * If the runs aren't finished or this isn't the consolidator of the
      * runs, this may only be the partial results.
      *
      * @return The (possibly partial) cross validation results.
      */
-    public CrossValidationResult getCrossValidationResults() {
+    CrossValidationResult getCrossValidationResults() {
 
         if (crossValidationResult == null) {
             crossValidationResult = new CrossValidationResult(getNumberOfFolds());
@@ -983,29 +862,15 @@ public class ILPCrossValidationLoop {
         return crossValidationResult;
     }
 
-    /**
-     * @return the removeFoldResultsAfterConsolidation
-     */
-    public boolean isRemoveFoldResultsAfterConsolidation() {
-        return removeFoldResultFilesAfterConsolidation;
-    }
-
-    /**
-     * @param removeFoldResultsAfterConsolidation the removeFoldResultsAfterConsolidation to set
-     */
-    public void setRemoveFoldResultsAfterConsolidation(boolean removeFoldResultsAfterConsolidation) {
-        this.removeFoldResultFilesAfterConsolidation = removeFoldResultsAfterConsolidation;
-    }
-
-    public CrossValidationExampleSets getILPCrossValidationExampleSets() {
+    CrossValidationExampleSets getILPCrossValidationExampleSets() {
         return cvState.getILPCrossValidationExampleSets();
     }
 
-    public void setEarlyStoppingCondition(StoppingCondition<ILPCrossValidationLoop> earlyStoppingCondition) {
+    void setEarlyStoppingCondition(StoppingCondition<ILPCrossValidationLoop> earlyStoppingCondition) {
         cvState.setEarlyStoppingCondition(earlyStoppingCondition);
     }
 
-    public StoppingCondition<ILPCrossValidationLoop> getEarlyStoppingCondition() {
+    private StoppingCondition<ILPCrossValidationLoop> getEarlyStoppingCondition() {
         return cvState.getEarlyStoppingCondition();
     }
 
@@ -1019,14 +884,12 @@ public class ILPCrossValidationLoop {
      *
      * removeFoldResultsAfterConsolition should probably default to true once the bugs have been worked out.
      */
-    protected void writeFinalReport() {
+    private void writeFinalReport() {
 
-        if (LearnOneClause.debugLevel > -10) {
-            for (int i = 0; i < getNumberOfFolds(); i++) {
-                Utils.println("% Fold " + i + " Theory: ");
-                Utils.println(getFoldResult(i).getTheory().toPrettyString("  "));
-                Utils.println("");
-            }
+        for (int i = 0; i < getNumberOfFolds(); i++) {
+            Utils.println("% Fold " + i + " Theory: ");
+            Utils.println(getFoldResult(i).getTheory().toPrettyString("  "));
+            Utils.println("");
         }
 
         CrossValidationResult results = getCrossValidationResults();
@@ -1040,53 +903,26 @@ public class ILPCrossValidationLoop {
         }
     }
 
-    /**
-     * @return the removeCheckpointFileAfterCompletion
-     */
-    public boolean getRemoveTemporaryFilesAfterCompletion() {
-        return removeTemporaryFilesAfterCompletion;
-    }
-
-    /**
-     * @param removeTemporaryFilesAfterCompletion the removeCheckpointFileAfterCompletion to set
-     */
-    public void setRemoveTemporaryFilesAfterCompletion(boolean removeTemporaryFilesAfterCompletion) {
-        this.removeTemporaryFilesAfterCompletion = removeTemporaryFilesAfterCompletion;
-    }
-
-    /**
-     * @return the filesystemUseEnabled
-     */
-    public boolean isFilesystemUseEnabled() {
-        return filesystemUseEnabled;
-    }
-
-    /**
-     * @param filesystemUseEnabled the filesystemUseEnabled to set
-     */
-    public void setFilesystemUseEnabled(boolean filesystemUseEnabled) {
-
-        if (filesystemUseEnabled == false && (firstFoldToRun != 0 || lastFoldToRun != getNumberOfFolds() - 1)) {
+    private void setFilesystemUseEnabled() {
+        if ((firstFoldToRun != 0 || lastFoldToRun != getNumberOfFolds() - 1)) {
             throw new IllegalArgumentException("The Cross-Validation loop is configured to run only a partial set of folds.  Filesystem must be enabled with this setting.");
         }
-
-        this.filesystemUseEnabled = filesystemUseEnabled;
+        this.filesystemUseEnabled = false;
     }
 
-    public void setFlipFlopPositiveAndNegativeExamples(boolean flipFlopPositiveAndNegativeExamples) {
-        //	Utils.println("% ILPCrossValidationLoop: flipFlopPosAndNegExamples = " + flipFlopPositiveAndNegativeExamples);
+    void setFlipFlopPositiveAndNegativeExamples(boolean flipFlopPositiveAndNegativeExamples) {
         cvState.setFlipFlopPositiveitiveAndNegativeativeExamples(flipFlopPositiveAndNegativeExamples);
     }
 
-    public boolean getFlipFlopPositiveAndNegativeExamples() {
+    private boolean getFlipFlopPositiveAndNegativeExamples() {
         return cvState.getFlipFlopPositiveitiveAndNegativeativeExamples();
     }
 
-    public void setMaximumCrossValidationTimeInMillisec(long maximumCrossValidationTimeInMillisec) {
+    void setMaximumCrossValidationTimeInMillisec(long maximumCrossValidationTimeInMillisec) {
         cvState.setMaximumCrossValidationTimeInMillisec(maximumCrossValidationTimeInMillisec);
     }
 
-    public long getMaximumCrossValidationTimeInMillisec() {
+    private long getMaximumCrossValidationTimeInMillisec() {
         return cvState.getMaximumCrossValidationTimeInMillisec();
     }
 
@@ -1097,7 +933,7 @@ public class ILPCrossValidationLoop {
         }
     }
 
-    protected void unsetAdvice(ILPouterLoop outerLooper) {
+    private void unsetAdvice(ILPouterLoop outerLooper) {
         if (getActiveAdvice(outerLooper) != null) {
             outerLooper.innerLoopTask.getAdviceProcessor().retractRelevanceAdvice();
             setActiveAdvice(outerLooper, null);
@@ -1108,7 +944,7 @@ public class ILPCrossValidationLoop {
         return outerLooper.innerLoopTask.getActiveAdvice();
     }
 
-    public void setActiveAdvice(ILPouterLoop outerLooper, ActiveAdvice activeAdvice) {
+    private void setActiveAdvice(ILPouterLoop outerLooper, ActiveAdvice activeAdvice) {
         outerLooper.innerLoopTask.setActiveAdvice(activeAdvice);
     }
 

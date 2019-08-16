@@ -1,13 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.Utils.condor;
 
 import java.io.File;  
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,12 +9,11 @@ import java.io.Reader;
 import java.nio.CharBuffer;
 
 /**
- *
  * @author twalker
  */
 public class CondorFileReader extends Reader {
 
-    private Reader reader = null;
+    private Reader reader;
 
     public CondorFileReader(File file) throws FileNotFoundException  {
         reader = new InputStreamReader( new CondorFileInputStream(file));
@@ -68,7 +61,7 @@ public class CondorFileReader extends Reader {
     }
 
     public boolean markSupported() {
-        return reader == null ? false : reader.markSupported();
+        return reader != null && reader.markSupported();
     }
 
     public void mark(int readAheadLimit) throws IOException {

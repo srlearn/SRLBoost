@@ -1,44 +1,10 @@
-/***************************************************************
- *
- * Copyright (C) 1990-2007, Condor Team, Computer Sciences Department,
- * University of Wisconsin-Madison, WI.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you
- * may not use this file except in compliance with the License.  You may
- * obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- ***************************************************************/
-
-/*
-Chirp Java Client
-*/
-
 package edu.wisc.cs.will.Utils.condor.chirp;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.StringTokenizer;
 
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
-
-/*
-XXX XXX XXX
-WARNING WARNING WARNING (Condor maintainers)
-If you change this file, then you must compile it
-and check the .jar file into CVS.  Why?  Because
-we can't manage a Java installation on all of our platforms,
-but we still want compiled Java code distributed with
-all platforms.
-*/
-
 
 /**
 ChirpConfig represents the client configuration information needed
@@ -53,12 +19,10 @@ class ChirpConfig {
 	private int port;
 
 	/**
-	Load configuration data from a file.
-	@param The name of the file.
-	@throws IOException
-	*/
-
-	public ChirpConfig( String filename ) throws IOException {
+	 * Load configuration data from a file.
+	 * @param filename The name of the file.
+	 */
+	ChirpConfig(String filename) throws IOException {
 		BufferedReader br = new BufferedReader(new CondorFileReader(filename));
 		StringTokenizer st = new StringTokenizer(br.readLine());
 
@@ -69,27 +33,23 @@ class ChirpConfig {
 	}
 
 	/**
-	@returns The name of the server host.
-	*/
-
-	public String getHost() {
+	 * @return The name of the server host.
+	 */
+	String getHost() {
 		return host;
 	}
 
 	/**
-	@returns The port on which the server is listening
-	*/
-
-	public int getPort() {
+	 * @return The port on which the server is listening.
+	 */
+	int getPort() {
 		return port;
 	}
 
 	/**
-	@returns The cookie expected by the server.
+	@return The cookie expected by the server.
 	*/
-
-	public String getCookie() {
+	String getCookie() {
 		return cookie;
 	}
 }
-

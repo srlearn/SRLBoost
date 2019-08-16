@@ -1,31 +1,18 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.Utils.condor;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.CharBuffer;
 
 /**
- *
  * @author twalker
  */
 public class CompressedFileReader extends Reader {
 
+    private Reader delegate;
 
-    Reader delegate;
-
-    public CompressedFileReader(File file) throws IOException {
-        delegate = new InputStreamReader( new CompressedInputStream(file) );
-    }
-
-    public CompressedFileReader(String file) throws FileNotFoundException, IOException {
+    public CompressedFileReader(String file) throws IOException {
         delegate = new InputStreamReader( new CompressedInputStream(file) );
     }
 
@@ -68,8 +55,4 @@ public class CompressedFileReader extends Reader {
     public void close() throws IOException {
         delegate.close();
     }
-
-    
-
-    
 }

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Utils;
 
 import java.util.Arrays;
@@ -9,11 +6,9 @@ import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 
 /**
  * @author tkhot
- *
  */
 public class ProbDistribution {
 
-	
 	/** Used if we don't have a distribution over multiple values but a single probability */
 	private double probOfBeingTrue;
 	
@@ -40,7 +35,6 @@ public class ProbDistribution {
 	
 	/** 
 	 * Construct distribution using sigmoid
-	 * @param reg
 	 */
 	public ProbDistribution(RegressionValueOrVector reg) {
 		this(reg, true);
@@ -123,7 +117,7 @@ public class ProbDistribution {
 	/**
 	 * @param probOfBeingTrue the probOfBeingTrue to set
 	 */
-	public void setProbOfBeingTrue(double probOfBeingTrue) {
+	private void setProbOfBeingTrue(double probOfBeingTrue) {
 		if (probOfBeingTrue > 1) {
 			Utils.error("Probability greater than 1!!: " +  probOfBeingTrue);
 		}
@@ -144,7 +138,7 @@ public class ProbDistribution {
 	/**
 	 * @param probDistribution the probDistribution to set
 	 */
-	public void setProbDistribution(double[] probDistribution) {
+	private void setProbDistribution(double[] probDistribution) {
 		setHasDistribution(true);
 		this.probDistribution = probDistribution;
 	}
@@ -159,7 +153,7 @@ public class ProbDistribution {
 	/**
 	 * @param hasDistribution the hasDistribution to set
 	 */
-	public void setHasDistribution(boolean hasDistribution) {
+	private void setHasDistribution(boolean hasDistribution) {
 		this.hasDistribution = hasDistribution;
 	}
 
@@ -173,8 +167,7 @@ public class ProbDistribution {
 	}
 
 	/** 
-	 * Return a randomly selected value from the distribution
-	 * @return
+	 * Return a randomly selected value from the distribution.
 	 */
 	public int randomlySelect() {
 		if (!isHasDistribution()) {
@@ -183,7 +176,6 @@ public class ProbDistribution {
 		double cumulative = 0;
 		double rand = Utils.random();
 		for (int i = 0; i < probDistribution.length; i++) {
-			// System.out.println(probDistribution[i]);
 			cumulative += probDistribution[i];
 			if (rand < cumulative) {
 				return i;

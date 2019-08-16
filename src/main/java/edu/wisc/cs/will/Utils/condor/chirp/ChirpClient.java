@@ -1,64 +1,34 @@
-/***************************************************************
- *
- * Copyright (C) 1990-2007, Condor Team, Computer Sciences Department,
- * University of Wisconsin-Madison, WI.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you
- * may not use this file except in compliance with the License.  You may
- * obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- ***************************************************************/
-
-/*
-Chirp Java Client
-*/
+// TODO(@hayesall): There are three variables that are "never" used, but they seem to be used in other files.
+//		This will take a bit more time to refactor.
 
 package edu.wisc.cs.will.Utils.condor.chirp;
 
-import java.io.*;
-import java.net.*;
-
-/*
-XXX XXX XXX
-WARNING WARNING WARNING (Condor maintainers)
-If you change this file, then you must compile it
-and check the .jar file into CVS.  Why?  Because
-we can't manage a Java installation on all of our platforms,
-but we still want compiled Java code distributed with
-all platforms.
-*/
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
 /**
-A ChirpClient object represents the connection between a client and
-a Chirp server.  The methods of this object correspond to RPCs in
-the Chirp protocol, and are very similar to standard UNIX I/O operations.
-Those looking for a more Java-style stream interface to Chirp should
-see the ChirpInputStream and ChirpOutputStream objects.
-*/
+ * A ChirpClient object represents the connection between a client and
+ * a Chirp server.  The methods of this object correspond to RPCs in
+ * the Chirp protocol, and are very similar to standard UNIX I/O operations.
+ * Those looking for a more Java-style stream interface to Chirp should
+ * see the ChirpInputStream and ChirpOutputStream objects.
+ */
 
 public class ChirpClient {
 
-	private Socket socket=null;
 	private OutputStream output=null;
 	private InputStream input=null;
 	final private String encoding = "US-ASCII";
 
 	/**
-	Connect and authenticate to the default Chirp server.
-	Determine the "default" from a variety of environmental concerns.
-	If running within Condor, then Condor will set up the environment
-	to proxy I/O through the starter back to the submit site.
-	@throws IOException
-	*/
-
+	 * Connect and authenticate to the default Chirp server.
+	 * Determine the "default" from a variety of environmental concerns.
+	 * If running within Condor, then Condor will set up the environment
+	 * to proxy I/O through the starter back to the submit site.
+	 */
 	public ChirpClient() throws IOException {
 		ChirpConfig config;
 		try {
@@ -73,93 +43,78 @@ public class ChirpClient {
 	}
 
 	/**
-	Connect to a given Chirp server.
-	The caller must still pass a cookie before using any other methods.
-	Condor users should use the no-argument constructor instead.
-	@param host The server host.
-	@param port The server port.
-	@throws IOException
-	*/
-
-	public ChirpClient( String host, int port ) throws IOException {
+	 * Connect to a given Chirp server. The caller must pass a cookie before using any other methods.
+	 * Condor users should use the no-argument constructor instead.
+	 * @param host The server host.
+	 * @param port The server port.
+	 */
+	ChirpClient(String host, int port) throws IOException {
 		connect(host,port);
 	}
 
 	private void connect( String host, int port ) throws IOException {
-		String line;
-		int response;
-
-		socket = new Socket(host,port);
+		Socket socket = new Socket(host, port);
 		output = socket.getOutputStream();
 		input = socket.getInputStream();
 	}
 
 	/**
-	Present a 'cookie' string to a Chirp server.
-	This call must be done before any other Chirp calls.
-	If it is not, other methods are likely to throw exceptions indicating "not authenticated."
-	@param c The cookie to present.
-	@throws IOException
-	*/
-
-	public void cookie( String c ) throws IOException {
+	 * Present a 'cookie' string to a Chirp server. This call must be done before any
+	 * other Chirp calls. If it is not, other methods are likely to throw exceptions
+	 * indicating "not authenticated."
+	 * @param c The cookie to present
+	 */
+	private void cookie(String c) throws IOException {
 		simple_command("cookie "+ChirpWord(c)+"\n");	
 	}
 
 	/**
-	Open a file.
-	@returns An integer file descriptor that may be used with later calls.
-	@param file The name of the file to open.
-	@param flags A string of characters that state how the file is to be used.
-		<ul>
-		<li> r - open for reading
-		<li> w - open for writing
-		<li> t - truncate before use
-		<li> c - create if it does not exist, succeed otherwise
-		<li> x - modifies 'c' to fail if the file already exists
-		<li> a - modifies 'w' to always append
-		</ul>
-	@param mode If created , the initial UNIX access mode.
-	@throws IOException
-	*/
-
+	 * Open a file.
+	 * @param path The path to the file to open.
+	 * @param flags A string of characters that state how the file is to be used. (r,w,t,c,x,a)
+	 *              - r: open for reading
+	 *              - w: open for writing
+	 *              - t: truncate before use
+	 *              - c: create if it does not exist, succeed otherwise
+	 *              - x: modifies 'c' to fail if the file already exists
+	 *              - a: modifies 'w' to always append
+	 * @param mode If created, the initial UNIX access mode.
+	 * @return An integer file descriptor that may be used with later calls.
+	 */
 	public int open( String path, String flags, int mode ) throws IOException {
 		return simple_command("open "+ChirpWord(path)+" "+flags+" "+mode+"\n");
 	}
 
 	/**
-	Same as the three-argument open, but the server selects a default initial UNIX mode.
-	*/
-
-	public int open( String path, String flags ) throws IOException {
-		return open(path,flags,0777);
+	 * Same as the three-argument `open`, but the server selects a default initial UNIX mode.
+	 */
+	public int open(String path, String flags) throws IOException {
+		return open(path, flags,0777);
 	}
 
 	/**
-	Close a file.
-	@param fd The file descriptor to close.
-	@throws IOException
-	*/
-
+	 * Close a file.
+	 * @param fd The file descriptor to close.
+	 */
 	public void close( int fd ) throws IOException {
 		simple_command("close "+fd+"\n");
 	}
 
 	/**
-	Read data from a file.  This method is free to read any number of bytes less than or equal to the parameter 'length'.  A result of zero indicates end of file.
-	@param fd The file descriptor to read.
-	@param buffer The data buffer to fill.
-	@param pos The position in the buffer to start.
-	@param length The maximum number of elements to read.
-	@returns The number of elements actually read.
-	@throws IOException
-	*/
-
+	 * Read data from a file. This method is free to read any number of bytes less than or equal to the parameter
+	 * 'length'. A result of zero indicates end of file.
+	 * @param fd The file descriptor to read.
+	 * @param buffer The data buffer to fill.
+	 * @param pos The position in the buffer to start.
+	 * @param length The maximum number of elements to read.
+	 * @return The number of elements actually read.
+	 */
 	public int read( int fd, byte [] buffer, int pos, int length ) throws IOException {
+		// TODO(@hayesall): In almost every other case, end-of-file is indicated by -1
 		int response,actual;
 
 		try {
-			String line = "read "+fd+" "+length+"\n";
+			String line = "read " + fd + " " + length + "\n";
 			byte [] bytes = line.getBytes(encoding);
 			output.write(bytes,0,bytes.length);
 			output.flush();
@@ -174,22 +129,20 @@ public class ChirpClient {
 		return returnOrThrow(response);
 	}
 
-	/**	
-	Write data to a file.  This method is free to write any number of elements less than or equal to the parameter 'length'.  A result of zero indicates end of file.
-
-	@param fd The file descriptor to write.
-	@param buffer The data buffer to use.
-	@param pos The position in the buffer to start.
-	@param length The maximum number of elements to write.
-	@returns The number of elements actually written.
-	@throws IOException
-	*/
-
-	public int write( int fd, byte [] buffer, int pos, int length ) throws IOException {
+	/**
+	 * Write data to a file. This method is free to write any number of elements less than or equal to the parameter
+	 * 'length'.  A result of zero indicates end of file.
+	 * @param fd The file descriptor to write.
+	 * @param buffer The data buffer to use.
+	 * @param pos The position in the buffer to start.
+	 * @param length The maximum number of elements to write.
+	 * @return The number of elements actually written.
+	 */
+	public int write(int fd, byte [] buffer, int pos, int length) throws IOException {
 		int response;
 
 		try {
-			String line = "write "+fd+" "+length+"\n";
+			String line = "write " + fd + " " + length + "\n";
 			byte [] bytes = line.getBytes(encoding);
 			output.write(bytes,0,bytes.length);
 			output.write(buffer,pos,length);
@@ -210,82 +163,38 @@ public class ChirpClient {
 	/** Seek from the end of a file. */
 	public static final int SEEK_END=2;
 
-	/**	
-	Seek within an open file.
-	@param fd The file descriptor to modify.
-	@param offset The number of bytes to change.
-	@param whence The source of the seek: SEEK_SET, SEEK_CUR, or SEEK_END.
-	@returns The new file position, measured from the beginning of the file.
-	@throws IOException
-	*/
-
-	public int lseek( int fd, int offset, int whence ) throws IOException {
-		return simple_command("seek "+fd+" "+offset+" "+whence+"\n");
-	}
-
-	/**	
-	Delete a file.
-	@param name The name of the file.
-	@throws IOException
-	*/
-
+	/**
+	 * Delete a file.
+	 * @param name The name of the file.
+	 */
 	public void unlink( String name ) throws IOException {
-		simple_command("unlink "+ChirpWord(name)+"\n");
-	}
-
-	/**	
-	Rename a file.
-	@param name The old name.
-	@param newname The new name.
-	@throws IOException
-	*/
-
-	public void rename( String name, String newname ) throws IOException {
-		simple_command("rename "+ChirpWord(name)+" "+ChirpWord(newname)+"\n");
-	}
-
-
-	/**	
-	Create a directory.
-	@param name The directory name.
-	@param mode The initial UNIX access mode.
-	@throws IOException
-	*/
-
-	public void mkdir( String name, int mode ) throws IOException {
-		simple_command("mkdir "+ChirpWord(name)+" "+mode+"\n");
-	}
-
-	/**	
-	Create a directory.
-	The server selects default initial permissions for the directory.
-	@param name The directory name.
-	@throws IOException
-	*/
-
-	public void mkdir( String name ) throws IOException {
-		mkdir(name,0777);
-	}
-
-	/**	
-	Delete a directory.
-	@param name The directory name.
-	@throws IOException
-	*/
-
-	public void rmdir( String name ) throws IOException {
-		simple_command("rmdir "+ChirpWord(name)+"\n");
+		simple_command("unlink " + ChirpWord(name) + "\n");
 	}
 
 	/**
-	This call blocks until all outstanding operations have
-	been committed to stable storage.
-	@param fd The file descriptor to sync.
-	@throws IOException
-	*/
+	 * Rename a file.
+	 * @param name The old name.
+	 * @param new_name The new name.
+	 */
+	public void rename(String name, String new_name) throws IOException {
+		simple_command("rename "+ChirpWord(name)+" "+ChirpWord(new_name)+"\n");
+	}
 
-	public void fsync( int fd ) throws IOException {
-		simple_command("fsync "+fd+"\n");
+	/**
+	 * Create a directory.
+	 * @param name The directory name.
+	 * @param mode The initial UNIX access mode.
+	 */
+	private void mkdir(String name, int mode) throws IOException {
+		simple_command("mkdir " + ChirpWord(name) + " " + mode + "\n");
+	}
+
+	/**
+	 * Create a directory. The server selects default initial permissions for the directory.
+	 * @param name The directory name.
+	 */
+	public void mkdir( String name ) throws IOException {
+		mkdir(name,0777);
 	}
 
 	public int version() throws IOException {
@@ -309,24 +218,7 @@ public class ChirpClient {
 		simple_command("constrain "+" "+ChirpWord(expr)+"\n");
 	}
 
-	public String get_job_attr( String name ) throws IOException {
-		String value = null;
-		int response = simple_command("get_job_attr "+ChirpWord(name)+"\n");
-		if(response>0) {
-			byte [] buffer = new byte[response];
-			int actual = fullRead(buffer,0,response);
-			if(actual!=response) throw new ChirpError("server disconnected");
-			value = new String(buffer,0,response,encoding);
-		}
-		returnOrThrow(response);
-		return value;
-	}
-
-	public void set_job_attr( String name, String expr ) throws IOException {
-		simple_command("set_job_attr "+ChirpWord(name)+" "+ChirpWord(expr)+"\n");	
-	}
-
-	public  int simple_command( String cmd ) throws IOException {
+	private int simple_command(String cmd) throws IOException {
 		int response;
 		try {
 			byte [] bytes = cmd.getBytes(encoding);
@@ -339,10 +231,10 @@ public class ChirpClient {
 		return returnOrThrow(response);
 	}
 
-	public String ChirpWord( String cmd ) {
-		StringBuffer buf = new StringBuffer();
+	private String ChirpWord(String cmd) {
+		StringBuilder buf = new StringBuilder();
 
-		for(int i=0; i<cmd.length(); i++) {
+		for (int i=0; i<cmd.length(); i++) {
 			char ch = cmd.charAt(i);
 			switch(ch) {
 			case '\\':
@@ -351,14 +243,12 @@ public class ChirpClient {
 			case '\t':
 			case '\r':
 				buf.append("\\");
-				//fall through
 			default:
 			    buf.append(ch);
 			}
 		}
-
 		return buf.toString();
-        }
+	}
 
 	private int returnOrThrow( int code ) throws IOException {
 		if(code>=0) {
@@ -409,8 +299,7 @@ public class ChirpClient {
 	}
 
 	private int getResponse() throws IOException {
-		int response;
-		String line="";
+		StringBuilder line= new StringBuilder();
 		String digit;
 		byte [] b = new byte[1];
 
@@ -420,12 +309,10 @@ public class ChirpClient {
 
 			if(digit.charAt(0)=='\n') {
 				if(line.length()>0) {
-					return Integer.parseInt(line);
-				} else {
-					continue;
+					return Integer.parseInt(line.toString());
 				}
 			} else {
-				line = line+digit;
+				line.append(digit);
 			}
 		}
 	}

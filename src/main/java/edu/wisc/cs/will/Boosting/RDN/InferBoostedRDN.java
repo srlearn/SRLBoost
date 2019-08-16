@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
@@ -22,7 +21,6 @@ import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Boosting.Utils.ThresholdSelector;
 import edu.wisc.cs.will.DataSetUtils.ComputeAUC;
-import edu.wisc.cs.will.DataSetUtils.PredicateModes;
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.Function;
 import edu.wisc.cs.will.FOPC.Literal;
@@ -37,29 +35,28 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
-public class InferBoostedRDN {
-	
 
-	private boolean useAccuracyMeasure    = false;
-	private boolean normalizeProbs        = false;
-	private boolean printExamples         = false;	
-	private boolean writeQueryAndResults  = true;
+public class InferBoostedRDN {
+
+	private boolean printExamples = false;
+	private boolean writeQueryAndResults = true;
 	private boolean printExamplesForTuffy = false;
-	private boolean writeResultsAsRules   = false;
-	private boolean useOldFileLocations	  = true;
-	private double  minRecallForAUCPR     = 0;
-	private double minLCTrees			  = 20;
-	private double incrLCTrees			  = 2;
+	private boolean writeResultsAsRules = false;
+	private boolean useOldFileLocations = true;
+	private double  minRecallForAUCPR = 0;
+	private double minLCTrees = 20;
+	private double incrLCTrees = 2;
 	
 	private CommandLineArguments cmdArgs;	
-	private WILLSetup            setup;
-	private JointRDNModel        model;
-	
+	private WILLSetup setup;
+	private JointRDNModel model;
+
 	public static final String RDNTreeStats = "RDNtreePathStats";
 	public InferBoostedRDN(CommandLineArguments args, WILLSetup setup) {
 		this.cmdArgs = args;
-		this.setup   = setup;
+		this.setup = setup;
 		setParamsUsingSetup(setup);
+
 		if (Utils.getUserName().equalsIgnoreCase("tkhot")) {
 			useOldFileLocations = true;	
 		}
@@ -67,17 +64,16 @@ public class InferBoostedRDN {
 	
 	public void runInference(JointRDNModel rdns, double thresh) {
 		model = rdns;
-		// JointModelSampler sampler = new JointModelSampler(rdns, setup, cmdArgs);
 		Map<String,List<RegressionRDNExample>> targetExamples = setup.getJointExamples(cmdArgs.getTargetPredVal());
 		Map<String,List<RegressionRDNExample>> jointExamples = setup.getHiddenExamples();
 		if (jointExamples == null) {
-			jointExamples = new HashMap<String, List<RegressionRDNExample>>();
+			jointExamples = new HashMap<>();
 		}
 		jointExamples.putAll(targetExamples);
 		boolean negativesSampled = false;
 		
 		Utils.println("\n% Starting inference in bRDN.");
-		SRLInference sampler = null;
+		SRLInference sampler;
 		if (cmdArgs.isLearnMLN()) {
 			if (jointExamples.keySet().size() > 1) {
 				sampler = new JointModelSampler(rdns, setup, cmdArgs,true);
@@ -117,9 +113,9 @@ public class InferBoostedRDN {
 			sampler.getMarginalProbabilities(jointExamples);
 			HashMap<String, List<RegressionRDNExample>> backupJointExamples = null;
 			if (startCount != cmdArgs.getMaxTreesVal()) {
-				backupJointExamples = new HashMap<String, List<RegressionRDNExample>>();
+				backupJointExamples = new HashMap<>();
 				for (String targ : jointExamples.keySet()) {
-					backupJointExamples.put(targ, new ArrayList<RegressionRDNExample>(jointExamples.get(targ)));
+					backupJointExamples.put(targ, new ArrayList<>(jointExamples.get(targ)));
 				}
 			}
 			
@@ -230,7 +226,7 @@ public class InferBoostedRDN {
 			return; // No subsampling.
 		}
 		Map<String,Integer> numpos = new HashMap<String,Integer>();
-		Map<String,Integer> numneg = new HashMap<String,Integer>();
+		Map<String,Integer> numneg = new HashMap<>();
 		for (String  pred : jointExamples.keySet()) {
 			numpos.put(pred, 0);
 			numneg.put(pred, 0);
@@ -262,7 +258,7 @@ public class InferBoostedRDN {
 				// Reverse order so that we can delete it.
 				neg=0;
 				for (int i = jointExamples.get(target).size()-1; i>=0 ; i--) {
-					RegressionRDNExample rex = (RegressionRDNExample)(jointExamples.get(target).get(i));
+					RegressionRDNExample rex = jointExamples.get(target).get(i);
 					if (!rex.isOriginalTruthValue()) {
 						// Remove this example, as we are subsampling.
 						if (rand.nextDouble() >= sampleProb) {
@@ -279,12 +275,6 @@ public class InferBoostedRDN {
 
 	private void setParamsUsingSetup(WILLSetup willSetup) {
 		String lookup;
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("useAccuracy")) != null) {
-			useAccuracyMeasure = Boolean.parseBoolean(lookup);
-		}
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("normProb")) != null) {
-			normalizeProbs = Boolean.parseBoolean(lookup);
-		}
 		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("printEg")) != null) {
 			printExamples = Boolean.parseBoolean(lookup);
 		}
@@ -300,14 +290,16 @@ public class InferBoostedRDN {
 	}
 	
 	private void reportResultsToCollectorFile(BufferedWriter collectorBW, String modelName, String category, ProbDistribution prob, double wgt, RegressionRDNExample example) throws IOException {
-		if (category == null) { collectorBW.append("// Results of '" + (modelName == null ? "unnamedModel" : modelName) + "'.\n\nuseLeadingQuestionMarkVariables: true.\n\n");  return; }
-	//	double logWt = Utils.getLogWeightForProb(prob);
-		collectorBW.append("modelPrediction(model(" + modelName + "), category(" + category + "), prob(" + prob + "), wgt(" + wgt + "), " + example + ").\n"
-								// This line no longer needed (see 10/1/10 email to Feng from JWS):	+ getMLNclauseForProbabilisticEvidence(example, logWt) + "\n"
-							+ "\n"); // No need to lock since locked in outer code.
+
+		if (category == null) {
+			collectorBW.append("// Results of '" + (modelName == null ? "unnamedModel" : modelName) + "'.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
+			return;
+		}
+
+		collectorBW.append("modelPrediction(model(" + modelName + "), category(" + category + "), prob(" + prob + "), wgt(" + wgt + "), " + example + ").\n" + "\n");
 	}
-	
-	private String getTreeStatsFile(String target, boolean getLocalFile) {
+
+	private String getTreeStatsFile(boolean getLocalFile) {
 		// Cut-pasted-and-edited from writeToCollectorFile.
 		String fileNamePrefix = "testSetResults/testSetInferenceResults" + cmdArgs.getExtraMarkerForFiles(true) + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker();
 		String fileName       = Utils.replaceWildCards(cmdArgs.getResultsDirVal() + fileNamePrefix + "_RDNtreePathStats" + Utils.defaultFileExtensionWithPeriod);
@@ -315,10 +307,7 @@ public class InferBoostedRDN {
 		Utils.println("\n% getTreeStatsFile:\n%    " + fileName);
 		return fileName;
 	}
-	
-	private String getQueryFile() {
-		return setup.getOuterLooper().getWorkingDirectory() + "/query.db";
-	}
+
 	private String getQueryFile(String target) {
 		if (useOldFileLocations) {
 			return setup.getOuterLooper().getWorkingDirectory() + "/query_" + target + ".db";
@@ -385,15 +374,17 @@ public class InferBoostedRDN {
 		Utils.ensureDirExists(result);
 		return result;
 	}
-	
 
 	private String getLearningCurveFile(String target, String type) {
 		return setup.getOuterLooper().getWorkingDirectory() + "/curve" +
 				(cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) +
 				(target.isEmpty() ? "" : "_"+target) + "." + type;
 	}
-	public double getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
-							  String target, int trees, boolean usingAllEgs) {			
+
+	private double getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
+							  String target, int trees, boolean usingAllEgs) {
+		// TODO(@hayesall): Why does this return a double when the double is never used?
+
 		// We repeatedly loop over the examples, but the code at least is cleaner.
 		// Update the probabilities here if needed, such as normalizing.
 		
@@ -434,17 +425,18 @@ public class InferBoostedRDN {
 			Utils.println("% F1 = " + selector.lastComputedF1);
 			Utils.println("% Threshold = " + thresh);
 		}
-		Utils.println(   "\n%   AUC ROC   = " + Utils.truncate(auc.getROC(), 6));
-		Utils.println(     "%   AUC PR    = " + Utils.truncate(auc.getPR(),  6));
-		Utils.println(     "%   CLL	      = " + Utils.truncate(auc.getCLL(),  6));
+
+		Utils.println("\n%   AUC ROC   = " + Utils.truncate(auc.getROC(), 6));
+		Utils.println("%   AUC PR    = " + Utils.truncate(auc.getPR(),  6));
+		Utils.println("%   CLL	      = " + Utils.truncate(auc.getCLL(),  6));
+
 		resultsString += "\n//  AUC ROC   = " + Utils.truncate(auc.getROC(), 6);
 		resultsString += "\n//  AUC PR    = " + Utils.truncate(auc.getPR(),  6);
 		resultsString += "\n//  CLL       = " + Utils.truncate(auc.getCLL(),  6);
 		resultsString += "\naucROC(" +  target + ", " + Utils.truncate(auc.getROC(), 6) + ").";
 		resultsString += "\naucPR( " +  target + ", " + Utils.truncate(auc.getPR(),  6) + ").\n";
 		String fileNameForResults = (writeQueryAndResults ? getTestsetInfoFile(target) : null);
-	//	Utils.waitHere("writeQueryAndResults = " + writeQueryAndResults + "\n" + fileNameForResults);
-	
+
 		if (threshold != -1) {
 			Utils.println("%   Precision = " + Utils.truncate(score.getPrecision(), 6)       + (threshold != -1 ? " at threshold = " + Utils.truncate(threshold, 3) : " "));
 			Utils.println("%   Recall    = " + Utils.truncate(score.getRecall(),    6));
@@ -463,25 +455,33 @@ public class InferBoostedRDN {
 		return -1;
 		
 	}
-	
-
 
 	private ComputeAUC computeAUCFromEg(List<RegressionRDNExample> examples, String target) {
 		Utils.println("\n% Computing Area Under Curves.");
-		List<Double> positiveProbs = new ArrayList<Double>(); // TODO - need to handle WEIGHTED EXAMPLES.  Simple approach: have a eachNegRepresentsThisManyActualNegs and make this many copies.
-		List<Double> negativeProbs = new ArrayList<Double>();
+
+		// TODO(?): need to handle WEIGHTED EXAMPLES.  Simple approach: have a eachNegRepresentsThisManyActualNegs and make this many copies.
+
+		List<Double> positiveProbabilities = new ArrayList<>();
+		List<Double> negativeProbabilities = new ArrayList<>();
+
 		for (RegressionRDNExample regressionRDNExample : examples) {
 			// This code should only be called for single-class examples
-			double  prob  = regressionRDNExample.getProbOfExample().getProbOfBeingTrue();
-			boolean isPos = regressionRDNExample.isOriginalTruthValue();
-			if (isPos) {
-				positiveProbs.add(prob);
+			double probability = regressionRDNExample.getProbOfExample().getProbOfBeingTrue();
+			if (regressionRDNExample.isOriginalTruthValue()) {
+				positiveProbabilities.add(probability);
 			} else {
-				negativeProbs.add(prob);
+				negativeProbabilities.add(probability);
 			}
 		}
-		String extraMarker      = cmdArgs.getExtraMarkerForFiles(true) + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker();		
-		// If models are being written somewhere, then also write AUC's there (this allows us to avoid writing in a dir that only contains INPUT files) - hence, multiple runs can simultaneously use the same input dir, yet write to different output dirs.
+
+		String extraMarker = cmdArgs.getExtraMarkerForFiles(true)
+				+ BoostingUtils.getLabelForCurrentModel()
+				+ BoostingUtils.getLabelForResultsFileMarker();
+
+		// If models are written somewhere, then also write AUC's there
+		// (This allows us to avoid writing in a dir that only contains INPUT files)
+		// Hence, multiple runs can simultaneously use the same input directory, yet write to different output dirs.
+
 		String aucTempDirectory = null;
 		if (useOldFileLocations) {
 			aucTempDirectory = setup.getOuterLooper().getWorkingDirectory() + "/AUC/" + (cmdArgs.getModelFileVal() == null ? "" : cmdArgs.getModelFileVal() +"/");
@@ -493,9 +493,8 @@ public class InferBoostedRDN {
 		} else {
 			Utils.replaceWildCards(Utils.isRunningWindows() ? "MYSCRATCHDIR" + "calcAUC/" + target + "/" :  cmdArgs.getDirForAUCfiles(target, setup));
 		}
-		// Utils.waitHere(aucTempDirectory);
-		ComputeAUC          auc = new ComputeAUC(positiveProbs, negativeProbs, aucTempDirectory, cmdArgs.getAucPathVal(), extraMarker, minRecallForAUCPR, cmdArgs.useLockFiles);
-		return auc;
+
+		return new ComputeAUC(positiveProbabilities, negativeProbabilities, aucTempDirectory, cmdArgs.getAucPathVal(), extraMarker, minRecallForAUCPR, cmdArgs.useLockFiles);
 	}
 	
 	private String ensureThisIsaSubdir(String modelDirRaw) {
@@ -512,13 +511,17 @@ public class InferBoostedRDN {
 	}
 
 	private void writeToCollectorFile(List<RegressionRDNExample> examples) {
-	//	Utils.waitHere("modelDir = " + cmdArgs.getModelDirVal() + "\n as a subdir: " + ensureThisIsaSubdir(cmdArgs.getModelDirVal()));
-		String fileNamePrefix = "testSetResults/testSetInferenceResults" + cmdArgs.getExtraMarkerForFiles(true) + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker();
-		String localPrefix    = "MYSCRATCHDIR" + "bRDNs/" + ensureThisIsaSubdir(cmdArgs.getResultsDirVal());
-		String fileName       = Utils.replaceWildCards(localPrefix + fileNamePrefix + "_unsorted" + Utils.defaultFileExtensionWithPeriod);
+		String fileNamePrefix = "testSetResults/testSetInferenceResults"
+				+ cmdArgs.getExtraMarkerForFiles(true)
+				+ BoostingUtils.getLabelForCurrentModel()
+				+ BoostingUtils.getLabelForResultsFileMarker();
+
+		String localPrefix = "MYSCRATCHDIR"
+				+ "bRDNs/"
+				+ ensureThisIsaSubdir(cmdArgs.getResultsDirVal());
+		String fileName = Utils.replaceWildCards(localPrefix + fileNamePrefix + "_unsorted" + Utils.defaultFileExtensionWithPeriod);
 		String fileNameSorted = Utils.replaceWildCards(localPrefix + fileNamePrefix +   "_sorted" + Utils.defaultFileExtensionWithPeriod);
-		// Also see getTreeStatsFile
-		
+
 		int posCounter = 0;
 		int negCounter = 0;
 		try {
@@ -563,7 +566,6 @@ public class InferBoostedRDN {
 	 *
 	 */
 	public static class ValueComparator implements Comparator<String> {
-
 		Map<String, Double> base;
 		public ValueComparator(Map<String, Double> input) {
 			base = input;
@@ -577,18 +579,14 @@ public class InferBoostedRDN {
 				return -1;
 			}
 			return arg0.compareTo(arg1);
-			
 		}
-		
 	}
 	
 	/**
 	 * Should be called only for single-class examples
-	 * @param examples
-	 * @param target
 	 */
 	private void printTreeStats(List<RegressionRDNExample> examples, String target) {
-		String treeStats = getTreeStatsFile(target, Utils.isRunningWindows());
+		String treeStats = getTreeStatsFile(Utils.isRunningWindows());
 		Map<String, Integer> idCounts = new HashMap<String, Integer>();
 		Map<String, Double> idProbs = new HashMap<String, Double>();
 		long totalExamples = 0;
@@ -636,7 +634,7 @@ public class InferBoostedRDN {
 			
 			// Print clauses for each leaf.
 			for (int i = 0; i < model.get(target).getNumTrees(); i++) {
-				ClauseBasedTree reg = model.get(target).getTree(0, i);
+				ClauseBasedTree reg = model.get(target).getTree(i);
 				for (int j = 0; j < reg.getRegressionClauses().size(); j++) {
 					Clause cl = reg.getRegressionClauses().get(j);
 					StringBuffer bodyStr = null; 
@@ -660,7 +658,6 @@ public class InferBoostedRDN {
 			
 			bw.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -687,33 +684,35 @@ public class InferBoostedRDN {
 	
 	private String getLeafIdToList(String id) {
 		String[] leafs = id.split("_");
-		StringBuffer buff = new StringBuffer();
+		StringBuilder buff = new StringBuilder();
 		for (int i = 0; i < leafs.length; i++) {
-			if (i!=0) {
+			if (i != 0) {
 				buff.append(",");
 			}
-			buff.append(String.format("[%d, %s]", i+1, leafs[i]));
+			buff.append(String.format("[%d, %s]", i + 1, leafs[i]));
 		}
 		return buff.toString();
 	}
 
 	private void printExamples(List<RegressionRDNExample> examples, String target, boolean usingAllEgs) {
+
+		// Will collect the 'context' around a fact.  Turn off until we think this is needed.  It is a slow calculation.
+		boolean collectRelatedFacts = false;
 		
-		boolean collectRelatedFacts = false; // Will collect the 'context' around a fact.  Turn off until we think this is needed.  It is a slow calculation.
-		
-		PredicateModes pmodes = new PredicateModes(setup.getInnerLooper());
+		// PredicateModes pmodes = new PredicateModes(setup.getInnerLooper());
 		List<PredicateNameAndArity> pars = setup.getListOfPredicateAritiesForNeighboringFacts();
+
 		// Should be set somewhere else
 		List<Boolean> bit_mask = setup.getBitMaskForNeighboringFactArguments(target);		
 
-		// List<PredicateNameAndArity> pars = BoostingUtils.convertBodyModesToPNameAndArity(setup.getInnerLooper().getBodyModes());
 		// Write all examples to a query.db file
 		// Results/Probs to results.db
-		String         resultsFileString      = "?";
-		String         queryFileString        = "?";
-		String         resultsFileStringLocal = "?";
-		String         queryFileStringLocal   = "?";
-		BufferedWriter queryFile   = null;
+		String resultsFileString = "?";
+		String queryFileString = "?";
+		String resultsFileStringLocal = "?";
+		String queryFileStringLocal = "?";
+
+		BufferedWriter queryFile = null;
 		BufferedWriter resultsFile = null;
 		try {
 			if (usingAllEgs) {
@@ -730,8 +729,6 @@ public class InferBoostedRDN {
 				queryFileStringLocal = queryFileString;
 				resultsFileStringLocal = resultsFileString;
 			}
-		//	Utils.waitHere("resultsFileStringLocal = " + resultsFileStringLocal);
-		//	Utils.waitHere("queryFileStringLocal   = " + queryFileStringLocal);
 			queryFile              = new BufferedWriter(new CondorFileWriter(queryFileStringLocal, true));
 			resultsFile            = new BufferedWriter(new CondorFileWriter(resultsFileStringLocal,   true));
 		} catch (IOException e) {
@@ -757,8 +754,7 @@ public class InferBoostedRDN {
 					double logWt = Utils.getLogWeightForProb(prob);
 					resultsFile.write(getMLNclauseForProbabilisticEvidence(pex, logWt) + "\n");
 				} else {
-					resultsFile.write(prefix + pex.toString()+ " " + printProb + "\n"); // + " //" + pex.provenance + "\n");
-					//"//" + pex.provenance);
+					resultsFile.write(prefix + pex.toString()+ " " + printProb + "\n");
 				}
 				
 				if (collectRelatedFacts) {
@@ -801,102 +797,119 @@ public class InferBoostedRDN {
 
 	}
 
-	private boolean writeAllResultsToCSVfile = true;
+	private String getNameOfCSVFile() {
+		// TODO(@hayesall): When and where is this file used?
+		String modelDirectory = cmdArgs.getResultsDirVal();
+		String result = Utils.replaceWildCards((modelDirectory != null ? modelDirectory : setup.getOuterLooper().getWorkingDirectory())
+				+ "bRDNs/"
+				+ "predictions"
+				+ cmdArgs.getExtraMarkerForFiles(true)
+				+ BoostingUtils.getLabelForCurrentModel()
+				+ ".csv");
 
-	private String getNameOfCSVfile() {
-		String modelDir = cmdArgs.getResultsDirVal(); // Try to put in the place other results go.
-		String result   = Utils.replaceWildCards((modelDir != null ? modelDir : setup.getOuterLooper().getWorkingDirectory())
-                 								 + "bRDNs/" // + (target == null || target.isEmpty() ? "" : target + "_") 
-                 								 + "predictions" + cmdArgs.getExtraMarkerForFiles(true) + BoostingUtils.getLabelForCurrentModel() + ".csv");
 		Utils.ensureDirExists(result);
 		return result;
 	}
-	
+
+	// TODO(@hayesall): Why is this here?
+	private boolean writeAllResultsToCSVfile = true;
+
 	/**
-	 * Should be called with only single-value examples
-	 * @param examples
-	 * @param score
-	 * @param threshold
-	 * @return
+	 * Should be called with only single-value examples.
 	 */
-	public String updateScore(List<RegressionRDNExample> examples, CoverageScore score, double threshold) {
-		double sum   = 0;
-		double count = 0, countOfPos = 0, countOfNeg = 0;
-		double llSum = 0;
-		int numbToPrint = Utils.getSizeSafely(examples);
-		double maxToPrintOnAve = 250.0;
-		if (printExamples && numbToPrint > maxToPrintOnAve) { 
-			Utils.println("% Note: since more than " + Utils.truncate(maxToPrintOnAve, 0) + " examples, will randomly report.");
+	private String updateScore(List<RegressionRDNExample> examples, CoverageScore score, double threshold) {
+		// TODO(@hayesall): maxToPrintOnAve should be removed.
+		// TODO(@hayesall): where is the result of writeAllResultsToCSVfile used?
+
+		double sum = 0;
+		double count = 0;
+		double countOfPos = 0;
+		double countOfNeg = 0;
+		int numberToPrint = Utils.getSizeSafely(examples);
+		double maxToPrintOnAverage = 250.0;
+
+		if (printExamples && numberToPrint > maxToPrintOnAverage) {
+			Utils.println("% Note: since more than " + Utils.truncate(maxToPrintOnAverage, 0) + " examples, will randomly report.");
 		}
-		StringBuilder sb = (writeAllResultsToCSVfile ? new StringBuilder() : null);
-		for (RegressionRDNExample regressionEx : examples) {
-			double prob = regressionEx.getProbOfExample().getProbOfBeingTrue();
-			double wtOnEx = regressionEx.getWeightOnExample();
-			count += wtOnEx;
-			// Positive Example ??
-			if (regressionEx.isOriginalTruthValue()) {
-				//if (printExamples && Utils.random() < maxToPrintOnAve / numbToPrint) {
-				if (printExamples && Utils.random() < maxToPrintOnAve / numbToPrint) { 
-					Utils.println("% Pos #" + Utils.truncate(score.getTruePositives() + score.getFalseNegatives(), 0) + ": '" + regressionEx + "' prob = " + Utils.truncate(prob, 6));
-//					Utils.println(regressionEx.provenance);
-				} // Wasteful to call random() if not needed,but not a big deal.
-				
-				if (writeAllResultsToCSVfile) { sb.append("pos, " + prob + ", " + regressionEx + "\n"); } // The comma's in examples will become columns (the first and last will be 'corrupted' with the predicate name and parens), but that might be of use.
-				
-				sum   += prob * wtOnEx; // Compute a WEIGHTED sum.
-				countOfPos += wtOnEx;
-			/*	double egProb=prob;
-				if (prob == 0) {
-					egProb = 1e-15;
+
+		StringBuilder sb = new StringBuilder();
+
+		for (RegressionRDNExample regressionExample : examples) {
+
+			double probability = regressionExample.getProbOfExample().getProbOfBeingTrue();
+			double weightOnExample = regressionExample.getWeightOnExample();
+
+			count += weightOnExample;
+
+
+			if (regressionExample.isOriginalTruthValue()) {
+				// Positive Example
+
+				if (printExamples && Utils.random() < maxToPrintOnAverage / numberToPrint) {
+					Utils.println("% Pos #" + Utils.truncate(score.getTruePositives() + score.getFalseNegatives(), 0) + ": '" + regressionExample + "' prob = " + Utils.truncate(probability, 6));
 				}
-				llSum += Math.log(egProb) * wtOnEx;*/
-				
-				if (prob > threshold) {
-					score.addToTruePositive(wtOnEx);
+
+				if (writeAllResultsToCSVfile) {
+					sb.append("pos,")
+							.append(probability)
+							.append(", ")
+							.append(regressionExample)
+							.append("\n");
+				}
+
+				// Compute the weighted sum:
+				sum += probability * weightOnExample;
+				countOfPos += weightOnExample;
+
+				if (probability > threshold) {
+					score.addToTruePositive(weightOnExample);
 				} else {
-					score.addToFalseNegative(wtOnEx);
+					score.addToFalseNegative(weightOnExample);
 				}
-				
 			} else {
-				//if (printExamples && Utils.random() < maxToPrintOnAve / numbToPrint) {
-				if (printExamples && Utils.random() < maxToPrintOnAve / numbToPrint) {
-					Utils.println("% Neg #" + Utils.truncate(score.getTrueNegatives() + score.getFalsePositives(), 0)+ ": '" + regressionEx + "' prob = " + Utils.truncate(prob, 6) );
-					//Utils.println(regressionEx.provenance);
+				// Negative Example
+				if (printExamples && Utils.random() < maxToPrintOnAverage / numberToPrint) {
+					Utils.println("% Neg #" + Utils.truncate(score.getTrueNegatives() + score.getFalsePositives(), 0) + ": '" + regressionExample + "' prob = " + Utils.truncate(probability, 6));
 				}
-				
-				if (writeAllResultsToCSVfile) { sb.append("neg, " + prob + ", " + regressionEx + "\n"); }
-				
-				sum   += (1 - prob) * wtOnEx; // Compute a WEIGHTED sum.
-				/*double egProb=1-prob;
-				if (egProb == 0) {
-					egProb = 1e-15;
+
+				if (writeAllResultsToCSVfile) {
+					sb.append("neg, ")
+							.append(probability)
+							.append(", ")
+							.append(regressionExample)
+							.append("\n");
 				}
-				llSum += Math.log(egProb) * wtOnEx;*/
-				
-				countOfNeg += wtOnEx;
-				if (prob > threshold) {
-					score.addToFalsePositive(wtOnEx);
+
+				// Compute the weighted sum:
+				sum += (1 - probability) * weightOnExample;
+				countOfNeg += weightOnExample;
+
+				if (probability > threshold) {
+					score.addToFalsePositive(weightOnExample);
 				} else {
-					score.addToTrueNegative(wtOnEx);
+					score.addToTrueNegative(weightOnExample);
 				}
 			}
 		}
-		
-		if (writeAllResultsToCSVfile) { Utils.writeStringToFile(sb.toString(), new CondorFile(getNameOfCSVfile())); }
-		
-		// TODO JWS - should use GEOMETRIC Mean if this is over a TRAIN SET.  (For a TEST [or TUNE] it is fine to do an expected value.)
-		String testsetReport1 = " (Arithmetic) Mean Probability Assigned to Correct Output Class: " + Utils.truncate(sum, 3) + "/" + Utils.truncate(count, 2) + " = " + Utils.truncate(sum / count, 6) + "\n";
-		
-		Utils.println(testsetReport1);
-		String testsetReport2 = " The weighted count of positive examples = " + Utils.truncate(countOfPos, 3) + " and the weighted count of negative examples = " + Utils.truncate(countOfNeg, 3);
-		Utils.println(testsetReport2);
-		//Utils.println("\n% CLL: " + Utils.truncate(llSum, 2) + "/" + Utils.truncate(count, 2) + " = " + Utils.truncate(llSum / count, 6));
 
-		return "//" + testsetReport1 +   "testsetLikelihood(sum(" + Utils.truncate(sum, 3) + "), countOfExamples(" + Utils.truncate(count, 2) + "), mean(" + Utils.truncate(sum / count, 6) + ")).\n\n"
-			+  "//" + testsetReport2 + "\nweightedSumPos(" + Utils.truncate(countOfPos, 3) + ").\nweightedSumNeg(" + Utils.truncate(countOfNeg, 3) + ").\n";
+		if (writeAllResultsToCSVfile) {
+			Utils.writeStringToFile(sb.toString(), new CondorFile(getNameOfCSVFile()));
+		}
+
+		// TODO(@JWS) Use geometric mean if this is over the training set.
+		//		For test (or tuning) it is fine to use the expected value.
+
+		String testSetReport1 = " (Arithmetic) Mean Probability Assigned to Correct Output Class: " + Utils.truncate(sum, 3) + "/" + Utils.truncate(count, 2) + " = " + Utils.truncate(sum / count, 6) + "\n";
+		Utils.println(testSetReport1);
+
+		String testSetReport2 = " The weighted count of positive examples = " + Utils.truncate(countOfPos, 3) + " and the weighted count of negative examples = " + Utils.truncate(countOfNeg, 3);
+		Utils.println(testSetReport2);
+
+		return "//" + testSetReport1 + "testsetLikelihood(sum(" + Utils.truncate(sum, 3) + "), countOfExamples(" + Utils.truncate(count, 2) + "), mean(" + Utils.truncate(sum / count, 6) + ")).\n\n"
+				+ "//" + testSetReport2 + "\nweightedSumPos(" + Utils.truncate(countOfPos, 3) + ").\nweightedSumNeg(" + Utils.truncate(countOfNeg, 3) + ").\n";
 
 	}
-	
+
 	private String getMLNclauseForProbabilisticEvidence(RegressionRDNExample pex, double logWgt) {
 		if (logWgt < 0) { // Keep wgts positive.
 			return "predicted_" + pex.toString() + ".\n" + -logWgt + " predicted_" + pex.toString() + " => not " + pex.toString() + ".";

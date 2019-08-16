@@ -1,13 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.Utils.condor;
 
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.chirp.ChirpClient;
 import java.io.File;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
@@ -15,7 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author twalker
  */
 public class CondorFile extends File {
@@ -205,7 +199,7 @@ public class CondorFile extends File {
     @Override
     public boolean mkdirs() {
         if (chirpClient != null) {
-            if (exists() == false) {
+            if (!exists()) {
                 String parentString = getParent();
                 if (parentString != null) {
                     File parent = new CondorFile(parentString);
@@ -234,6 +228,4 @@ public class CondorFile extends File {
     	if (parent == null) { return null; } // Maybe we should throw an error here?  JWS 10/16/10
         return new CondorFile(parent);
     }
-
-
 }

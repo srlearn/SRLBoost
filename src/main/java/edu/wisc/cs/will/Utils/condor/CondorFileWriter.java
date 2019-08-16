@@ -1,25 +1,16 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.Utils.condor;
 
-import java.io.File;  import edu.wisc.cs.will.Utils.condor.CondorFile;
-import java.io.FileWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 /**
- *
  * @author twalker
  */
 public class CondorFileWriter extends Writer {
 
-    Writer writer = null;
-
-    FileWriter fw;
+    private Writer writer;
 
     public CondorFileWriter(File file) throws IOException {
         writer = new OutputStreamWriter( new CondorFileOutputStream(file));
