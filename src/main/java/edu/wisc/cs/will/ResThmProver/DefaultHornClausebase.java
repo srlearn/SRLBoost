@@ -1,5 +1,13 @@
 package edu.wisc.cs.will.ResThmProver;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.BuiltinProcedurallyDefinedPredicateHandler;
 import edu.wisc.cs.will.FOPC.Clause;
@@ -16,13 +24,7 @@ import edu.wisc.cs.will.FOPC.StringConstant;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+
 
 /**
  * @author twalker
@@ -36,7 +38,7 @@ public class DefaultHornClausebase implements HornClausebase {
      * as bare Literals) or rules (definite clauses with one or more Literals in
      * the body, stored as DefiniteClauses).
      */
-    protected List<DefiniteClause> assertions = new LinkedList<>();
+    private List<DefiniteClause> assertions = new LinkedList<>();
 
     // Definite clauses with a body...
     private List<Clause> backgroundKnowledge = new LinkedList<>();
@@ -250,12 +252,10 @@ public class DefaultHornClausebase implements HornClausebase {
     }
 
     @Override
-    public boolean retractAllClausesWithUnifyingBody(DefiniteClause definiteClause) {
+    public void retractAllClausesWithUnifyingBody(DefiniteClause definiteClause) {
         Literal clauseHead = definiteClause.getDefiniteClauseHead();
 
         Collection<DefiniteClause> matchAssertions = getAssertions(clauseHead.predicateName, clauseHead.numberArgs());
-
-        boolean result = false;
 
         if (matchAssertions != null) {
             Iterator<DefiniteClause> it = matchAssertions.iterator();
@@ -267,10 +267,9 @@ public class DefaultHornClausebase implements HornClausebase {
 
                 if (definiteClause.unifyDefiniteClause(aClause, null) != null) {
                     if (clausesToRemove == null) {
-                        clausesToRemove = new ArrayList<DefiniteClause>();
+                        clausesToRemove = new ArrayList<>();
                     }
                     clausesToRemove.add(aClause);
-                    result = true;
                 }
             }
 
@@ -279,7 +278,6 @@ public class DefaultHornClausebase implements HornClausebase {
             }
         }
 
-        return result;
     }
 
     @Override
@@ -294,14 +292,11 @@ public class DefaultHornClausebase implements HornClausebase {
         boolean result = false;
 
         if (matchAssertions != null) {
-            Iterator<DefiniteClause> it = matchAssertions.iterator();
 
-            while (it.hasNext()) {
-                DefiniteClause aClause = it.next();
-
+            for (DefiniteClause aClause : matchAssertions) {
                 if (Unifier.UNIFIER.unify(clauseHead, aClause.getDefiniteClauseHead()) != null) {
                     if (clausesToRemove == null) {
-                        clausesToRemove = new ArrayList<DefiniteClause>();
+                        clausesToRemove = new ArrayList<>();
                     }
                     clausesToRemove.add(aClause);
                     result = true;
@@ -317,43 +312,20 @@ public class DefaultHornClausebase implements HornClausebase {
     }
 
     @Override
-    public boolean retractAllClausesForPredicate(PredicateNameAndArity predicateNameAndArity) {
+    public void retractAllClausesForPredicate(PredicateNameAndArity predicateNameAndArity) {
 
         Collection<DefiniteClause> matchAssertions = getAssertions(predicateNameAndArity.getPredicateName(), predicateNameAndArity.getArity());
 
         List<DefiniteClause> clausesToRemove;
 
-        boolean result = false;
-
         if (matchAssertions != null) {
             clausesToRemove = new ArrayList<>();
 
-            for (DefiniteClause definiteClause : matchAssertions) {
-                clausesToRemove.add(definiteClause);
-                result = true;
-            }
+            clausesToRemove.addAll(matchAssertions);
 
             removeClauses(clausesToRemove);
         }
 
-        return result;
-    }
-
-    public void retract(Collection<? extends Sentence> sentences) throws IllegalArgumentException {
-
-        for (Sentence sentence : sentences) {
-            if (sentence instanceof DefiniteClause) {
-                DefiniteClause definiteClause = (DefiniteClause) sentence;
-                retract(definiteClause, null);
-            }
-            else {
-                List<Clause> clauses = sentence.convertToClausalForm();
-                if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
-                    throw new IllegalArgumentException("Sentence '" + sentence + "' is not a definite clause.");
-                }
-                retract(clauses.get(0), null);
-            }
-        }
     }
 
     /** Checks to fact to make sure we should add it.
@@ -369,10 +341,6 @@ public class DefaultHornClausebase implements HornClausebase {
 
         boolean ground = newFact.isGrounded();
         // Report facts with variables in them.
-        boolean reportFactsWithVariables = false;
-        if (reportFactsWithVariables && ground == false) {
-            Utils.println("% Fact containing variables: '" + newFact + "'.");
-        }
 
         VariantClauseAction action = getStringHandler().variantFactHandling;
 
@@ -398,10 +366,6 @@ public class DefaultHornClausebase implements HornClausebase {
         }
 
         if (duplicate) {
-
-            if (action.isWarnEnabled()) {
-                // Utils.println("% Duplicate grounded fact #" + Utils.comma(++duplicateFactCount) + ": '" + newFact + (action.isRemoveEnabled() ? "'  It will be deleted." : "'  (It will be kept.  Manually delete if you wish it removed.)"));
-            }
 
             if (action.isRemoveEnabled()) {
                 keep = false;
@@ -604,24 +568,6 @@ public class DefaultHornClausebase implements HornClausebase {
                 indexerForFacts;
     }
 
-    public String toLongString() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("DefaultHornClauseFactbase:\n");
-        sb.append("\nAssertions:\n");
-        for (DefiniteClause definiteClause : assertions) {
-            sb.append("  ").append(definiteClause).append(".\n");
-        }
-        sb.append("\nAll assertions indexer:\n");
-        sb.append(getIndexerForAllAssertions());
-        sb.append("\nRules indexer:\n");
-        sb.append(getIndexerForBackgroundKnowledge());
-        sb.append("\nFacts indexer:\n");
-        sb.append(getIndexerForFacts());
-
-        return sb.toString();
-    }
-
     @Override
     public boolean recorded(DefiniteClause definiteClause) {
         Clause definiteClauseAsClause = definiteClause.getDefiniteClauseAsClause();
@@ -700,29 +646,10 @@ public class DefaultHornClausebase implements HornClausebase {
         }
     }
 
-    public void removeAssertRetractListener(AssertRetractListener assertRetractListener, PredicateNameAndArity predicate) {
-        if (listenerMap != null) {
-            List<AssertRetractListener> list = listenerMap.get(predicate);
-            if (list != null) {
-                list.remove(assertRetractListener);
-
-                if (list.isEmpty()) {
-                    listenerMap.remove(predicate);
-
-                    if (listenerMap.isEmpty()) {
-                        listenerMap = null;
-                    }
-                }
-            }
-        }
-    }
-
     private void fireAssertion(DefiniteClause clause) {
         if (listenerMap != null) {
             PredicateNameAndArity pnaa = new PredicateNameAndArity(clause);
-
             List<AssertRetractListener> list = listenerMap.get(pnaa);
-
             if (list != null) {
                 for (AssertRetractListener assertRetractListener : list) {
                     assertRetractListener.clauseAsserted(this, clause);
@@ -734,9 +661,7 @@ public class DefaultHornClausebase implements HornClausebase {
     private void fireRetraction(DefiniteClause clause) {
         if (listenerMap != null) {
             PredicateNameAndArity pnaa = new PredicateNameAndArity(clause);
-
             List<AssertRetractListener> list = listenerMap.get(pnaa);
-
             if (list != null) {
                 for (AssertRetractListener assertRetractListener : list) {
                     assertRetractListener.clauseRetracted(this, clause);

@@ -22,7 +22,6 @@ import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.stdAIsearch.ClosedList;
 import edu.wisc.cs.will.stdAIsearch.DepthFirstSearch;
 import edu.wisc.cs.will.stdAIsearch.ScoringFunction;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
@@ -66,24 +65,24 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		this(stringHandler, null, null);
 	}
 	public HornClauseProver(HandleFOPCstrings stringHandler, Theory rules, Collection<? extends Sentence> facts) {
-        this(stringHandler, new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), new DepthFirstSearch(), null);
+        this(new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), new DepthFirstSearch(), null);
 	}
 	public HornClauseProver(HandleFOPCstrings stringHandler, Theory rules, Collection<? extends Sentence> facts, SearchStrategy searchStrategy) {
-		this(stringHandler, new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), searchStrategy, null);
+		this(new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), searchStrategy, null);
 	}
 	public HornClauseProver(HandleFOPCstrings stringHandler, Theory rules, Collection<? extends Sentence> facts, SearchStrategy searchStrategy, ScoringFunction scorer) {
-		this(stringHandler, new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), searchStrategy, scorer);
+		this(new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), searchStrategy, scorer);
 	}
 	public HornClauseProver(HandleFOPCstrings stringHandler, Theory rules, Collection<? extends Sentence> facts, ProcedurallyDefinedPredicateHandler userProcedurallyDefinedPredicateHandler) {
-		this(stringHandler, new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts, userProcedurallyDefinedPredicateHandler), new DepthFirstSearch(), null);
+		this(new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts, userProcedurallyDefinedPredicateHandler), new DepthFirstSearch(), null);
 	}
     public HornClauseProver(HandleFOPCstrings stringHandler, HornClausebase factbase) {
-        this(stringHandler, factbase, new DepthFirstSearch(), null);
+        this(factbase, new DepthFirstSearch(), null);
 	}
 	public HornClauseProver(HornClausebase factbase, boolean redoable) {
         this(new DefaultHornClauseContext(factbase), new DepthFirstSearch(), null,redoable);
 	}
-	public HornClauseProver(HandleFOPCstrings stringHandler, HornClausebase factbase, SearchStrategy searchStrategy, ScoringFunction scorer) {
+	public HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy, ScoringFunction scorer) {
         this(new DefaultHornClauseContext(factbase), searchStrategy, scorer, false);
     }
     public HornClauseProver(HornClauseContext context) {
@@ -107,15 +106,14 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		ProofDone              endTest       = new ProofDone(this);
 		SearchMonitor          monitor       = new SearchMonitor(this); // new ProofMonitor(this); // Use this for more info.
 		HornClauseProverChildrenGenerator hornClauseProverChildrenGenerator = new HornClauseProverChildrenGenerator(this, context);
-		ClosedList             myClosed      = null;
 
-        maxSearchDepth     =   100000;
+		maxSearchDepth     =   100000;
         setMaxNodesToConsider(1000000);
         setMaxNodesToCreate( 10000000);
         
         verbosity = 0; // Change if debugging odd behavior.
 							
-		initalizeStateBasedSearchTask(myInitializer, endTest, monitor, searchStrategy, scorer, hornClauseProverChildrenGenerator, myClosed);
+		initalizeStateBasedSearchTask(myInitializer, endTest, monitor, searchStrategy, scorer, hornClauseProverChildrenGenerator, null);
 	}
 
 	private PredicateName getPredicateNameFromFirstNegatedLiteral(HornSearchNode node) {
@@ -157,7 +155,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         return result;
     }
 
-	// TODO(?): Clean up the names of these functions.
 	public boolean proveSimpleQuery(Literal negatedFact) throws SearchInterrupted {
 		((InitHornProofSpace) initializer).loadNegatedSimpleQuery(negatedFact, open);
 		return performSearch().goalFound();
@@ -212,7 +209,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 	public List<Term> getAllUniqueGroundings(Literal query) throws SearchInterrupted {
 		Function   queryAsFunction = query.convertToFunction(getStringHandler());
 		Variable   var             = getStringHandler().getNewUnamedVariable();
-		List<Term> findAllArgList  = new ArrayList<Term>(3);
+		List<Term> findAllArgList  = new ArrayList<>(3);
 		findAllArgList.add(queryAsFunction);
 		Clause clause = getStringHandler().getClause(query, false);
 		findAllArgList.add(getStringHandler().getSentenceAsTerm(clause, "getAllUniqueGroundings"));
@@ -221,7 +218,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		BindingList  bl = proveSimpleQueryAndReturnBindings(allRaw);
 		if (bl == null) { return null; }
 		ConsCell allResults = (ConsCell) bl.lookup(var);
-		if (debugLevel > 1) { Utils.println("% Have found " + Utils.comma(allResults == null ? 0 : allResults.length()) + " unique groundings of '" + query + "'.\n"); } // % var = " + var + " bl=" + bl); }
+		if (debugLevel > 1) { Utils.println("% Have found " + Utils.comma(allResults == null ? 0 : allResults.length()) + " unique groundings of '" + query + "'.\n"); }
 		if (allResults == null) { return null; }
 		return allResults.convertConsCellToList();
 	}
@@ -231,6 +228,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		List<Clause> clauses = sentence.convertForProofByNegation();
 
 		if (clauses == null)     { Utils.error("Cannot convert '" + sentence + "' to a negated conjuntive query for use in resolution theorem proving."); }
+		assert clauses != null;
 		if (clauses.size() != 1) { Utils.error("Should only get ONE clause from '" + sentence + "' but got: " + clauses); }
 		return convertSentenceToListOfNegativeLiterals(sentence);
 	}
@@ -240,6 +238,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		List<Clause> clauses = sentence.convertForProofByNegation();
 
 		if (clauses == null)     { Utils.error("Cannot convert '" + sentence + "' to a negated conjuntive query for use in resolution theorem proving."); }
+		assert clauses != null;
 		if (clauses.size() != 1) { Utils.error("Should only get ONE clause from '" + sentence + "' but got: " + clauses); }
 		Clause clause = clauses.get(0);
 		List<Literal> posLiterals = clause.posLiterals;
@@ -251,14 +250,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		return negLiterals;
 	}
 
-	// Allow direct use of the procedurally defined stuff.
-	public boolean isProcedurallyDefined(PredicateName pName, int arity) {
-        if ( getClausebase().getBuiltinProcedurallyDefinedPredicateHandler() != null && getClausebase().getBuiltinProcedurallyDefinedPredicateHandler().canHandle(pName,arity) ) return true;
-        if ( getClausebase().getUserProcedurallyDefinedPredicateHandler() != null && getClausebase().getUserProcedurallyDefinedPredicateHandler().canHandle(pName,arity)) return true;
-        return false;
-
-
-    }
 	public BindingList evaluateProcedurallyDefined(Literal lit) {
 		if (lit == null) { return null; }
 		return evaluateProcedurallyDefined(lit, new BindingList());
@@ -268,7 +259,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		if (lit == null) { return null; }
 		BindingList result = null;
 		try {
-            ProcedurallyDefinedPredicateHandler handler = null;
+            ProcedurallyDefinedPredicateHandler handler;
             if ( (handler = getClausebase().getBuiltinProcedurallyDefinedPredicateHandler()) != null && handler.canHandle(lit.predicateName, lit.numberArgs()) ) {
                 result = handler.handle(context,lit, unifier, bl);
             }

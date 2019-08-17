@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.ResThmProver;
 
 /**
- *
  * @author twalker
  */
 public enum VariantClauseAction {
@@ -31,8 +25,6 @@ public enum VariantClauseAction {
         return parameterSetting;
     }
 
-
-
     public boolean isRemoveEnabled() {
         return remove;
     }
@@ -51,9 +43,6 @@ public enum VariantClauseAction {
                 return action;
             }
         }
-
         return null;
     }
-
-
 }

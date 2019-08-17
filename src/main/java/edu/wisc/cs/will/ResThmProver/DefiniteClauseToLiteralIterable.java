@@ -1,15 +1,16 @@
 package edu.wisc.cs.will.ResThmProver;
 
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.Literal;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import edu.wisc.cs.will.FOPC.DefiniteClause;
+import edu.wisc.cs.will.FOPC.Literal;
+
 public class DefiniteClauseToLiteralIterable implements Iterable<Literal> {
 
-    Iterable<DefiniteClause> iterable;
+    private Iterable<DefiniteClause> iterable;
 
-    public DefiniteClauseToLiteralIterable(Iterable<DefiniteClause> iterable) {
+    DefiniteClauseToLiteralIterable(Iterable<DefiniteClause> iterable) {
         this.iterable = iterable;
     }
 
@@ -23,7 +24,7 @@ public class DefiniteClauseToLiteralIterable implements Iterable<Literal> {
 
         Literal next = null;
 
-        public DefiniteClauseToLiteralIterator(Iterator<DefiniteClause> iterator) {
+        DefiniteClauseToLiteralIterator(Iterator<DefiniteClause> iterator) {
             this.iterator = iterator;
         }
 
@@ -48,7 +49,7 @@ public class DefiniteClauseToLiteralIterable implements Iterable<Literal> {
 
         private void setupNext() {
             if (next == null && iterator != null) {
-                if (iterator.hasNext() == false) {
+                if (!iterator.hasNext()) {
                     iterator = null;
                 }
                 else {

@@ -10,7 +10,6 @@ import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * A GroundLiteral class.
@@ -23,7 +22,6 @@ import edu.wisc.cs.will.Utils.Utils;
 public class GroundLiteral extends Literal {
 	private static final long serialVersionUID = 1L;
 	private boolean            value = false; // The truth value of the GroundLiteral.  These default to false.
-	boolean  hasBeenInterned = false; //  All the ground clauses containing this literal have been computed.
 	private Block                      block; // The block this ground literal is contained in.
 	private Set<GroundClause>   gndClauseSet; // Ground literals need to point to the ground clauses in which they appear.
 	private Object                    marker;
@@ -51,59 +49,22 @@ public class GroundLiteral extends Literal {
 		return marker;
 	}
 
-	public Set<GroundLiteral> getNeighbors() {
-		Set<GroundLiteral> neighbors = null;
-		for (GroundClause gndClause : gndClauseSet) {
-			int length = gndClause.getLength();
-			for (int i = 0; i < length; i++) {
-				GroundLiteral gLit = gndClause.getIthLiteral(i);
-				if (gLit != this && (neighbors == null || !neighbors.contains(gLit))) {
-					if (neighbors == null) { neighbors = new HashSet<>(4); }
-					neighbors.add(gLit);
-				}
-			}
-		}
-		if (debugLevel > 1) { Utils.println("Neighbors: "); for (GroundLiteral gndLit : neighbors) { Utils.println("   " + gndLit);	} }
-		return neighbors;
-	}
-
-	/**
-	 * @return The Set of GroundClauses this literal appears in.
-	 */
 	Set<GroundClause> getGndClauseSet() {
 		return gndClauseSet;
 	}
-	
-	/**
-	 * Empties the GroundClauseList
-	 */
+
 	void clearGndClauseSet() {
 		if (gndClauseSet == null) { gndClauseSet = new HashSet<>(4); }
 		else { gndClauseSet.clear(); }
 	}
-	
-	
-	/**
-	 * @param gndClause The GroundClause to be added to the GroundClause List.
-	 */
+
 	void addGndClause(GroundClause gndClause) {
 		if (gndClauseSet == null) { clearGndClauseSet(); }
 		gndClauseSet.add(gndClause); // Since a set, will handle duplicates.
-	}	
-	
-	/**
-	 * @param value Assign this to the truth value of the GroundLiteral.
-	 */
-	void setValue(boolean value, GroundedMarkovNetwork groundedMarkovNetwork, TimeStamp timeStamp) {
-		setValue(value, groundedMarkovNetwork, timeStamp, true);
 	}
-	private void setValue(boolean value, GroundedMarkovNetwork groundedMarkovNetwork, TimeStamp timeStamp, boolean complain) {
-		this.value = value;
-		if (groundedMarkovNetwork == null) { return; }
-		updateAllContainingGroundClauses(groundedMarkovNetwork, timeStamp, complain);
-	}
-	void setValueOnly(boolean value, TimeStamp timeStamp) {
-		this.value = value; // Only set this value.  Don't update all clauses containing this literal.  Note: this is dangerous unless another setValue is called soon!
+
+	void setValueOnly() {
+		this.value = false; // Only set this value.  Don't update all clauses containing this literal.  Note: this is dangerous unless another setValue is called soon!
 	}
 	
 	String getValueAndInfo() {
@@ -111,22 +72,7 @@ public class GroundLiteral extends Literal {
 		if (value) { return "true" + result; }
 		return "false" + result;
 	}
-	
-	private void updateAllContainingGroundClauses(GroundedMarkovNetwork groundedMarkovNetwork, TimeStamp timeStamp, boolean complainIfInconsistent) {
-		if (gndClauseSet == null) { Utils.error("Have gndClauseSet=null for '" + this + "'."); }
-		for (GroundClause gndClause : gndClauseSet) if (groundedMarkovNetwork.isaMarkedGroundClause(gndClause)) {
-			boolean old    = gndClause.isSatisfiedCached();
-			boolean result = gndClause.checkIfSatisfied(timeStamp);  // TODO - depending on sign and value of ground lit and clause state, might not need to check
-			if (complainIfInconsistent && gndClause.getWeightOnSentence() > 0 && !old &&  result && !gndClause.isActive()) { Utils.error("due to, '" + this + "' = " + value + ", this clause is becoming satisfied (and inactive) but it is already inactive: " + gndClause.getInfo()); }
-			if (complainIfInconsistent && gndClause.getWeightOnSentence() > 0 &&  old && !result &&  gndClause.isActive()) { Utils.error("due to, '" + this + "' = " + value + ", this clause is becoming unsatisfied (and active) but it is already active: "   + gndClause.getInfo()); }
-			if (complainIfInconsistent && gndClause.getWeightOnSentence() < 0 &&  old && !result && !gndClause.isActive()) { Utils.error("due to, '" + this + "' = " + value + ", this clause is becoming satisfied (and inactive) but it is already inactive: " + gndClause.getInfo()); }
-			if (complainIfInconsistent && gndClause.getWeightOnSentence() < 0 && !old &&  result &&  gndClause.isActive()) { Utils.error("due to, '" + this + "' = " + value + ", this clause is becoming unsatisfied (and active) but it is already active: "   + gndClause.getInfo()); }
-	 	}
-	}
-	
-	/**
-	 * @return The truth value of the GroundLiteral.
-	 */
+
 	public boolean getValue() {
 		return value;
 	}

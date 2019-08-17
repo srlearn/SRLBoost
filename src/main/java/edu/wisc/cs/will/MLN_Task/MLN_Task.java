@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.MLN_Task;
 
 import java.util.ArrayList;
@@ -40,68 +37,45 @@ import edu.wisc.cs.will.Utils.Utils;
 public class MLN_Task {	
 	private static final int debugLevel = 2; //Integer.MIN_VALUE;
 
-	protected final static int maxWarnings  = 100;
-	protected              int warningCount =   0;  // Count how many warnings provided to user; stop when some maximum number reached. 
-	
-	public  double             maxNumberOfQueryLiterals  = 1e8;
+	private final static int maxWarnings  = 100;
+	private              int warningCount =   0;  // Count how many warnings provided to user; stop when some maximum number reached.
 
 	private boolean            checkForNewConstants = true; // Turn off when done to save time, plus once starting grounding a network, new constants would mess up things.
 
 	public  HandleFOPCstrings  stringHandler;
 	public  Unifier            unifier;
 	public  HornClauseProver   prover;
-	public  int                maxConstantsOfGivenType =    1000000; // When more than this many constants of a given type, discard randomly until this many.
-	public  int                maxGroundingsOfLiteral  = 1000000000; // When finding the groundings of a LITERAL, limit to this many.  This is also the max size of JOINED argument lists.
-	public  int                maxGroundingsOfClause   = 1000000000; // When finding the groundings of a CLAUSE,  limit to this many.
-	
-	protected String             workingDirectory;
-	protected Collection<Clause> allClauses; // Not many of these, so no need to hash.
+
 	private   Set<GroundLiteral> queryLiterals;   // Make these sets since we don't want any duplicates.
 	private   Set<GroundLiteral> hiddenLiterals;  // Do NOT apply the closed-world assumption to these.
 	private   Set<GroundLiteral> posEvidenceLiterals; // No need to allow this to be given as PredName as well, since presumably we do not want to say ALL are positive (or negative).
 	private   Set<GroundLiteral> negEvidenceLiterals;
-	private   boolean            closedWorldAssumption = true; // Assume a literal is false if its truth value is not known.
-	
+
 	// All literals that meet one of these spec's is a literal of the associated type.  
 	// More compact that creating all such literals, but might be expanded later in any case (also, one might not want ALL groundings to be in the given class, and in that case explicit lits of grounded literals should be used).
 	// Also, can add something like 'p(x,y)' to a literal collection, which is the same (???) as putting 'p/2' in a Collection<PredNameArityPair>.
-	private Set<PredNameArityPair> queryPredNames; // TODO - if these are used with GroundThisMarkovNetwork, then need to ground before inference?
+
 	private Set<PredNameArityPair> hiddenPredNames; // These need to be SETs (at least in the creators) so that duplicates are not added.
 	private Set<PredNameArityPair> posEvidencePredNames; // Probably rarely used, since can then remove from clauses, but allow them anyway.
 	private Set<PredNameArityPair> negEvidencePredNames; // Ditto.
-	
+
 	private Map<PredicateName,Map<Integer,Map<Term,Collection<GroundLiteral>>>> knownQueriesThisPnameArity;
 	private Map<PredicateName,Map<Integer,Map<Term,Collection<GroundLiteral>>>> knownHiddensThisPnameArity;
 	private Map<PredicateName,Map<Integer,Map<Term,Collection<GroundLiteral>>>> knownPosEvidenceThisPnameArity;
 	private Map<PredicateName,Map<Integer,Map<Term,Collection<GroundLiteral>>>> knownNegEvidenceThisPnameArity;
-	private boolean knownQueriesThisPnameArityHasVariables     = false;
-	private boolean knownHiddensThisPnameArityHasVariables     = false;
-	private boolean knownPosEvidenceThisPnameArityHasVariables = false;
-	private boolean knownNegEvidenceThisPnameArityHasVariables = false;
-	
-	// Can override the default value for closed-world assumption.
-	private Map<PredicateName,Set<Integer>>  neverCWAonThisPredNameArity;
-	private Map<PredicateName,Set<Integer>> alwaysCWAonThisPredNameArity;
 
-	private   Variable                        skolemMarker1    = null; // Skolem arguments are replaced with this marker, so it can be used to match any fact (no logical inference is done, so this works, but be careful of 'unit propagation' or the like is used).
-	private   Variable                        skolemMarker2    = null; // A given literal can have more than one skolem variable,
-	private   Variable                        skolemMarker3    = null; // so allow up to five in a clause (if more throw error, suggesting code be extended).
-	private   Variable                        skolemMarker4    = null;
-	private   Variable                        skolemMarker5    = null;
-	protected Set<Variable>                   setOfSkolemMarkers; // Duplicate for fast lookup.
-	protected Map<Literal,Set<Term>>          skolemsPerLiteral;  // Be sure to not COPY literals or this will be screwed up!
+
+	Set<Variable>                   setOfSkolemMarkers; // Duplicate for fast lookup.
+	Map<Literal,Set<Term>>          skolemsPerLiteral;  // Be sure to not COPY literals or this will be screwed up!
 	
 	private Map<Type,Set<Term>> hashOfTypeToConstants;        // Record all the constants of a given type.  Use Term here so can become argument lists without copying.
 	private Map<Type,Set<Term>> hashOfTypeToReducedConstants; // A subset of the above, used for reducing the size of the ground Markov network via sampling.
 
-	// TODO is the following still used?
 	private Map<PredicateName,Map<Integer,Set<Clause>>> predNameToClauseList; // A hash table which gives all the clauses a literal (specified by predicateName/arity) appears in.
 
 	private Map<Integer,List<GroundLiteral>> hashOfGroundLiterals;
 
-	private   Map<Type,Set<Constant>> constantTypePairsHandled = new HashMap<>(4); // Used to prevent unnecessary calls to the stringHandler.  TODO - move this to the string handler, as a space-time tradeoff.
-	
-	private   TimeStamp timeStamp;
+	private   Map<Type,Set<Constant>> constantTypePairsHandled = new HashMap<>(4); // Used to prevent unnecessary calls to the stringHandler.
 
 	// The next variant is called by the others to set up various things.
 	public MLN_Task(HandleFOPCstrings stringHandler, Unifier unifier, HornClauseProver prover) {
@@ -125,15 +99,17 @@ public class MLN_Task {
 			Set<Term> allConstantsOfThisType = stringHandler.isaHandler.getAllInstances(type);
 			if (allConstantsOfThisType == null) { 
 				if (warningNoConstantsThisType == null || !warningNoConstantsThisType.contains(type)) { 
-						if (warningNoConstantsThisType == null) { warningNoConstantsThisType = new HashSet<Type>(4); }
+						if (warningNoConstantsThisType == null) { warningNoConstantsThisType = new HashSet<>(4); }
 						warningNoConstantsThisType.add(type);
 						Utils.warning("Have no constants of type '" + type + "'."); 
 				}
 				return null;
 			}
 			hashOfTypeToConstants.put(type, allConstantsOfThisType);
+			// When more than this many constants of a given type, discard randomly until this many.
+			int maxConstantsOfGivenType = 1000000;
 			if (allConstantsOfThisType.size() > maxConstantsOfGivenType) {
-				Set<Term> reducedSet = new HashSet<Term>(4);
+				Set<Term> reducedSet = new HashSet<>(4);
 				reducedSet.addAll(allConstantsOfThisType); // A bit inefficient to copy (especially if lots discarded), but this way we get exactly the desired number.
 				hashOfTypeToReducedConstants.put(type, Utils.reduceToThisSizeByRandomlyDiscardingItemsInPlace(reducedSet, maxConstantsOfGivenType));
 			} else { hashOfTypeToReducedConstants.put(type, allConstantsOfThisType); }
@@ -145,21 +121,32 @@ public class MLN_Task {
 	}
 
 	private boolean calledCreateAllQueryLiterals = false;
-	protected void createAllQueryLiterals() {
+
+	// TODO(@hayesall): This can likely be removed.
+	private Set<PredNameArityPair> queryPredNames;
+
+	void createAllQueryLiterals() {
 		if (calledCreateAllQueryLiterals) { return; }
 		calledCreateAllQueryLiterals = true;
+
 		if (queryPredNames == null) { return; }
+
+
 		if (queryLiterals  != null) { Utils.error("Already have some query literals: " + Utils.limitLengthOfPrintedList(queryLiterals, 25)); }
-		queryLiterals = new HashSet<GroundLiteral>(4);
-		if (debugLevel > -10) { Utils.println("%  queryPredNames = " + Utils.limitLengthOfPrintedList(queryPredNames, 25)); }
+		queryLiterals = new HashSet<>(4);
+
+		Utils.println("%  queryPredNames = " + Utils.limitLengthOfPrintedList(queryPredNames, 25));
+
 		for (PredNameArityPair predNameArityPair : queryPredNames) {
+
 			Set<GroundLiteral> groundings = groundThisLiteral(predNameArityPair);
-			if (true) { Utils.println("% Have " + Utils.comma(groundings) + " groundings for query " + predNameArityPair+ "."); }
+			Utils.println("% Have " + Utils.comma(groundings) + " groundings for query " + predNameArityPair+ ".");
 			if (groundings != null) { queryLiterals.addAll(groundings); }
 			else { Utils.error("Have no groundings for query: " + predNameArityPair); }
 		}
 		int numbQueries = Utils.getSizeSafely(queryLiterals);
 		if (debugLevel  > 0)   { Utils.println("% Number of query literals generated from queryPredNames: " + Utils.comma(numbQueries)); }
+		double maxNumberOfQueryLiterals = 1e8;
 		if (numbQueries > maxNumberOfQueryLiterals) { Utils.error("Too many query literals.  Note that the current code requires they all be explicitly grounded, even with lazy inference, since statistics need to be collected for each."); }
 	}
 
@@ -183,11 +170,11 @@ public class MLN_Task {
 		// Collect all the types in the literal.
 		Collection<TypeSpec> typeSpecs = collectLiteralArgumentTypes(predNameArity.pName, predNameArity.arity);
 		Utils.println("% In groundThisLiteral(" + predNameArity + ") with typeSpecs = " + typeSpecs);
-		List<Set<Term>> allArgPossibilities = new ArrayList<Set<Term>>(typeSpecs.size());
+		List<Set<Term>> allArgPossibilities = new ArrayList<>(typeSpecs.size());
 		for (TypeSpec typeSpec : typeSpecs) { // Need to convert from lists of constants to lists of terms at some point.  Might as well do it here (seems work the same regardless).
 			Set<Term> constants = getReducedConstantsOfThisType(typeSpec.isaType);
 			if (constants != null) {
-				Set<Term> convertConstantsToTerms = new HashSet<Term>(4);
+				Set<Term> convertConstantsToTerms = new HashSet<>(4);
 				convertConstantsToTerms.addAll(constants);
 				allArgPossibilities.add(convertConstantsToTerms);
 			} else {
@@ -197,11 +184,14 @@ public class MLN_Task {
 		int size = 1;
 		if (debugLevel > 3) { Utils.println(" allArgPossibilities = " + allArgPossibilities); }
 		for (Set<Term> possibilities : allArgPossibilities) { size *= Utils.getSizeSafely(possibilities); }
-		Utils.print("%   Will produce " + Utils.comma(size) + " groundings.  [1"); // TODO - filter if too many?
+		Utils.print("%   Will produce " + Utils.comma(size) + " groundings.  [1");
 		for (Set<Term> possibilities : allArgPossibilities) { Utils.print(" x " + possibilities.size()); }
 		Utils.println("]");
+		// When finding the groundings of a LITERAL, limit to this many.  This is also the max size of JOINED argument lists.
+		int maxGroundingsOfLiteral = 1000000000;
 		List<List<Term>> crossProduct = Utils.computeCrossProduct(allArgPossibilities, maxGroundingsOfLiteral);
 		int counter = 0;
+		assert crossProduct != null;
 		for (List<Term> argList : crossProduct) {
 			if (++counter % 100000 == 0) { Utils.println("%       counter = " + Utils.comma(counter)); }
 			Literal              lit = stringHandler.getLiteral(predNameArity.pName, argList);
@@ -223,23 +213,18 @@ public class MLN_Task {
 		}
 	}
 	GroundLiteral getCanonicalRepresentative(Literal lit) {
-		return getCanonicalRepresentative(lit, true, false);
+		return getCanonicalRepresentative(lit, false);
 	}
-	GroundLiteral getCanonicalRepresentative(Literal lit, boolean storeIfNotThere, boolean postponeAddition) {
+	GroundLiteral getCanonicalRepresentative(Literal lit, boolean postponeAddition) {
 		boolean hold = stringHandler.useFastHashCodeForLiterals;
 		stringHandler.useFastHashCodeForLiterals = false; // Need this setting in order to get proper matching of equivalent literals.
 		int hash = lit.hashCode(); 
 		stringHandler.useFastHashCodeForLiterals = hold;
 		List<GroundLiteral> lookup = hashOfGroundLiterals.get(hash);
-		if (lookup == null) {
-			if (!storeIfNotThere) { return null; } // Return an indicator that this literal is not in the hash table.
-		} else { 
-			for (GroundLiteral gLit : lookup) if (gLit.matchesThisGroundLiteral(lit)) { // Check the literals that hashed here.
-				newGlit_hold  = null;
-				hashcode_hold = null;
-				return gLit; // Have found the canonical representative.  No need to store anything later.
-			}
-			if (!storeIfNotThere) { return null; } // Return an indicator that this literal is not in the hash table.
+		for (GroundLiteral gLit : lookup) if (gLit.matchesThisGroundLiteral(lit)) { // Check the literals that hashed here.
+			newGlit_hold  = null;
+			hashcode_hold = null;
+			return gLit; // Have found the canonical representative.  No need to store anything later.
 		}
 		// This literal is new.  Convert to a GroundLiteral (if not already), add to hash table, and return it.
 		GroundLiteral newGlit = (lit instanceof GroundLiteral ? (GroundLiteral) lit : new GroundLiteral(lit));
@@ -256,7 +241,7 @@ public class MLN_Task {
 	List<TypeSpec> collectLiteralArgumentTypes(PredicateName pName, int arity) {
 		if (arity < 1) { return null; }
 		List<PredicateSpec> typeList = pName.getTypeOnlyList(arity);
-		// Currently ASSUME each literal has only one typeList.  TODO - relax assumption 
+		// Currently ASSUME each literal has only one typeList.
 		if (Utils.getSizeSafely(typeList) < 1) { Utils.error("Could not find the argument types for: '" + pName + "/" + arity + "'."); }
 		if (typeList.size() > 1) {
 			if (warningCount < maxWarnings) { Utils.println("% MLN WARNING #" + Utils.comma(++warningCount) + ":  There is more than one mode for: '"  + pName + "/" + arity + "'. " + typeList + "  Will only use first one."); }
@@ -264,56 +249,22 @@ public class MLN_Task {
 		return typeList.get(0).getTypeSpecList();
 	}
 
-	private boolean isaPositiveEvidenceLiteral(GroundLiteral lit) {
-		if (debugLevel > 2) { Utils.print("*** Is '" + lit + "' in positive evidence " + Utils.limitLengthOfPrintedList(posEvidenceLiterals, 25)); }
-		boolean foundInPos = false;
-		if (posEvidenceLiterals  != null) { foundInPos = posEvidenceLiterals.contains(lit); }
-		if (posEvidencePredNames != null) { Utils.error("Need to look here as well - TODO."); }
-		if (debugLevel > 2) { Utils.println((foundInPos ? " YES" : " NO")); }
-		return foundInPos;
-	}
-	
-	private boolean isaNegativeEvidenceLiteral(GroundLiteral lit) {
-		if (debugLevel > 2) { Utils.print("*** Is '" + lit + "' in negative evidence " + Utils.limitLengthOfPrintedList(negEvidenceLiterals, 25)); }
-		boolean foundInNeg = false;
-		if (negEvidenceLiterals  != null) { foundInNeg = negEvidenceLiterals.contains(lit); }
-		if (negEvidencePredNames != null) { Utils.error("Need to look here as well - TODO."); }
-		if (debugLevel > 2) { Utils.println((foundInNeg ? " YES" : " NO")); }
-		return foundInNeg;
-	}
-	
-	boolean isaEvidenceLiteral(GroundLiteral lit) {
-		return (isaNegativeEvidenceLiteral(lit) || isaPositiveEvidenceLiteral(lit));
-	}
-
-	public boolean isaKnownLiteral(Literal gLit) {
-		PredicateName pName = gLit.predicateName;
-		int           arity = gLit.numberArgs();
-		return isaKnownLiteral(pName, arity);
-	}
-	public boolean isaKnownLiteral(PredicateName pName, int arity) {
-		return (Utils.getSizeSafely(getKnownsCollection(pName, arity, null, knownPosEvidenceThisPnameArity)) > 0 ||
-				Utils.getSizeSafely(getKnownsCollection(pName, arity, null, knownQueriesThisPnameArity))     > 0 ||
-				Utils.getSizeSafely(getKnownsCollection(pName, arity, null, knownHiddensThisPnameArity))     > 0 ||
-				Utils.getSizeSafely(getKnownsCollection(pName, arity, null, knownNegEvidenceThisPnameArity)) > 0);
-	}
-
 	Collection<GroundLiteral> getQueryKnowns(Literal lit) {
-		return getKnownsCollection(lit, knownQueriesThisPnameArityHasVariables,     knownQueriesThisPnameArity);
+		return getKnownsCollection(lit, knownQueriesThisPnameArity);
 	}
 	Collection<GroundLiteral> getHiddenKnowns(Literal lit) {
-		return getKnownsCollection(lit, knownHiddensThisPnameArityHasVariables,     knownHiddensThisPnameArity);
+		return getKnownsCollection(lit, knownHiddensThisPnameArity);
 	}
 	Collection<GroundLiteral> getPosEvidenceKnowns(Literal lit) {
-		return getKnownsCollection(lit, knownPosEvidenceThisPnameArityHasVariables, knownPosEvidenceThisPnameArity);
+		return getKnownsCollection(lit, knownPosEvidenceThisPnameArity);
 	}
 	Collection<GroundLiteral> getNegEvidenceKnowns(Literal lit) {
-		return getKnownsCollection(lit, knownNegEvidenceThisPnameArityHasVariables, knownNegEvidenceThisPnameArity);
+		return getKnownsCollection(lit, knownNegEvidenceThisPnameArity);
 	}
-	private Collection<GroundLiteral> getKnownsCollection(Literal lit, boolean hasVariables, Map<PredicateName,Map<Integer,Map<Term,Collection<GroundLiteral>>>> map) {
+	private Collection<GroundLiteral> getKnownsCollection(Literal lit, Map<PredicateName, Map<Integer, Map<Term, Collection<GroundLiteral>>>> map) {
 		PredicateName pName = lit.predicateName;
 		int           arity = lit.numberArgs();
-		Term       firstArg = (hasVariables || arity < 1 ? null : lit.getArgument(0)); // If there are variables in this Map, then don't use constants index since if we did we would need to merge two lists (TODO - rethink this space-time tradeoff).
+		Term       firstArg = (arity < 1 ? null : lit.getArgument(0));
 		return getKnownsCollection(pName, arity, firstArg, map);
 	}
 	private Collection<GroundLiteral> getKnownsCollection(PredicateName pName, int arity, Term firstArg, Map<PredicateName,Map<Integer,Map<Term,Collection<GroundLiteral>>>> map) {
@@ -321,7 +272,7 @@ public class MLN_Task {
 		if (lookup1 == null) { return null; }
 		Map<Term,Collection<GroundLiteral>> lookup2 = lookup1.get(arity);
 		if (lookup2 == null) { return null; }
-		if (firstArg != null && firstArg instanceof Constant) { return lookup2.get(firstArg); }
+		if (firstArg instanceof Constant) { return lookup2.get(firstArg); }
 		return lookup2.get(null);
 	}
 	
@@ -373,27 +324,12 @@ public class MLN_Task {
 	}
 
 	boolean isClosedWorldAssumption(Literal lit) { // Require NULL so calling code explicitly makes sure this is a generic query.
-		if (lit == null) { return closedWorldAssumption; }
-		if (closedWorldAssumption) {
-			return !neverCWAonThisLiteral(lit); 
-		} else {
-			return alwaysCWAonThisLiteral(lit); 
-		}
+		// Assume a literal is false if its truth value is not known.
+		if (lit == null) { return true; }
+		return !neverCWAonThisLiteral(lit);
 	}
+
 	private boolean neverCWAonThisLiteral( Literal lit) {
-		if (neverCWAonThisPredNameArity != null) {
-			Collection<Integer> arities = neverCWAonThisPredNameArity.get(lit.predicateName);
-			if (arities == null) { return false; }
-			return arities.contains(lit.numberArgs());
-		}
-		return false;
-	}
-	private boolean alwaysCWAonThisLiteral(Literal lit) {
-		if (alwaysCWAonThisPredNameArity != null) {
-			Collection<Integer> arities = alwaysCWAonThisPredNameArity.get(lit.predicateName);
-			if (arities == null) { return false; }
-			return arities.contains(lit.numberArgs());
-		}
 		return false;
 	}
 

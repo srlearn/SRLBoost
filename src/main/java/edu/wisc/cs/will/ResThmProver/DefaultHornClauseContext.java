@@ -1,8 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ResThmProver;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.Clause;
@@ -14,8 +13,6 @@ import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.ArrayList;
-import java.util.List;
 
 /** This is a self contained Horn clause prover.
  *
@@ -38,20 +35,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
 
     public DefaultHornClauseContext() {
         this.stringHandler = new HandleFOPCstrings();
-    }
-    
-    public DefaultHornClauseContext(boolean okToBeSecondStringHandler) {
-        this.stringHandler = new HandleFOPCstrings(okToBeSecondStringHandler);
-    }
-    
-    public DefaultHornClauseContext(String workingDir) {
-        this.stringHandler = new HandleFOPCstrings();
-        parser = new FileParser(stringHandler, workingDir);
-    }
-    
-    public DefaultHornClauseContext(String workingDir, boolean okToBeSecondStringHandler) {
-        this.stringHandler = new HandleFOPCstrings(okToBeSecondStringHandler);
-        parser = new FileParser(stringHandler, workingDir);
     }
 
     public DefaultHornClauseContext(HandleFOPCstrings stringHandler) {
@@ -76,19 +59,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
         checkSetup();
     }
 
-    public DefaultHornClauseContext(HornClausebase clausebase, FileParser parser) {
-        if (clausebase == null) {
-            throw new IllegalStateException("Clausebase must be non-null.");
-        }
-
-        this.clausebase    = clausebase;
-        this.stringHandler = clausebase.getStringHandler();
-        this.parser        = parser;
-        
-
-        checkSetup();
-    }
-
     private void checkSetup() {
         if (clausebase != null && clausebase.getStringHandler() != stringHandler) {
             throw new IllegalStateException("Clausebase stringHandler does not match Context string handler.");
@@ -96,33 +66,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
         if (parser != null && parser.stringHandler != stringHandler) {
             throw new IllegalStateException("Parser stringHandler does not match Context string handler.");
         }
-    }
-
-    /** Asserts a set of definite clauses represented by <code>clauses</code>.
-     *
-     * @param clauses A string containing a list of clauses to be parsed and asserted.
-     * The clauses must be definite.
-     *
-     * @throws java.lang.IllegalArgumentException If any of the clauses in <code>clauses</code>
-     * is not definite, an IllegalArgumentException will be thrown.  One is also thrown
-     * if the parser is not able to correctly parse the clauses.
-     */
-    @Override
-    public void assertDefiniteClause(String clauses) throws IllegalArgumentException {
-
-        try {
-            List<Sentence> sentences = getFileParser().readFOPCstream(clauses);
-            assertSentences(sentences);
-        } catch (Exception e) {
-            if (e instanceof IllegalArgumentException) {
-    			Utils.reportStackTrace(e);
-                throw (IllegalArgumentException) e;
-            }
-            else {
-                throw new IllegalArgumentException("Error parsing clauses:\n" + clauses, e);
-            }
-        }
-
     }
 
     /** Asserts the definite clause in the fact base of the prover.
@@ -133,7 +76,7 @@ public class DefaultHornClauseContext implements HornClauseContext {
      */
     @Override
     public void assertDefiniteClause(Clause definiteClause) throws IllegalArgumentException {
-        if (definiteClause.isDefiniteClause() == false) {
+        if (!definiteClause.isDefiniteClause()) {
             throw new IllegalArgumentException("Clause '" + definiteClause + "' is not definite.");
         }
 
@@ -143,7 +86,7 @@ public class DefaultHornClauseContext implements HornClauseContext {
     @Override
     public void assertSentences(Iterable<? extends Sentence> sentences) throws IllegalArgumentException {
         if (sentences != null) {
-            List<DefiniteClause> clausesToAssert = new ArrayList<DefiniteClause>();
+            List<DefiniteClause> clausesToAssert = new ArrayList<>();
 
             // First parse the sentences and make sure the all evaluate to
             // definite clauses.
@@ -225,26 +168,8 @@ public class DefaultHornClauseContext implements HornClauseContext {
             }
     }
 
-    @Override
-    public Proof getProof(String goal) throws IllegalArgumentException {
-        SLDQuery sldQuery = null;
-        try {
-            sldQuery = parseGoal(goal);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Error parsing goal '" + goal + "':" + e);
-        }
-
-        return getProof(sldQuery);
-    }
-
-    @Override
-    public Proof getProof(SLDQuery goal) throws IllegalArgumentException {
-            DefaultProof proof = new DefaultProof(clausebase, goal);
-            return proof;
-    }
-
     private SLDQuery parseGoal(String goal) throws IllegalArgumentException {
-        if (goal.endsWith(".") == false) {
+        if (!goal.endsWith(".")) {
             goal = goal + ".";
         }
 
@@ -261,11 +186,9 @@ public class DefaultHornClauseContext implements HornClauseContext {
 
         List<Clause> clauses = sentences.get(0).convertToClausalForm();
 
-        List<Literal> literalsToProve = new ArrayList<Literal>();
+        List<Literal> literalsToProve = new ArrayList<>();
 
-        for (int i = 0; i < clauses.size(); i++) {
-            Clause clause = clauses.get(i);
-
+        for (Clause clause : clauses) {
             if (clause.getNegLiteralCount() != 0) {
                 throw new IllegalArgumentException("Negated literal '" + clause + "' found in goal '" + goal + "'.  Goal should be conjunct of positive literals.");
             }
@@ -311,46 +234,13 @@ public class DefaultHornClauseContext implements HornClauseContext {
     }
 
     @Override
-    public void loadLibrary(String libraryName) {
-
-
-        boolean hold_cleanFunctionAndPredicateNames = getStringHandler().cleanFunctionAndPredicateNames;
-        getStringHandler().cleanFunctionAndPredicateNames = false;
-
-        try {
-            List<Sentence> librarySentences = getFileParser().loadThisFile(true, libraryName, false);
-
-            assertSentences(librarySentences);
-        } catch (Exception e) {
-            throw new RuntimeException("Problem encountered reading built-in library: '" + libraryName + "'.", e);
-        } finally {
-            getStringHandler().cleanFunctionAndPredicateNames = hold_cleanFunctionAndPredicateNames;
-        }
-
-    }
-
-    @Override
     public String toString() {
         return "DefaultHornClauseContext [\n" + getClausebase() + "]";
     }
 
-    public void addProofListener(ProofListener proofListener) {
-        if ( proofListenerList == null ) {
-            proofListenerList = new ArrayList<ProofListener>();
-        }
-        proofListenerList.add(proofListener);
-    }
-
-    public void removeProofListener(ProofListener proofListener) {
-        if ( proofListenerList != null ) {
-            proofListenerList.remove(proofListener);
-        }
-    }
-
     private void fireProving(SLDQuery query) {
         if ( proofListenerList != null ) {
-            for (int i = 0; i < proofListenerList.size(); i++) {
-                ProofListener proofListener = proofListenerList.get(i);
+            for (ProofListener proofListener : proofListenerList) {
                 proofListener.proving(query);
             }
         }

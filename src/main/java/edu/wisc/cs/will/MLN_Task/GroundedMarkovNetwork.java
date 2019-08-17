@@ -20,7 +20,7 @@ public class GroundedMarkovNetwork extends GroundThisMarkovNetwork {
 		Utils.println("\n% Create all the query literals.");
 		task.createAllQueryLiterals();  // Need all of these to be expanded (TODO - keep statistics in a sparse array), since we're assuming inference will be done soon.
 		Utils.println("\n% There are " + Utils.comma(task.getQueryLiterals()) + " query literals: " + Utils.limitLengthOfPrintedList(task.getQueryLiterals(), 25));
-		collectAllRemainingGroundings(timeStamp);
+		collectAllRemainingGroundings();
 		if (Utils.getSizeSafely(stillTooLargeAfterReduction) < 1) { Utils.println("\n% Because there are only " + Utils.truncate(totalNumberOfGroundingsRemaining, 0) + " clause groundings remaining, will perform standard inference."); }
 		else { Utils.println("\n% Due to the large number of groundings they have remaining, " + Utils.comma(stillTooLargeAfterReduction) + " clauses need to be handled lazily."); }
 		return (Utils.getSizeSafely(stillTooLargeAfterReduction) > 0);

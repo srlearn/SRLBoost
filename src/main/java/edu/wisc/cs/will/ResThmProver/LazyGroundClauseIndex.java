@@ -1,14 +1,17 @@
 package edu.wisc.cs.will.ResThmProver;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+
+// TODO(@hayesall): Lots of duplicated code with `LazyGroundNthArgumentClauseIndex`
 
 /** This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground heads.
  *
@@ -38,7 +41,7 @@ public class LazyGroundClauseIndex {
      * all args.  This is necessary to make sure unseen term combinations
      * start with the unground clauses in their index.
      */
-    private Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundArgs = new HashMap<PredicateNameAndArity, DefiniteClauseList>();
+    private Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundArgs = new HashMap<>();
 
     public LazyGroundClauseIndex(HornClausebase clausebase) {
         this.clausebase = clausebase;
@@ -51,12 +54,10 @@ public class LazyGroundClauseIndex {
 
             Map<List<Term>, DefiniteClauseList> mapForKey = definiteClausesAllArgsIndex.get(key);
             if (mapForKey == null) {
-                mapForKey = new HashMap<List<Term>, DefiniteClauseList>();
+                mapForKey = new HashMap<>();
                 definiteClausesAllArgsIndex.put(key, mapForKey);
 
-                if (LazyHornClausebase.DEBUG >= -2) { // Changed by JWS.
-                    Utils.println("% [ LazyGroundClauseIndex ]  Creating ground clause index for " + key + ".");
-                }
+                Utils.println("% [ LazyGroundClauseIndex ]  Creating ground clause index for " + key + ".");
             }
 
             if (headLiteral.isGrounded()) {
@@ -92,7 +93,7 @@ public class LazyGroundClauseIndex {
 
     }
 
-    public void removeDefiniteClause(PredicateNameAndArity key, DefiniteClause definiteClause) {
+    void removeDefiniteClause(PredicateNameAndArity key, DefiniteClause definiteClause) {
 
         if (definiteClausesAllArgsIndex.containsKey(key)) {
             Literal headLiteral = definiteClause.getDefiniteClauseHead();
@@ -108,6 +109,7 @@ public class LazyGroundClauseIndex {
                             definiteClauseList.remove(definiteClause);
                         }
 
+                        assert definiteClauseList != null;
                         if (definiteClauseList.isEmpty()) {
                             mapForKey.remove(headLiteral.getArguments());
                         }
@@ -126,7 +128,7 @@ public class LazyGroundClauseIndex {
         }
     }
 
-    public DefiniteClauseList lookupDefiniteClauses(Literal lookupLiteral) {
+    DefiniteClauseList lookupDefiniteClauses(Literal lookupLiteral) {
         if (definiteClausesAllArgsIndex != null && lookupLiteral != null && lookupLiteral.isGrounded()) {
             PredicateNameAndArity key = lookupLiteral.getPredicateNameAndArity();
             Map<List<Term>, DefiniteClauseList> mapForKey = definiteClausesAllArgsIndex.get(key);
@@ -137,18 +139,16 @@ public class LazyGroundClauseIndex {
                 mapForKey = buildIndexForKey(key);
             }
 
-            if (mapForKey != null) {
-                DefiniteClauseList definiteClauseList = mapForKey.get(lookupLiteral.getArguments());
+            DefiniteClauseList definiteClauseList = mapForKey.get(lookupLiteral.getArguments());
 
-                // If we got this far, than we know that the predicate/arity does have entries.
-                // So, if definiteClauseList is null, then there must be no completions and we
-                // should return an empty list.
-                if (definiteClauseList == null) {
-                    return getDefiniteClausesSeedList(key);
-                }
-                else {
-                    return definiteClauseList;
-                }
+            // If we got this far, than we know that the predicate/arity does have entries.
+            // So, if definiteClauseList is null, then there must be no completions and we
+            // should return an empty list.
+            if (definiteClauseList == null) {
+                return getDefiniteClausesSeedList(key);
+            }
+            else {
+                return definiteClauseList;
             }
         }
 
@@ -162,8 +162,7 @@ public class LazyGroundClauseIndex {
             return definiteClausesForKey;
         }
         else {
-            DefiniteClauseList emptyList = new DefiniteClauseList();
-            return emptyList;
+            return new DefiniteClauseList();
         }
     }
 
@@ -213,26 +212,6 @@ public class LazyGroundClauseIndex {
         return stringBuilder.toString();
     }
 
-    public String toLongString() {
-        StringBuilder sb = new StringBuilder();
-
-        for (Map.Entry<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> entry : definiteClausesAllArgsIndex.entrySet()) {
-
-
-            sb.append("  ").append(entry.getKey()).append(":\n");
-            for (Map.Entry<List<Term>, DefiniteClauseList> entry1 : entry.getValue().entrySet()) {
-                sb.append("    ").append(entry1.getKey()).append(":\n");
-
-                for (DefiniteClause definiteClause : entry1.getValue()) {
-                    sb.append("      ").append(definiteClause).append(".\n");
-                }
-            }
-            sb.append("\n");
-        }
-
-        return sb.toString();
-    }
-
     private Map<List<Term>, DefiniteClauseList> buildIndexForKey(PredicateNameAndArity key) {
         if (definiteClausesAllArgsIndex.containsKey(key)) {
             throw new IllegalStateException("LazyGroundClauseIndex.buildIndexForKey(): Predicate " + key + " already indexed.");
@@ -242,7 +221,7 @@ public class LazyGroundClauseIndex {
 
         if (LazyHornClausebase.DEBUG >= 1) {
             if (indexBuilds == null) {
-                indexBuilds = new HashMap<PredicateNameAndArity, Integer>();
+                indexBuilds = new HashMap<>();
             }
 
             Integer count = indexBuilds.get(key);
@@ -252,51 +231,37 @@ public class LazyGroundClauseIndex {
         MapOfDefiniteClauseLists assertions = clausebase.getAssertionsMap();
         DefiniteClauseList clauses = assertions.getValues(key);
 
-        Map<List<Term>, DefiniteClauseList> mapForKey = null;
+        Map<List<Term>, DefiniteClauseList> mapForKey;
 
-        if (clauses == null) {
-            // Not sure what we should do here...this
-            // is an index build for a predicate that doesn't exist in
-            // the clausebase.
-            //
-            // One option would be to add a marker indicating there are no expansions.
-            // Another would be to assume that the upper level of indexing detected this
-            // this situation and didn't attempt to pass it down to here.
-        }
-        else {
+        Utils.println("% [ LazyGroundClauseIndex ]  Building full index for " + key + " with " + Utils.comma(clauses) + " assertions.");
 
-            if (LazyHornClausebase.DEBUG >= -2) { // Changed by JWS.
-                Utils.println("% [ LazyGroundClauseIndex ]  Building full index for " + key + " with " + Utils.comma(clauses) + " assertions.");
-            }
+        mapForKey = new HashMap<>((int) Math.max(16, clauses.size() / 0.75 + 10));
 
-            mapForKey = new HashMap<>((int) Math.max(16, clauses.size() / 0.75 + 10));
+        for (DefiniteClause definiteClause : clauses) {
+            Literal headLiteral = definiteClause.getDefiniteClauseHead();
 
-            for (DefiniteClause definiteClause : clauses) {
-                Literal headLiteral = definiteClause.getDefiniteClauseHead();
+            if (headLiteral.isGrounded()) {
+                DefiniteClauseList definiteClauseList = mapForKey.get(headLiteral.getArguments());
 
-                if (headLiteral.isGrounded()) {
-                    DefiniteClauseList definiteClauseList = mapForKey.get(headLiteral.getArguments());
-
-                    if (definiteClauseList == null) {
-                        definiteClauseList = new DefiniteClauseList(getDefiniteClausesSeedList(key));
-                        mapForKey.put(headLiteral.getArguments(), definiteClauseList);
-                    }
-
-                    definiteClauseList.add(definiteClause);
+                if (definiteClauseList == null) {
+                    definiteClauseList = new DefiniteClauseList(getDefiniteClausesSeedList(key));
+                    mapForKey.put(headLiteral.getArguments(), definiteClauseList);
                 }
-                else {
-                    // This is an non-ground literal, so we just need to throw into all of the appropriate
-                    // places was well as the seed list.
-                    for (DefiniteClauseList list : mapForKey.values()) {
-                        list.add(definiteClause);
-                    }
 
-                    addDefiniteClausesSeedDefiniteClause(key, definiteClause);
-                }
+                definiteClauseList.add(definiteClause);
             }
+            else {
+                // This is an non-ground literal, so we just need to throw into all of the appropriate
+                // places was well as the seed list.
+                for (DefiniteClauseList list : mapForKey.values()) {
+                    list.add(definiteClause);
+                }
 
-            definiteClausesAllArgsIndex.put(key, mapForKey);
+                addDefiniteClausesSeedDefiniteClause(key, definiteClause);
+            }
         }
+
+        definiteClausesAllArgsIndex.put(key, mapForKey);
 
         return mapForKey;
     }

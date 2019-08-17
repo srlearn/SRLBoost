@@ -1,20 +1,15 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- *
- */
 package edu.wisc.cs.will.ResThmProver;
 
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName; 
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import edu.wisc.cs.will.FOPC.BindingList;
+import edu.wisc.cs.will.FOPC.DefiniteClause;
+import edu.wisc.cs.will.FOPC.Literal;
+import edu.wisc.cs.will.FOPC.PredicateName; 
+import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 
 /** Default implementation of a HornClauseFactbaseIndexer.
  *
@@ -63,11 +58,11 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
 
     private final boolean lazyIndicesEnabled = false;
 
-    public DefaultHornClausebaseIndexer(HornClausebase clausebase, Class<? extends T> elementClass) {
+    DefaultHornClausebaseIndexer(HornClausebase clausebase, Class<? extends T> elementClass) {
         this(clausebase, elementClass, 2);
     }
 
-    public DefaultHornClausebaseIndexer(HornClausebase clausebase, Class<? extends T> elementClass, int indexWidth) {
+    private DefaultHornClausebaseIndexer(HornClausebase clausebase, Class<? extends T> elementClass, int indexWidth) {
         this.clausebase = clausebase;
         this.elementClass = elementClass;
         this.indexWidth = indexWidth;
@@ -90,7 +85,7 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
 
         built = false;
 
-        constructedIndices = new HashSet<PredicateNameAndArity>();
+        constructedIndices = new HashSet<>();
     }
 
     @Override
@@ -101,7 +96,7 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
     @Override
     public void buildIndex(Collection<? extends T> clauses) {
 
-        if ( lazyIndicesEnabled == false ) {
+        if (!lazyIndicesEnabled) {
             if (clauses != null) {
                 for (T definiteClause : clauses) {
                     indexAssertion(definiteClause);
@@ -119,7 +114,7 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
 
             PredicateNameAndArity key = new PredicateNameAndArity(definiteClause);
 
-            if ( lazyIndicesEnabled == false || constructedIndices.contains(key) ) {
+            if (!lazyIndicesEnabled || constructedIndices.contains(key) ) {
                 indexDefiniteClauseByPredicate(key, definiteClause);
                 indexDefiniteClauseByAllArgs(key, definiteClause);
                 for (int i = 0; i < indexWidth && i < key.getArity(); i++) {
@@ -134,7 +129,7 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
 
         PredicateNameAndArity key = new PredicateNameAndArity(definiteClause);
 
-        if ( built && (lazyIndicesEnabled == false || constructedIndices.contains(key) )) {
+        if ( built && (!lazyIndicesEnabled || constructedIndices.contains(key) )) {
             removeDefiniteClauseByPredicate(key, definiteClause);
             removeDefiniteClauseByAllArgs(key, definiteClause);
             for (int i = 0; i < indexWidth && i < key.getArity(); i++) {
@@ -148,7 +143,7 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
     @Override
     public List<T> getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBindings) {
         if (clauseHead != null) {
-            List<T> set = null;
+            List<T> set;
 
             PredicateNameAndArity pnaa = clauseHead.getPredicateNameAndArity();
             constructLazyIndexForPredicate(pnaa);
@@ -184,7 +179,7 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
                 }
                 else {
                     set = lookupDefiniteClausesByPredicate(pnaa);
-                    if (set != null && set.isEmpty() == false) {
+                    if (set != null && !set.isEmpty()) {
                         predicateHitCount++;
                     }
                     return set;
@@ -201,8 +196,7 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
 
         constructLazyIndexForPredicate(pnaa);
 
-        List<T> set = lookupDefiniteClausesByPredicate(pnaa);
-        return set;
+        return lookupDefiniteClausesByPredicate(pnaa);
     }
 
     private void indexDefiniteClauseByNthArg(int indexedArgument, PredicateNameAndArity key, T sentence) {
@@ -210,15 +204,12 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
             if (singleGroundArgIndexArray[indexedArgument] == null) {
                 singleGroundArgIndexArray[indexedArgument] = new GroundNthArgumentClauseIndex(indexedArgument);
             }
-
             singleGroundArgIndexArray[indexedArgument].indexDefiniteClause(key, sentence);
         }
     }
 
     private void removeDefiniteClauseByNthArg(int indexedArgument, PredicateNameAndArity key, T sentence) {
         if (indexedArgument < indexWidth) {
-
-            // We already checked that the PredicateNameAndArity indice was previously build.
             if (singleGroundArgIndexArray[indexedArgument] != null) {
                 singleGroundArgIndexArray[indexedArgument].removeDefiniteClause(key, sentence);
             }
@@ -226,32 +217,21 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
     }
 
     private List<T> lookupDefiniteClausesByNthArgs(int indexedArgument, Literal literal) {
-
-        // We already checked that the PredicateNameAndArity indice was previously build.
-
         if (singleGroundArgIndexArray[indexedArgument] != null) {
             singleGroundArgIndexLookupCount[indexedArgument]++;
             return singleGroundArgIndexArray[indexedArgument].lookupDefiniteClauses(literal);
         }
-
         return null;
     }
 
     private void indexDefiniteClauseByAllArgs(PredicateNameAndArity key, T sentence) {
-
-        // We already checked that the PredicateNameAndArity should be indexed.
-
         if (groundClauseIndex == null) {
-            groundClauseIndex = new GroundClauseIndex<T>();
+            groundClauseIndex = new GroundClauseIndex<>();
         }
-
         groundClauseIndex.indexDefiniteClause(key, sentence);
     }
 
     private void removeDefiniteClauseByAllArgs(PredicateNameAndArity key, T sentence) {
-
-        // We already checked that the PredicateNameAndArity indice was previously build.
-
         if (groundClauseIndex != null) {
             groundClauseIndex.removeDefiniteClause(key, sentence);
         }
@@ -269,35 +249,23 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
     }
 
     private void indexDefiniteClauseByPredicate(PredicateNameAndArity key, T sentence) {
-
-        // We already checked that the PredicateNameAndArity should be indexed.
-
         if (predicateIndex == null) {
-            predicateIndex = new PredicateIndex<T>();
+            predicateIndex = new PredicateIndex<>();
         }
-
         predicateIndex.indexDefiniteClause(key, sentence);
     }
 
     private void removeDefiniteClauseByPredicate(PredicateNameAndArity key, T sentence) {
-
-        // We already checked that the PredicateNameAndArity indice was previously build.
-
         if (predicateIndex != null) {
             predicateIndex.removeDefiniteClause(key, sentence);
         }
     }
 
     private List<T> lookupDefiniteClausesByPredicate(PredicateNameAndArity pnaa) {
-
-        // We already checked that the PredicateNameAndArity indice was previously build.
-
         if (predicateIndex != null) {
-
             predicateLookupCount++;
             return predicateIndex.lookupDefiniteClause(pnaa);
         }
-
         return null;
     }
 
@@ -316,32 +284,8 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
         return sb.toString();
     }
 
-    public String toLongString() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("DefaultHornClauseFactbaseIndexer:\n\n");
-
-        sb.append("  Indices built for ").append(constructedIndices.size()).append(" predicates.\n");
-
-        for (int i = 0; i < indexWidth; i++) {
-            sb.append("GroundArgument ").append(i).append(" index:\n");
-            sb.append(singleGroundArgIndexArray[i]);
-            sb.append("\n\n");
-        }
-
-        sb.append("All argument ground index:\n");
-        sb.append(groundClauseIndex);
-        sb.append("\n\n");
-
-        sb.append("Predicate index:\n");
-        sb.append(predicateIndex);
-        sb.append("\n\n");
-
-        return sb.toString();
-    }
-
     private void constructLazyIndexForPredicate(PredicateNameAndArity pnaa) {
-        if ( lazyIndicesEnabled && constructedIndices.contains(pnaa) == false ) {
+        if ( lazyIndicesEnabled && !constructedIndices.contains(pnaa)) {
 
             constructedIndices.add(pnaa);
 

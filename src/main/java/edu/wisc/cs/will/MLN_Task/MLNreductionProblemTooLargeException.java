@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.MLN_Task;
 
 import edu.wisc.cs.will.Utils.Utils;
@@ -10,23 +7,11 @@ import edu.wisc.cs.will.Utils.Utils;
  * @author shavlik
  *
  */
-public class MLNreductionProblemTooLargeException extends Exception {
+class MLNreductionProblemTooLargeException extends Exception {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 5767896698846546439L;
 
-	/**
-	 * 
-	 */
-	public MLNreductionProblemTooLargeException() {
-	}
-
-	/**
-	 * @param message
-	 */
-	public MLNreductionProblemTooLargeException(String message) {
+	MLNreductionProblemTooLargeException(String message) {
 		if (message != null) { Utils.println("% MLNreductionProblemTooLargeException: " + message); }
 	}
 

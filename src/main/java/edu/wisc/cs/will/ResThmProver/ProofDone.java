@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ResThmProver;
 
 import java.util.List;
@@ -11,14 +8,11 @@ import edu.wisc.cs.will.FOPC.Binding;
 
 /**
  * @author shavlik
- *
  */
 public class ProofDone extends EndTest {
-	HornSearchNode goalNodeFound;
-	/**
-	 * 
-	 */
-	public ProofDone(HornClauseProver task) {
+	private HornSearchNode goalNodeFound;
+
+	ProofDone(HornClauseProver task) {
 		super(task);
 	}
 	
@@ -32,13 +26,8 @@ public class ProofDone extends EndTest {
 	public void clearAnySavedInformation(boolean insideIterativeDeepening) {
 		goalNodeFound = null;
 	}
-	
-	public List<Binding> collectBindingsUsedInProof() {
-		if (goalNodeFound == null) { return null; }
-		return goalNodeFound.collectBindingsToRoot();
-	}
 
-    public List<Binding> collectQueryBindings() {
+	public List<Binding> collectQueryBindings() {
         if (goalNodeFound == null) { return null; }
 		return goalNodeFound.collectQueryBindings().collectBindingsInList();
     }

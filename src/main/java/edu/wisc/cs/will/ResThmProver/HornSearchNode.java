@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ResThmProver;
 
 import java.util.Collection;
@@ -9,7 +6,6 @@ import java.util.List;
 import edu.wisc.cs.will.FOPC.Binding;
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.Utils.Utils;
@@ -17,7 +13,6 @@ import edu.wisc.cs.will.stdAIsearch.SearchNode;
 
 /**
  * @author shavlik
- *
  */
 @SuppressWarnings("serial")
 public class HornSearchNode extends SearchNode {
@@ -30,34 +25,24 @@ public class HornSearchNode extends SearchNode {
     int         parentExpansionIndex;
 
 
-	public HornSearchNode(HornClauseProver task, Clause clause, BindingList bindings, long parentProofCounter, int parentExpansionIndex) { // Used for the initial call (i.e., to create the root of the search space).
+	HornSearchNode(HornClauseProver task, Clause clause, BindingList bindings, long parentProofCounter, int parentExpansionIndex) { // Used for the initial call (i.e., to create the root of the search space).
 		super(task);
 		this.clause   = clause;
 		this.bindings = bindings; // I don't think there will ever be bindings at the root, but leave a hook in here just in case.
         this.parentProofCounter = parentProofCounter;
         this.parentExpansionIndex = parentExpansionIndex;
 	}
-	public HornSearchNode(HornSearchNode parentNode, Clause clause, BindingList bindings, long parentProofCounter, int parentExpansionIndex) {
+	HornSearchNode(HornSearchNode parentNode, Clause clause, BindingList bindings, long parentProofCounter, int parentExpansionIndex) {
 		super(parentNode);
 		this.clause   = clause;
 		this.bindings = bindings;
         this.parentProofCounter = parentProofCounter;
         this.parentExpansionIndex = parentExpansionIndex;
 	}
-	
-	/**
-	 * See if this node contains this literal as its first literal (should be the only literal and the predicateName should be cutPredMarker, but assume the caller checks for this).
-	 * 
-	 * @param lit
-	 * @return Whether the given literal is the cut marker for this node.
-	 */
-	public boolean isThisCutMarker(Literal lit) {
-		return Utils.getSizeSafely(clause.negLiterals) > 0 && clause.negLiterals.get(0) == lit;
-	}
-	
-	// Note that the bindings returned by this might look confusing since two different instances of the variable x will print the same,
+
+    // Note that the bindings returned by this might look confusing since two different instances of the variable x will print the same,
 	// and since they are really two different variables, they may well bind to different things.
-	public List<Binding> collectBindingsToRoot() {
+    List<Binding> collectBindingsToRoot() {
 
         List<Binding> bindingList = null;
 
@@ -80,23 +65,9 @@ public class HornSearchNode extends SearchNode {
 		return bindingList;
 	}
 
-//    public BindingList collectQueryBindings() {
-//
-//        // Pass this off to the helper which tracks the childBindings.
-//        //return collectQueryBindings(null);
-//        BindingList queryVariables = getQueryVariables();
-//
-//        if ( queryVariables.theta.size() > 0 ) {
-//            BindingList proofBindings = collectForwardBindings();
-//            queryVariables.applyThetaInPlace(proofBindings.theta);
-//        }
-//
-//        return queryVariables;
-//    }
+    private BindingList getQueryVariables() {
 
-    public BindingList getQueryVariables() {
-
-        BindingList bl = null;
+        BindingList bl;
 
         if ( getParentNode() != null ) {
             bl = getParentNode().getQueryVariables();
@@ -116,7 +87,7 @@ public class HornSearchNode extends SearchNode {
         return bl;
     }
 
-    public BindingList collectQueryBindings() {
+    BindingList collectQueryBindings() {
 
         BindingList bl;
 
@@ -126,21 +97,6 @@ public class HornSearchNode extends SearchNode {
             if ( bindings != null && bindings.theta != null ) {
                 bl.applyThetaInPlace(bindings.theta);
 
-//                for (Variable v : bindings.theta.keySet()) {
-//                    Term t1 = bl.lookup( v );
-//                    Term t2 = bindings.lookup(v);
-//
-//                    if ( t1 != null ) {
-//                        if ( t1.equals(t2) == false ) {
-//                            throw new RuntimeException("Trying to add " + v + " => " + t2 + ", but it is already mapped to " + t1 + "!\nNew Bindings: " + bindings  );
-//                        }
-//                    }
-//                    else {
-//                        bl.addBinding(v, t2);
-//                    }
-//
-//                }
-//
                 if ( DEBUG >= 1 ) System.out.println(bl + ".         Applied " + clause + "'s bindings = " + bindings + ".");
             }
         }
@@ -154,12 +110,10 @@ public class HornSearchNode extends SearchNode {
 
     }
 
-    /** Returns the binding for variable, or null if no binding is found.
-     *
-     * @param variable
-     * @return
+    /**
+     * Returns the binding for variable, or null if no binding is found.
      */
-    public Term getBinding(Variable variable) {
+    Term getBinding(Variable variable) {
 
         Term result = variable;
 
@@ -178,61 +132,6 @@ public class HornSearchNode extends SearchNode {
 
         return result == variable ? null : result;
     }
-
-//
-//    private BindingList collectQueryBindings(BindingList childBindings) {
-//
-//        BindingList bl;
-//
-//        if ( childBindings != null ) {
-//            if ( bindings != null && bindings.theta != null ) {
-//                bl = new BindingList();
-//
-//                for (Entry<Variable, Term> entry : bindings.theta.entrySet()) {
-//                    Term t2 = entry.getValue().applyTheta(childBindings.theta);
-//                    bl.addBinding(entry.getKey(), t2);
-//                }
-//
-//                bl.addBindings(childBindings);
-//            }
-//            else {
-//                // Also add the childBindings to the list...
-//                bl = childBindings;
-//            }
-//        }
-//        else if ( bindings != null && bindings.theta != null) {
-//           bl = new BindingList();
-//           bl.addBindings(bindings);
-//        }
-//        else {
-//            bl = null;
-//        }
-//
-//        if ( getParentNode() != null ) {
-//            return getParentNode().collectQueryBindings(bl);
-//        }
-//        else {
-//            // This is the parent query, so lets remove any of
-//            // the variable bindings that where not in the query.
-//            Collection<Variable> vars = clause.collectAllVariables();
-//
-//            if ( vars != null ) {
-//                Iterator<Variable> it = bl.theta.keySet().iterator();
-//                while(it.hasNext()) {
-//                    Variable var = it.next();
-//
-//                    if ( vars.contains(var) == false ) {
-//                        it.remove();
-//                    }
-//                }
-//            }
-//            else {
-//                bl.theta.clear();
-//            }
-//        }
-//
-//        return bl;
-//    }
 
     /** Returns the ParentNode.
      *
@@ -254,16 +153,13 @@ public class HornSearchNode extends SearchNode {
         return (HornSearchNode) super.getParentNode();
     }
 
-    public boolean isSolution() {
+    boolean isSolution() {
         return ( clause != null && clause.isEmptyClause());
     }
 
-    /**
-     * @param parentNode the parentNode to set
-     */
     @Override
     public void setParentNode(SearchNode parentNode) {
-        if (parentNode != null && parentNode instanceof HornSearchNode == false ) {
+        if (parentNode != null && !(parentNode instanceof HornSearchNode)) {
             throw new IllegalArgumentException("parentNode must be a HornSearchNode");
         }
 
@@ -272,12 +168,10 @@ public class HornSearchNode extends SearchNode {
 	
     @Override
 	public String toString() {
-    	//if (task.verbosity > 0) { reportNodePredicates(); return ""; } // TEMP patch for debugging.
-		//return (getParentNode() == null ? "" : getParentNode().toString() + " -> ") + clause.toString();
         return (getParentNode() == null ? "" : "parent -> ") + clause.toString();
 	}
     
-	public void reportNodePredicates() {
+	void reportNodePredicates() {
 		if (clause != null) {
 			Utils.print("%     Predicates in this node: ");
 			for (int i = 0; i < clause.getLength(); i++) { Utils.print(" " + clause.getIthLiteral(i).predicateName); }

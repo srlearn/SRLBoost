@@ -1,10 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ResThmProver;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import edu.wisc.cs.will.FOPC.DefiniteClause;
@@ -12,24 +9,18 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.LinkedHashMap;
 
 /** This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground Nth arguments in the head.
- *
- * @param <DefiniteClause> Type of object to be indexed.  This is either a Sentence, Clause, or Literal.
- * Specifying other types has an undefined result.
  *
  * @author twalker
  */
 public class LazyGroundNthArgumentClauseIndex {
 
-    HornClausebase clausebase;
+    private HornClausebase clausebase;
 
     private static int maximumIndexSizeDefault = 50;
-    private        int maximumIndexSize        = maximumIndexSizeDefault;
-    public int getMaximumIndexSize() {
-		return maximumIndexSize;
-	}
+    private        int maximumIndexSize;
+
     public static void setMaximumIndexSize(int maximumIndexSizeToUse) {
     	maximumIndexSizeDefault = maximumIndexSizeToUse;
 	}
@@ -44,14 +35,14 @@ public class LazyGroundNthArgumentClauseIndex {
     /** Index of clauses which might match a constant arg N.
      *
      */
-    private Map<PredicateNameAndArity, Map<Term, DefiniteClauseList>> definiteClausesByArgNIndex = new HashMap<PredicateNameAndArity, Map<Term, DefiniteClauseList>>();
+    private Map<PredicateNameAndArity, Map<Term, DefiniteClauseList>> definiteClausesByArgNIndex = new HashMap<>();
 
     /** Store clauses in which the Nth arg is not ground.
      *
      * This is used to as a starting place for new definiteClause lists indexed by the
      * Nth args.  This is necessary to make sure unseen
      */
-    private Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundNthArg = new HashMap<PredicateNameAndArity, DefiniteClauseList>();
+    private Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundNthArg = new HashMap<>();
 
 
     public LazyGroundNthArgumentClauseIndex(HornClausebase clausebase, int indexedArgument) {
@@ -60,22 +51,21 @@ public class LazyGroundNthArgumentClauseIndex {
         setIndexedArgument(indexedArgument);
     }
 
-    public void indexDefiniteClause(PredicateNameAndArity key, DefiniteClause definiteClause) {
+    void indexDefiniteClause(PredicateNameAndArity key, DefiniteClause definiteClause) {
         if (definiteClausesByArgNIndex.containsKey(key)) {
             Literal literal = definiteClause.getDefiniteClauseHead();
 
             if (literal.numberArgs() >= minimumClauseLengthToIndex) {
                 if (definiteClausesByArgNIndex == null) {
-                    definiteClausesByArgNIndex = new HashMap<PredicateNameAndArity, Map<Term, DefiniteClauseList>>();
+                    definiteClausesByArgNIndex = new HashMap<>();
                 }
 
                 Map<Term, DefiniteClauseList> mapForKey = definiteClausesByArgNIndex.get(key);
                 if (mapForKey == null) {
-                    mapForKey = new HashMap<Term, DefiniteClauseList>();
+                    mapForKey = new HashMap<>();
                     definiteClausesByArgNIndex.put(key, mapForKey);
-                    
-                    // Changed by JWS.
-                    if ( LazyHornClausebase.DEBUG >= -2 ) Utils.println("% [ LazyGroundNthArgumentClauseIndex ]  Argument " + indexedArgument + ":  Creating index for " + key + ".");
+
+                    Utils.println("% [ LazyGroundNthArgumentClauseIndex ]  Argument " + indexedArgument + ":  Creating index for " + key + ".");
                 }
 
                 Term key2 = literal.getArgument(indexedArgument);
@@ -107,7 +97,7 @@ public class LazyGroundNthArgumentClauseIndex {
         }
     }
 
-    public void removeDefiniteClause(PredicateNameAndArity key, DefiniteClause definiteClause) {
+    void removeDefiniteClause(PredicateNameAndArity key, DefiniteClause definiteClause) {
         if (definiteClausesByArgNIndex.containsKey(key)) {
             Literal literal = definiteClause.getDefiniteClauseHead();
 
@@ -151,8 +141,7 @@ public class LazyGroundNthArgumentClauseIndex {
             return definiteClausesForKey;
         }
         else {
-            DefiniteClauseList emptyList = new DefiniteClauseList();
-            return emptyList;
+            return new DefiniteClauseList();
         }
     }
 
@@ -186,7 +175,7 @@ public class LazyGroundNthArgumentClauseIndex {
      * This method can return null if the index doesn't contain a complete list of the possible matches.  This happen,
      * for example, if the Nth argument of literalToLookup is unground.
      */
-    public DefiniteClauseList lookupDefiniteClauses(Literal literalToLookup) {
+    DefiniteClauseList lookupDefiniteClauses(Literal literalToLookup) {
         if (definiteClausesByArgNIndex != null && literalToLookup != null && literalToLookup.numberArgs() >= minimumClauseLengthToIndex && literalToLookup.getArgument(indexedArgument).isGrounded()) {
             PredicateNameAndArity key = new PredicateNameAndArity(literalToLookup.predicateName, literalToLookup.numberArgs());
 
@@ -216,33 +205,12 @@ public class LazyGroundNthArgumentClauseIndex {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append("LazyGroundNthArgumentClauseIndex[").append(indexedArgument).append("]:\n");
-        stringBuilder.append("  maximumIndexSize  : ").append(maximumIndexSize).append(".\n");
-        stringBuilder.append("  currentIndexSize  : ").append(definiteClausesByArgNIndex.size()).append(".\n");
-        stringBuilder.append("  indicesConstructed: ").append(indicesConstructed).append(".\n");
-        stringBuilder.append("  indicesRemoved    : ").append(indicesRemoved).append(".\n");
-
-        return stringBuilder.toString();
-    }
-
-    public String toLongString() {
-        StringBuilder sb = new StringBuilder();
-
-        for (Map.Entry<PredicateNameAndArity, Map<Term, DefiniteClauseList>> entry : definiteClausesByArgNIndex.entrySet()) {
-            sb.append("  ").append(entry.getKey()).append(":\n");
-            for (Map.Entry<Term, DefiniteClauseList> entry1 : entry.getValue().entrySet()) {
-                sb.append("    ").append(entry1.getKey()).append(":\n");
-
-                for (DefiniteClause definiteClause : entry1.getValue()) {
-                    sb.append("      ").append(definiteClause).append(".\n");
-                }
-            }
-            sb.append("\n");
-        }
-
-        return sb.toString();
+        return "LazyGroundNthArgumentClauseIndex[" + indexedArgument + "]:\n" +
+                "  maximumIndexSize  : " + maximumIndexSize + ".\n" +
+                "  currentIndexSize  : " + definiteClausesByArgNIndex.size() + ".\n" +
+                "  indicesConstructed: " + indicesConstructed + ".\n" +
+                "  indicesRemoved    : " + indicesRemoved + ".\n";
     }
 
     /**
@@ -265,13 +233,13 @@ public class LazyGroundNthArgumentClauseIndex {
             if (keyAssertions != null) {
                 
             	 // Changed by JWS.
-                if ( LazyHornClausebase.DEBUG >= -2 ) Utils.println("% [ LazyGroundNthArgumentClauseIndex ]  Argument " + indexedArgument + ":  Building full index for " + predicateNameAndArity + ".");
+                Utils.println("% [ LazyGroundNthArgumentClauseIndex ]  Argument " + indexedArgument + ":  Building full index for " + predicateNameAndArity + ".");
 
                 if (definiteClausesByArgNIndex == null) {
                     definiteClausesByArgNIndex = new MyMap();
                 }
 
-                mapForKey = new HashMap<Term, DefiniteClauseList>();
+                mapForKey = new HashMap<>();
 
                 for (DefiniteClause definiteClause : keyAssertions) {
                     Literal literal = definiteClause.getDefiniteClauseHead();

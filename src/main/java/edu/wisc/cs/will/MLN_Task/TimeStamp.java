@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.MLN_Task;
 
 /**
@@ -10,9 +7,6 @@ package edu.wisc.cs.will.MLN_Task;
 public class TimeStamp {
 	private String timeStamp;
 
-	/**
-	 * 
-	 */
 	public TimeStamp(String theTimeStamp) {
 		timeStamp = theTimeStamp;
 	}

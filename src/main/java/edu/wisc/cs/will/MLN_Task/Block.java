@@ -1,9 +1,7 @@
 package edu.wisc.cs.will.MLN_Task;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.TypeSpec;
@@ -17,10 +15,7 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 public class Block {
 	private static final int debugLevel = 0;
-	
-	private static final int maxNumCombinations_default = 10000; // We stop execution if numCombinations is more than maxNumBlockCombinations.
-	private              int maxNumCombinations = maxNumCombinations_default;
-	
+
 	private List<GroundLiteral> gndLiterals;      // The ground literals in this block.
 	private Literal                literal;       // All ground literals in block are groundings of this literal.
 
@@ -28,16 +23,14 @@ public class Block {
 	private int     k;
 	private boolean exactly;
 
-	private boolean valuesInited;
-	private int     currNumTrueLiterals;
 	private boolean groundClausesComputed;
 		
 	/**
 	 * @param literal All ground literals in the block are groundings of this literal.
 	 * @param gndLiterals The ground literals in the block. Assumes that it doesn't contain any evidence literals.
 	 */
-	Block(Literal literal, List<GroundLiteral> gndLiterals, TimeStamp timeStamp) {
-		this(literal, gndLiterals, 0, timeStamp);
+	Block(Literal literal, List<GroundLiteral> gndLiterals) {
+		this(literal, gndLiterals, 0);
 	}
 	
 	/**
@@ -52,16 +45,13 @@ public class Block {
 	 * @param gndLiterals The ground literals in the block. Assumes that it doesn't contain any evidence literals.
 	 * @param numTrueEvidenceLiterals The number of positive evidence literals belonging to this block.
 	 */
-	private Block(Literal literal, List<GroundLiteral> gndLiterals, int numTrueEvidenceLiterals, TimeStamp timeStamp) {
+	private Block(Literal literal, List<GroundLiteral> gndLiterals, int numTrueEvidenceLiterals) {
 		this.gndLiterals = gndLiterals;
 		this.literal = literal;
-		int[] truthCounts = new int[literal.numberArgs()];
-		int index = 0;
 		boolean isABlock = false;
 		exactly = true;
 		List<TypeSpec> typeSpecList = literal.predicateName.getTypeOnlyList(literal.numberArgs()).get(0).getTypeSpecList();
 		for (TypeSpec typeSpec : typeSpecList) {
-			truthCounts[index++] = typeSpec.truthCounts;
 			if (typeSpec.truthCounts != 0) {
 				isABlock = true;
 				k = typeSpec.truthCounts;
@@ -74,18 +64,15 @@ public class Block {
 		if (!isABlock) {
 			Utils.printlnErr("Literal " + literal + " should not be used to instantiate a block object.");
 		}
-		valuesInited = false;
 		groundClausesComputed = false;
-		reduceK(numTrueEvidenceLiterals, timeStamp);
+		reduceK(numTrueEvidenceLiterals);
 	}	
 	
 	private void initGndClauses() {
 		if (debugLevel > 0) { Utils.println("*** Initializing list of ground clauses in " + literal + "'s block"); }
 		// Set of all ground clauses in which the ground literals of this block appear.
-		Set<GroundClause> gndClauses = new HashSet<>();
 		for (GroundLiteral gndLiteral : gndLiterals) {			
 			for (GroundClause gndClause : gndLiteral.getGndClauseSet()) {
-				gndClauses.add(gndClause);
 				if (debugLevel > 0) { Utils.println(gndClause.toString()); }
 			}
 		}
@@ -104,10 +91,6 @@ public class Block {
 	 */
 	public int getSize() {
 		return gndLiterals.size();
-	}
-
-	public Set<GroundLiteral> getNeighbors() {
-		Utils.error("need to fix this code"); return null;
 	}
 
 	/**
@@ -137,16 +120,16 @@ public class Block {
 	 * Likewise, do not call this method for ground literals which were accounted for by 
 	 * numTrueEvidenceLiterals argument in the constructor call.
 	 */
-	void addEvidence(TimeStamp timeStamp) {
-		reduceK(1, timeStamp);
+	void addEvidence() {
+		reduceK(1);
 	}
 	
-	private void reduceK(int value, TimeStamp timeStamp) {
+	private void reduceK(int value) {
 		if (value <= 0) return;
 		k -= value;
 		if (k <= 0) {
 			for (GroundLiteral gndLiteral : gndLiterals) {
-				gndLiteral.setValueOnly(false, timeStamp);
+				gndLiteral.setValueOnly();
 			}
 			k = 0;
 		}
@@ -157,7 +140,7 @@ public class Block {
 	 * @return true if the gndLiteral was added to the block.
 	 */
 	boolean addGndLiteral(GroundLiteral gndLiteral) {
-		if (!canAddGndLiteral(gndLiteral)) return false;
+		if (!canAddGndLiteral()) return false;
 		if (gndLiterals == null) {
 			gndLiterals = new ArrayList<>();
 		}		
@@ -172,7 +155,7 @@ public class Block {
 	 *
 	 * @return true/false indicating whether this gndLiteral must be added to this block or not.
 	 */
-	boolean canAddGndLiteral(GroundLiteral gndLiteral) {
+	boolean canAddGndLiteral() {
 		Utils.error("need to fix this code"); return false;
 	}
 

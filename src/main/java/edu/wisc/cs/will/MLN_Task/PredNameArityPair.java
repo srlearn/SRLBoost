@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.MLN_Task;
 
 import edu.wisc.cs.will.FOPC.PredicateName;
@@ -13,9 +10,6 @@ public class PredNameArityPair {
 	public PredicateName pName;
 	public int           arity;
 
-	/**
-	 * 
-	 */
 	PredNameArityPair(PredicateName pName, int arity) {
 		this.pName = pName;
 		this.arity = arity;
@@ -41,11 +35,8 @@ public class PredNameArityPair {
 		if (arity != other.arity)
 			return false;
 		if (pName == null) {
-			if (other.pName != null)
-				return false;
-		} else if (!pName.equals(other.pName))
-			return false;
-		return true;
+			return other.pName == null;
+		} else return pName.equals(other.pName);
 	}
 	public String toString() {
 		return pName + "/" + arity;

@@ -1,16 +1,12 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.ResThmProver;
+
+import java.util.Collection;
+import java.util.List;
 
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName;
-import java.util.Collection;
-import java.util.List;
 
 /** Interface for an indexer of a horn clause fact base.
  *
@@ -24,7 +20,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
     /** Clears the index.
      *
      */
-    public void resetIndex();
+    void resetIndex();
 
     /** Indicates that the index is built.
      *
@@ -33,7 +29,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      *
      * @return True if the index is built.
      */
-    public boolean isBuilt();
+    boolean isBuilt();
 
     /** Builds the index for the indicated collection of DefiniteClauses.
      *
@@ -43,7 +39,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      * @param clauses Clauses to build the index from.  May be null if the
      * index should be started from scratch.
      */
-    public void buildIndex(Collection<? extends T> clauses);
+    void buildIndex(Collection<? extends T> clauses);
 
     /** Indexes the definite clause rule.
      *
@@ -53,7 +49,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      * @param clause Clause (guaranteed to be definite) that was added to the fact base.
      * The clause may have no body, in case it should be considered a facts.
      */
-    public void indexAssertion(T clause);
+    void indexAssertion(T clause);
 
     /** Retracts the specified definiteClause.
      *
@@ -62,7 +58,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      *
      * @param definiteClause Definite clause to retract.
      */
-    public void removeAssertion(T definiteClause);
+    void removeAssertion(T definiteClause);
 
     /** Returns a Collection of definite clauses whose head might match the specified clauseHead.
      *
@@ -78,7 +74,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      * @param currentBinding Bindings currently applied to clauseHead.
      * @return Collection of Sentences that may match predicateName/arity, possible null.
      */
-    public List<T> getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBinding);
+    List<T> getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBinding);
     
     /** Returns a Collection of definite clauses whose head might match the specified clauseHead.
      *
@@ -94,7 +90,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      * @param arity Arity to match.
      * @return Collection of Sentences that may match predicateName/arity, possible null.
      */
-    public List<T> getPossibleMatchingAssertions(PredicateName predicateName, int arity);
+    List<T> getPossibleMatchingAssertions(PredicateName predicateName, int arity);
 
 
 }

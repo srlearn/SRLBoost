@@ -1,14 +1,15 @@
 package edu.wisc.cs.will.ResThmProver;
 
+import java.util.Iterator;
+
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.DefiniteClause;
-import java.util.Iterator;
 
 public class DefiniteClauseToClauseIterable implements Iterable<Clause> {
 
-    Iterable<DefiniteClause> iterable;
+    private Iterable<DefiniteClause> iterable;
 
-    public DefiniteClauseToClauseIterable(Iterable<DefiniteClause> iterable) {
+    DefiniteClauseToClauseIterable(Iterable<DefiniteClause> iterable) {
         this.iterable = iterable;
     }
 
@@ -20,7 +21,7 @@ public class DefiniteClauseToClauseIterable implements Iterable<Clause> {
 
     Iterator<DefiniteClause> iterator;
 
-    public DefiniteClauseToClauseIterator(Iterator<DefiniteClause> iterator) {
+    DefiniteClauseToClauseIterator(Iterator<DefiniteClause> iterator) {
         this.iterator = iterator;
     }
 
@@ -35,7 +36,5 @@ public class DefiniteClauseToClauseIterable implements Iterable<Clause> {
     public void remove() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
-
 }
 }

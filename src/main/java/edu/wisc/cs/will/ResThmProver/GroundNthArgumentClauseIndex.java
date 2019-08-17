@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.ResThmProver;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -30,36 +24,32 @@ public class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
     /** Index of clauses which might match a constant arg N.
      *
      */
-    private Map<PredicateNameAndArity, Map<Term, List<T>>> definiteClausesByArgNIndex = new HashMap<PredicateNameAndArity, Map<Term, List<T>>>();
+    private Map<PredicateNameAndArity, Map<Term, List<T>>> definiteClausesByArgNIndex = new HashMap<>();
 
     /** Store clauses in which the Nth arg is not ground.
      *
      * This is used to as a starting place for new definiteClause lists indexed by the
      * Nth args.  This is necessary to make sure unseen
      */
-    private Map<PredicateNameAndArity, List<T>> definiteClausesWithUngroundNthArg = new HashMap<PredicateNameAndArity, List<T>>();
+    private Map<PredicateNameAndArity, List<T>> definiteClausesWithUngroundNthArg = new HashMap<>();
 
     private int indexedArgument;
     private int minimumClauseLengthToIndex;
 
-    public GroundNthArgumentClauseIndex(int indexedArgument) {
+    GroundNthArgumentClauseIndex(int indexedArgument) {
         setIndexedArgument(indexedArgument);
     }
 
-    public void indexDefiniteClause(PredicateNameAndArity key, T definiteClause) {
+    void indexDefiniteClause(PredicateNameAndArity key, T definiteClause) {
         
         Literal literal = definiteClause.getDefiniteClauseHead();
 
         if (literal.numberArgs() >= minimumClauseLengthToIndex ) {
             if (definiteClausesByArgNIndex == null) {
-                definiteClausesByArgNIndex = new HashMap<PredicateNameAndArity, Map<Term, List<T>>>();
+                definiteClausesByArgNIndex = new HashMap<>();
             }
 
-            Map<Term, List<T>> mapForKey = definiteClausesByArgNIndex.get(key);
-            if (mapForKey == null) {
-                mapForKey = new HashMap<Term, List<T>>();
-                definiteClausesByArgNIndex.put(key, mapForKey);
-            }
+            Map<Term, List<T>> mapForKey = definiteClausesByArgNIndex.computeIfAbsent(key, k -> new HashMap<>());
 
             Term key2 = literal.getArgument(indexedArgument);
 
@@ -68,7 +58,7 @@ public class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
                 List<T> definiteClauseList = mapForKey.get(key2);
 
                 if (definiteClauseList == null) {
-                    definiteClauseList = new LinkedList<T>(getDefiniteClauseByNthArgSeedList(key));
+                    definiteClauseList = new LinkedList<>(getDefiniteClauseByNthArgSeedList(key));
                     mapForKey.put(key2, definiteClauseList);
                 }
 
@@ -84,7 +74,7 @@ public class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
         }
     }
 
-    public void removeDefiniteClause(PredicateNameAndArity key, T definiteClause) {
+    void removeDefiniteClause(PredicateNameAndArity key, T definiteClause) {
         Literal literal = definiteClause.getDefiniteClauseHead();
 
         if (literal.numberArgs() >= minimumClauseLengthToIndex) {
@@ -126,18 +116,12 @@ public class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
             return definiteClausesForKey;
         }
         else {
-            List<T> emptyList = Collections.emptyList();
-            return emptyList;
+            return Collections.emptyList();
         }
     }
 
     private void addDefiniteClauseByNthArgSeedSentence(PredicateNameAndArity key, T definiteClause) {
-        List<T> definiteClausesForKey = definiteClausesWithUngroundNthArg.get(key);
-
-        if ( definiteClausesForKey == null ) {
-            definiteClausesForKey = new ArrayList<T>();
-            definiteClausesWithUngroundNthArg.put(key, definiteClausesForKey);
-        }
+        List<T> definiteClausesForKey = definiteClausesWithUngroundNthArg.computeIfAbsent(key, k -> new ArrayList<>());
 
         definiteClausesForKey.add(definiteClause);
     }
@@ -161,7 +145,7 @@ public class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
      * This method can return null if the index doesn't contain a complete list of the possible matches.  This happen,
      * for example, if the Nth argument of literalToLookup is unground.
      */
-    public List<T> lookupDefiniteClauses(Literal literalToLookup) {
+    List<T> lookupDefiniteClauses(Literal literalToLookup) {
         if (definiteClausesByArgNIndex != null && literalToLookup != null && literalToLookup.numberArgs() >= minimumClauseLengthToIndex && literalToLookup.getArgument(indexedArgument).isGrounded()) {
             PredicateNameAndArity key = new PredicateNameAndArity(literalToLookup.predicateName, literalToLookup.numberArgs());
 

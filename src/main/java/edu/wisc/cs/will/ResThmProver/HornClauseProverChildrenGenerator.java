@@ -1,11 +1,13 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ResThmProver;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import edu.wisc.cs.will.FOPC.Binding;
 import edu.wisc.cs.will.FOPC.BindingList;
@@ -27,15 +29,10 @@ import edu.wisc.cs.will.FOPC.StringConstant;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.ChildrenNodeGenerator;
 import edu.wisc.cs.will.stdAIsearch.OpenList;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author shavlik
@@ -45,25 +42,15 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     public static final int debugLevel = 0;
 
-    public static boolean stopIfNothingMatches = true;
-
     protected HornClauseContext context;
 
     protected BindingList bindingList; // Use this repeatedly to save some "new'ing."
-
-    private long usedPredNameHash = 0;
-
-    private long usedFirstArgHash = 0;
-
-    private long usedAllArgsHash = 0;
 
     private long counter = 0;
 
     private long factResolutions = 0;
     
     private long maxOpen = 0;
-
-    private boolean singleFactAndBackgroundLookup = false; // Use a newer style of background/fact lookup that is hopefully faster.
 
     private final Unifier unifier;
 
@@ -86,8 +73,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      * expansion via the resetCutMarkerAndCounters() method.
      */
     private CutLiteral cutLiteral = null;
-    //private   Literal             cutMarkerLiteral = null;
-    //private   LiteralAsTerm cutMarkerLiteralAsTerm = null;
 
     /** Search Node holding the place to be cut to when a cut is encountered.
      *
@@ -140,30 +125,13 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      * this number can get quite large.  The HornClauseProver could probably reset
      * this number occasionally if this become a problem.
      */
-    protected static long proofCounter = 0;
+    static long proofCounter = 0;
 
-    protected static long cutMarkerCounter = 0;
+    static long cutMarkerCounter = 0;
 
     private PrettyPrinterOptions prettyPrintOptions;
 
-    /** Indicates the default spy level that should be set when a spy point is hit.
-     *
-     * 1: Tracing enabled.  Minimum to get anything.
-     * 2: Tracing of subliterals.
-     * 3: Detail tracing of subliterals including bindings.
-     * 4: Everything plus a printout of the openlist (don't do this).
-     */
-    public static int defaultSpyLevel = 1;
-
-    private int traceDepth = 0;
-
-    /**
-     *
-     *
-     * @param task
-     * @param context
-     */
-    public HornClauseProverChildrenGenerator(HornClauseProver task, HornClauseContext context) {
+    HornClauseProverChildrenGenerator(HornClauseProver task, HornClauseContext context) {
         super(task);
 
         this.context = context;
@@ -187,7 +155,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     @Override
     public List<HornSearchNode> collectChildren(HornSearchNode hornSearchNode) throws SearchInterrupted {
 
-        // <editor-fold defaultstate="collapsed" desc="Debugging Code...">
         List<HornSearchNode> result = null;
 
 
@@ -201,21 +168,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             Utils.println(String.format("          [%d.%d] failed: %s", failedTraceNode.parentProofCounter, failedTraceNode.parentExpansionIndex, litString));
             Utils.println("\n--------------------------------------------------------------------------------\n");
         }
-//        else if (hornSearchNode instanceof CutMarkerNode) {
-//            CutMarkerNode cutNode = (CutMarkerNode) hornSearchNode;
-//
-//                HornSearchNode nextOpenNode = task.open.peekFirst();
-//                if (nextOpenNode == null) {
-//                    Utils.println("          [" + cutNode.parentProofCounter + "." + cutNode.parentExpansionIndex + "] failed: " + cutNode + ".  No remaining open.  Failing proof.");
-//                }
-//                else {
-//                    Utils.println("          [" + cutNode.parentProofCounter + "." + cutNode.parentExpansionIndex + "] failed: " + cutNode + ".  Backtracking to expansion [" + nextOpenNode.parentProofCounter + "." + nextOpenNode.parentExpansionIndex + "].");
-//                }
-//
-//
-//            Utils.println(String.format("[%6d] Encounter cut marker [%d.%d]: ", proofCounter++, cutNode.parentProofCounter, hornSearchNode.parentExpansionIndex));
-//            Utils.println("\n--------------------------------------------------------------------------------\n");
-//        }
+
         else {
 
             // This is some debugging code.  Please do not delete me.
@@ -225,7 +178,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
             Literal literalBeingExpanded = queryLiterals.get(0);
 
-            // <editor-fold defaultstate="collapsed" desc="Pop Stack Return Literals">
             while (literalBeingExpanded instanceof StackTraceLiteral) {
                 StackTraceLiteral trace = (StackTraceLiteral) literalBeingExpanded;
 
@@ -251,24 +203,28 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 // If we got rid of the last literal, then this was a successful proof.
                 // Return an empty child.
                 if (queryLiterals.isEmpty()) {
-                    //                if ( traceLevel >= 1 ) {
-                    //                    System.out.println("true (proof successful).");
-                    //                }
                     return Collections.singletonList(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
                 }
                 else {
                     literalBeingExpanded = queryLiterals.get(0);
                 }
-            }// </editor-fold>
+            }
 
-            // <editor-fold defaultstate="collapsed" desc="Spy Enable">
             // Enable spy points...
             if (getTask().getTraceLevel() == 0 && getTask().getSpyEntries().includeElement(literalBeingExpanded.predicateName, literalBeingExpanded.numberArgs())) {
+                /* Indicates the default spy level that should be set when a spy point is hit.
+                 *
+                 * 1: Tracing enabled.  Minimum to get anything.
+                 * 2: Tracing of subliterals.
+                 * 3: Detail tracing of subliterals including bindings.
+                 * 4: Everything plus a printout of the openlist (don't do this).
+                 */
+                int defaultSpyLevel = 1;
                 if (getTask().getTraceLevel() < defaultSpyLevel) {
                     Utils.println("Spy point encountered on " + literalBeingExpanded.predicateName + "/" + literalBeingExpanded.numberArgs() + ".  Enabling tracing.");
                     getTask().setTraceLevel(defaultSpyLevel);
                 }
-            }// </editor-fold>
+            }
 
             BindingList printBindings = tracePrefix(hornSearchNode, literalBeingExpanded, prettyPrintOptions);
 
@@ -319,20 +275,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 if (getTask().getTraceLevel() >= 3) {
                     List<Binding> bindings = hornSearchNode.collectBindingsToRoot();
                     if (bindings != null) {
-                        Collections.sort(bindings, new Comparator<Binding>() {
-
-                            public int compare(Binding o1, Binding o2) {
-                                if (o1.var.counter > o2.var.counter) {
-                                    return 1;
-                                } // These are longs and we need an int, so cannot simply subtract.
-                                if (o1.var.counter < o2.var.counter) {
-                                    return -1;
-                                }
-                                else {
-                                    return 0;
-                                }
-                            }
-                        });
+                        bindings.sort(Comparator.comparingLong(o -> o.var.counter));
                     }
 
                     Utils.println("  Initial bindings: " + bindings);
@@ -377,34 +320,28 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     }
 
                     String headerString = "           Found " + expansionCount + " expansions:";
-                    Utils.println(headerString);                //for (HornSearchNode searchNode : list) {
+                    Utils.println(headerString);
                     for (int expansion = 0; expansion < expansionCount; expansion++) {
                         HornSearchNode searchNode = list.get(expansion);
 
-                        HornSearchNode nextHornSearchNode = searchNode;
                         StringBuilder sb = new StringBuilder();
-                        Clause c = nextHornSearchNode.clause;
+                        Clause c = searchNode.clause;
 
                         if (searchNode.bindings != null) {
-                            Set<Variable> printVars = new HashSet<Variable>(printBindings.getVariables());
+                            Set<Variable> printVars = new HashSet<>(printBindings.getVariables());
                             for (Variable variable : printVars) {
                                 Term reverseBinding = searchNode.bindings.lookup(variable);
-                                if (reverseBinding instanceof Variable && reverseBinding != null) {
+                                if (reverseBinding instanceof Variable) {
                                     printBindings.addBinding((Variable) reverseBinding, variable);
                                 }
                             }
                         }
 
-//                    if (getTask().getTraceLevel() >= 2) {
-//                        String clauseString = PrettyPrinter.print(c, "", "", ppo, printBindings);
-//                        sb.append(clauseString);
-//                    }
-//                    else {
-                        if (negatedLiteral.predicateName == getStringHandler().standardPredicateNames.negationByFailure && nextHornSearchNode.parentExpansionIndex == 0) {
+                        if (negatedLiteral.predicateName == getStringHandler().standardPredicateNames.negationByFailure && searchNode.parentExpansionIndex == 0) {
                             String clauseString = PrettyPrinter.print(c, "", "", ppo, printBindings);
                             sb.append(clauseString);
                         }
-                        else if (nextHornSearchNode.parentExpansionIndex == -1) {
+                        else if (searchNode.parentExpansionIndex == -1) {
                             sb.append("cutMarker");
                         }
                         else {
@@ -413,7 +350,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                             int realLiteralCount = 0;  // count ignoring StackTraceLiterals
                             for (int i = 0; i < c.getNegLiteralCount(); i++) {
                                 Literal lit = c.getNegLiteral(i);
-                                if (lit instanceof StackTraceLiteral == false) {
+                                if (!(lit instanceof StackTraceLiteral)) {
 
                                     if (realLiteralCount > 0) {
                                         sb.append(" ^ ");
@@ -440,8 +377,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                                 sb.append("true (proof successful)");
                             }
                         }
-//                    }
-                        Utils.println(String.format("             [%d.%d] %s", nextHornSearchNode.parentProofCounter, nextHornSearchNode.parentExpansionIndex, sb.toString()));
+                        Utils.println(String.format("             [%d.%d] %s", searchNode.parentProofCounter, searchNode.parentExpansionIndex, sb.toString()));
 
                         if (getTask().getTraceLevel() >= 2 || isSpyLiteral(negatedLiteral)) {
 
@@ -459,14 +395,14 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
                                 Term to = searchNode.getBinding(freeVar);
 
-                                if (to != null && to instanceof Variable == false) {
+                                if (to != null && !(to instanceof Variable)) {
                                     String from = PrettyPrinter.print(freeVar, "", "", ppo, null);
                                     Term printBinding = printBindings.getMapping(freeVar);
                                     if (printBinding != null) {
                                         from = ((StringConstant) printBinding).getBareName();
                                     }
 
-                                    if (first == false) {
+                                    if (!first) {
                                         stringBuilder.append(", ");
                                     }
 
@@ -534,16 +470,10 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 }
                 Utils.println("");
             }
-//												if (queryRemainder != null) {
-//													Utils.print("%     remaining names: ");
-//													for (Literal lit : queryRemainder) { Utils.print(" " + lit.predicateName); }
-//													Utils.println("");
-//												}
         }
 
-        boolean noPredArgMatchFound = false;
+        boolean noPredArgMatchFound;
 
-        // <editor-fold defaultstate="collapsed" desc="Predefined Predicate Handling">
         if (thisTask.predefinedPredicateNamesUsedByChildCollector.contains(negatedLiteralPredName)) {
 
             if (negatedLiteralPredName == stringHandler.standardPredicateNames.falseName || negatedLiteralPredName == stringHandler.standardPredicateNames.fail) {
@@ -557,9 +487,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 if (negatedLiteral.numberArgs() != 0) {
                     Utils.error("Cannot have arguments to the 'true' predicate.  You have: '" + negatedLiteral + "'");
                 }
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                } // For safety (e.g., in case this code gets moved) check if this exists.
+                children = new ArrayList<>(1);
                 children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
                 return children;
             }
@@ -568,9 +496,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 if (negatedLiteral.numberArgs() != 0) {
                     Utils.error("Cannot have arguments to the 'repeat' predicate.  You have: '" + negatedLiteral + "'");
                 }
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                } // For safety (e.g., in case this code gets moved) check if this exists.
+                children = new ArrayList<>(1);
                 children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
                 children.add(hornSearchNode); // In a repeat, we backtrack to this same node.  'Repeat' can be viewed as: 'repeat. repeat :- repeat.'
                 return children;
@@ -590,9 +516,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
                 popOpenUptoThisCutMarker(negatedLiteral); // Discard everything up this cut's marker.
                 // Add the remainder of this query following the cut.
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                } // For safety (e.g., in case this code gets moved) check if this exists.
+                children = new ArrayList<>(1);
                 children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
                 return children;
             }
@@ -608,13 +532,14 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     Utils.error("Expected term of negation to be Function or SentenceAsTerm.");
                 }
 
+                assert negationContents != null;
                 if (negationContents.getNegLiteralCount() == 0) {
                     negationContents = stringHandler.getClause(negationContents.getNegativeLiterals(), negationContents.getPositiveLiterals());
                 }
 
                 createCutMarkerNode(hornSearchNode, negatedLiteral);
 
-                List<Literal> expandedNotLiterals = new LinkedList<Literal>();
+                List<Literal> expandedNotLiterals = new LinkedList<>();
                 if (negationContents.getNegativeLiterals() != null) {
                     expandedNotLiterals.addAll(negationContents.getNegativeLiterals());
                 }
@@ -625,9 +550,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 HornSearchNode negationSucessNode = createChildWithMultipleNewLiterals(hornSearchNode, expandedNotLiterals, queryLiterals, null);
                 HornSearchNode negationFailedNode = createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null);
 
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(3);
-                }
+                children = new ArrayList<>(3);
 
                 children.add(negationSucessNode);
                 children.add(negationFailedNode);
@@ -641,31 +564,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 //    if(P,Q,R) :- P, !, Q.
                 //    if(P,Q,R) :- R. [note that R is optional]
                 throw new UnsupportedOperationException();
-//				if (HornClauseProver.debugLevel > 2) { Utils.println("At a THEN pred: " + negatedLiteral); }
-//				if (negatedLiteral.getArguments() == null || negatedLiteral.numberArgs() < 1 || negatedLiteral.numberArgs() > 2) { Utils.error("This THEN is not properly structured: '" + negatedLiteral + "'"); }
-//				if (children == null) { children = new ArrayList<HornSearchNode>(3); } // For safety (e.g., in case this code gets moved) check if this exists.
-//
-//                Clause clausePcutQ = (Clause) ((SentenceAsTerm) negatedLiteral.getArgument(0)).sentence;
-//				if (cutMarkerLiteral != null) { Utils.error("cutMarkerLiteral should be null here!"); }
-//				createCutMarkerNode(hornSearchNode);
-//
-//				// Need to replace the cut in clausePcutQ with cutMarkerLiteral so it knows its cutMarker.
-//				if (clausePcutQ.negLiterals == null) { Utils.error("Should not have clausePcutQ=null here."); }
-//
-//				// Need to replace the cut in clausePcutQ with cutMarkerLiteral so it knows its cutMarker.
-//				List<Literal> newNegLiterals = markCutLiterals(clausePcutQ.negLiterals);
-//				newNegLiterals.addAll(queryRemainder);
-//				Clause newClause1 = getStringHandler().getClause(newNegLiterals, false);
-//				children.add(new HornSearchNode((HornSearchNode) nodeBeingExpanded, newClause1, null, proofCounter, expansion++));
-//				if (negatedLiteral.numberArgs() == 2) {
-//					Clause clauseR    = (Clause) ((SentenceAsTerm) negatedLiteral.getArgument(1)).sentence;
-//					Clause newClause2 = clauseR.copyThenAppendToNegativeLiterals(queryRemainder);
-//					if (newClause2.negLiterals == null) { Utils.error("Should not have negLiterals=null here."); }
-//					children.add(new HornSearchNode((HornSearchNode) nodeBeingExpanded, newClause2, null, proofCounter, expansion++));
-//				}
-//                cutMarkerNode.parentProofCounter = 2;
-//				children.add(cutMarkerNode); // Want the cut marker to be the OLDEST item in OPEN among these children.
-//				return children;
+
             }
 
             // Handle "call(X)" by pulling out X and adding it back in.
@@ -675,27 +574,8 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 }
                 Clause callBody = negatedLiteral.getArgument(0).asClause();
 
-//                Literal callBodyAsLit = null;
-//                if (callBody instanceof Function) {
-//                    callBodyAsLit = ((Function) callBody).convertToLiteral(getStringHandler());
-//                }
-//                else if (callBody instanceof StringConstant) {
-//                    StringConstant stringConstant = (StringConstant) callBody;
-//                    PredicateName pn = stringHandler.getPredicateName(stringConstant.name);
-//                    pn.setCanBeAbsent(0);
-//                    callBodyAsLit = stringHandler.getLiteral(pn);
-//                }
-//                else {
-//                    Utils.error("Call/1: Illegal Call Argument 1.  Must be Function or StringConstant.  Found: " + callBody + ".");
-//                }
-//				List<Literal> queryRemainderPlusCall = new ArrayList<Literal>(queryRemainder.size() + 1); // I think we could simply add callBodyAsLit to the FRONT and could skip the list copying, but play it safe, especially since this is likely to be rarely called.
-//				queryRemainderPlusCall.add(   callBodyAsLit);
-//				queryRemainderPlusCall.addAll(queryRemainder);
                 HornSearchNode newNode = createChildWithMultipleNewLiterals(hornSearchNode, callBody.getPositiveLiterals(), queryLiterals, null);
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                }
-                //if (HornClauseProver.debugLevel > 2) { Utils.println("% CALL body = " + callBodyAsLit + ", |query remainder| = " + Utils.getSizeSafely(queryRemainder)); }
+                children = new ArrayList<>(1);
                 children.add(newNode);
                 return children;
             }
@@ -715,7 +595,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 }
                 createCutMarkerNode(hornSearchNode, negatedLiteral);
 
-                List<Literal> expandedOnceLiterals = new LinkedList<Literal>();
+                List<Literal> expandedOnceLiterals = new LinkedList<>();
                 if (clauseBody.negLiterals != null) {
                     expandedOnceLiterals.addAll(clauseBody.negLiterals);
                 }
@@ -723,9 +603,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 expandedOnceLiterals.add(cutLiteral);
 
                 HornSearchNode expandedOnceNode = createChildWithMultipleNewLiterals(hornSearchNode, expandedOnceLiterals, queryLiterals, null);
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(2);
-                }
+                children = new ArrayList<>(2);
                 children.add(expandedOnceNode);
                 children.add(cutMarkerNode); // Want the cut to be the OLDEST item in OPEN among these children.
                 return children;
@@ -758,16 +636,16 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 // And for each proof, save 'term' (which presumably shares variables with 'goal') in a list.
                 // Unify this list with 'list' as the final step.  EXCEPTION: the count* variants return the LENGTH of this list.
                 ObjectAsTerm answersList = getStringHandler().getObjectAsTerm(getStringHandler().getNil(), false); // Need to WRAP this since we'll be "cons'ing" to the front and we need something to hold the resulting consCell.
-                List<Term> collectorArgs = new ArrayList<Term>(2); // This will collect all the answers.
+                List<Term> collectorArgs = new ArrayList<>(2); // This will collect all the answers.
                 collectorArgs.add(term);
                 collectorArgs.add(answersList);
-                List<Term> resultArgs = new ArrayList<Term>(3); // This will return once all the answers have been collected. The 3rd argument is simply there so that we can easily differentiate the two.
+                List<Term> resultArgs = new ArrayList<>(3); // This will return once all the answers have been collected. The 3rd argument is simply there so that we can easily differentiate the two.
                 resultArgs.add(list);
                 resultArgs.add(answersList);
                 resultArgs.add(term); // Might as well put something useful here ..
                 Literal collector = getStringHandler().getLiteral(collectorPred, collectorArgs);
 
-                List<Literal> collectorLiterals = new LinkedList<Literal>();
+                List<Literal> collectorLiterals = new LinkedList<>();
                 if (goal.negLiterals != null) {
                     collectorLiterals.addAll(goal.negLiterals);
                 }
@@ -794,9 +672,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 HornSearchNode collectNode = createChildWithMultipleNewLiterals(hornSearchNode, collectorLiterals, queryLiterals, null);
                 HornSearchNode answerNode = createChildWithSingleNewLiteral(hornSearchNode, answerLiteral, queryLiterals, null);
 
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                }
+                children = new ArrayList<>(1);
                 children.add(collectNode);
                 children.add(answerNode);
                 if (HornClauseProver.debugLevel > 2) {
@@ -817,9 +693,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     }
                 }
 
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                }
+                children = new ArrayList<>(1);
                 children.add(createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null));
                 return children;
             }
@@ -836,9 +710,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     }
                 }
 
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                }
+                children = new ArrayList<>(1);
                 children.add(createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null));
                 return children;
             }
@@ -847,9 +719,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
                 getTask().getSpyEntries().clear();
 
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                }
+                children = new ArrayList<>(1);
                 children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
                 return children;
             }
@@ -861,18 +731,17 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 }
 
                 Term arg1 = negatedLiteral.getArgument(0);
-                if (arg1 instanceof NumericConstant == false) {
+                if (!(arg1 instanceof NumericConstant)) {
                     Utils.error("trace/1 argument must be a number.");
                 }
 
+                assert arg1 instanceof NumericConstant;
                 NumericConstant numericConstant = (NumericConstant) arg1;
                 int traceLevel = numericConstant.value.intValue();
 
                 getTask().setTraceLevel(traceLevel);
 
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                }
+                children = new ArrayList<>(1);
                 children.add(createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null));
                 return children;
             }
@@ -885,9 +754,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
                 getTask().setTraceLevel(0);
 
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                }
+                children = new ArrayList<>(1);
                 children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
                 return children;
             }
@@ -911,9 +778,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 }
 
                 if (successful) {
-                    if (children == null) {
-                        children = new ArrayList<HornSearchNode>(2);
-                    }
+                    children = new ArrayList<>(2);
 
                     // retract is essentially defined as:
                     //   retract(A) :- asserted(A), removeFromClausebase(A).
@@ -947,9 +812,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 }
 
                 if (successful) {
-                    if (children == null) {
-                        children = new ArrayList<HornSearchNode>(1);
-                    }
+                    children = new ArrayList<>(1);
                     children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, bindingList));
                     return children;
                 }
@@ -958,8 +821,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 }
             }
         }// </editor-fold>
-
-        // <editor-fold defaultstate="collapsed" desc="procedurally defined predicate handling">
 
         // See if there is a special procedurally defined predicate, and if so, call its handler.
         int arity = negatedLiteral.numberArgs();
@@ -975,9 +836,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             if (theta != null) {
                 HornSearchNode newNode = createChildWithNoNewLiterals(hornSearchNode, queryLiterals, theta.copy());
 
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                } // Wait to create until needed.
+                children = new ArrayList<>(1);
                 if (HornClauseProver.debugLevel > 3) {
                     newNode.reportNodePredicates();
                 }
@@ -1003,9 +862,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
                 HornSearchNode newNode = createChildWithNoNewLiterals(hornSearchNode, queryLiterals, theta);
 
-                if (children == null) {
-                    children = new ArrayList<HornSearchNode>(1);
-                } // Wait to create until needed.
+                children = new ArrayList<>(1);
                 if (HornClauseProver.debugLevel > 3) {
                     newNode.reportNodePredicates();
                 }
@@ -1024,31 +881,23 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             Utils.println(" Chosen resolvent: " + negatedLiteral);
         }
 
-        if ( singleFactAndBackgroundLookup ) {
-            boolean predIsInBackgroundKnowledge = getClausebase().checkForPossibleMatchingBackgroundKnowledge(negatedLiteralPredName, arity);
-            if ( predIsInBackgroundKnowledge ) {
-                noPredArgMatchFound = !predIsInBackgroundKnowledge;
-                children = createChildrenForMixedBackgroundAndFacts(hornSearchNode, negatedLiteral, queryLiterals);
-            }
+        // Use a newer style of background/fact lookup that is hopefully faster.
+        boolean predIsInBackgroundKnowledge = getClausebase().checkForPossibleMatchingBackgroundKnowledge(negatedLiteralPredName, arity);
+        boolean predIsInFacts = getClausebase().checkForPossibleMatchingFacts(negatedLiteralPredName, arity);
+
+        noPredArgMatchFound = (!predIsInBackgroundKnowledge && !predIsInFacts);
+
+        // Handle the cases where there are only facts, only background knowledge, and where
+        // the two are mixed together...
+        if (predIsInFacts && !predIsInBackgroundKnowledge) {
+            children = createChildrenForFactsOnly(hornSearchNode, negatedLiteral, queryLiterals);
         }
-        else {
-            boolean predIsInBackgroundKnowledge = getClausebase().checkForPossibleMatchingBackgroundKnowledge(negatedLiteralPredName, arity);
-            boolean predIsInFacts = getClausebase().checkForPossibleMatchingFacts(negatedLiteralPredName, arity);
-
-            noPredArgMatchFound = (predIsInBackgroundKnowledge == false && predIsInFacts == false);
-
-            // Handle the cases where there are only facts, only background knowledge, and where
-            // the two are mixed together...
-            if (predIsInFacts == true && predIsInBackgroundKnowledge == false) {      //Utils.println("    predIsInFacts");
-                children = createChildrenForFactsOnly(hornSearchNode, negatedLiteral, queryLiterals);
-            }
-            else if (predIsInFacts == true || predIsInBackgroundKnowledge == true) {  //Utils.println("    predIs BOTH");
-                children = createChildrenForMixedBackgroundAndFacts(hornSearchNode, negatedLiteral, queryLiterals);
-            }
+        else if (predIsInFacts || predIsInBackgroundKnowledge) {
+            children = createChildrenForMixedBackgroundAndFacts(hornSearchNode, negatedLiteral, queryLiterals);
         }
 
         if (noPredArgMatchFound && !negatedLiteralPredName.canBeAbsent(arity)) {
-            if (stopIfNothingMatches) { Utils.waitHereErr("There is no fact nor clause nor built-in predicate matching: '" + negatedLiteralPredName + "/" + arity + "'.\n  Possibly a typo?  If not, add to the BK file:   okIfUnknown: " + negatedLiteralPredName + "/" + arity + "."); }
+            Utils.waitHereErr("There is no fact nor clause nor built-in predicate matching: '" + negatedLiteralPredName + "/" + arity + "'.\n  Possibly a typo?  If not, add to the BK file:   okIfUnknown: " + negatedLiteralPredName + "/" + arity + ".");
 
             negatedLiteralPredName.setCanBeAbsent(arity);
         }
@@ -1056,6 +905,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             if (HornClauseProver.debugLevel > 2) {
                 Utils.println("*** ADD THIS CUT MARKER: " + cutMarkerNode);
             }
+            assert children != null;
             children.add(children.size(), cutMarkerNode);
         }
         if (HornClauseProver.debugLevel > 2) {
@@ -1067,10 +917,13 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     private List<HornSearchNode> createChildrenForFactsOnly(HornSearchNode hornSearchNode, Literal negatedLiteral, List<Literal> queryLiterals) {
         List<HornSearchNode> children = null;
 
-        int arity = negatedLiteral.numberArgs();
+        negatedLiteral.numberArgs();
 
         Iterable<Literal> matchingFacts = getClausebase().getPossibleMatchingFacts(negatedLiteral, null);
         if (HornClauseProver.debugLevel > 2 && ++counter % 10000000 == 0) {
+            long usedAllArgsHash = 0;
+            long usedFirstArgHash = 0;
+            long usedPredNameHash = 0;
             Utils.println("% usedPredNameHash=" + usedPredNameHash + " usedFirstArgHash=" + usedFirstArgHash + " usedAllArgsHash=" + usedAllArgsHash + " factResolutions=" + factResolutions);
         }
 
@@ -1078,9 +931,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             for (Literal fact : matchingFacts) {
                 factResolutions++;
 
-//                if (bindingList.theta.size() > 0) {
-//                    bindingList.theta = new HashMap<Variable, Term>();
-//                } // Revert to the empty binding list.
                 BindingList theta = unify(negatedLiteral, fact, new BindingList());
 
                 if (theta != null && fact.containsFreeVariablesAfterSubstitution(theta)) { // If any variables in the fact are unbound, need to rename then rebind.
@@ -1096,7 +946,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     HornSearchNode newNode = createChildWithNoNewLiterals(hornSearchNode, queryLiterals, theta);
 
                     if (children == null) {
-                        children = new ArrayList<HornSearchNode>();
+                        children = new ArrayList<>();
                     }
                     children.add(newNode); // Do NOT return here.
                 }
@@ -1112,7 +962,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     private List<HornSearchNode> createChildrenForMixedBackgroundAndFacts(HornSearchNode hornSearchNode, Literal negatedLiteral, List<Literal> queryLiterals) {
         List<HornSearchNode> children = null;
 
-        int arity = negatedLiteral.numberArgs();
+        negatedLiteral.numberArgs();
 
         Collection<DefiniteClause> possibleMatchingAssertions = getClausebase().getPossibleMatchingAssertions(negatedLiteral, null);
 
@@ -1121,25 +971,20 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             for (DefiniteClause definiteClause : possibleMatchingAssertions) {  //Utils.println("Consider: " + clause);
                 Literal ruleHead = definiteClause.getDefiniteClauseHead();
 
-//                if (bindingList.theta.size() > 0) {
-//                    bindingList.theta.clear();
-//                } // Revert to the empty binding list.
-
                 BindingList theta = unify(negatedLiteral, ruleHead, new BindingList());
 
-                if (theta != null && definiteClause.isDefiniteClauseFact() == false && definiteClause.containsFreeVariablesAfterSubstitution(theta)) { // If any variables in the clause are unbound (even in the BODY!), need to rename then rebind.
+                if (theta != null && !definiteClause.isDefiniteClauseFact() && definiteClause.containsFreeVariablesAfterSubstitution(theta)) { // If any variables in the clause are unbound (even in the BODY!), need to rename then rebind.
                     definiteClause = (DefiniteClause) definiteClause.getDefiniteClauseAsClause().copyAndRenameVariables();
                     ruleHead = definiteClause.getDefiniteClauseHead();
-                   // bindingList.theta.clear();
 
                     // We have to rebind theta since the clause is a copy...
                     theta = unify(negatedLiteral, ruleHead, new BindingList());
                     if (theta == null) {
                         Utils.println("Since variables in the new clause remain after unification, need to rename '" + definiteClause + "'.");
-                        Utils.println("  renamed clause: " + definiteClause.getDefiniteClauseAsClause().toPrettyString("     ", Integer.MAX_VALUE, theta));
+                        Utils.println("  renamed clause: " + definiteClause.getDefiniteClauseAsClause().toPrettyString("     ", Integer.MAX_VALUE, null));
                         Utils.println("  negatedLiteral= " + negatedLiteral);
                         Utils.println("  ruleHead      = " + ruleHead);
-                        Utils.println("  theta         = " + theta);
+                        Utils.println("  theta         = " + null);
                         Utils.error("What happened to theta???");
                     }
                 }
@@ -1166,7 +1011,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     }
 
                     if (children == null) {
-                        children = new ArrayList<HornSearchNode>();
+                        children = new ArrayList<>();
                     }
                     children.add(newNode);
                 }
@@ -1181,24 +1026,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         return unifier.unify(lit1, lit2, bindingList);
     }
 
-    // Assume lit1 has FEWER variables (only impacts efficiency).
-    protected boolean sharedVariables(Literal lit1, Literal lit2) {
-        Collection<Variable> varsInList1 = lit1.collectFreeVariables(null);
-        if (varsInList1 == null) {
-            return false;
-        }
-        Collection<Variable> varsInList2 = lit2.collectFreeVariables(null);
-        if (varsInList2 == null) {
-            return false;
-        }
-        for (Variable v1 : varsInList1) {
-            if (varsInList2.contains(v1)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void resetCutMarkerAndCounters() {
         cutMarkerAdded = false;
         cutLiteral     = null;
@@ -1208,20 +1035,18 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     }
 
     private void createCutMarkerNode(HornSearchNode hornSearchNode, Literal literalBeingCut) {
-        if (cutMarkerAdded == false) { 
+        if (!cutMarkerAdded) {
             cutMarkerAdded = true;
             cutMarkerNode = new CutMarkerNode(hornSearchNode, literalBeingCut, proofCounter);
             cutLiteral    = new CutLiteral(getStringHandler(), cutMarkerNode);
         }
     }
 
-    /** Create a new list, where all the cuts are replaced by new cuts that have the argument cutMarkerLiteralAsTerm.
-     *
-     * @param ruleBody
-     * @return
+    /**
+     * Create a new list, where all the cuts are replaced by new cuts that have the argument cutMarkerLiteralAsTerm.
      */
     private List<Literal> markCutsInClauseWithCurrentCutMarker(List<Literal> ruleBody) {
-        List<Literal> newRuleBody = new ArrayList<Literal>(ruleBody.size());
+        List<Literal> newRuleBody = new ArrayList<>(ruleBody.size());
         for (Literal lit : ruleBody) {
             if (lit.predicateName == getStringHandler().standardPredicateNames.cut) {
             	if (cutLiteral == null) { Utils.waitHere(); }
@@ -1237,13 +1062,13 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         return newRuleBody;
     }
 
-    public void popOpenUptoThisCutMarker(Literal cutLiteral) {
+    private void popOpenUptoThisCutMarker(Literal cutLiteral) {
 
         CutMarkerNode markerNode = ((CutLiteral) cutLiteral).cutMarkerNode;
 
         OpenList<HornSearchNode> openList = getTask().open;
 
-        while (openList.isEmpty() == false && openList.peek() != markerNode) {
+        while (!openList.isEmpty() && openList.peek() != markerNode) {
             openList.popOpenList();
         }
 
@@ -1256,13 +1081,13 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         }
     }
 
-    public int getNextExpansion() {
+    private int getNextExpansion() {
         return nextExpansion++;
     }
 
     @Override
     public void clearAnySavedInformation(boolean insideIterativeDeepening) {
-        return;  // We want the theory to persist across searches.
+        // We want the theory to persist across searches.
     }
 
     public HandleFOPCstrings getStringHandler() {
@@ -1297,7 +1122,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 try {
                     arity = Integer.parseInt(arityPart);
                     name = stringHandler.getPredicateName(namePart);
-                } catch (NumberFormatException numberFormatException) {
+                } catch (NumberFormatException ignored) {
                 }
             }
         }
@@ -1321,7 +1146,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     private List<Literal> getQueryRemainder(List<Literal> queryLiterals, long proofCounter, int expansion, BindingList bindingList) {
         int querySize = queryLiterals.size();
-        List<Literal> queryRemainder = new LinkedList<Literal>();
+        List<Literal> queryRemainder = new LinkedList<>();
 
         if (querySize > 0) {
             if (getTask().getTraceLevel() >= 2 || (getTask().getTraceLevel() >= 1 && isSpyLiteral(queryLiterals.get(0)))) {
@@ -1391,25 +1216,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), bindingList, proofCounter, expansion);
     }
 
-    
-    
-
-    private BindingList getLocalBindings(Literal literal, BindingList currentBindings) {
-        Collection<Variable> vars = literal.collectAllVariables();
-        BindingList localVarBindings = null;
-        if (vars != null && vars.isEmpty() == false && currentBindings != null) {
-            localVarBindings = new BindingList();
-            for (Variable variable : vars) {
-                Term binding = currentBindings.lookup(variable);
-                if (binding != null && binding != variable) {
-                    localVarBindings.addBinding(variable, binding);
-                }
-            }
-        }
-        return localVarBindings;
-    }
-
-    private class StackTraceLiteral extends Literal {
+    private static class StackTraceLiteral extends Literal {
 
         private Literal traceLiteral;
 
@@ -1417,7 +1224,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         private int expansion;
 
-        public StackTraceLiteral(Literal traceLiteral, long proofCount, int expansion) {
+        StackTraceLiteral(Literal traceLiteral, long proofCount, int expansion) {
             this.traceLiteral = traceLiteral;
             this.proofCounter = proofCount;
             this.expansion = expansion;
@@ -1429,11 +1236,11 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             return expansion;
         }
 
-        public Literal getTraceLiteral() {
+        Literal getTraceLiteral() {
             return traceLiteral;
         }
 
-        public long getProofCounter() {
+        long getProofCounter() {
             return proofCounter;
         }
 
@@ -1462,14 +1269,14 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         private CutMarkerLiteral cutMarkerLiteral;
 
-        public CutMarkerNode(HornSearchNode parentNode, Literal literalBeingCut, long proofCounterOfCutClause) {
+        CutMarkerNode(HornSearchNode parentNode, Literal literalBeingCut, long proofCounterOfCutClause) {
             super(parentNode, null, null, proofCounterOfCutClause, -1);
 
             this.cutMarkerLiteral = new CutMarkerLiteral(literalBeingCut.getStringHandler(), literalBeingCut, proofCounterOfCutClause);
             this.clause = literalBeingCut.getStringHandler().getClause(null, this.cutMarkerLiteral);
         }
 
-        public CutMarkerNode(HornClauseProver task, Literal literalBeingCut, long proofCounterOfCutClause) {
+        CutMarkerNode(HornClauseProver task, Literal literalBeingCut, long proofCounterOfCutClause) {
             super(task, null, null, proofCounterOfCutClause, -1);
 
             this.cutMarkerLiteral = new CutMarkerLiteral(literalBeingCut.getStringHandler(), literalBeingCut, proofCounterOfCutClause);
@@ -1481,11 +1288,11 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             return cutMarkerLiteral.toString();
         }
 
-        public Literal getLiteralBeingCut() {
+        Literal getLiteralBeingCut() {
             return cutMarkerLiteral.getLiteralBeingCut();
         }
 
-        public long getProofCounterOfCutClause() {
+        long getProofCounterOfCutClause() {
             return cutMarkerLiteral.getProofCounterOfCutClause();
         }
     }
@@ -1501,7 +1308,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         private long proofCounterOfCutClause;
 
-        public CutMarkerLiteral(HandleFOPCstrings stringHandler, Literal literalBeingCut, long proofCounterOfCutClause) {
+        CutMarkerLiteral(HandleFOPCstrings stringHandler, Literal literalBeingCut, long proofCounterOfCutClause) {
             super(stringHandler, stringHandler.standardPredicateNames.cutMarker);
             this.literalBeingCut = literalBeingCut;
             this.proofCounterOfCutClause = proofCounterOfCutClause;
@@ -1512,11 +1319,11 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             return "CutMarker [Cut of [" + getProofCounterOfCutClause() + ".*] " + literalBeingCut + "]";
         }
 
-        public Literal getLiteralBeingCut() {
+        Literal getLiteralBeingCut() {
             return literalBeingCut;
         }
 
-        public long getProofCounterOfCutClause() {
+        long getProofCounterOfCutClause() {
             return proofCounterOfCutClause;
         }
     }
@@ -1528,7 +1335,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
          */
         private CutMarkerNode cutMarkerNode;
 
-        public CutLiteral(HandleFOPCstrings stringHandler, CutMarkerNode cutMarkerNode) {
+        CutLiteral(HandleFOPCstrings stringHandler, CutMarkerNode cutMarkerNode) {
             super(stringHandler, stringHandler.standardPredicateNames.cut);
             this.cutMarkerNode = cutMarkerNode;
         }
@@ -1558,7 +1365,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         Literal failedLiteral;
 
-        public FailedTraceNode(HornClauseProver task, Literal failedLiteral, BindingList bindings, long parentProofCounter, int parentExpansionIndex) {
+        FailedTraceNode(HornClauseProver task, Literal failedLiteral, BindingList bindings, long parentProofCounter, int parentExpansionIndex) {
             super(task, null, bindings, parentProofCounter, parentExpansionIndex);
             this.failedLiteral = failedLiteral;
         }

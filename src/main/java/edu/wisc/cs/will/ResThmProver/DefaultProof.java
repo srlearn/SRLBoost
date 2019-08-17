@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.SLDQuery;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchResult;
@@ -17,8 +11,6 @@ import edu.wisc.cs.will.stdAIsearch.SearchResult;
  */
 public class DefaultProof implements Proof {
 
-    private HornClausebase clausebase;
-    private HandleFOPCstrings stringHandler;
     private HornClauseProver prover;
     
     private SearchResult searchResult = null;
@@ -27,16 +19,15 @@ public class DefaultProof implements Proof {
         this(context.getClausebase(), query);
     }
 
-    public DefaultProof(HornClausebase clausebase, SLDQuery query) {
+    private DefaultProof(HornClausebase clausebase, SLDQuery query) {
         setupProver(clausebase);
 
         setQuery(query);
     }
 
     private void setupProver(HornClausebase clausebase) {
-        this.clausebase = clausebase;
-        this.stringHandler = clausebase.getStringHandler();
-        this.prover = new HornClauseProver(this.clausebase, true);
+        clausebase.getStringHandler();
+        this.prover = new HornClauseProver(clausebase, true);
     }
 
     private void setQuery(SLDQuery query) {
@@ -45,7 +36,7 @@ public class DefaultProof implements Proof {
 
     public BindingList prove()  {
         try {
-            if ( isProofComplete() == false ) {
+            if (!isProofComplete()) {
                 searchResult = prover.continueSearch(true);
 
                 if ( searchResult.goalFound() ) {
@@ -53,7 +44,7 @@ public class DefaultProof implements Proof {
                 }
             }
         }
-        catch ( SearchInterrupted si) {
+        catch ( SearchInterrupted ignored) {
             
         }
         
@@ -79,7 +70,7 @@ public class DefaultProof implements Proof {
             return false;
         }
         else {
-            return searchResult.goalFound() == false || prover.open.isEmpty();
+            return !searchResult.goalFound() || prover.open.isEmpty();
         }
     }
 

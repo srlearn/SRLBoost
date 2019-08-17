@@ -2165,21 +2165,6 @@ public class Utils {
 		}
 	}
 
-    /** Generates the cross product of a set of sets and a single elements.
-     *
-     * Cross = { X union { element } | X elementOf set1 }
-     */
-    private static <ElementType> Set<Set<ElementType>> getCrossProduct(Set<Set<ElementType>> setOfSets, ElementType element) {
-        Set<Set<ElementType>> cross = new HashSet<>();
-        for (Set<ElementType> set : setOfSets) {
-            Set<ElementType> subset = new HashSet<>(set);
-            subset.add(element);
-            cross.add(subset);
-        }
-
-        return cross;
-    }
-
     /** Creates all combinations of the elements of the groups.
      *
      * Each generated combination contains at most a single element
@@ -2474,7 +2459,7 @@ public class Utils {
             reader = new BufferedReader(new InputStreamReader(new CompressedInputStream(new CondorFile(fileName))));
             stringBuilder = new StringBuilder();
 
-            String s = null;
+            String s;
 
             while ((s = reader.readLine()) != null) {
                 stringBuilder.append(s).append("\n");
@@ -2483,7 +2468,7 @@ public class Utils {
         } finally {
             if ( reader != null ) try {
                 reader.close();
-            } catch (IOException ex) {            	
+            } catch (IOException ignored) {
             }
         }
         return stringBuilder.toString();

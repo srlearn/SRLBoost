@@ -1,19 +1,15 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ResThmProver;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Term;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /** This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground heads.
  *
@@ -23,7 +19,7 @@ import java.util.Map;
  */
 public class GroundClauseIndex<T extends DefiniteClause> {
 
-    private Map<PredicateNameAndArity, Map<List<Term>, List<T>>> definiteClausesAllArgsIndex = new HashMap<PredicateNameAndArity, Map<List<Term>, List<T>>>();
+    private Map<PredicateNameAndArity, Map<List<Term>, List<T>>> definiteClausesAllArgsIndex = new HashMap<>();
 
     /** Store clauses in which one or more of the args is not ground.
      *
@@ -31,27 +27,23 @@ public class GroundClauseIndex<T extends DefiniteClause> {
      * all args.  This is necessary to make sure unseen term combinations
      * start with the unground clauses in their index.
      */
-    private Map<PredicateNameAndArity, List<T>> definiteClausesWithUngroundArgs = new HashMap<PredicateNameAndArity, List<T>>();
+    private Map<PredicateNameAndArity, List<T>> definiteClausesWithUngroundArgs = new HashMap<>();
 
-    public void indexDefiniteClause(PredicateNameAndArity key, T definiteClause) {
+    void indexDefiniteClause(PredicateNameAndArity key, T definiteClause) {
         Literal headLiteral = definiteClause.getDefiniteClauseHead();
 
 
         if (definiteClausesAllArgsIndex == null) {
-            definiteClausesAllArgsIndex = new HashMap<PredicateNameAndArity, Map<List<Term>, List<T>>>();
+            definiteClausesAllArgsIndex = new HashMap<>();
         }
 
-        Map<List<Term>, List<T>> mapForKey = definiteClausesAllArgsIndex.get(key);
-        if (mapForKey == null) {
-            mapForKey = new HashMap<List<Term>, List<T>>();
-            definiteClausesAllArgsIndex.put(key, mapForKey);
-        }
+        Map<List<Term>, List<T>> mapForKey = definiteClausesAllArgsIndex.computeIfAbsent(key, k -> new HashMap<>());
 
         if (headLiteral.isGrounded()) {
             List<T> definiteClauseList = mapForKey.get(headLiteral.getArguments());
 
             if (definiteClauseList == null) {
-                definiteClauseList = new ArrayList<T>(getDefiniteClausesSeedList(key));
+                definiteClauseList = new ArrayList<>(getDefiniteClausesSeedList(key));
                 mapForKey.put(headLiteral.getArguments(), definiteClauseList);
             }
 
@@ -70,7 +62,7 @@ public class GroundClauseIndex<T extends DefiniteClause> {
 
     }
 
-    public void removeDefiniteClause(PredicateNameAndArity key, T definiteClause) {
+    void removeDefiniteClause(PredicateNameAndArity key, T definiteClause) {
         Literal headLiteral = definiteClause.getDefiniteClauseHead();
 
         if (definiteClausesAllArgsIndex != null) {
@@ -97,7 +89,7 @@ public class GroundClauseIndex<T extends DefiniteClause> {
         }
     }
 
-    public List<T> lookupDefiniteClauses(Literal lookupLiteral) {
+    List<T> lookupDefiniteClauses(Literal lookupLiteral) {
         if (definiteClausesAllArgsIndex != null && lookupLiteral != null && lookupLiteral.isGrounded()) {
             PredicateNameAndArity key = lookupLiteral.getPredicateNameAndArity();
             Map<List<Term>, List<T>> mapForKey = definiteClausesAllArgsIndex.get(key);
@@ -127,19 +119,12 @@ public class GroundClauseIndex<T extends DefiniteClause> {
             return definiteClausesForKey;
         }
         else {
-            List<T> emptyList = Collections.emptyList();
-            return emptyList;
+            return Collections.emptyList();
         }
     }
 
     private void addDefiniteClausesSeedDefiniteClause(PredicateNameAndArity key, T definiteClause) {
-        List<T> definiteClausesForKey = definiteClausesWithUngroundArgs.get(key);
-
-        if (definiteClausesForKey == null) {
-            definiteClausesForKey = new ArrayList<T>();
-            definiteClausesWithUngroundArgs.put(key, definiteClausesForKey);
-        }
-
+        List<T> definiteClausesForKey = definiteClausesWithUngroundArgs.computeIfAbsent(key, k -> new ArrayList<>());
         definiteClausesForKey.add(definiteClause);
     }
 
@@ -157,7 +142,7 @@ public class GroundClauseIndex<T extends DefiniteClause> {
 
     @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         for (Map.Entry<PredicateNameAndArity, Map<List<Term>, List<T>>> entry : definiteClausesAllArgsIndex.entrySet()) {
 
