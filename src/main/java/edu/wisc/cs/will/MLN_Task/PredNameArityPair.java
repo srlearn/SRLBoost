@@ -3,7 +3,6 @@
  */
 package edu.wisc.cs.will.MLN_Task;
 
-import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName;
 
 /**
@@ -17,15 +16,11 @@ public class PredNameArityPair {
 	/**
 	 * 
 	 */
-	public PredNameArityPair(PredicateName pName, int arity) {
+	PredNameArityPair(PredicateName pName, int arity) {
 		this.pName = pName;
 		this.arity = arity;
 	}
-	public PredNameArityPair(Literal lit) {
-		this.pName = lit.predicateName;
-		this.arity = lit.numberArgs();
-	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

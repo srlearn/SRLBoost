@@ -16,11 +16,7 @@ public class TimeStamp {
 	public TimeStamp(String theTimeStamp) {
 		timeStamp = theTimeStamp;
 	}
-	
-	public String getTimeStamp() {
-		return timeStamp;
-	}
-	
+
 	public String toString() {
 		return "[" + timeStamp + "]";
 	}

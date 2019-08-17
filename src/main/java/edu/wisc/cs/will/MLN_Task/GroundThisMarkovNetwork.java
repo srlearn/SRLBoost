@@ -24,7 +24,6 @@ import edu.wisc.cs.will.FOPC.Function;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.LiteralComparator;
 import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Type;
 import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.FOPC.Unifier;
@@ -206,8 +205,7 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 public class GroundThisMarkovNetwork {
 	public static final int      debugLevel   = 1;//Integer.MIN_VALUE;
-	public static final boolean  doMajorDebug = false; // JWSJWSJWS Set to true if one wants to spend time checking for consistent data and recording how/when literals and clauses are updated.
-	
+
 	public static final boolean  createScatterPlots                 = true;
 	public static final double   minNumberOfGroundingsToReportStats = -1; // 1e6;
 	
@@ -235,7 +233,6 @@ public class GroundThisMarkovNetwork {
 	private double               maxNumberClauseGroundings           = 1e8; // This is a PER CLAUSE value.  Should be less than Integer.MAX_VALUE since it is compared to a *.size() calculation.
 	public  double               maxNumberOfGroundings               = 0.0; // Record the largest number of groundings for one clause.  TODO use accessor functions
 	public  double               maxNumberOfGroundingsRemaining      = 0.0; // Record the largest number of groundings remaining for one clause.  TODO use accessor functions
-//	public  double               maxTotalNumberOfRemainingGroundings = 1e9; // Throw an exception if this is exceeded, though note that this is (at least initially) a sum over ALL queries.
 	public  double               warnIfNumberOfGroundingsExceedsThis = 1e7; // Before grounding a network, report clauses that have more than this many groundings remaining.
 	private Collection<Clause>   allClauses;
 	private Map<Clause,Integer>  clauseToIndex;
@@ -341,14 +338,6 @@ public class GroundThisMarkovNetwork {
 	private int                           allGroundClausesOrigSize  = -1;
 	private Map<Clause,Set<GroundClause>> allGroundClausesPerClause = null;
 
-	// Keep track of the clauses that exist after reduction.
-	/* TVK : Not used here.
-	private List<Clause>                            reducedClauses  = new ArrayList<Clause>(1); 
-	private Map<Clause,Collection<Clause>>       reducedClausesMap  = new HashMap<Clause,Collection<Clause>>(4); 
-	private Map<Clause,Clause>                clauseToReducedClause = new HashMap<Clause,Clause>(4);
-	private Map<Clause,BindingList>   clauseToReducedClauseBindings = new HashMap<Clause,BindingList>(4);
-	*/
-	
 	// Keep a CANONICAL collection of ground clauses.
 	protected Map<Integer,List<GroundClause>> hashOfGroundClauses = new HashMap<Integer,List<GroundClause>>(4);
 	// Keys: #negLits, #posLits, firstNegGndLit (or null), firstPosGndLit (or null), hashcode
@@ -1181,7 +1170,7 @@ public class GroundThisMarkovNetwork {
 
 	public void analyzeClauses() {
 		if (Utils.getSizeSafely(allClauses) < 1) { Utils.error("Should have some clauses to reduce!"); }
-		if (debugLevel > -10) { Utils.println("\n% Preprocessing all " + Utils.comma(allClauses) + " clauses."); }
+		Utils.println("\n% Preprocessing all " + Utils.comma(allClauses) + " clauses.");
 		prepareToAnalyzeClauses();
 		int numberOfRandomTries = (chooseReductionOrderRandomly ? 1 : 0); // See if STARTING with random selection of literals to reduce.
 		currentOverallIteration = 0;
@@ -1191,14 +1180,14 @@ public class GroundThisMarkovNetwork {
 			// Need to wrap the clauses to hold the countOfPossibleGroundings for use with the comparator.
 			List<WrappedClause> wrappedForSorting = new ArrayList<WrappedClause>(allClauses.size());
 			for (Clause c : allClauses) { wrappedForSorting.add(new WrappedClause(c, clauseToIndex.get(c), countOfPossibleGroundings.get(c), -1)); }
-			Collections.sort(wrappedForSorting, clauseSorter);
+			wrappedForSorting.sort(clauseSorter);
 			allClauses.clear();
 			int counter = 0;
 			for (WrappedClause w : wrappedForSorting) { allClauses.add(w.clause);  clauseToIndex.put(w.clause, ++counter); }
 		}
 		while (++numberOfRandomTries < maxNumberOfRandomTries) {
 			currentOverallIteration++; // Counting starts at 1.
-			if (debugLevel > -10) { Utils.println("\n% Analyzing the clauses still remaining."); }
+			Utils.println("\n% Analyzing the clauses still remaining.");
 			help_analyzeClauses();
 			if (errorThrownOnTheseClauses.isEmpty()) {
 				clearAllSAVEDs(); // Don't need the SAVED's, so reclaim their memory.
@@ -1258,7 +1247,6 @@ public class GroundThisMarkovNetwork {
 		literalsToKeep                  = saved_literalsToKeep;
 		literalsStillToReduce           = saved_literalsStillToReduce;
 		literalsRejectedForReduction    = saved_literalsRejectedForReduction;
-		// Do NOT call clearAllSAVEDs!
 		reportFinalStatistics();
 	}
 
@@ -1352,7 +1340,6 @@ public class GroundThisMarkovNetwork {
 					// Finally, create a new aggregated ("joint") variable that collects all the remaining possibilities for the variables in the bestLiteral.
 					createAggregateVariable(clause, bestLiteralInfo.bestLiteral, bestLiteralInfo.bestSign, bestLiteralInfo.bestDenominator - bestLiteralInfo.numberReduced);										
 					// Update the lists of variables.  TODO be sure that all changes are accounted for.
-					// updateConstantCounts(clause);
 					if (debugLevel > 0 && bestLiteralInfo.numberUnknown > 0) { Utils.println("%   Need to keep " + wrapLiteral(clause, bestLiteralInfo.bestLiteral) + " because it has " + Utils.comma(bestLiteralInfo.numberUnknown) + " groundings with unknown truth value."); }
 					if (bestLiteralInfo.bestSign) { if (--countOfPosLitsLeft < 0) { Utils.error("countOfPosLitsLeft has become negative!"); } }
 					else                          { if (--countOfNegLitsLeft < 0) { Utils.error("countOfNegLitsLeft has become negative!"); } }
@@ -1380,7 +1367,6 @@ public class GroundThisMarkovNetwork {
 			if (debugLevel > 0) { Utils.println("% Throwing a problem-too-large exception: clause #" + Utils.comma(clauseToIndex.get(clause)) + ": " + e + " '" + clause + "'."); }
 			errorThrownOnTheseClauses.add(clause);
 			numberOfClausesToAnalyze--;
-			continue;
 		}
 	}
 	
@@ -1398,8 +1384,7 @@ public class GroundThisMarkovNetwork {
 	}
 	
 	private void reportFinalStatistics() {
-		if (false) return; // In case we want to turn this off.
-		Set<Clause> consistencyChecked = new HashSet<Clause>(4);
+		Set<Clause> consistencyChecked = new HashSet<>(4);
 		if (debugLevel > 0 || Utils.getSizeSafely(allClauses) < 25)
 			for (Clause clause : allClauses) { if (countOfPossibleGroundings.get(clause) > minNumberOfGroundingsToReportStats) {	
 			Utils.println("\n% Results " + getSolvedAtString(clause) + " for clause #" + Utils.comma(clauseToIndex.get(clause)) + ": '" + clause.toString(Integer.MAX_VALUE) + "'.");
@@ -1458,39 +1443,8 @@ public class GroundThisMarkovNetwork {
 				checkAnswerConsistency(clause);
 				consistencyChecked.add(clause);
 			}
-		}} else if (false) for (Clause clause : allClauses) if (countOfFALSEs.get(clause) > 0 || countOfSatisfiableGndClauses.get(clause) > 0) {
-			Utils.println("\n% Results " + getSolvedAtString(clause) + " for clause #" + Utils.comma(clauseToIndex.get(clause)) + ": '" + clause.toString(Integer.MAX_VALUE) + "'.");
-			Utils.println(  "%     Number of possible groundings:   " + Utils.truncPad(countOfPossibleGroundings.get(clause),        0, 15) + "."); // TODO add commas here!
-			Utils.println(  "%     Count of TRUEs:                  " + Utils.truncPad(countOfTRUEs.get(clause),                  0, 15) + ".");
-			Utils.println(  "%     Count of FALSEs:                 " + Utils.truncPad(countOfFALSEs.get(clause),                 0, 15) + ".");
-			Utils.println(  "%     Count of SATISFIABLEs:           " + Utils.truncPad(countOfSatisfiableGndClauses.get(clause),  0, 15) + ".");
-			if (countOfSatisfiableGndClauses.get(clause) > 0 && multiplierPerSatisfiedClause.get(clause) > 1) {
-			  Utils.println("%     Multiplier per satisfying state: " + Utils.truncPad(multiplierPerSatisfiedClause.get(clause),  0, 15) + ".");
-			}
-			if (true || countOfSatisfiableGndClauses.get(clause) > 0) {
-				if (Utils.getSizeSafely(literalsToKeep.get(clause)) > 0) {
-					Utils.println(  "%     Literals remaining:");
-					for (Literal lit : literalsToKeep.get(clause)) { Utils.println(              "%        " + (clause.getSign(lit) ? " " : "~") + lit); } // Account for the leading '~'.	
-				}
-				if (Utils.getSizeSafely(literalsRejectedForReduction.get(clause)) > 0) {
-					Utils.println(  "%     Literals rejected for reduction:");
-					for (Literal lit : literalsRejectedForReduction.get(clause)) { Utils.println("%        " + (clause.getSign(lit) ? " " : "~") + lit); } // Account for the leading '~'.	
-				}
-				if (Utils.getSizeSafely(literalsStillToReduce.get(clause)) > 0) {
-					Utils.println(  "%     Literals still to reduce:");
-					for (Literal lit : literalsStillToReduce.get(clause)) { Utils.println(       "%        " + (clause.getSign(lit) ? " " : "~") + lit); } // Account for the leading '~'.	
-				}
-				if (Utils.getSizeSafely(variablesRemainingInClause.get(clause)) > 0) {
-					Utils.println(  "%     Remaining variables: " + variablesRemainingInClause.get(clause));
-				}
-				reportRemainingConstantsOfRemainingVariables(clause);
-			} //Utils.waitHere("123");	
-			if (!consistencyChecked.contains(clause)) {
-				checkAnswerConsistency(clause);
-				consistencyChecked.add(clause);
-			}
-		}
-		
+		}}
+
 		if (createScatterPlots) {
 			String fileName = (task.workingDirectory == null ? "" : task.workingDirectory) + "logOfNumberOfGroundingsScatterPlot.csv";
 		    try {
@@ -1520,8 +1474,8 @@ public class GroundThisMarkovNetwork {
 			List<WrappedClause>  wrappedForSortingMostAfter  = new ArrayList<WrappedClause>(allClauses.size());
 			for (Clause c : allClauses) { wrappedForSortingMostBefore.add(new WrappedClause(c, clauseToIndex.get(c), countOfPossibleGroundings.get(c), -1));    }
 			for (Clause c : allClauses) { wrappedForSortingMostAfter.add( new WrappedClause(c, clauseToIndex.get(c), -1, countOfSatisfiableGndClauses.get(c))); }
-			Collections.sort(wrappedForSortingMostBefore, clauseSorter);
-			Collections.sort(wrappedForSortingMostAfter,  clauseSorter);
+			wrappedForSortingMostBefore.sort(clauseSorter);
+			wrappedForSortingMostAfter.sort(clauseSorter);
 			Collections.reverse(wrappedForSortingMostBefore); // Sorting is from SMALLEST to LARGEST, so we want to reverse here.
 			Collections.reverse(wrappedForSortingMostAfter);
 						
@@ -1580,34 +1534,25 @@ public class GroundThisMarkovNetwork {
 				totalGroundingsConsideredMinusTopK -= totalLiteralGroundingsConsidered.get(clauseIafter);
 			}
 
-			if (debugLevel > -10 || true) {
-				Utils.println(    "\n% Total groundings:              " + Utils.truncPad(totalCountOfPossibleGroundings,      0, 14) + " over " + size + " clauses (out of " + task.allClauses.size() + ") in the current task.");
-				Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalGroundingsMinusTopK,      0, 14));
-				Utils.println(      "% Total groundings considered:   " + Utils.truncPad(totalGroundingsConsidered,           0, 14));
-				Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalGroundingsConsideredMinusTopK, 0, 14));
-				Utils.println(      "% Total remaining groundings:    " + Utils.truncPad(totalNumberOfGroundingsRemaining,    0, 14));
-				Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalRemainingMinusTopK,       0, 14));
-				Utils.println(      "% Speedup:                       " + Utils.truncPad(totalCountOfPossibleGroundings / totalGroundingsConsidered,          3, 18));
-				Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalGroundingsMinusTopK / totalGroundingsConsideredMinusTopK, 3, 18));
-				Utils.println(      "% Shrinkage:                     " + Utils.truncPad(totalCountOfPossibleGroundings / totalNumberOfGroundingsRemaining,   3, 18));
-				Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalGroundingsMinusTopK / totalRemainingMinusTopK,            3, 18));
-				Utils.println(    "\n% Most per-clause bindings:      " + Utils.truncPad(maxNumberOfGroundings,               0, 14));
-				Utils.println(      "% Most per-clause bindings left: " + Utils.truncPad(maxNumberOfGroundingsRemaining,      0, 14));
-				if (size > 1) {
-					Utils.println("\n% Average groundings:            " + Utils.truncPad(totalCountOfPossibleGroundings/size, 3, 18)); // Add 4 (3 decimals plus decimal point).
-					Utils.println(  "% Average groundings considered: " + Utils.truncPad(totalGroundingsConsidered/size,      3, 18));
-					Utils.println(  "% Average max storage needed:    " + Utils.truncPad(totalMaxStorage/size,                3, 18));
-				} else {
-					Utils.println("\n% Maximum storage needed:        " + Utils.truncPad(totalMaxStorage,                     0, 14));
-				}
+			Utils.println(    "\n% Total groundings:              " + Utils.truncPad(totalCountOfPossibleGroundings,      0, 14) + " over " + size + " clauses (out of " + task.allClauses.size() + ") in the current task.");
+			Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalGroundingsMinusTopK,      0, 14));
+			Utils.println(      "% Total groundings considered:   " + Utils.truncPad(totalGroundingsConsidered,           0, 14));
+			Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalGroundingsConsideredMinusTopK, 0, 14));
+			Utils.println(      "% Total remaining groundings:    " + Utils.truncPad(totalNumberOfGroundingsRemaining,    0, 14));
+			Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalRemainingMinusTopK,       0, 14));
+			Utils.println(      "% Speedup:                       " + Utils.truncPad(totalCountOfPossibleGroundings / totalGroundingsConsidered,          3, 18));
+			Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalGroundingsMinusTopK / totalGroundingsConsideredMinusTopK, 3, 18));
+			Utils.println(      "% Shrinkage:                     " + Utils.truncPad(totalCountOfPossibleGroundings / totalNumberOfGroundingsRemaining,   3, 18));
+			Utils.println(      "%   w/o hardest " + k + ":               " + Utils.truncPad(totalGroundingsMinusTopK / totalRemainingMinusTopK,            3, 18));
+			Utils.println(    "\n% Most per-clause bindings:      " + Utils.truncPad(maxNumberOfGroundings,               0, 14));
+			Utils.println(      "% Most per-clause bindings left: " + Utils.truncPad(maxNumberOfGroundingsRemaining,      0, 14));
+			if (size > 1) {
+				Utils.println("\n% Average groundings:            " + Utils.truncPad(totalCountOfPossibleGroundings/size, 3, 18)); // Add 4 (3 decimals plus decimal point).
+				Utils.println(  "% Average groundings considered: " + Utils.truncPad(totalGroundingsConsidered/size,      3, 18));
+				Utils.println(  "% Average max storage needed:    " + Utils.truncPad(totalMaxStorage/size,                3, 18));
+			} else {
+				Utils.println("\n% Maximum storage needed:        " + Utils.truncPad(totalMaxStorage,                     0, 14));
 			}
-			/*
-			if (totalNumberOfGroundingsRemaining > maxTotalNumberOfRemainingGroundings) {
-				throw new MLNreductionProblemTooLargeException(debugLevel > 1 ? " ***** Problem too large: totalNumberOfGroundingsRemaining > maxTotalNumberOfRemainingGroundings ("
-																			+ Utils.truncate(totalNumberOfGroundingsRemaining,    0) + " > " 
-																			+ Utils.truncate(maxTotalNumberOfRemainingGroundings, 0) + ")" : null);
-			}
-			*/
 		}
 	}
 	
@@ -1709,10 +1654,6 @@ public class GroundThisMarkovNetwork {
 				if (!pos && falses > 0) { Utils.warning("Should not have any cases of " + wrapLiteral(clause, lit) + " = false here."); }
 				if (unknowns == 0) {
 					if (debugLevel > 0) { Utils.println("%      Can remove " + wrapLiteral(clause, lit) + " from consideration since it no longer has any satisfiable bindings.  Clause #" + Utils.comma(clauseToIndex.get(clause)) + ": '" + clause + "'."); }
-					// result.describeCache("countLiteralGroundings");
-					// Utils.error("Can this happen?  lit = " + wrapLiteral(clause, lit) + " clause = " + clause);
-					// TVK  Dont remove the literal as this just means that the reduction was not enough.
-					// iter.remove();
 				}
 			} catch (MLNreductionProblemTooLargeException e) {
 				// If too large, ???
@@ -1834,7 +1775,6 @@ public class GroundThisMarkovNetwork {
 				// Utils.waitHere("locABC");
 			}
 		} else if (debugLevel > 1) { Utils.println("%   Cleanup completed."); }
-		//if (debugLevel > 0) { Utils.println("% countCurrentCombinatorics = " + computeSizeOfVariableCrossProduct(clause, null)); }
 		Set<Variable> remainingVariables = null;
 		for (Literal lit : litsSurviving) {
 			Collection<Variable> freeVars = freeVarsMap.get(clause).get(lit);
@@ -1907,7 +1847,7 @@ public class GroundThisMarkovNetwork {
 		}
 	}
 	
-	private AggVar connectVariablesToAggregateVariable(Clause clause, Literal lit, List<Variable> variablesToConnect, List<List<Term>> bindings) {
+	private void connectVariablesToAggregateVariable(Clause clause, Literal lit, List<Variable> variablesToConnect, List<List<Term>> bindings) {
 		clearAllLiteralCachesImpactedByTheseVariables(clause, lit, variablesToConnect); // Cached calculations for other literals involving these variables are now invalid.
 		AggVar aggVar = new AggVar(variablesToConnect);	// Might have name conflicts, but won't be '==' conflicts.
 		aggVarsToAggregatedConstantsMap.get(clause).put(aggVar, bindings); // Need this to look up the possible groundings for those of this literal's variables that appear in another literal.
@@ -1919,15 +1859,9 @@ public class GroundThisMarkovNetwork {
 			if (debugLevel > 2) { Utils.println("%               Variable '" + var + "' will be aggregated by position " + position + " of '" + aggVar + "'."); }
 			// Do not clear the OLD holder of this variable's surviving constants.  That might be shared elsewhere, and if not, Java's garbage collector will deal with it.
 			aggregatorMap.get(clause).put(var, varIndexPair);
-		}	
-		return aggVar;
-	}	
-	
-	/*
-	 * Imagine we have aggVar1 = {A,B,C} and aggVar2 = {W,X,Y}, plus the current literal has arguments = {A,J,K,X,Y,Z}.
-	 * Need to produce:	aggVar3 = {A,B,C,W,X,Y,J,K,Z} whose size is |aggVar1| x |aggVar2| x |J| x |K| x {Z|.
-	 * 
-	 */
+		}
+	}
+
 	private void joinTheseAggregatedVariables(Clause clause, Literal literalToUse, boolean pos, Set<AggVar> intersectingExistingAggVars) throws MLNreductionProblemTooLargeException {
 		Collection<Variable> variablesToCombine = freeVarsMap.get(clause).get(literalToUse);
 		if (debugLevel > 2) { Utils.println("%      JOIN: ********** Need to create a new aggregated variable for " + variablesToCombine + ", which will use these aggregated variables: " + intersectingExistingAggVars + "."); }
@@ -2299,7 +2233,6 @@ public class GroundThisMarkovNetwork {
 			return seeIfArgumentsMatch(c1, lookup2, args, skolemMarkers); // See if the rest of the arguments match.
 		} else if (numbArgs == 1) { return true;   // Have matched the predicate name and the SkolemMarker (regardless of the first argument of literal), so done.
 		} else { // Cannot use the first term to index (it matches ANYTHING).  So need to look at all KEYs (since they all match the Skolem).
-			//if (skolemMarkers != null) { Utils.println("HERE2: " + skolemMarkers); }
 			for (Term key : lookup1.keySet()) {
 				lookup2 = lookup1.get(key);
 				if (seeIfArgumentsMatch(key, lookup2, args, skolemMarkers)) { return true; }
@@ -2363,21 +2296,17 @@ public class GroundThisMarkovNetwork {
 				if (term instanceof Function) { Utils.error("Need to handle functions (before getting) here!"); }
 				if (factsWithVariables == null) { factsWithVariables = new HashSet<PredicateName>(4); }
 				// TODO - use arity as well?  Or assume the overall cost is minor?
-			 	//if (!factsWithVariables.contains(pName)) {
-			 		//Utils.println("% Fact with variable(s) in use: " + lit); // Already reported when read (search for reportFactsWithVariables).
-			 		//factsWithVariables.add(lit.predicateName);
-			 	//}
 			 	factsWithVariables.add(lit.predicateName);
 				term1 = variableInFactMarker; 
 			}
 			
 			if (lookup1 == null) { 
-				lookup1 = new HashMap<Term,List<List<Term>>>(4);
+				lookup1 = new HashMap<>(4);
 				hasher.put(pName, lookup1);
 			}
 			List<List<Term>> lookup2 = lookup1.get(term1);
 			if (lookup2 == null) {
-				lookup2 = new ArrayList<List<Term>>(4);
+				lookup2 = new ArrayList<>(4);
 				lookup1.put(term1, lookup2);
 			}
 			lookup2.add(args); // DO NOT REMOVE DUPLICATES, since we want to count groundings.
@@ -2398,20 +2327,8 @@ public class GroundThisMarkovNetwork {
 		}
 	}
 
-	/* TVK : Not used here.
-	private CacheLiteralGrounding collectAndCacheRemainingGroundings(Clause clause, Literal lit) throws MLNreductionProblemTooLargeException {
-		CacheLiteralGrounding cache = litsToConstantsMap.get(clause).get(lit);
-		if (cache != null && cache.getGroundingsStillNeeded() != null) { return cache; }
-		// In the call below, set the first argument to true so no time spent trying to see if these groundings are satisfiable since that has already been done.
-		CacheLiteralGrounding result = help_createFullCrossProductFromTheseVariables(true, clause, lit, clause.getSign(lit), true, freeVarsMap.get(clause).get(lit), emptyIntList);
-		if (result == null) { Utils.error("Could not find any groundings for " + wrapLiteral(clause, lit) + " in clause '" + clause + "'."); }
-		litsToConstantsMap.get(clause).put(lit, cache); // Might not want to cache this, since (may be?) only called once.
-		return result;
-	}
-	*/
-	
 	// This group of methods deals with post-reduction inference.
-	protected void collectAllRemainingGroundings(TimeStamp timeStamp) {
+	void collectAllRemainingGroundings(TimeStamp timeStamp) {
 		if (debugLevel > 0) { Utils.println("\n% Explicitly collecting all remaining groundings for reduced groundings that are small enough."); }
 		int counter = 0;
 		for (Clause clause : allClauses) {
@@ -2432,31 +2349,13 @@ public class GroundThisMarkovNetwork {
 				stillTooLargeAfterReduction.add(clause);
 				continue;
 			}
-			//if (Utils.getSizeSafely(literalsRejectedForReduction.get(clause)) > 0) {
-			//	Utils.error("Think this code through to see if it makes sense with 'reject's: " + literalsRejectedForReduction.get(clause)); 
-			////remainingUnsatisfiedLiteralGroundings = new HashMap<Clause,Map<Literal,Collection<GroundLiteral>>>(4);
-			//}
 		}
 		collectAllGroundClauses();
 		collectAllGroundLiterals();
 		if (Utils.getSizeSafely(stillTooLargeAfterReduction) > 0) {
 			Utils.writeMe("Lazy inference not implemented here");
 			doingLazyInference = true;
-			/*  THIS CAN STILL GROW TO BE TOO LARGE.
-			if (debugLevel > -110) { Utils.println("% Connecting the lazy ground clauses with the existing ground literals."); }
-			int totalCountOfNewClausegroundings = 0;
-			int counter2                        = 0;
-			for (GroundLiteral gLit : allGroundLiteralsOrig) {
-				totalCountOfNewClausegroundings += activateLazyGroundClausesContainingThisGroundLiteral(gLit, true, stillTooLargeAfterReduction, true, timeStamp); // These lazy clauses collected are 'permanent' since they use ground literals that are permanent.
-				if (debugLevel > -110 && ++counter2 % 10 == 0) {  Utils.println("%     Have added " + Utils.comma(totalCountOfNewClausegroundings) + " new lazy ground clauses by processing  " + Utils.comma(counter2) + " of the existing ground literals."); }
-			}
-			if (debugLevel > -110) { 
-				Utils.println("%   Connecting the lazy ground clauses with the regular ground clauses created " + Utils.comma(totalCountOfNewClausegroundings) + " new ground clauses.");
-				Utils.println("%     On average, " + Utils.truncate(totalCountOfNewClausegroundings/ allGroundLiteralsOrig.size(), 3) + " ground clauses were added for each of the regular ground literls.");
-				Utils.println("%     The number of permanent ground clauses is " + Utils.comma(numberOfPermanentLazyGroundClauses) + ".");
-				Utils.println("%     Total count of materialized ground clauses = " + Utils.comma(totalNumberOfGroundClauses) + " and ground literals = " + Utils.comma(totalNumberOfGroundLiterals) + ".");
-			}			
-			*/
+
 		} else { doingLazyInference = false; }
 		if (Utils.getSizeSafely(allGroundClauses) > 0) {
 			computeAllBlocks(timeStamp); // Need all the ground literals before this can be done.
@@ -2744,143 +2643,9 @@ public class GroundThisMarkovNetwork {
 		return results;
 	}
 
-	// Collect all the remaining ground literals.  EXPAND ANY REMAINING SKOLEM VARIABLES HERE.
-	/* TVK : Not used here.
-	private Set<GroundLiteral> collectRemainingSatisfiableLiteralGroundings(Clause clause, Literal lit) {
-		Set<GroundLiteral>  results = null;
-		if (lit.numberArgs() < 1) { // Handle zero-arity predicates.
-			GroundLiteral gLit = task.getCanonicalRepresentative(lit, true, postponeSavingGroundLiterals);
-			if (!isSatisfiable(gLit)) { return null; } // This case shouldn't happen (I think) with zero-arity literals, but check if it is still satisfiable (see comments below for the reason for this check).
-			results = new HashSet<GroundLiteral>(4);
-			if (postponeSavingGroundLiterals) { task.storeGroundLiteralBeingHeld(); } 
-			results.add(gLit);
-			return results;
-		}
-		CacheLiteralGrounding cache = null;		
-		try { 
-			cache = collectAndCacheRemainingGroundings(clause, lit);
-		} catch (MLNreductionProblemTooLargeException e) {
-			Utils.error("cross product too large - code to handle this needs to be written");
-		}
-		if (debugLevel > 1) { Utils.println("%     Remaining groundings for " + wrapLiteral(clause, lit) + ": " + Utils.limitLengthOfPrintedList(cache.getGroundingsStillNeeded(), 25)); }
-		for (List<Term> terms : cache.getGroundingsStillNeeded()) {
-			Literal litToGround = task.stringHandler.getLiteral(lit.predicateName);
-		//	litToGround.setPrintUsingInFixNotation(lit.getPrintUsingInFixNotation());
-			litToGround.setWeightOnSentence(lit.getWeightOnSentence()); // Might be BUGGY - since only the FIRST weight will be used in the canonical form.
-			Literal gLit = null; // If contains a Skolem, need to expand it, assuming it is still satisfiable.
-			boolean containsSkolem = false;
-			if (Utils.getSizeSafely(terms) != lit.numberArgs()) { // Need to figure out how to build the new argument list.
-				//  Might have something like 'p(x,y,x).'  Or might have some Skolems (which need to be expanded).  Or a combination.
-				List<Term> arguments2 = new ArrayList<Term>(lit.numberArgs());
-				int termCounter = 0;
-				Collection<Term>  skolems = task.getSkolemsInThisNewLiteral(lit);
-				Map<Term,Term> varMap = null;
-				if (lit.numberArgs() > 0) { for (Term litTerm : lit.getArguments()) {
-						//Utils.println("litTerm: " + litTerm + "  lit: " + lit + "  terms: " + terms);
-						if      (skolems != null && skolems.contains(  litTerm)) { arguments2.add(litTerm); containsSkolem = true; } // Skolems handled elsewhere.
-						else if (litTerm instanceof Term)                    { arguments2.add(litTerm); } // Just pass a constant along.
-						else if (varMap  != null && varMap.containsKey(litTerm)) { arguments2.add(varMap.get(litTerm)); } // Already have seen this variable.
-						else 						   {                           arguments2.add(terms.get(termCounter));
-							if (litTerm instanceof Variable) { // Need to remember this binding.
-								if (varMap == null) { varMap = new HashMap<Term,Term>(4); }
-								varMap.put(litTerm, terms.get(termCounter));
-							}
-							termCounter++;
-						}
-					}
-					if (termCounter != terms.size()) { Utils.error("Have termCounter = " + termCounter + " but terms = " + terms); }
-					gLit = litToGround; // Since contains a Skolem, need to handle separately. 
-					skolemsInLiteralUnderConsideration = skolems; // Using a 'global' instead of passing another argument everywhere.
-					if (debugLevel > 3) { Utils.println(lit + " -> " + skolemsInLiteralUnderConsideration); }
-				} 
-				litToGround.setArguments(arguments2);
-			} else {
-				litToGround.setArguments(new ArrayList<Term>(terms));
-				gLit = task.getCanonicalRepresentative(litToGround, true, postponeSavingGroundLiterals);
-			}
-			if (isSatisfiable(gLit)) {  // Due to the nature and order of the joins, some specific cases can remain where we know the truth value.
-				if (results == null) { results = new HashSet<GroundLiteral>(4); }
-				if (containsSkolem) {
-					Collection<GroundLiteral> expandedSkolems;
-					try {
-						expandedSkolems = expandSkolems(gLit, task.skolemsPerLiteral.get(lit));
-						results.addAll(expandedSkolems);
-					} catch (MLNreductionProblemTooLargeException e) {
-						Utils.error("Have too many Skolems for " + lit + " and " + gLit);
-					}
-				} else {
-					GroundLiteral gLitToUse = (gLit instanceof GroundLiteral ? (GroundLiteral) gLit : task.getCanonicalRepresentative(gLit)); // There should NOT be any duplicates here ...
-					if (postponeSavingGroundLiterals) { task.storeGroundLiteralBeingHeld(); } 
-					results.add(gLitToUse);
-				}
-			} else if (debugLevel > 2) {
-				Utils.println("%  Still have '" + gLit + "' but it is not satisfiable.  Discard.");
-			}
-			skolemsInLiteralUnderConsideration = null; // Need to erase this 'global' when done (clean up this fragile code?).
-		}
-		return results;
-	}
-	*/
-	
-	/* TVK : Not used here.
-	private Set<GroundLiteral> collectSatisfiableLiterals(Collection<Clause> candidateClauses) {
-		if (candidateClauses == null) { return null; }
-		Set<GroundLiteral> results = null;
-		for (Clause clause : candidateClauses) if (Utils.getSizeSafely(allGroundClausesPerClause.get(clause)) > 0) {
-			for (GroundClause gndClause : allGroundClausesPerClause.get(clause)) if (gndClause.getLength() > 0) {
-				for (int i = 0; i < gndClause.getLength(); i++) {
-					if (results == null) { results = new HashSet<GroundLiteral>(4); }
-					results.add(gndClause.getIthLiteral(i));
-				}
-				
-			}
-		}
-		return results;
-	}
-	*/
-	
-	
-	// Collect all those clauses that involve this literal and are satisfiable. 
-	// NOTE: this literal is probably a new instance, and wont match via '==' or equals (which has a flag overriding it).
-	/* TVK : Not used here.
-	private Set<Clause> collectMatchingClausesThatAreSatisfiable(Literal queryGroundLiteral) {
-		Set<Clause> results = null;		
-		for (Literal candidate : task.getLiteralsContainingThisPredNameAndArity(queryGroundLiteral.predicateName, queryGroundLiteral.numberArgs())) {
-			if (unifier.unify(candidate, queryGroundLiteral) != null) {
-				if (results == null) { results = new HashSet<Clause>(4); }
-				Clause clause = task.literalToClauseMap.get(candidate);
-				if (debugLevel > 3) { Utils.println("% task.literalToClauseMap.get(" + candidate + ") = '" + clause + "'"); }
-				if (Utils.getSizeSafely(literalsToKeep.get(clause)) > 0) { results.add(clause); }
-			} else if (debugLevel > 3) { Utils.println("% Do not unify: " + candidate + " and " + queryGroundLiteral); }
-		}	
-		return results;
-	}
-	*/
-	private Set<GroundClause> collectMatchingGroundClauses(GroundLiteral queryGroundLiteral) {
-		Set<GroundClause> results = null;		
-		for (GroundClause gndClause : allGroundClauses) {
-			int size = gndClause.getLength();
-			if (size > 0) for (int i = 0; i < size; i++) {
-				GroundLiteral gLit = gndClause.getIthLiteral(i);
-				if (gLit == queryGroundLiteral) {
-					if (results == null) { results = new HashSet<GroundClause>(4); }
-					results.add(gndClause); }
-			}
-		}	
-		return results;
-	}
-
 	protected boolean haveCollectedAllGroundLiterals = false;
 	protected boolean haveCollectedAllGroundClauses  = false;
 
-	/*
-	public void freezeAllGroundLiterals() {
-		freezeAllGroundLiterals(true);
-	}
-	public void freezeAllGroundLiterals(boolean freezeValue) {
-		for (GroundLiteral gLit     : allGroundLiterals) {  gLit.setFreeze(freezeValue); } 
-	}
-	*/
 	// TVK:GMN Copied to GroundedMarkovNetowork. Can be removed
 	@Deprecated
 	public void clearAllMarkers() {
@@ -3093,51 +2858,13 @@ public class GroundThisMarkovNetwork {
 		resetNextGroundClause();
 		haveCollectedAllGroundClauses = true;
 	}
-	
-	/* TVK : Not used here.
-	public ArrayList<GroundClause> OLD_getAllGroundClausesWhenNoLazy() {
-		if (haveCollectedAllGroundLiterals) { return allGroundClauses; }
-		Utils.error("Calling getAllGroundClauses(), but haveCollectedAllGroundLiterals=false!");
-		return null;
-	}*/
-	
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Note: these are added by MCSAT.  Need to be careful since we now have duplicates.
-	// MCSAT makes sure only these, and never their 'parent' negated ground clause, is in use at any point.
+
 	private List<GroundClause> allGroundUnitClausesFromNegWgtClauses = new ArrayList<GroundClause>(0);
-	/* TVK : Not used here.
-	public void addTheseUnitClauseFromNegWgtClauses(List<GroundClause> gndClauses) {
-		if (!allGroundUnitClausesFromNegWgtClauses.addAll(gndClauses))    { Utils.error("Problem adding "   + Utils.comma(gndClauses) + " unit clauses."); }
-		numberOfUnitClauseFromNegWgtClauses = allGroundUnitClausesFromNegWgtClauses.size();
-		resetNextGroundClause();
-	}
-	public void removeTheseUnitClauseFromNegWgtClauses(List<GroundClause> gndClauses) {
-		if (!allGroundUnitClausesFromNegWgtClauses.removeAll(gndClauses)) { Utils.error("Problem removing " + Utils.comma(gndClauses) + " unit clauses."); }
-		numberOfUnitClauseFromNegWgtClauses = allGroundUnitClausesFromNegWgtClauses.size();
-		resetNextGroundClause();
-	}*/
-	
+
 	private List<GroundClause> allPermanentLazyGroundClauses = new ArrayList<GroundClause>(0); // These are the lazy ground clauses that 'touch' (intersect with the regular ground literals).
-	/* TVK : Not used here.
-	private void addThesePermanentLazyClauses(Collection<GroundClause> gndClauses) {
-		if (gndClauses == null) { return; }
-		if (!doingLazyInference) { Utils.error("Should not call when doingLazyInference=false."); }
-		if (!allPermanentLazyGroundClauses.addAll(gndClauses))   { Utils.error("Problem adding " + Utils.comma(gndClauses) + " permanent lazy clauses."); }
-		numberOfPermanentLazyGroundClauses = allPermanentLazyGroundClauses.size();
-		resetNextGroundClause();
-	}
-	 */	
+
 	private List<GroundClause> allLazyGroundClauses = new ArrayList<GroundClause>(0);
-	/* TVK : Not used here.
-	private void addTheseLazyClauses(Collection<GroundClause> gndClauses) {
-		if (gndClauses == null) { return; }
-		if (!doingLazyInference) { Utils.error("Should not call when doingLazyInference=false."); }
-		if (!allLazyGroundClauses.addAll(gndClauses))   { Utils.error("Problem adding " + Utils.comma(gndClauses) + " lazy clauses."); }
-		numberOfLazyGroundClauses = allLazyGroundClauses.size();
-		for (GroundClause gndClause : gndClauses) { gndClause.age = 0; }
-		resetNextGroundClause();
-	}
-	*/
+
 	public void removeOldLazyClauses(short maxAge) {
 		if (!doingLazyInference) { return; }
 		boolean resetNeeded = false;
@@ -3154,21 +2881,7 @@ public class GroundThisMarkovNetwork {
 		}
 		if (resetNeeded) { removeThisLazyClause(null, true); }
 	}
-	/* TVK : Not used here.
-	public void removeTheseLazyClausesFromNegWgtClauses(List<GroundClause> gndClauses) {
-		if (allLazyGroundClauses.removeAll(gndClauses)) { Utils.error("Problem removing " + Utils.comma(gndClauses) + " lazy clauses."); }
-		numberOfLazyGroundClauses = allLazyGroundClauses.size();
-		resetNextGroundClause();
-	}	
-	*/
-	/* TVK : Not used here.
-	public void addThisLazyClause(GroundClause gndClause) {
-		if (!doingLazyInference) { Utils.error("Should not call when doingLazyInference=false."); }
-		if (!allLazyGroundClauses.add(gndClause))    { Utils.error("Problem adding this lazy clause: '"   + gndClause + "'."); }
-		numberOfLazyGroundClauses = allLazyGroundClauses.size();
-		resetNextGroundClause();
-	}
-	*/
+
 	private void removeThisLazyClause(GroundClause gndClause, boolean doReset) {
 		if (!doingLazyInference) { Utils.error("Should not call when doingLazyInference=false."); }
 		if (gndClause != null && !allLazyGroundClauses.remove(gndClause)) { Utils.error("Problem removing this lazy clause: '" + gndClause + "'."); }
@@ -3429,36 +3142,8 @@ public class GroundThisMarkovNetwork {
 		return getNextUnMarkedGroundLiteral();
 	}
 
-	public void reportGroundLiteralState(int i) {
-		int counter = 0;
-		GroundLiteral gLit = getFirstGroundLiteral();
-		while (gLit != null) {
-			if (++counter > i) { Utils.println("% ... will not print the rest of the ground literals."); return; }
-			Utils.println("%  "  + gLit + ": " + gLit.getValue());
-			gLit = getNextGroundLiteral();
-		}
-	}
-
 	private boolean[]          savedGroundLiteralState     = null;
 	private Set<GroundLiteral> savedLazyGroundLiteralState = null; // Will hold lazy ground literals that are TRUE.
-	public void saveCurrentStateOfGroundLiterals(TimeStamp timeStamp) {
-		if (!haveCollectedAllGroundLiterals) { Utils.error("Calling getAllGroundLiterals(), but haveCollectedAllGroundLiterals=false!"); }
-		if (savedGroundLiteralState == null) {
-			savedGroundLiteralState = new boolean[Utils.getSizeSafely(allGroundLiterals)];
-		}
-		int counter = 0;
-		if (allGroundLiterals != null) for (GroundLiteral gLit : allGroundLiterals) {
-			savedGroundLiteralState[counter++] = gLit.getValue();
-		}
-		if (savedLazyGroundLiteralState == null) {
-			savedLazyGroundLiteralState = new HashSet<GroundLiteral>(4);
-		}
-		if (allLazyGroundLiterals != null) for (GroundLiteral gLit : allLazyGroundLiterals) {
-			boolean truthValue = gLit.getValue();
-			if ( truthValue) { savedLazyGroundLiteralState.add(   gLit); } // Need to record lazy ground literals with non-default values.
-			if (!truthValue) { savedLazyGroundLiteralState.remove(gLit); }
-		}		
-	}
 
 	public void restoreSavedStateOfGroundLiterals(TimeStamp timeStamp) {
 		if (savedGroundLiteralState == null) { Utils.error("Calling getAllGroundLiterals(), but have never called saveCurrentStateOfGroundLiterals."); }
@@ -3481,17 +3166,6 @@ public class GroundThisMarkovNetwork {
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	private int countOfMarkedGroundClauses = -1; // See how many of the grounded clauses are in play for this instance.
-	public int countOfMarkedGroundClauses() {
-		if (countOfMarkedGroundClauses >= 0) { return countOfMarkedGroundClauses; }
-		countOfMarkedGroundClauses = 0;
-		
-		GroundClause gndClause = getFirstMarkedGroundClause();
-		while (gndClause != null) {
-			countOfMarkedGroundClauses++;
-			gndClause = getNextMarkedGroundClause();
-		}
-		return countOfMarkedGroundClauses;
-	}
 
 	public boolean lookForDuplicateGroundClauses() {
 		GroundClause gndClause = getFirstGroundClause();
@@ -3517,68 +3191,6 @@ public class GroundThisMarkovNetwork {
 		return allGroundClausesPerClause.get(clause);
 	}
 
-	// Compute the Markov Blanket for this ground literal, pushing the old versions of allGroundLiterals and allGroundClauses.
-	public Object pushCurrentMarkovBlanket(GroundLiteral gLit, Object marker) {
-		if (gLit == null) { Utils.error("Cannot have gLit==null"); }
-		if (Utils.getSizeSafely(allGroundLiterals) < 1 || Utils.getSizeSafely(allGroundClauses) < 1) { return getMarkerInUse(); } // Have no groundings left, so done.
-		
-		Set<GroundLiteral>        newGroundLiterals = new HashSet<GroundLiteral>(4); // Use sets here for fast contains() calls.  Later these wil be come array lists (for fast sampling).
-		Set<GroundClause>         newGroundClauses  = new HashSet<GroundClause>( 4);
-		Set<GroundLiteral> gndLiteralsToBeExplored  = new HashSet<GroundLiteral>(4);
-		Set<GroundLiteral> groundLiteralsConsidered = new HashSet<GroundLiteral>(4);
-		newGroundLiterals.add(      gLit);
-		gndLiteralsToBeExplored.add(gLit);
-		groundLiteralsConsidered.add(gLit);
-		while (!gndLiteralsToBeExplored.isEmpty()) {
-			GroundLiteral currGroundLiteral = gndLiteralsToBeExplored.iterator().next();
-			gndLiteralsToBeExplored.remove(currGroundLiteral);
-			Set<GroundClause> currentSatisfiableClauses = collectMatchingGroundClauses(currGroundLiteral);
-			if (debugLevel > 1) { Utils.println("% clauses for '" + currGroundLiteral + "': " + Utils.limitLengthOfPrintedList(currentSatisfiableClauses, 10)); }
-			if (currentSatisfiableClauses != null) for (GroundClause gndClause : currentSatisfiableClauses) if (!newGroundClauses.contains(gndClause)) {
-				int size = gndClause.getLength();
-				if (size > 0) for (int i = 0; i < size; i++) {
-					GroundLiteral gLit2 = gndClause.getIthLiteral(i);
-					if (!groundLiteralsConsidered.contains(gLit2)) {
-						newGroundLiterals.add(       gLit2);
-						gndLiteralsToBeExplored.add( gLit2);
-						groundLiteralsConsidered.add(gLit2);
-					}
-				}
-				newGroundClauses.add(gndClause);
-			}
-		} // TODO - add the multipliers so the total count known!
-		if (debugLevel > 1) { Utils.println("\n% The Markov Blanket of '" + gLit + "' contains " + Utils.comma(newGroundClauses) 
-												+ " ground clauses involving "                   + Utils.comma(newGroundLiterals) 
-												+ " ground literals."); }
-		return pushGroundThisMarkovNetwork(newGroundLiterals, newGroundClauses, marker);
-	}
-	
-	private Object pushGroundThisMarkovNetwork(Set<GroundLiteral> gLits, Set<GroundClause> gndClauses, Object marker) {
-		allGroundClauses  = new ArrayList<GroundClause>(gndClauses); // TODO - would it make sense to hold this array list and then clear as needed?  Less GC'ing, but would hold the largest version, which would waste space.
-		allGroundLiterals = new ArrayList<GroundLiteral>(gLits);
-		numberOfNonLazyGroundClauses = Utils.getSizeSafely(allGroundClauses);
-		return marker;
-	}
-	public Object popGroundThisMarkovNetwork(Object marker) {
-		if (allGroundClausesOrigSize != Utils.getSizeSafely(allGroundClausesOrig)) { 
-			Utils.error("The number of original ground clauses is now "  + Utils.comma(allGroundClausesOrig)  + " but it should be " + Utils.comma(allGroundClausesOrigSize)  + "."); 
-		}
-		if (allGroundLiteralsOrigSize != Utils.getSizeSafely(allGroundLiteralsOrig)) { 
-			Utils.error("The number of original ground Literals is now " + Utils.comma(allGroundLiteralsOrig) + " but it should be " + Utils.comma(allGroundLiteralsOrigSize) + "."); 
-		}
-		allGroundClauses  = allGroundClausesOrig;
-		allGroundLiterals = allGroundLiteralsOrig;
-		numberOfNonLazyGroundClauses = Utils.getSizeSafely(allGroundClauses);
-		return marker;
-	}
-
-	// Collect all the literals in these clauses that are satisfiable.  These clauses should be original, so can use to index into hash tables, etc.
-	public Set<Literal> collectQueryAndHiddenLiterals(Set<Clause> currentClauses) {
-		Set<Literal> results = null;		
-		Utils.writeMe();		
-		return results;
-	}
-
 	// Collect all the literals in these clauses that make a clause FALSE.  ?????
 	public Set<Literal> collectUnsatisfyingLiterals(Set<Clause> currentClauses) {
 		// TODO Auto-generated method stub
@@ -3586,107 +3198,18 @@ public class GroundThisMarkovNetwork {
 		return null;
 	}
 
-	
-	/**
-	 * @return the weightsLearnt
-	 */
-	public boolean isWeightsLearnt() {
-		return weightsLearnt;
-	}
 
-	/**
-	 * @param weightsLearnt the weightsLearnt to set
-	 */
-	public void setWeightsLearnt(boolean weightsLearnt) {
-		this.weightsLearnt = weightsLearnt;
-	}
-
-	// We get the weighted sum WITH RESPECT TO THE ASSUMPTION THAT *ALL* GROUNDINGS SATISFY THE CLAUSE (i.e., returning 0 is the baseline).
-	public double getWeightShortageOfCurrentlySatisfiedClauses(boolean computeIsSatisfied) { // If arg=false, then use the cached version (for speed).
-		double weightSatisfiedClauses = 0;
-		if (debugLevel > 0) {
-			Utils.print("\n% In getWeightShortageOfCurrentlySatisfiedClauses with #currentGroundLiterals = " + Utils.comma(allGroundLiterals) + " and settings = [");
-			for (GroundLiteral gLit : allGroundLiterals) { Utils.print(gLit.getValue() ? "1" : "0"); }
-			Utils.println("]");
-		}
-		// Compute weight of satisfied clauses.
-		for (GroundClause gndClause : allGroundClauses) {
-			if (debugLevel > 2) { Utils.print("%          Consider ground clause: '" + gndClause + "'"); }
-			if ((computeIsSatisfied ? !gndClause.checkIfSatisfied(null) : !gndClause.isSatisfiedCached())) { // Be sure that these were all updated before this code was called.
-				weightSatisfiedClauses -= gndClause.getWeightOnSentence(); // The multiplier was already multiplied into the weights.
-				if    (debugLevel > 2) { Utils.println(": Unsatisfied, so add wgt = -" + Utils.truncate(gndClause.getWeightOnSentence() ,3) + "."); }
-			} else if (debugLevel > 2) { Utils.println(": Satisfied (and weight already factored in)."); }
-		}
-		return weightSatisfiedClauses;
-	}
-
-	
 	// This is called when looking at the ground clauses pointed to be ground literals.
 	// To make sure there is no unintentional 'cross talk,' make sure this clause is marked
 	// as being 'current,' which is done by the marker property on the ground clause.
-	public boolean isaMarkedGroundClause(GroundClause gndClause) {
+	boolean isaMarkedGroundClause(GroundClause gndClause) {
 		return (gndClause.getMarker() == markerInUse);
 	}
-	public boolean isaMarkedGroundLiteral(GroundLiteral gLit) {
+	boolean isaMarkedGroundLiteral(GroundLiteral gLit) {
 		return (gLit.getMarker()      == markerInUse);
 	}
-	
-	public Object getMarkerInUse() {
-		return markerInUse;
-	}
-	public void setMarkerInUse(Object marker) {
-		markerInUse = marker;
-		countOfMarkedGroundClauses = -1;
-		countOfMarkedGroundClauses(); 
-	}
-	public void clearMarkerInUse() {
-		markerInUse = null; // Matches all markers.
-	}
-	
-	public void reportGroundings(Clause clause) {
-		if (Utils.getSizeSafely(allGroundClauses) < 1) { return; }
-		Collection<GroundClause> remainingGroundClauses = allGroundClausesPerClause.get(clause);
-		if (Utils.getSizeSafely(remainingGroundClauses) < 1) { Utils.println("%        There are NO groundings for this clause."); return; }
-		int counter = 0;
-		for (GroundClause gndClause : remainingGroundClauses) {
-			Utils.println("%        " + gndClause);
-			if (++counter >= 100) { Utils.println("%       ... [will only print the first 100]" + gndClause); return; } 
-		}
-	}
 
-	// This count does INCLUDE the number reduced to 'true.'
-	public double numberOfSatisfiedGroundClauses(Clause clause) {
-		double total = numberOfGroundings(clause); // Start by assuming ALL groundings are satisfied, then subtract those found not to be so. 
-		// Utils.println(Utils.truncate(total, 0) + " numberOfSatisfiedGroundClauses: " + clause.toPrettyString());
-		int countOfSatGrounds = Utils.getSizeSafely(allGroundClausesPerClause.get(clause));
-		if (countOfSatGrounds > 0) for (GroundClause gndClause : allGroundClausesPerClause.get(clause)) {
-		if (!gndClause.isSatisfiedCached()) {  // Be sure that these were all updated before this code was called.
-				total -= multiplierPerSatisfiedClause.get(clause);
-     			// Utils.println("% GTMN GndClause not satisified:" + gndClause.toPrettyString());
-			} else {
-	     		//	Utils.println("% GTMN GndClause satisified:" + gndClause.toPrettyString());
-			}
-		} else { total -= countOfFALSEs.get(clause); }
-		if (countOfFALSEs.get(clause) > 0 && countOfSatGrounds > 0) {
-			Utils.error("Clause '" + clause + "' has countOfFALSEs=" + Utils.comma(countOfFALSEs.get(clause)) + " and |remainingSatisfiableClauseGroundings|=" + Utils.comma(countOfSatGrounds));
-		}
-		return total;
-	}
-	
-	public double numberOfGroundings(Clause clause) {
-		return countOfPossibleGroundings.get(clause);
-	}	
-	public double numberOfSatisfiedGroundings(Clause clause) {
-		return countOfTRUEs.get(clause);
-	}	
-	public double numberOfSatisfiableGroundings(Clause clause) {
-		return multiplierPerSatisfiedClause.get(clause) * countOfSatisfiableGndClauses.get(clause);
-	}	
-	public double numberOfUnsatisfiedGroundings(Clause clause) {
-		return countOfFALSEs.get(clause);
-	}
 
-	
 	// End of group that deals with methods for post-reduction inference.
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -3696,25 +3219,23 @@ public class GroundThisMarkovNetwork {
 	private Map<GroundLiteral,Block>                    allBlocks = null;
 	private Map<PredicateName,Map<Integer,List<Block>>> predNameArityToBlockList;
 	
-	public void computeAllBlocks(TimeStamp timeStamp) {
+	private void computeAllBlocks(TimeStamp timeStamp) {
 		initPredNameArityToBlock(timeStamp);
 		populateBlocks(timeStamp);
 		if (debugLevel > 2) { Utils.println("% GroundThisMarkovNetwork: #blocks = " + Utils.getSizeSafely(getAllBlocks())); }
 	}
 	
-	public Map<GroundLiteral,Block> getAllBlocks() {
+	private Map<GroundLiteral,Block> getAllBlocks() {
 		return allBlocks;
 	}
 	
 	/**
 	 * Creates a Map where the keys are all the literals which have block constraints.
 	 * At the end of this method, the map's values are an empty list of blocks.
-	 * 
-	 * @param predNameToLiteral
 	 */
 	private void initPredNameArityToBlock(TimeStamp timeStamp) {
-		Map<PredicateName,Set<Integer>> predNameArityPairsSeen = new HashMap<PredicateName,Set<Integer>>(4);
-		predNameArityToBlockList = new HashMap<PredicateName,Map<Integer,List<Block>>>(4);
+		Map<PredicateName,Set<Integer>> predNameArityPairsSeen = new HashMap<>(4);
+		predNameArityToBlockList = new HashMap<>(4);
 		if (debugLevel > 0) { Utils.println("\n% Initialize the predicate-name blocks."); }
 		for (GroundLiteral gLit : allGroundLiterals) if (gLit.numberArgs() > 0) {			
 			PredicateName predName = gLit.predicateName;
@@ -3829,24 +3350,7 @@ public class GroundThisMarkovNetwork {
 		Map<Integer,Map<Term,Set<List<Term>>>> constantsForAggVarsINDEX = null;
 		
 		int varCounter = 0;
-		
-		if (debugLevel > 3) {
-			Utils.println("\n clause = " + clause);
-			Utils.println(  "  lit   = " + lit);
-			Utils.println(  " gLit   = " + gLit);
-			Utils.println(  " mapVariablesToPositionInAggregatorList = " + mapVariablesToPositionInAggregatorList);
-			Utils.println(  " map    = " + map);
-			Utils.print(    " positionsOfArgumentsInLiteralToUse =");
-			for (int i = 0; i < positionsOfArgumentsInLiteralToUse.length; i++) { Utils.print(" " + positionsOfArgumentsInLiteralToUse[i]); }
-			Utils.println(  "");
-			Utils.println(  " variables in clause: " + variablesInClause.get(clause));
-			Utils.println(  " variables in lit:    " + freeVarsMap.get(clause).get(lit));
-			Utils.println(  " aggVarIndexes = "      + aggVarIndexes);
-			Utils.println(  " basicVarCrossProduct: "         + basicVarCrossProduct);
-			Utils.println(  " crossProductOfAggregatedVars: " + crossProductOfAggregatedVars);
-			Utils.println(  "");
-		}
-		
+
 		for (Integer item : map) { // Look at each argument in the ground literal. 
 			if (item > 0) { // Only need to check these entries.  These are the first occurrences of variables.
 				Term gLitArg = (Term) gLitArgs.get(item - 1);  // Remember the map counts from 1, not 0.
@@ -3885,9 +3389,7 @@ public class GroundThisMarkovNetwork {
 				varCounter++;
 			}
 		}
-		
-		//Utils.println("constantsForAggVars = " + constantsForAggVars);
-		//Utils.println("locationsInAggVars = "  + locationsInAggVars);		
+
 		// Now process any constantsForAggVars (needed to wait to collect everything).  Recall that these are LISTS of constants, and we need to see if this combination is still under consideration.
 		if (debugLevel > 3) { Utils.println("mapVariablesToPositionInAggregatorList=" + mapVariablesToPositionInAggregatorList + " constantsForAggVars=" + constantsForAggVars + "  constantsForAggVarsINDEX=" + constantsForAggVarsINDEX); }
 		if (constantsForAggVars != null) {
@@ -3938,12 +3440,10 @@ public class GroundThisMarkovNetwork {
 	
 	// %%%%%%%%%%%%%%%%%%%   Start of Managing the Grounded Network, Lazy Evaluation, etc.   %%%%%%%%%%%%%%%%%%%%%
 
-	// TVK:GMN Copied to GroundedMarkovNetowork. Can be removed
 	@Deprecated
 	public boolean prepareForInference(TimeStamp timeStamp) { // Return TRUE if LAZY inference needed.
-		if (debugLevel > -110) { Utils.println("\n% Create all the query literals."); }
+		Utils.println("\n% Create all the query literals.");
 		task.createAllQueryLiterals();  // Need all of these to be expanded (TODO - keep statistics in a sparse array), since we're assuming inference will be done soon.
-	//	task.createAllHiddenLiterals(); // TODO do we need to create these, or can we simply assume any non-query that has survived is a hidden?  seems so ...
 		if (debugLevel > -110) { Utils.println("\n% There are " + Utils.comma(task.getQueryLiterals()) + " query literals."); }
 		collectAllRemainingGroundings(timeStamp);
 		if (debugLevel > -110 && Utils.getSizeSafely(stillTooLargeAfterReduction) < 1) { Utils.println("\n% Because there are only " + Utils.truncate(totalNumberOfGroundingsRemaining, 0) + " clause groundings remaining, will perform standard inference."); }
@@ -3967,15 +3467,15 @@ public class GroundThisMarkovNetwork {
 	private LiteralComparator litComparator = new LiteralComparator();
 
 	// Return true if this is a NEW ground clause.
-	private boolean addToGroundClauseIndex(GroundClause gndClause) {
+	private void addToGroundClauseIndex(GroundClause gndClause) {
 		// Put in a canonical form.
 		if (gndClause.getLength() < 1) {
 			Utils.warning("Have a ground clause with no literals: "    + gndClause.groundClauseSettingToString(this) + ".  It will be ignored.");
-			return false; 
+			return;
 		}
 		if (gndClause.getWeightOnSentence() == 0.0) {
 			Utils.warning("Have a ground clause with weight of zero: " + gndClause.groundClauseSettingToString(this) + ".  It will be ignored.");
-			return false; 
+			return;
 		}
 		// If a singleton clause with a negative weight, convert to the equivalent version (negate the weight and the literal.
 		// TVK 8/28 : Flipping before learning weights would add q(x) instead of !q(x) to allGroundClausesPerClause
@@ -3995,15 +3495,14 @@ public class GroundThisMarkovNetwork {
 				for (GroundClause hit : hits) if (hit.sameClause(gndClause)) {
 					hit.setWeightOnSentence(hit.getWeightOnSentence() + gndClause.getWeightOnSentence());
 					countOfMergedGroundClauses++;
-					return false;
+					return;
 				}
 			}
 			// If reached the end of the for loop, have a collision that must be kept.			
-		} else { hits = new ArrayList<GroundClause>(1); }
+		} else { hits = new ArrayList<>(1); }
 		countofUniqueGroundClauses++;
 		hits.add(gndClause);
 		hashOfGroundClauses.put(hashcode, hits);
-		return true;
 	}
 	private int getNonFastHashCode(GroundClause gndClause) {
 		boolean holdLiteral = task.stringHandler.useFastHashCodeForLiterals;
@@ -4016,7 +3515,6 @@ public class GroundThisMarkovNetwork {
 		return hashcode;
 	}
 
-	// TVK:GMN Copied to GroundedMarkovNetowork. Can be removed
 	@Deprecated
 	public long getCountOfUniqueGroundClauses() {
 		int counter  = 0;
@@ -4038,308 +3536,6 @@ public class GroundThisMarkovNetwork {
 		return countofUniqueGroundClauses;
 	}
 
-	// Unless in the provided collection, give the query and hidden literals a random value.
-	// TODO could save one pass through the query literals if this were done when calling countLazyTrueQueryLiterals,
-	//      but that would mean we need to store lazyGroundLiteralsUnderConsideration.
-	/* TVK : Not used here.
-	public int randomizeTruthValuesOfQueryAndHiddenLiteralsForLazy(Set<GroundLiteral> exceptions, TimeStamp timeStamp) {
-		Collection<GroundLiteral> qLits = task.getQueryLiterals();
-		if (Utils.getSizeSafely(qLits) < 1) { Utils.error("Have no query literals!"); }
-		int counterRandom    = 0;
-		int counterException = 0;
-		int numberExceptions = Utils.getSizeSafely(exceptions);
-		for (GroundLiteral gLit : qLits) { // Need to do the query literals even if they won't be interned, since we need to calculate numTrue's for them.
-			if (numberExceptions < 1 || !exceptions.contains(gLit)) { 
-				counterRandom++; gLit.setValueOnly(Utils.random() < 0.5, timeStamp); // This assumes some other code will check the state of the ground clauses in which this literal appears. 
-			} else { counterException++; }
-		}
-		Collection<GroundLiteral> hLits = (internHiddenLiterals ? task.getHiddenLiterals() : null); // No need to assign these unless they'll later be interned.
-		if (Utils.getSizeSafely(hLits) > 0) for (GroundLiteral gLit : hLits) { // OK if no hidden literals.
-			if (numberExceptions < 1 || !exceptions.contains(gLit)) { 
-				counterRandom++; gLit.setValueOnly(Utils.random() < 0.5, timeStamp); // Ditto.
-			} else { counterException++; }
-		}
-		if (debugLevel > 0) { Utils.println("%  " + Utils.comma(counterRandom) + " of the " + Utils.comma(qLits) + " query " + (internHiddenLiterals ? "and " + Utils.comma(hLits) + " hidden " : "") + "literals have been given random values, while " + Utils.comma(counterException) + " are in the list of " + Utils.comma(exceptions) + " exceptions."); }
-		return counterRandom;
-	}
-	*/
-	/* TVK : Not used here.
-	private GroundClause tryNtimesToFindUnsatisfiedClause(List<GroundClause> candidates, int N) {
-		for (int i = 0; i < N; i++) {
-			GroundClause randomChoice = Utils.chooseRandomFromThisCollection(candidates);
-			if (!randomChoice.isSatisfiedCached()) { return randomChoice; }
-		}
-		return null;
-	}
-	*/
-	// Activate all those groundings of this clause that contain this ground literal.
-	// Also do bookkeeping to note when all groundings have been collected.
-	// Return the number of new ground clauses created.
-	/* TVK : Not used anywhere.
-	public int activateLazyGroundClausesContainingThisGroundLiteral(GroundLiteral gLit, boolean onlyConsiderNegatedLiterals, Collection<Clause> clausesToConsider, boolean isaPermLazy, TimeStamp timeStamp) {
-		if (gLit.hasBeenInterned) { return 0; }
-		int total = 0;
-		for (Clause clause : clausesToConsider) { 
-			Collection<GroundClause> newGroundings = help_activateLazyGroundClausesContainingThisGroundLiteral(clause, gLit, onlyConsiderNegatedLiterals, timeStamp);
-			if (Utils.getSizeSafely(newGroundings) < 1) { continue; }
-			if (isaPermLazy) { addThesePermanentLazyClauses(newGroundings); } else { addTheseLazyClauses(newGroundings); }
-			// We don't need to collect the literals in these new ground clauses until these clauses are selected by MCSAT.
-			//for (GroundClause gndClause : newGroundings) for (int i = 0; i < gndClause.getLength(); i++) {
-			//	GroundLiteral gLit gndClause.getIthLiteral(i);
-			//}
-			total += Utils.getSizeSafely(newGroundings);
-		}
-		if (debugLevel > 2) { 
-			Utils.println("%   Activating '" + gLit + "' created " + Utils.comma(total) + " new ground clauses.  Total count of materialized ground clauses = " + Utils.comma(totalNumberOfGroundClauses) + " and ground literals = " + Utils.comma(totalNumberOfGroundLiterals) + ".");
-		}
-		gLit.hasBeenInterned = true;
-		return total;
-	}
-	*/
-	/* TVK : Not used here.
-	private Set<GroundClause> help_activateLazyGroundClausesContainingThisGroundLiteral(Clause clause, GroundLiteral gLit, boolean onlyConsiderNegatedLiterals, TimeStamp timeStamp) {
-		// Look at literals remaining, collect all possible unifications, and then do all possible groundings for the remaining variables.
-		Set<Literal>            keepers = literalsToKeep.get(clause);
-		if (Utils.getSizeSafely(keepers) < 1) { clausesFullyGrounded.add(clause); return null; } // Probably already done elsewhere, but play it safe.
-		Set<Variable>      varsInClause = variablesRemainingInClause.get(clause);
-		Set<Variable>  accountedForVars = accountedForVariables.get(clause);
-		Set<GroundClause> newGroundings = null;
-		int dupGroundCounter = 0; // Count times a duplicate ground clause was found.
-		
-		// Only negated literals can change the default truth value of a clause (since we assume clauses are true because
-		// at least one negated literal is false by the CWA).  There might be more than one negated literal, but
-		// bookkeeping to keep track of when all are materialized is too complicated and not (yet) done (TODO).
-		for (Literal lit : keepers) if (!onlyConsiderNegatedLiterals || !clause.getSign(lit)) {
-			bl2.theta.clear(); // Use bl2 since collectRemainingClauseGroundings uses bl.
-			BindingList bindings = unifier.unify(lit, gLit, bl2);
-			if (bindings == null) { continue; }
-			Collection<Variable> extraVars = null;
-			for (Variable var : varsInClause) if (!accountedForVars.contains(var) && !bindings.theta.containsKey(var)) {
-				if (extraVars == null) { extraVars = new ArrayList<Variable>(1); }
-				extraVars.add(var);
-			}
-			if (extraVars != null) { 
-				if (debugLevel > 2) { Utils.println("\n% There are some extra variables " + extraVars + " for '" + gLit + "' in clause #" + Utils.comma(clauseToIndex.get(clause)) + ": '" + clause + "' with bindings=" + bindings + " and accountedForVars=" + accountedForVars + "."); }
-				// Need to collect all the remaining groundings of these extra variables.
-				Set<GroundClause> newGroundClauses = null;
-				try {
-					newGroundClauses = collectRemainingClauseGroundings(clause, extraVars, bindings, timeStamp);
-				} catch (MLNreductionProblemTooLargeException e) {
-					Utils.error("Dealing with grounding with extra variables " + extraVars + " led to too many ground clauses.  Consider removing: '" + clause + "'.");
-				}
-				if (debugLevel > 2) { Utils.println("% Have collected " + Utils.comma(newGroundClauses) + " bindings from these extra variables."); }
-				if (Utils.getSizeSafely(newGroundClauses) > 0) {
-					if (newGroundings == null) { newGroundings = new HashSet<GroundClause>(4); }
-					if (debugLevel > 0) {
-						for (GroundClause newGndClause : newGroundClauses) if (!addGroundingUnlessAlreadyExists(newGndClause, newGroundings)) {	dupGroundCounter++; }
-					} else { addGroundingUnlessAlreadyExists(newGroundClauses, newGroundings); }
-				}
-			}
-			else { // Only one candidate, so create it here.  TODO - let collectRemainingClauseGroundings handle this as well?
-				List<Literal> posLitsRemaining = null;
-				List<Literal> negLitsRemaining = null;
-				if (clause.posLiterals != null) for (Literal pLit : clause.posLiterals) if (keepers.contains(pLit)) {
-					if (posLitsRemaining == null) { posLitsRemaining = new ArrayList<Literal>(1); }
-					GroundLiteral gLitNew = task.getCanonicalRepresentative(pLit.applyTheta(bindings.theta));
-					posLitsRemaining.add(gLitNew);
-				}
-				if (clause.negLiterals != null) for (Literal nLit : clause.negLiterals) if (keepers.contains(nLit)) {
-					if (negLitsRemaining == null) { negLitsRemaining = new ArrayList<Literal>(1); }
-					GroundLiteral gLitNew = task.getCanonicalRepresentative(nLit.applyTheta(bindings.theta));
-					negLitsRemaining.add(gLitNew);
-				}
-				GroundClause newGndClause = getGroundClause(clause, posLitsRemaining, negLitsRemaining, getFreeVarMap(variablesRemainingInClause.get(clause), null, bindings), timeStamp);
-				if (newGroundings == null) { newGroundings = new HashSet<GroundClause>(4); }
-				if (addGroundingUnlessAlreadyExists(newGndClause, newGroundings)) { dupGroundCounter++; }
-			}
-		}		
-		if (newGroundings == null) { return null; }
-		if (debugLevel > 2) { Utils.println("%    Adding " + Utils.comma(newGroundings) + " new clause groundings (and " + Utils.comma(dupGroundCounter) + "duplicates) from '" + gLit + "' from '" + clause + "'."); }
-		Set<GroundClause> groundingsSoFar = allGroundClausesPerClause.get(clause);
-		if (groundingsSoFar == null) {
-			groundingsSoFar = new HashSet<GroundClause>(newGroundings.size() + 4);
-			allGroundClausesPerClause.put(clause, groundingsSoFar);
-		}
-		groundingsSoFar.addAll(newGroundings);
-		// Utils.println("% GTMN: groundingsSoFar=" + groundingsSoFar.size());
-		//processNewlyMaterializedGroundClause(newGroundings, timeStamp);
-		if (groundingsSoFar.size() > maxNonLazyGroundingsPerClause) { 
-			Utils.error("Too many lazy groundings!   [" + Utils.comma(groundingsSoFar) + "]   '" + clause + "'");
-		}
-		
-		if (groundingsSoFar.size() >= countOfSatisfiableGndClauses.get(clause)) {
-			if (groundingsSoFar.size() > countOfSatisfiableGndClauses.get(clause)) { Utils.error("Have |groundingsSoFar|=" + groundingsSoFar.size() + " but |countOfSatisfiableGndClauses|=" + countOfSatisfiableGndClauses.get(clause)); }
-			if (debugLevel > 0) { Utils.println("%    All " + Utils.comma(countOfSatisfiableGndClauses.get(clause)) + " possible groundings for this literal have been added."); }
-			clausesFullyGrounded.add(clause);
-		}
-		return newGroundings;
-	}	
-	*/
-	// Play with task.stringHandler.useStrictEqualsForClauses so that in this narrow context, equality is more than '==' (but in general we cannot do that - can only do so when dealing with ONE general clause).
-	/* TVK : Not used here.
-	private boolean addGroundingUnlessAlreadyExists(GroundClause gndClause, Collection<GroundClause> existingGroundClauses) {
-		boolean hold = task.stringHandler.usingStrictEqualsForClauses();
-		task.stringHandler.setUseStrictEqualsForClauses(false);
-		boolean result = existingGroundClauses.add(gndClause);
-		task.stringHandler.setUseStrictEqualsForClauses(hold);
-		return result;
-	}
-	private boolean addGroundingUnlessAlreadyExists(Collection<GroundClause> gndClauses, Collection<GroundClause> existingGroundClauses) {
-		boolean hold = task.stringHandler.usingStrictEqualsForClauses();
-		task.stringHandler.setUseStrictEqualsForClauses(false);
-		boolean result = existingGroundClauses.addAll(gndClauses);
-		task.stringHandler.setUseStrictEqualsForClauses(hold);
-		return result;
-	}
-	 */
-	// For a new ground clause:
-	//		a) add to lazyGroundClauses
-	//		b) update lazyGroundClausesPerGroundLiteral
-	//		c) connectGroundLiteralsToTheseGroundClauses (this accomplishes b)
-	//		d) update blocks
-	//		e) incrementally call countExceptionsToCurrentLazys
-	
-	/* TVK : Not used here.
-	private void processNewlyMaterializedGroundClause(Collection<GroundClause> gndClauses, TimeStamp timeStamp) {
-		addTheseLazyClauses(gndClauses);
-		connectGroundLiteralsToTheseGroundClauses(gndClauses);
-		for (GroundClause gndClause : gndClauses) {
-			gndClause.checkIfSatisfied(timeStamp);
-			if (debugLevel > 2) { Utils.println(" processNewlyMaterializedGroundClause DELTA: -" + gndClause.getWeightOnSentence()); }
-			// totalWeightOfUnmaterializedGroundClauses -= gndClause.getWeight(); // Keep track of the amount of weight on clauses that are implicit (which means they are true).
-			for (int i = 0; i < gndClause.getLength(); i++) {
-				GroundLiteral gLit = gndClause.getIthLiteral(i);				
-				initForLazyBlock( gLit, timeStamp);
-				populateLazyBlock(gLit, timeStamp);
-			}
-		}
-	}
-	*/
-	// Connect all the ground literals to the ground clauses in which they appear.
-	/* TVK : Not used here.
-	private void connectGroundLiteralsToTheseGroundClauses(Collection<GroundClause> groundClausesToConsider) {
-		for (GroundClause gndClause : groundClausesToConsider) {
-			for (int i = 0; i < gndClause.getLength(); i++) {
-				GroundLiteral gLit = gndClause.getIthLiteral(i);				
-				gLit.addGndClause(gndClause);
-			}
-		}
-	}
-	*/
-	/* TVK : Not used here.
-	private void computeAllLazyBlocks(TimeStamp timeStamp) {
-		initLazyPredNameArityToBlock(timeStamp);
-		populateLazyBlocks(timeStamp);
-		if (debugLevel > 2) { Utils.println("% GroundThisMarkovNetwork: #lazyBlocks = " + Utils.getSizeSafely(getAllLazyBlocks())); }
-	}
-	 */
-	/* TVK : Not used here.
-	private Map<GroundLiteral,Block>                    allLazyBlocks = null;
-	private Map<PredicateName,Map<Integer,List<Block>>> lazyPredNameArityToBlockList;
-	*/
-	/* TVK : Not used here.
-	private Map<GroundLiteral,Block> getAllLazyBlocks() {
-		return allLazyBlocks;
-	}
-	*/
-	/**
-	 * Creates a Map where the keys are all the literals which have block constraints.
-	 * At the end of this method, the map's values are an empty list of blocks.
-	 * 
-	 * @param predNameToLiteral
-	 */
-	/* TVK : Not used here.
-	private void initLazyPredNameArityToBlock(TimeStamp timeStamp) {
-		if (numberOfLazyGroundLiterals < 1) { return; }
-		if (debugLevel > 0) { Utils.println("\n% Initialize the lazy predicate-name blocks."); }
-		for (GroundLiteral gLit : allLazyGroundLiterals) { initForLazyBlock(gLit, timeStamp); }
-	}
-	*/
-	/* TVK : Not used here.
-	private void initForLazyBlock(Literal gLit, TimeStamp timeStamp) {
-		initForLazyBlock(gLit, gLit.predicateName, gLit.numberArgs(), timeStamp);
-	}
-	*/
-	/* TVK : Not used here.
-	private void initForLazyBlock(Literal gLit, PredicateName pName, int arity, TimeStamp timeStamp) {
-		if (gLit.numberArgs() > 0) {	
-			List<TypeSpec> listOfTypeSpecs = task.collectLiteralArgumentTypes(pName, arity);
-			for (TypeSpec typeSpec : listOfTypeSpecs) {
-				if (typeSpec.truthCounts != 0) { // If this is non zero, then have a blocked literal.
-					if (debugLevel > 0) { Utils.println("% Have truth counts = " + typeSpec.truthCounts + " in " + typeSpec); }
-					addPredNameAndArityToBlockList(pName, arity, new ArrayList<Block>(1), lazyPredNameArityToBlockList);
-					break;
-				}
-			}
-		}		
-	}
-	*/
-	/* TVK : Not used here.
-	private void populateLazyBlocks(TimeStamp timeStamp) {
-		allLazyBlocks = null;
-		if (numberOfLazyGroundLiterals < 1) { return; }
-		for (GroundLiteral gLit : allLazyGroundLiterals) { populateLazyBlock(gLit, timeStamp); } 
-		
-		if (allLazyBlocks != null && !task.isClosedWorldAssumption(null)) { 
-			Utils.writeMe("also fix populateLazyBlock when called by processNewlyMaterializedGroundClause");
-			setEvidenceInBlocks(task.getPosEvidenceLiterals(), lazyPredNameArityToBlockList, timeStamp);  // NOT SURE WHY THIS IS CONDITIONAL ... TODO
-		}
-	}
-	*/
-	
-	/* TVK : Not used here.
-	private void populateLazyBlock(GroundLiteral gLit, TimeStamp timeStamp) {
-		List<Block> blockList = getBlockListFromPredNameAndArity(gLit, lazyPredNameArityToBlockList);
-		if (blockList == null) { return; }
-		boolean addedToBlock = false;
-		for (Block block : blockList) {
-			if (block.addGndLiteral(gLit)) {
-				gLit.setBlock(block);
-				addedToBlock = true;
-				break;
-			}
-		}
-		if (!addedToBlock) {
-			List<GroundLiteral> temp = new ArrayList<GroundLiteral>();
-			temp.add(gLit);
-			Block block = new Block(gLit, temp, timeStamp);
-			gLit.setBlock(block);
-			blockList.add(block);
-			if (allLazyBlocks == null) { allLazyBlocks = new HashMap<GroundLiteral,Block>(4); }
-			allLazyBlocks.put(gLit, block);
-		}
-	}
-	*/
-	/* TVK : Not used here.
-	private boolean internQueryLiterals  = true;
-	private boolean internHiddenLiterals = false;
-*/
-
-	/* TVK : Not used here.
-	public void internAllLiteralsThatAreTrue(Collection<GroundLiteral> gLits, TimeStamp timeStamp) {
-		if (debugLevel > 0) { Utils.print("%  Interning all the ground literals that have become true"); }
-		help_internAllLiteralsThatAreTrue(gLits, ".", timeStamp);
-		if (internQueryLiterals) {
-			help_internAllLiteralsThatAreTrue(task.getQueryLiterals(),  "q", timeStamp);
-		}
-		if (internHiddenLiterals) {
-			help_internAllLiteralsThatAreTrue(task.getHiddenLiterals(), "h", timeStamp); 
-		}
-		if (debugLevel > 0) { Utils.println(".  Done."); }
-	}*/
-	/* TVK : Not used here.
-
-	private void help_internAllLiteralsThatAreTrue(Collection<GroundLiteral> gLits, String msg, TimeStamp timeStamp) {
-		if (gLits == null) { return; }
-		int counter = 0; int countActualInterns = 0;
-		for (GroundLiteral gLit : gLits) if (gLit.getValue()) { 
-			gLit.setValue(true, null, timeStamp);
-			countActualInterns++; 
-			if (debugLevel > 0 && ++counter % 10000 == 0) { Utils.print(msg); }
-		}
-	}
-*/	
-	// TVK:GMN Copied to GroundedMarkovNetowork. Can be removed
 	@Deprecated
 	public void printLiteralsAndClauses() {
 		List<GroundLiteral> gndLiterals = getAllGroundLiterals_ExpensiveVersion();
@@ -4363,10 +3559,7 @@ class AggVar {
 	protected AggVar(List<Variable> varsCombined) {
 		this.varsCombined = varsCombined;
 	}
-	protected AggVar(Set<Variable> varsCombined) {
-		this.varsCombined = new ArrayList<Variable>(varsCombined);
-	}
-	
+
 	public int getPosition(Variable var) {
 		int index = varsCombined.indexOf(var);
 		if (index < 0) { Utils.error("Cannot find '" + var + "' in " + this); }
@@ -4402,17 +3595,15 @@ class CacheLiteralGrounding {
 	protected long trueCount    = -1; // Indicate these have no been set.
 	protected long falseCount   = -1; // NOTE: these counts are for literals IGNORING THEIR sign.
 	protected long unknownCount = -1;
-	
-	protected CacheLiteralGrounding() { // This is used when a literal is ONLY a query literal.		
-	}
-	protected CacheLiteralGrounding(List<List<Term>> groundingsStillNeeded, long trueCount, long falseCount, long unknownCount) {
+
+	CacheLiteralGrounding(List<List<Term>> groundingsStillNeeded, long trueCount, long falseCount, long unknownCount) {
 		this.groundingsStillNeeded = groundingsStillNeeded;
 		this.trueCount             = trueCount;
 		this.falseCount            = falseCount;
 		this.unknownCount          = unknownCount;
 	}
 
-	public void describeCache(String msg) {
+	void describeCache(String msg) {
 		Utils.println("%   Cache Report: " + msg);
 		Utils.println("%          #true: " + Utils.comma(trueCount));
 		Utils.println("%         #false: " + Utils.comma(falseCount));
@@ -4423,10 +3614,10 @@ class CacheLiteralGrounding {
 	public boolean groundingsRecorded() {
 		return groundingsStillNeeded != null;
 	}
-	public List<List<Term>> getGroundingsStillNeeded() {
+	List<List<Term>> getGroundingsStillNeeded() {
 		return getGroundingsStillNeeded(true);
 	}
-	public List<List<Term>> getGroundingsStillNeeded(boolean complainIfGroundingsNotSaved) {
+	List<List<Term>> getGroundingsStillNeeded(boolean complainIfGroundingsNotSaved) {
 		if (groundingsStillNeeded != null) { return groundingsStillNeeded; }
 		if (complainIfGroundingsNotSaved) { describeCache(""); Utils.error("Did not save the groundings in this CacheLiteralGrounding instance."); }
 		return null;
@@ -4472,7 +3663,7 @@ class LiteralSortComparator implements Comparator<Literal> {
 // Wrap a clause with some other information (e.g., for use in sorting).
 class WrappedClause {
     Clause clause;
-    int    index;
+    private int    index;
     double countOfPossibleGroundings; // Use this first to sort.  (Set all values to, say, -1, to only use the second value.)
     double countOfRemainingGroundings; // Then this.
 

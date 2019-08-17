@@ -12,7 +12,7 @@ public class WorldState {
 	private Constant world;
 	private Constant state;
 	
-	public WorldState(Constant world, Constant state) {
+	WorldState(Constant world, Constant state) {
 		this.world = world;
 		this.state = state;
 	}
@@ -37,17 +37,7 @@ public class WorldState {
 		result = prime * result + ((world == null) ? 0 : world.hashCode());
 		return result;
 	}
-	public boolean equals1(Object other) {
-		if (this  == other) { return true; }
-		if (other == null)  { return false; }
-		
-		if (other instanceof WorldState) {
-			WorldState otherAsWorldState = (WorldState) other;
-			return (world == otherAsWorldState.world && state == otherAsWorldState.state);
-		}
-		return false;
-	}
-	
+
 	public boolean equals(Term otherWorld, Term otherState) {
 		if (otherWorld instanceof Variable && otherState instanceof Variable) {
 			return otherWorld != otherState;
@@ -61,13 +51,11 @@ public class WorldState {
 		return (world == otherWorld && state == otherState);
 	}
 
-	public boolean isaNullWorldState() {
+	boolean isaNullWorldState() {
 		return (world == null && state == null);
 	}
 	
 	public String toString() {
 		return world + "." + state;
 	}
-	
-	
 }

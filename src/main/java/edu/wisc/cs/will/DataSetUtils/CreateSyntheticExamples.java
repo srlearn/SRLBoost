@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.ConsCell;
 import edu.wisc.cs.will.FOPC.Constant;
 import edu.wisc.cs.will.FOPC.Function;
@@ -19,7 +18,6 @@ import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.SentenceAsTerm;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Type;
 import edu.wisc.cs.will.FOPC.UniversalSentence;
@@ -28,7 +26,6 @@ import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import java.util.Collection;
 
 /**
  * @author shavlik
@@ -143,18 +140,7 @@ public class CreateSyntheticExamples {
 		if (       debugLevel > 2) { Utils.waitHere("Have " + Utils.comma(negExamples) + " and want " + Utils.comma(desiredExamplesCreated) + " negative examples."); }
 		// Don't lose the 'real' negatives.
 		if (numbRealExamples > 0) { negExamples.addAll(realNegExamples); }
-		/* TODO - NOW DONE IN ILPouterLoop   if we really need this, then pass along a file name or a directory, etc.  The old way (ie, below) risked creating pseudo negs from pseudo negs.,
-		if (createCacheFiles && negExamplesReader != null) {
-			if (debugLevel > 0) { Utils.println("%  Writing " + negExamples.size() + " negative examples to " + negExamplesFile + "."); }
-			if (fractionOfImplicitNegExamplesToKeep <= 1.1) { Example.writeObjectsToFile(negExamplesFile, negExamples, ".", "// Kept this fraction of the possible negatives: " + fractionOfImplicitNegExamplesToKeep); }
-			if (fractionOfImplicitNegExamplesToKeep >  1.1) { Example.writeObjectsToFile(negExamplesFile, negExamples, ".", "// Kept this many of the possible negatives: " + (int) fractionOfImplicitNegExamplesToKeep); }
-		}
-		else if (createCacheFiles) { 
-			Utils.println("% Warning: the negative examples are NOT being saved to a file.  Is this desired?"); 
-			Utils.waitHere();
-		}
-		*/
-		// Utils.waitHere();
+
 		return negExamples;
 	}
 	

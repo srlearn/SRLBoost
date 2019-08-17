@@ -8,27 +8,8 @@ import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.Utils.Utils;
 
 public class GroundedMarkovNetwork extends GroundThisMarkovNetwork {
-	
 
-	/* 
-	 *     Public Members 
-	 */
-	
-
-	/* 
-	 *     Private Members 
-	 */
-
-	/* 
-	 *     Public Methods 
-	 */
-	
-	/**
-	 * Default Constructor
-	 * @param task
-	 * @param allClauses
-	 */
-	public GroundedMarkovNetwork(MLN_Task task, Collection<Clause> allClauses) {
+	GroundedMarkovNetwork(MLN_Task task, Collection<Clause> allClauses) {
 		super(task, allClauses);
 		// TODO Auto-generated constructor stub
 	}
@@ -36,20 +17,18 @@ public class GroundedMarkovNetwork extends GroundThisMarkovNetwork {
 
     @Deprecated
 	public boolean prepareForInference(TimeStamp timeStamp) { // Return TRUE if LAZY inference needed.
-		if (debugLevel > -110) { Utils.println("\n% Create all the query literals."); }
+		Utils.println("\n% Create all the query literals.");
 		task.createAllQueryLiterals();  // Need all of these to be expanded (TODO - keep statistics in a sparse array), since we're assuming inference will be done soon.
-	//	task.createAllHiddenLiterals(); // TODO do we need to create these, or can we simply assume any non-query that has survived is a hidden?  seems so ...
-		if (debugLevel > -110) { Utils.println("\n% There are " + Utils.comma(task.getQueryLiterals()) + " query literals: " + Utils.limitLengthOfPrintedList(task.getQueryLiterals(), 25)); }
+		Utils.println("\n% There are " + Utils.comma(task.getQueryLiterals()) + " query literals: " + Utils.limitLengthOfPrintedList(task.getQueryLiterals(), 25));
 		collectAllRemainingGroundings(timeStamp);
-		if (debugLevel > -110 && Utils.getSizeSafely(stillTooLargeAfterReduction) < 1) { Utils.println("\n% Because there are only " + Utils.truncate(totalNumberOfGroundingsRemaining, 0) + " clause groundings remaining, will perform standard inference."); }
-		else if (debugLevel > -110)                                                    { Utils.println("\n% Due to the large number of groundings they have remaining, " + Utils.comma(stillTooLargeAfterReduction) + " clauses need to be handled lazily."); }
+		if (Utils.getSizeSafely(stillTooLargeAfterReduction) < 1) { Utils.println("\n% Because there are only " + Utils.truncate(totalNumberOfGroundingsRemaining, 0) + " clause groundings remaining, will perform standard inference."); }
+		else { Utils.println("\n% Due to the large number of groundings they have remaining, " + Utils.comma(stillTooLargeAfterReduction) + " clauses need to be handled lazily."); }
 		return (Utils.getSizeSafely(stillTooLargeAfterReduction) > 0);
 	}
 	
     @Deprecated
 	public void clearAllMarkers() {
 		setAllMarkers(null);
-		//freezeAllGroundLiterals(false);// TODO - combine with setAllMarker to save some cycles?
 	}
 
     @Deprecated
@@ -132,8 +111,4 @@ public class GroundedMarkovNetwork extends GroundThisMarkovNetwork {
 			}
 		}
 	}
-	
-	/* 
-	 *     Private Methods 
-	 */
 }

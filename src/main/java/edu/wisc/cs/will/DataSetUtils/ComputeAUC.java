@@ -1,8 +1,7 @@
 package edu.wisc.cs.will.DataSetUtils;
 
 import java.io.BufferedWriter;
-import java.io.File;  import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -10,6 +9,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
+import edu.wisc.cs.will.Utils.condor.CondorFile;
+import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
@@ -37,14 +38,8 @@ public class ComputeAUC {
 	private StringBuffer outputFromAUC;
 	private String       aucFile                       = null;
 	private String       outputFromAUC_txtfile         = null;
-	private String       outputFromAUCfiltered_txtfile = null; 
-	
-	
-	// Be sure to use LISTs here instead of SETS, since duplicates might appear.
-	public ComputeAUC(List<Double> positiveExampleProbabilities,
-					  List<Double> negativeExampleProbabilities, String extraMarker) {
-		this(positiveExampleProbabilities, negativeExampleProbabilities, "", null, extraMarker, 0, true);
-	}
+	private String       outputFromAUCfiltered_txtfile = null;
+
 	public ComputeAUC(List<Double> positiveExampleProbabilities,
 			          List<Double> negativeExampleProbabilities,
 					  String useDirectoryForTempFile,
@@ -86,14 +81,6 @@ public class ComputeAUC {
 			Utils.reportStackTrace(e);
 			Utils.error("Something went wrong: " + e);
 		}
-		/* 
-		Utils.println("%   useDirectoryForTempFile: " + useDirectoryForTempFile);
-		Utils.println("%   aucFile:                 " + aucFile);
-		Utils.println("%   jarLocation:             " + jarLocation);
-		Utils.println("%   aucJarLocation:          " + aucJarLocation);
-		Utils.println("%   extraMarker:             " + extraMarker); 
-		Utils.getCurrentWorkingDirectory(); Utils.waitHere();
-		*/
 		writeExamplesToFile(positiveExampleProbabilities, negativeExampleProbabilities, aucFile); 		
 		computeAUCFromJar(useDirectoryForTempFile, extraMarker, aucFile, jarLocation);
 		parseResultsFromOutput();
@@ -123,7 +110,7 @@ public class ComputeAUC {
 		return llSum/(posProb.size() + negProb.size());
 	}
 	
-	public void deleteCreatedFiles() {
+	private void deleteCreatedFiles() {
 		if (deleteAUCfilesAfterParsing) { 
 			File f = new CondorFile(aucFile);
 			if (f.exists() && !f.delete()) { Utils.warning("Could not delete: " + f); }
@@ -180,22 +167,22 @@ public class ComputeAUC {
 			InputStream is = p.getInputStream();
 			
 			outputFromAUC                         = new StringBuffer();
-			StringBuffer outputFromAUC_unfiltered = new StringBuffer();
+			StringBuilder outputFromAUC_unfiltered = new StringBuilder();
 			int c;
 			boolean startCollecting = false;
 			while ((c = is.read()) != -1) {
-				// Utils.print("" + (char) c);
+
 				outputFromAUC_unfiltered.append((char)c);
-				// System.out.println((char)c);
+
 				// Ignore everything before "Area under ... "
 				if (c == 'A') {
 					startCollecting = true;
 				}
+
 				// Newlines cause trouble during regex matching.
-				if (c == '\n' || c == '\r') { // JWS added '\r'.
+				if (c == '\n' || c == '\r') {
 					c = ' ';
 				}
-					
 				if (startCollecting) {
 					outputFromAUC.append((char) c);
 				}
@@ -211,13 +198,10 @@ public class ComputeAUC {
 				Utils.writeStringToFile(outputFromAUC_unfiltered.toString(),  Utils.ensureDirExists(outputFromAUC_txtfile));
 				Utils.writeStringToFile(outputFromAUC.toString(),             Utils.ensureDirExists(outputFromAUCfiltered_txtfile));
 			}
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Problem running: " + command);
-		} catch (InterruptedException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem running: " + command);
-		}		
+		}
 	}
 
 
