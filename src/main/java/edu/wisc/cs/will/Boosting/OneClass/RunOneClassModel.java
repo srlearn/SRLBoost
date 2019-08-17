@@ -44,7 +44,6 @@ public class RunOneClassModel extends RunBoostedModels {
 		if (cmdArgs.getRdnIterationStep() != -1) {
 			iterStepSize  = cmdArgs.getRdnIterationStep();
 		}
-		boolean newModel=true;
 		for (int i=0; i < cmdArgs.getMaxTreesVal(); i+=iterStepSize) {
 		
 			for (String pred : cmdArgs.getTargetPredVal()) {

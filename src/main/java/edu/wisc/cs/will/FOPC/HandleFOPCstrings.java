@@ -1,6 +1,3 @@
-/**
- *
- */
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
@@ -2012,13 +2009,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return lookup1.get(arity);
 	}
 
-    @Override
-    public void registerCallback(String name, UserDefinedLiteral literalDefinition) throws IllegalStateException {
-        PredicateName predicateName = getPredicateName(name);
-        addUserProvidedProcDefinedPred(predicateName, literalDefinition.getArity(), literalDefinition);
-    }
-
-    public UserDefinedLiteralCache getUserDefinedLiteralCache() {
+	public UserDefinedLiteralCache getUserDefinedLiteralCache() {
         if ( userDefinedLiteralCache == null ) {
             userDefinedLiteralCache = new UserDefinedLiteralCache();
         }

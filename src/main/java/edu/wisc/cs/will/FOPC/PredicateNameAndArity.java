@@ -10,8 +10,6 @@ public class PredicateNameAndArity {
 
     private int arity;
 
-    private transient List<TypeSpec> types;
-
     public PredicateNameAndArity(PredicateName predicateName, int arity) {
         this.predicateName = predicateName;
         this.arity = arity;
@@ -89,7 +87,7 @@ public class PredicateNameAndArity {
     }
 
     /** Returns all of the Predicate specification attached to the predicate/arity.
-     * 
+     *
      */
     public List<PredicateSpec> getPredicateSpecs() {
         List<PredicateSpec> result = predicateName.getTypeListForThisArity(arity);

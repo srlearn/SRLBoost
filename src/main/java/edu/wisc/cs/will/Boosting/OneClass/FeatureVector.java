@@ -83,7 +83,7 @@ public class FeatureVector {
 		if (usepath) {
 			fvec = fvec.replace("[", "").replace("]", "");
 			String[] parts = fvec.split("\\|");
-			pathFeatures = new ArrayList<String>(Arrays.asList(parts));
+			pathFeatures = new ArrayList<>(Arrays.asList(parts));
 		} else {
 			Utils.waitHere("Cant parse non path features");
 		}

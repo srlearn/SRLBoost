@@ -453,10 +453,6 @@ public class PrettyPrinter {
             return new PPResult(stringConstant.toString(), false, MIN_PRECEDENCE);
         }
 
-        public PPResult visitOtherConstant(Constant constant, FOPCPrettyPrinterData data) {
-            return new PPResult(constant.getName(), false, MIN_PRECEDENCE);
-        }
-
         public PPResult visitOtherTerm(Term term, FOPCPrettyPrinterData data) {
             return new PPResult(term.toString(), false, MIN_PRECEDENCE);
         }

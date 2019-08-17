@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
  * @author twalker
  */
 public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity> {
@@ -58,7 +57,7 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
 
     private void addArityFilterEntry(PredicateName predicateName, int arity) {
         if (nameToArityMap == null) {
-            nameToArityMap = new HashMap<PredicateName, ArityFilter>();
+            nameToArityMap = new HashMap<>();
         }
 
         ArityFilter arityFilter = nameToArityMap.get(predicateName);
@@ -87,6 +86,7 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
                     arityFilter.removeArity(arity);
                 }
             }
+            assert arityFilter != null;
             if (arityFilter.isEmpty()) {
                 nameToArityMap.remove(predicateName);
             }

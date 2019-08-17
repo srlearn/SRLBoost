@@ -232,14 +232,6 @@ public class Clause extends Sentence implements DefiniteClause {
         return getNegativeLiterals();
     }
 
-    public boolean isDefiniteClauseVariant(DefiniteClause otherClause) {
-        if ( this.isDefiniteClauseRule() != otherClause.isDefiniteClauseRule() ) {
-            return false;
-        }
-
-        return isVariant(otherClause.getDefiniteClauseAsClause());
-    }
-
     public BindingList unifyDefiniteClause(DefiniteClause otherDefiniteClause, BindingList bindingList) {
         if ( this.isDefiniteClauseRule() != otherDefiniteClause.isDefiniteClauseRule() ) {
             return null;
@@ -270,14 +262,7 @@ public class Clause extends Sentence implements DefiniteClause {
         return posLiterals.get(0).getArity();
     }
 
-    public Type getType(int argument) {
-        if ( isDefiniteClause() == false ) throw new IllegalStateException("Clause '" + this + "' is not a definite clause.");
-        TypeSpec type = posLiterals.get(0).getArgument(argument).getTypeSpec();
-
-        return type != null ? type.isaType : null;
-    }
-
-    public BindingList unify(Clause that) {
+	public BindingList unify(Clause that) {
         return unify(that,null);
     }
 

@@ -2629,8 +2629,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 	private PredicateName annotationPredName        = null;
 	private PredicateName regressionExamplePredName = null;
-	@SuppressWarnings("unused")
-	   public List<Example> readExamples(Reader examplesReader, String readerDirectoryName) {
+
+   public List<Example> readExamples(Reader examplesReader, String readerDirectoryName) {
 		return readExamples(examplesReader, readerDirectoryName, false);
 	}
 	private List<Example> readExamples(Reader examplesReader, String readerDirectoryName,  boolean okIfNoExamples) {
@@ -2639,13 +2639,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 			return null;
 		}
 		List<Sentence> sentences = null;
-		try {
-			sentences = getParser().readFOPCreader(examplesReader, readerDirectoryName);
-		}
-		catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem encountered reading examples: " + examplesReader);
-		}
+		sentences = getParser().readFOPCreader(examplesReader, readerDirectoryName);
 
 		if (okIfNoExamples && sentences == null) { return null; }
 		if (sentences == null) { Utils.error("There are no examples in: " + examplesReader); }
@@ -2739,14 +2733,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private Theory readBackgroundTheory(Reader bkReader, String readerDirectoryName, boolean okIfNoBK) {
 		if (bkReader == null && okIfNoBK) { return null; }
 		List<Sentence> sentences = null;
-		try {
-		    Utils.println("% Reading background theory from dir: " + readerDirectoryName);
-			sentences = getParser().readFOPCreader(bkReader, readerDirectoryName);
-		}
-		catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem encountered reading background knowledge: " + bkReader);
-		}
+		Utils.println("% Reading background theory from dir: " + readerDirectoryName);
+		sentences = getParser().readFOPCreader(bkReader, readerDirectoryName);
 		if (sentences == null) { return null; } // It is possible there are no inference rules, though some modes should have been read.
 		return new Theory(stringHandler, sentences);
 	}
@@ -2757,26 +2745,20 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private List<Sentence> readFacts(Reader factsReader, String readerDirectoryName, boolean okIfNoFacts) {
 		if (factsReader == null && okIfNoFacts) { return null; }
 		List<Sentence> sentences = null;
-		try {
-			sentences = getParser().readFOPCreader(factsReader, readerDirectoryName);  // TODO - should find the directory for the reader.
+		sentences = getParser().readFOPCreader(factsReader, readerDirectoryName);  // TODO - should find the directory for the reader.
 
-            for (Sentence sentence : sentences) {
-                // These should all be facts, but there is really no way to enforce it.
-                // However, if they are literals we will consider them as facts.
-                // We add the fact predicate/arity to a set so we know that they
-                // came in as facts and can be used as so later.
-                if (sentence instanceof Literal) {
-                    Literal literal = (Literal) sentence;
-                    PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-                    factPredicateNames.add(pnaa);
-                }
-            }
+		for (Sentence sentence : sentences) {
+			// These should all be facts, but there is really no way to enforce it.
+			// However, if they are literals we will consider them as facts.
+			// We add the fact predicate/arity to a set so we know that they
+			// came in as facts and can be used as so later.
+			if (sentence instanceof Literal) {
+				Literal literal = (Literal) sentence;
+				PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
+				factPredicateNames.add(pnaa);
+			}
+		}
 
-		}
-		catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem encountered reading  facts: " + factsReader);
-		}
 		if (okIfNoFacts && sentences == null) { return null; }
 		if (sentences == null) { Utils.error("There are no facts in: " + factsReader); }
 		return sentences;
@@ -3233,8 +3215,6 @@ public class LearnOneClause extends StateBasedSearchTask {
      * <P>
      * Note: This method must be called prior to initialization of the
      * LearnOneClause.
-     *
-     * @param relevanceFile
      * @throws FileNotFoundException
      * @throws IllegalStateException An IllegalStateException will be thrown if LearnOneClause is already initialized.
      */

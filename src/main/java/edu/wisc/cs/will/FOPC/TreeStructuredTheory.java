@@ -16,20 +16,17 @@ import edu.wisc.cs.will.Utils.Utils;
 
 
 public class TreeStructuredTheory extends Theory {
-	
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;	
 	private Literal                  headLiteral;
 	private TreeStructuredTheoryNode root;
 	private static int uniqueVarCounter = 1; // This is shared across multiple WILL threads, but that should be OK (if not, place counter in stringHander).
-	private static Map<String,StringConstant> flattenedVarMap = new HashMap<String,StringConstant>(4); // Ditto.
-	private Set<Literal> uniqueFlattenedLiterals = new HashSet<Literal>(4);
+	private static Map<String,StringConstant> flattenedVarMap = new HashMap<>(4); // Ditto.
+	private Set<Literal> uniqueFlattenedLiterals = new HashSet<>(4);
 	
 	private List<Clause> flattenedClauses;
 
-	public TreeStructuredTheory(HandleFOPCstrings stringHandler) {
+	private TreeStructuredTheory(HandleFOPCstrings stringHandler) {
 		super(stringHandler);
 	}
 
@@ -63,12 +60,8 @@ public class TreeStructuredTheory extends Theory {
 		return stringHandler.getStringConstant(name);
 	}
 
-	public Literal getHeadLiteral() {
+	Literal getHeadLiteral() {
 		return headLiteral;
-	}
-
-	public void setHeadLiteral(Literal headLiteral) {
-		this.headLiteral = headLiteral;
 	}
 
 	public TreeStructuredTheoryNode getRoot() {
@@ -79,7 +72,7 @@ public class TreeStructuredTheory extends Theory {
 		this.root = root;
 	}
 	
-	public String writeDotFormat() {
+	private String writeDotFormat() {
 		TreeStructuredTheoryNode.counter=1;
 		String result = "digraph G{ \n";
 		result = result + root.writeDotFormat();
@@ -89,38 +82,34 @@ public class TreeStructuredTheory extends Theory {
 	
 	public TreeStructuredTheory convertToStandardTheory(InlineManager checkForInlinersAndSupportingClauses) {
 		List<Clause> results = root.collectPathsToRoots(this);
-		
-		// for (Clause c : results) { Utils.println("%  convertToStandardTheory: " + c); }	// Utils.waitHere("in convertToStandardTheory");
 		addAllMainClauses(results, checkForInlinersAndSupportingClauses); 
 		return this;
 	}
 	
 	public TreeStructuredTheory renameAllClausesWithUniqueBodyVariables() {
     	if (getClauses() != null) {
-    		List<Clause> newClauses = new ArrayList<Clause>(getClauses().size());
+    		List<Clause> newClauses = new ArrayList<>(getClauses().size());
     		for (Clause c : getClauses()) if (c.isDefiniteClause()) {
-    			Clause newClause = c;
-    	    	Collection<Variable> headVars = c.posLiterals.get(0).collectFreeVariables(null);
+				Collection<Variable> headVars = c.posLiterals.get(0).collectFreeVariables(null);
     			Collection<Variable> bodyVars = c.collectFreeVariables(headVars);
     			BindingList bl = new BindingList();
     			if (bodyVars != null) for (Variable bVar : bodyVars) if (!"_".equals(bVar.getName())) {
     				bl.addBinding(bVar, getNextUniqueBodyVar());
     			}
-    			newClauses.add(newClause.applyTheta(bl.theta));
+    			newClauses.add(c.applyTheta(bl.theta));
     		} else { Utils.error("Expecting a definite clause: " + c); }
     		setClauses(newClauses);
     	}
     	if (getSupportClauses() != null) {
-    		List<Clause> newSupportClauses = new ArrayList<Clause>(getSupportClauses().size() + 4);
+    		List<Clause> newSupportClauses = new ArrayList<>(getSupportClauses().size() + 4);
     		for (Clause c : getSupportClauses()) if (c.isDefiniteClause()) {
-    			Clause newSupportClause = c;
-    	    	Collection<Variable> headVars = c.posLiterals.get(0).collectFreeVariables(null);
+				Collection<Variable> headVars = c.posLiterals.get(0).collectFreeVariables(null);
     			Collection<Variable> bodyVars = c.collectFreeVariables(headVars);
     			BindingList bl = new BindingList();
     			if (bodyVars != null) for (Variable bVar : bodyVars) if (!"_".equals(bVar.getName())) {
     				bl.addBinding(bVar, getNextUniqueBodyVar());
     			}
-    			newSupportClauses.add(newSupportClause.applyTheta(bl.theta));
+    			newSupportClauses.add(c.applyTheta(bl.theta));
     		} else { Utils.error("Expecting a definite clause: " + c); }
     		setSupportClauses(newSupportClauses);
     	}
@@ -129,15 +118,14 @@ public class TreeStructuredTheory extends Theory {
 	
 	public TreeStructuredTheory createFlattenedClauses() {
     	if (getClauses() != null) {
-    		List<Clause> newClauses = new ArrayList<Clause>(getClauses().size());
+    		List<Clause> newClauses = new ArrayList<>(getClauses().size());
     		for (Clause c : getClauses()) if (c.isDefiniteClause()) {
-    			Clause newClause = c;
-    			Collection<Variable> bodyVars = c.collectFreeVariables(null); // Need to flatten the head variables as well.
+				Collection<Variable> bodyVars = c.collectFreeVariables(null); // Need to flatten the head variables as well.
     			BindingList bl = new BindingList();
     			if (bodyVars != null) for (Variable bVar : bodyVars){
     				bl.addBinding(bVar, flattenedThisVar(bVar));
     			}
-    			Clause finalC = newClause.applyTheta(bl.theta);
+    			Clause finalC = c.applyTheta(bl.theta);
     			newClauses.add(finalC);
     			addToUniqueFlattenedLiterals(finalC.negLiterals);
     		} else { Utils.error("Expecting a definite clause: " + c); }
@@ -148,27 +136,24 @@ public class TreeStructuredTheory extends Theory {
 	
 	private void addToUniqueFlattenedLiterals(Collection<Literal> lits) {
 		if (lits == null) { return; }
-		for (Literal lit : lits) if (lit.predicateName != stringHandler.cutLiteral.predicateName)  {			
-			if (lit.member(uniqueFlattenedLiterals, false)) { 
-				// Utils.println(" " + lit + " already in " + uniqueFlattenedLiterals); 
-			}
-			else { uniqueFlattenedLiterals.add(lit); } 
+		for (Literal lit : lits) if (lit.predicateName != stringHandler.cutLiteral.predicateName)  {
+			uniqueFlattenedLiterals.add(lit);
 		}
 	}
 
 	private String getFlattenedClauseStrings() {
 		if (flattenedClauses == null) { return ""; }
-		String result = "\n% The flattened versions of these clauses:\n\n";
+		StringBuilder result = new StringBuilder("\n% The flattened versions of these clauses:\n\n");
 		int counter = 1;
 		for (Clause c : flattenedClauses) {
-			result += "flattened_" + c.toPrettyString("   ", Integer.MAX_VALUE) + ". // Flattened version of clause #" + counter++ + ".\n\n";
+			result.append("flattened_").append(c.toPrettyString("   ", Integer.MAX_VALUE)).append(". // Flattened version of clause #").append(counter++).append(".\n\n");
 		}
 		
-		result += "\n% The unique flattened literals:\n";
+		result.append("\n% The unique flattened literals:\n");
 		for (Literal lit : uniqueFlattenedLiterals) {
-			result += "%   " + lit + "\n";
+			result.append("%   ").append(lit).append("\n");
 		}
-		return result;
+		return result.toString();
 	}
 	public Collection<Variable> collectAllVariables() {
 		return collectFreeVariables(null);
@@ -186,17 +171,7 @@ public class TreeStructuredTheory extends Theory {
 		BindingList bl = stringHandler.renameAllVariables(vars, null);
 		return new TreeStructuredTheory(stringHandler, headLiteral.applyTheta(bl.theta), root.applyTheta(bl.theta));
 	}
-	// In this version we ensure that the body variables in the tree-structured theory are all unique.
-	public TreeStructuredTheory renameAllVariablesWithUniqueBodyVariables() {
-    	Collection<Variable> headVars = headLiteral.collectFreeVariables(null);
-		Collection<Variable> bodyVars = root.collectFreeVariables(       headVars);
-		BindingList bl = stringHandler.renameAllVariables(headVars, null);
-		if (bl == null) { bl = new BindingList(); }
-		if (bodyVars != null) for (Variable bVar : bodyVars){
-			bl.addBinding(bVar, getNextUniqueBodyVar());
-		}
-		return new TreeStructuredTheory(stringHandler, headLiteral.applyTheta(bl.theta), root.applyTheta(bl.theta));
-	}
+
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		return printRelationalTree(newLineStarter, precedenceOfCaller, bindingList);
 	}
@@ -205,18 +180,7 @@ public class TreeStructuredTheory extends Theory {
 		return printRelationalTree(newLineStarter, precedenceOfCaller, null);
 	}
 
-	public String toPlainString() {
-		return printRelationalTree("", Integer.MIN_VALUE, null);
-	}
-
-	public String printOriginalTheory() {
-		return printRelationalTree("", Integer.MIN_VALUE, null);
-	}
-
-	public String printRelationalTree(String newLineStarter, int precedenceOfCaller) {
-		return printRelationalTree(newLineStarter, precedenceOfCaller, null);
-	}
-	public String printRelationalTree(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
+	private String printRelationalTree(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		if (root == null) { return "\n" + newLineStarter + "  THERE IS NO STORED TREE FOR " + headLiteral.toPrettyString(newLineStarter, precedenceOfCaller, bindingList) + "."; }
 		if (bindingList == null) {
 			// Create a  new bl for the children
@@ -233,7 +197,7 @@ public class TreeStructuredTheory extends Theory {
 		Utils.ensureDirExists(fname);
 		BufferedWriter wr;
 		try {
-			wr = new BufferedWriter(new CondorFileWriter(fname, false)); // Create a new file.
+			wr = new BufferedWriter(new CondorFileWriter(fname, false));
 			String res = writeDotFormat();
 			wr.write(res);
 			wr.close();
@@ -244,18 +208,13 @@ public class TreeStructuredTheory extends Theory {
 	}
 	
 	private int inventedPredNameCounter = 0;
-	public PredicateName getInventedPredName() {
-		PredicateName pname = stringHandler.getPredicateName("inventedPred" + (inventedPredNameCounter++) + stringHandler.getInventedPredicateNameSuffix());
-		// pname.addTemporary(-1);
-		return pname;
+
+	PredicateName getInventedPredName() {
+		return stringHandler.getPredicateName("inventedPred" + (inventedPredNameCounter++) + stringHandler.getInventedPredicateNameSuffix());
 	}
 
 	public Set<Literal> getUniqueFlattenedLiterals() {
 		return uniqueFlattenedLiterals;
-	}
-
-	public void setUniqueFlattenedLiterals(Set<Literal> uniqueFlattenedLiterals) {
-		this.uniqueFlattenedLiterals = uniqueFlattenedLiterals;
 	}
 
 }

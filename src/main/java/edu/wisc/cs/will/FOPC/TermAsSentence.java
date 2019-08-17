@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.Collection;
@@ -23,7 +20,7 @@ public class TermAsSentence extends Sentence {
      * E.g. it is needed when dealing with:  (-5) < X.
      * The '(-5)' could be arbitrarily complex (e.g., wrapped in more parentheses), and until the '<' is encountered, we don't know it is grammatical.
      */
-    protected TermAsSentence(HandleFOPCstrings stringHandler, Term term) {
+    TermAsSentence(HandleFOPCstrings stringHandler, Term term) {
         this.term = term;
         this.stringHandler = stringHandler;
         if (term == null) {
@@ -119,7 +116,7 @@ public class TermAsSentence extends Sentence {
 
     @Override
     public BindingList isEquivalentUptoVariableRenaming(Sentence that, BindingList bindings) {
-        if (that instanceof TermAsSentence == false) {
+        if (!(that instanceof TermAsSentence)) {
             return null;
         }
         TermAsSentence termAsSentence = (TermAsSentence) that;

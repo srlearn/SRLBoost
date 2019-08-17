@@ -14,7 +14,6 @@ import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.Precompute;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 class BoostingPrecomputeManager {
 
@@ -76,13 +75,8 @@ class BoostingPrecomputeManager {
 			return null;
 		}
 		List<Sentence> sentences = null;
-		try {
-			// TODO(?): should get the DIR of the facts file.
-			sentences = setup.getInnerLooper().getParser().readFOPCreader(factsReader, readerDirectory);
-		} catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem encountered reading  facts: " + factsReader);
-		}
+		// TODO(?): should get the DIR of the facts file.
+		sentences = setup.getInnerLooper().getParser().readFOPCreader(factsReader, readerDirectory);
 		if (sentences == null) {
 			Utils.error("There are no facts in: " + factsReader);
 		}

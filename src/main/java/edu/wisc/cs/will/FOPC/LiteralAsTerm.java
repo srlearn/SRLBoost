@@ -1,12 +1,8 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import java.util.Collection;
 import java.util.Map;
-
 
 /**
  * @author shavlik
@@ -52,7 +48,7 @@ public class LiteralAsTerm extends Term {
     @Override
 	public Term copy2(boolean recursiveCopy, BindingList bindingList) {
 		if (recursiveCopy) {
-			Literal newLit = itemBeingWrapped.copy2(recursiveCopy, bindingList);
+			Literal newLit = itemBeingWrapped.copy2(true, bindingList);
 			return stringHandler.getLiteralAsTerm(newLit);
 		}
 		return stringHandler.getLiteralAsTerm(itemBeingWrapped);
@@ -81,13 +77,11 @@ public class LiteralAsTerm extends Term {
     public BindingList isEquivalentUptoVariableRenaming(Term that, BindingList bindings) {
         if (that instanceof LiteralAsTerm) return null;
 
-        LiteralAsTerm literalAsTerm = (LiteralAsTerm) that;
+		LiteralAsTerm literalAsTerm = (LiteralAsTerm) that;
 
         return this.itemBeingWrapped.isEquivalentUptoVariableRenaming(literalAsTerm.itemBeingWrapped, bindings);
 
     }
-
-
 
     @Override
 	public boolean containsVariables() {

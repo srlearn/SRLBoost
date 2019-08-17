@@ -1,18 +1,13 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.Utils.Filter;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import edu.wisc.cs.will.Utils.Filter;
+
 /**
- *
  * @author twalker
  */
 public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
@@ -30,16 +25,9 @@ public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
      */
     private boolean includeAllArities = false;
 
-    /** Set of included arities.
-     *
-     * If includedAllArities is true, then this set will always be null.
-     *
-     */
-    @SuppressWarnings("unchecked")
 	private Set includedAritySet = null;
 
-    public ArityFilter() {
-    }
+    ArityFilter() {}
 
     public boolean includeElement(Integer arity) {
 
@@ -55,15 +43,15 @@ public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
         return result;
     }
 
-    public boolean isIncludeAllArities() {
+    boolean isIncludeAllArities() {
         return includeAllArities;
     }
 
-    public void setIncludeAllArities(boolean includeAllArities) {
+    void setIncludeAllArities(boolean includeAllArities) {
 
         if ( this.includeAllArities != includeAllArities ) {
 
-            if ( includeAllArities == true ) {
+            if (includeAllArities) {
                 includedAritySet = null;
             }
 
@@ -71,8 +59,8 @@ public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
         }
     }
 
-    public void addArity(int arity) {
-        if ( includeAllArities == false ) {
+    void addArity(int arity) {
+        if (!includeAllArities) {
 
             if ( includedAritySet == null ) {
                 includedAritySet = new HashSet<Integer>(4);
@@ -82,14 +70,14 @@ public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
         }
     }
 
-    public void removeArity(int arity) {
+    void removeArity(int arity) {
         if ( includedAritySet != null ) {
             includedAritySet.remove(arity);
         }
     }
 
     public boolean isEmpty() {
-        return includeAllArities == false && includedAritySet.isEmpty();
+        return !includeAllArities && includedAritySet.isEmpty();
     }
 
     /** Returns an iterator over all included arities.
@@ -97,8 +85,6 @@ public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
      * Note, this does not account for the includeAllArities setting.
      * If includeAllArities is true, the returned iterator will always
      * be empty.
-     * 
-     * @return
      */
     public Iterator<Integer> iterator() {
         if ( includedAritySet == null ) {

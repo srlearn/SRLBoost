@@ -64,14 +64,14 @@ public class ActiveAdvice {
 
     private Map<PredicateNameAndArity, RelevanceInfo> adviceFeaturesAndStrengths = new LinkedHashMap<PredicateNameAndArity, RelevanceInfo>();
 
-    public ActiveAdvice(HandleFOPCstrings stringHandler, RelevanceStrength relevanceStrength, Collection<? extends Literal> positiveExamples, Collection<? extends Literal> negativeExamples) {
+    ActiveAdvice(HandleFOPCstrings stringHandler, RelevanceStrength relevanceStrength, Collection<? extends Literal> positiveExamples, Collection<? extends Literal> negativeExamples) {
         this.stringHandler = stringHandler;
         this.relevanceStrength = relevanceStrength;
         this.positiveExamples = positiveExamples;
         this.negativeExamples = negativeExamples;
     }
 
-    public void addAdviceClause(AdviceProcessor ap, String name, RelevantClauseInformation rci, List<Clause> clauses) throws IllegalArgumentException {
+    void addAdviceClause(AdviceProcessor ap, String name, RelevantClauseInformation rci, List<Clause> clauses) throws IllegalArgumentException {
 
         if (ap.isInliningEnabled()) {
             rci = rci.getInlined(ap.getContext(), supportClauses);
@@ -103,12 +103,10 @@ public class ActiveAdvice {
 
         // We will add all of the support clauses...just for the hell of it...
         for (Map.Entry<PredicateNameAndArity, List<Clause>> entry : supportClausesForExpansions.entrySet()) {
-            if (supportClauses.containsKey(entry.getKey()) == false) {
+            if (!supportClauses.containsKey(entry.getKey())) {
                 supportClauses.addAllValues(entry.getKey(), entry.getValue());
             }
         }
-
-        //List<RelevantClauseInformation> expandedRCIs = Collections.singletonList(rci);
 
         int count = 0;
         for (RelevantClauseInformation expandedRCI : expandedRCIs) {
@@ -134,28 +132,16 @@ public class ActiveAdvice {
             PredicateName pn = stringHandler.getPredicateName(expandedName);
             RelevanceStrength rs = expandedRCI.getFinalRelevanceStrength();
 
-            List<Term> headArguments = new ArrayList<Term>();
-            List<TypeSpec> headSpecList = new ArrayList<TypeSpec>();
+            List<Term> headArguments = new ArrayList<>();
+            List<TypeSpec> headSpecList = new ArrayList<>();
 
             // Create the head arguments.
             // Only add terms that are actually used in the body somewhere...
             for (int i = 0; i < example.getArity(); i++) {
                 Term term = example.getArgument(i);
-                //if (term instanceof Variable == false || variablesInSentence.contains((Variable) term)) {
                 headArguments.add(term);
                 headSpecList.add(exampleTypeSpecs.get(i));
-                //}
             }
-
-//            // Now we need to insert the output variables into the head.
-//            // Once again we are going to make an aweful assumption that
-//            // the last head variable is the "State" variable.  This may
-//            // lead to some weird heads if this is not the case.
-//            int outputIndex = Math.max(0, headArguments.size() - 2);
-//            for (Variable variable : outputVariables) {
-//                headArguments.add(outputIndex++, variable);
-//                headSpecList.add(variable.getTypeSpec());
-//            }
 
             Literal head = stringHandler.getLiteral(pn, headArguments);
             PredicateNameAndArity predicateNameAndArity = head.getPredicateNameAndArity();
@@ -182,7 +168,7 @@ public class ActiveAdvice {
                 }
             }
 
-            if (duplicate == false) {
+            if (!duplicate) {
                 RelevanceStrength strength = expandedRCI.getFinalRelevanceStrength();
 
                 if (expandedRCI.getTypeSpecList() != null) {  // TODO SHOULD WE BE DOING THE setRelevance, add, mark, assert above if this fails?
@@ -192,8 +178,7 @@ public class ActiveAdvice {
                         signature.add(stringHandler.getStringConstant("constant"));
                     }
 
-                    headSpecList = new ArrayList<TypeSpec>();
-//                    // headSpecList.add(new TypeSpec(TypeSpec.constantMode, stringHandler.getType("advice_index"), stringHandler));
+                    headSpecList = new ArrayList<>();
                     headSpecList.addAll(expandedRCI.getTypeSpecList());
 
                     ModeInfo mi = addModeAndRelevanceStrength(predicateNameAndArity, signature, headSpecList, rs);
@@ -298,7 +283,6 @@ public class ActiveAdvice {
         return newName;
     }
 
-    // <editor-fold defaultstate="collapsed" desc="Accessor">
     public Collection<? extends Literal> getNegativeExamples() {
         return negativeExamples;
     }
@@ -371,7 +355,7 @@ public class ActiveAdvice {
         return mi;
     }
 
-    public Set<ModeInfo> getModeInfo(PredicateNameAndArity key) {
+    Set<ModeInfo> getModeInfo(PredicateNameAndArity key) {
         return adviceModes.getValues(key);
     }
 
@@ -379,19 +363,15 @@ public class ActiveAdvice {
         return adviceModes;
     }
 
-    public Collection<RelevanceInfo> getFeatureRelevances() {
+    Collection<RelevanceInfo> getFeatureRelevances() {
         return adviceFeaturesAndStrengths.values();
     }
 
-    public MapOfLists<PredicateNameAndArity, Clause> getSupportClauses() {
+    MapOfLists<PredicateNameAndArity, Clause> getSupportClauses() {
         return supportClauses;
     }
 
-    public boolean hasActiveAdvice() {
-        return adviceModes.isEmpty() == false || adviceFeaturesAndStrengths.isEmpty() == false;
-    }
-
-    public boolean hasActiveAdvice(RelevanceStrength thisStrengthOrStronger) {
+    boolean hasActiveAdvice(RelevanceStrength thisStrengthOrStronger) {
 
         for (ModeInfo modeInfo : adviceModes) {
             if (modeInfo.strength.isEqualOrStronger(thisStrengthOrStronger)) {
@@ -408,7 +388,7 @@ public class ActiveAdvice {
         return false;
     }
 
-    public boolean hasActiveAdvice(RelevanceStrength strongestStrength, RelevanceStrength weakestStrength) {
+    boolean hasActiveAdvice(RelevanceStrength strongestStrength, RelevanceStrength weakestStrength) {
         for (ModeInfo modeInfo : adviceModes) {
             if (modeInfo.strength.isEqualOrWeaker(strongestStrength) && modeInfo.strength.isStronger(weakestStrength)) {
                 return true;
@@ -422,9 +402,9 @@ public class ActiveAdvice {
         }
 
         return false;
-    }// </editor-fold>
+    }
 
-    public boolean areClausesEqualUptoHeadAndVariableRenaming(Clause clause1, Clause clause2) {
+    private boolean areClausesEqualUptoHeadAndVariableRenaming(Clause clause1, Clause clause2) {
 
         Literal newHead1 = clause1.getStringHandler().getLiteral("head", clause1.getDefiniteClauseHead().getArguments());
         clause1 = clause1.getStringHandler().getClause(Collections.singletonList(newHead1), clause1.getNegativeLiterals());
@@ -450,7 +430,7 @@ public class ActiveAdvice {
                     if (outputVariable == null) {
                         outputVariable = last;
                     }
-                    else if (last.equals(outputVariable) == false) {
+                    else if (!last.equals(outputVariable)) {
                         outputVariable = null;
                         Utils.println("% [AdviceProcessor] Unable to match last output variables in OR-ed clause.");
                         break;
@@ -473,11 +453,7 @@ public class ActiveAdvice {
         }
     }
 
-    /** Returns the variable, from a set of possible variables, that occurs last in a clause.
-     * 
-     * @param clause
-     * @param possibleLastVariables
-     * @return
+    /* Returns the variable, from a set of possible variables, that occurs last in a clause.
      */
     private Variable getLastOutputVariable(Clause clause, Set<Variable> possibleLastVariables) {
 
@@ -532,7 +508,7 @@ public class ActiveAdvice {
 
         double cost = Double.NaN;
 
-        public ModeInfo(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> specs, RelevanceStrength strength) {
+        ModeInfo(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> specs, RelevanceStrength strength) {
             this.predicate = predicate;
             this.signature = signature;
             this.specs = specs;
@@ -552,7 +528,6 @@ public class ActiveAdvice {
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            final ModeInfo other = (ModeInfo) obj;
             return true;
         }
 
@@ -566,13 +541,13 @@ public class ActiveAdvice {
         }
     }
 
-    public static class RelevanceInfo {
+    static class RelevanceInfo {
 
         PredicateNameAndArity predicate;
 
         RelevanceStrength strength;
 
-        public RelevanceInfo(PredicateNameAndArity predicate, RelevanceStrength strength) {
+        RelevanceInfo(PredicateNameAndArity predicate, RelevanceStrength strength) {
             this.predicate = predicate;
             this.strength = strength;
         }
@@ -584,7 +559,7 @@ public class ActiveAdvice {
 
         RelevanceStrength strength;
 
-        public ClauseInfo(Clause clause, RelevanceStrength strength) {
+        ClauseInfo(Clause clause, RelevanceStrength strength) {
             this.setClause(clause);
             this.strength = strength;
         }
@@ -601,10 +576,7 @@ public class ActiveAdvice {
             if (this.getClause() != other.getClause() && (this.getClause() == null || !this.getClause().equals(other.getClause()))) {
                 return false;
             }
-            if (this.strength != other.strength) {
-                return false;
-            }
-            return true;
+            return this.strength == other.strength;
         }
 
         @Override
@@ -631,8 +603,8 @@ public class ActiveAdvice {
 
     public static class CNFClauseCollector extends DefaultFOPCVisitor<List<Clause>> {
 
-        public List<Clause> getClauses(Sentence compressCNFSentence) {
-            List<Clause> list = new ArrayList<Clause>();
+        List<Clause> getClauses(Sentence compressCNFSentence) {
+            List<Clause> list = new ArrayList<>();
 
             compressCNFSentence.accept(this, list);
 

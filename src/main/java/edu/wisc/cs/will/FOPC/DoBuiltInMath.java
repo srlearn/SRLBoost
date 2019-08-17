@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.HashMap;
@@ -43,19 +40,17 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 public class DoBuiltInMath extends AllOfFOPC {
 
-    protected DoBuiltInListProcessing listHandler = null;
+    DoBuiltInListProcessing listHandler = null;
 
     private HandleFOPCstrings stringHandler;
 
-    private Map<FunctionName, Set<Integer>> canHandle = new HashMap<FunctionName, Set<Integer>>(16);
+    private Map<FunctionName, Set<Integer>> canHandle = new HashMap<>(16);
 
     /**
-     *
      * Reduce an arithmetic expression, producing a NumericConstant node.   Throw an error if any variables encountered where a number is needed.
      * Can NOT use statics since the function names will be different instances for each string handler.
-     *
      */
-    public DoBuiltInMath(HandleFOPCstrings stringHandler) {
+    DoBuiltInMath(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
 
         addFunctionName("integer", 1); // Allow the user to force integer results.
@@ -93,14 +88,9 @@ public class DoBuiltInMath extends AllOfFOPC {
         addFunctionName("position", 2);
     }
 
-    public final void addFunctionName(String fNameString, int arity) {
+    private void addFunctionName(String fNameString, int arity) {
         FunctionName fName = stringHandler.getFunctionName(fNameString);
-
-        Set<Integer> lookup = canHandle.get(fName);
-        if (lookup == null) {
-            lookup = new HashSet<Integer>(4);
-            canHandle.put(fName, lookup);
-        }
+        Set<Integer> lookup = canHandle.computeIfAbsent(fName, k -> new HashSet<>(4));
         lookup.add(arity);
     }
 
@@ -149,7 +139,6 @@ public class DoBuiltInMath extends AllOfFOPC {
 
     /**
      * Simplify a logical Term into a numeric constant.  Complain if this can't be done.
-     * @param expression
      * @return The numeric constant that is the simplification of the given expression.
      */
     public NumericConstant simplify(Term expression) {
@@ -163,13 +152,9 @@ public class DoBuiltInMath extends AllOfFOPC {
             		|| fName == stringHandler.standardPredicateNames.signFunction
                     || fName == stringHandler.standardPredicateNames.intDivFunction
                     || fName == stringHandler.standardPredicateNames.roundFunction) {
-                NumericConstant resultInt = stringHandler.getNumericConstant((int) result); // If the top-level request was to create an integer, then do so.
-                //	Utils.println("  Simplifying as an int '" + expression + "' produces: " + Utils.comma((int) result) + "  " + resultInt);
-                return resultInt;
+                return stringHandler.getNumericConstant((int) result);
             }
-            NumericConstant result2 = stringHandler.getNumericConstant(result);
-            //	Utils.println("  Simplifying '" + expression + "' produces: " + result2);
-            return result2;
+            return stringHandler.getNumericConstant(result);
         }
 		Utils.error("Cannot simplify: " + expression);
 		return null;
@@ -177,7 +162,6 @@ public class DoBuiltInMath extends AllOfFOPC {
 
     /**
      * Do all the intermediate calculations using doubles.  The method above converts into a FOPC data structure at the end.
-     * @param expression
      * @return A double, the result of computing the given expression.
      */
     private double simplifyAsDouble(Term expression) {

@@ -1,6 +1,3 @@
-/**
- * Generic code to call MLN-Boost and RDN-Boost
- */
 package edu.wisc.cs.will.Boosting.Common;
 
 import java.io.File;
@@ -17,8 +14,8 @@ import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 /**
+ * Generic code to call MLN-Boost and RDN-Boost
  * @author tkhot
- *
  */
 public abstract class RunBoostedModels {
 
@@ -37,7 +34,7 @@ public abstract class RunBoostedModels {
 		
 	}
 	
-	public static CommandLineArguments parseArgs(String[] args) {
+	private static CommandLineArguments parseArgs(String[] args) {
 		CommandLineArguments cmdArgs = new CommandLineArguments();
 		if (cmdArgs.parseArgs(args)) {
 			return cmdArgs;
@@ -61,21 +58,17 @@ public abstract class RunBoostedModels {
 		}
 		
 	}
-	
-	public static int    numbModelsToMake          =  1; // Each 'tree' in the sequence of the trees is really a forest of this size. TODO - allow this to be settable.
-//	public static int    numbFullTheoriesToCombine = 10; // This is the number of separate complete predictions of TESTSET probabilities to combine.  TODO - allow this to be settable.
-	public static String nameOfCurrentModel        = null; // "Run1"; // NOTE: file names will look best if this starts with a capital letter.  If set (ie, non-null), will write testset results out.
-	public static String resultsFileMarker         = null; // Allow caller to put extra markers in results file names.
+
 	public abstract void learn();
 	
-	public void learnModel() {
+	protected void learnModel() {
 		setupWILLForTrain();
 		beforeLearn();
 		learn();
 		afterLearn();
 	}
 
-	protected void setupWILLForTrain() {
+	private void setupWILLForTrain() {
 		setup     = new WILLSetup();
 		try {
 			Utils.println("\n% Calling SETUP.");
@@ -89,7 +82,7 @@ public abstract class RunBoostedModels {
 	/**
 	 * Override this method if you want to take some steps before calling learn.
 	 */
-	protected void beforeLearn() {
+	private void beforeLearn() {
 		Utils.println(cmdArgs.getModelDirVal());
 		File dir = new CondorFile(cmdArgs.getModelDirVal());
 		Utils.ensureDirExists(dir);
@@ -97,6 +90,7 @@ public abstract class RunBoostedModels {
 		// Rename old model files to prevent accidental re-use.
 		renameOldModelFiles();
 	}
+
 	/**
 	 * Override to call methods after learning.
 	 */
@@ -117,6 +111,7 @@ public abstract class RunBoostedModels {
 		
 	}
 	private void renameOldModelFiles() {
+		int numbModelsToMake = 1;
 		for (int i = 0; i < numbModelsToMake; i++) {
 			// Rename model files.
 			for (String pred : cmdArgs.getTargetPredVal()) {
@@ -131,13 +126,9 @@ public abstract class RunBoostedModels {
 
 	
 	public static void renameAsOld(File f) {
-	//	File   newF         = new CondorFile(f.getAbsoluteFile() + ".old");
-	/*	THIS WAS MAKING THE OLD FILE BE A DIRECTORY RATHER THAN A FILE FOR SOME ODD REASON (JWS)  ...
-	 * */
 		String justFileName = f.getName();
 		File   parent       = f.getParentFile();
 		File   newF         = new CondorFile(parent, "old_" + justFileName);
-	//	Utils.waitHereRegardless("renameAsOld: " + f + "\n name = " + justFileName + "\n parent = " + parent + "\n newF = " + newF);
 	
 		if (newF.exists()) {
 			if (!newF.delete()) {
@@ -152,7 +143,7 @@ public abstract class RunBoostedModels {
 	public abstract void loadModel();
 	
 	public abstract void infer();
-	public void inferModel() {
+	protected void inferModel() {
 		if(!setupWILLForTest()) {
 			return;
 		}
@@ -162,19 +153,19 @@ public abstract class RunBoostedModels {
 	}
 	
 
-	protected void afterInfer() {
+	private void afterInfer() {
 		
 		
 	}
 
-	protected void beforeInfer() {
+	private void beforeInfer() {
 		loadModel();
 		if (cmdArgs.outFileSuffix != null) {
 			cmdArgs.setModelFileVal(cmdArgs.outFileSuffix);
 		}
 	}
 
-	protected boolean setupWILLForTest() {
+	private boolean setupWILLForTest() {
 		setup = new WILLSetup();
 		try {
 			if(!setup.setup(cmdArgs, cmdArgs.getTestDirVal(), false)) {
@@ -188,9 +179,6 @@ public abstract class RunBoostedModels {
 		return true;
 	}
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		
 		args = Utils.chopCommentFromArgs(args); 

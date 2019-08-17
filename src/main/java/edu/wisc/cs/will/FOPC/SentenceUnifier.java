@@ -1,15 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
- *
  * @author twalker
  */
 public class SentenceUnifier {
@@ -30,18 +24,15 @@ public class SentenceUnifier {
         Sentence that;
         BindingList bl;
 
-        public SentenceUnifierData(Sentence that, BindingList bl) {
+        SentenceUnifierData(Sentence that, BindingList bl) {
             this.that = that;
             this.bl = bl;
         }
 
         @Override
         public String toString() {
-            //return "Sentence: " + PrettyPrinter.print(that) + "  BL = " + bl + '.';
             return "";
         }
-
-
     }
 
     private static class SentenceUnifierVisitor implements  SentenceVisitor<BindingList, SentenceUnifierData> {
@@ -52,11 +43,11 @@ public class SentenceUnifier {
         }
 
         public BindingList visitConnectedSentence(ConnectedSentence sentence, SentenceUnifierData data) {
-            if ( data.that instanceof ConnectedSentence == false ) return null;
+            if (!(data.that instanceof ConnectedSentence)) return null;
 
             ConnectedSentence that = (ConnectedSentence) data.that;
 
-            if ( sentence.getConnective().equals(that.getConnective()) == false ) return null;
+            if (!sentence.getConnective().equals(that.getConnective())) return null;
 
             if ( sentence.getSentenceA() == null && that.getSentenceA() != null ) return null;
             if ( sentence.getSentenceA() != null && that.getSentenceA() == null ) return null;
@@ -88,7 +79,7 @@ public class SentenceUnifier {
         }
 
         public BindingList visitClause(Clause clause, SentenceUnifierData data) {
-            if ( data.that instanceof Clause == false ) return null;
+            if (!(data.that instanceof Clause)) return null;
 
             Clause that = (Clause)data.that;
 
@@ -118,7 +109,7 @@ public class SentenceUnifier {
         }
 
         public BindingList visitLiteral(Literal literal, SentenceUnifierData data) {
-            if ( data.that instanceof Literal == false ) return null;
+            if (!(data.that instanceof Literal)) return null;
 
             return Unifier.UNIFIER.unify(literal, (Literal)data.that, data.bl);
         }

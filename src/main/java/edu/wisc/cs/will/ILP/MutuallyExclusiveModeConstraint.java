@@ -1,18 +1,14 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.Utils.Utils;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import edu.wisc.cs.will.FOPC.Literal;
+import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
+import edu.wisc.cs.will.Utils.Utils;
+
 /**
- *
  * @author twalker
  */
 public class MutuallyExclusiveModeConstraint implements ModeConstraint {
@@ -23,8 +19,8 @@ public class MutuallyExclusiveModeConstraint implements ModeConstraint {
 
     private int maxOccurances;
 
-    public MutuallyExclusiveModeConstraint(Collection<PredicateNameAndArity> mutuallyExclusiveModes, int maxOccurances) {
-        this.mutuallyExclusiveModes = new HashSet<PredicateNameAndArity>(mutuallyExclusiveModes);
+    MutuallyExclusiveModeConstraint(Collection<PredicateNameAndArity> mutuallyExclusiveModes, int maxOccurances) {
+        this.mutuallyExclusiveModes = new HashSet<>(mutuallyExclusiveModes);
         this.maxOccurances = maxOccurances;
     }
 
@@ -60,12 +56,12 @@ public class MutuallyExclusiveModeConstraint implements ModeConstraint {
                 }
 
                 if (removeModes) {
-                    if (isMutable == false) {
-                        result = new HashSet<PredicateNameAndArity>(eligibleExpansionModes);
+                    if (!isMutable) {
+                        result = new HashSet<>(eligibleExpansionModes);
                     }
 
                     for (PredicateNameAndArity predicateNameAndArity : mutuallyExclusiveModes) {
-                        //PredicateName pn = predicateNameAndArity.getPredicateName();
+                        assert result != null;
                         result.remove(predicateNameAndArity);
                         
                     }

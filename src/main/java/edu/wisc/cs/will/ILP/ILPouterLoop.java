@@ -1,4 +1,4 @@
-/**
+/*
  * Notes:
  * 
  *  isaStack: need to label ALL examples in each world
@@ -13,13 +13,10 @@
  *      small penalty for 'unused' vars?
  *      
  *      clean up printing of rules?
- * 
- * 
- * 
  */
 package edu.wisc.cs.will.ILP;
 
-import java.io.File;  import edu.wisc.cs.will.Utils.condor.CondorFile;
+import java.io.File;
 import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 import java.io.FileNotFoundException;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
@@ -63,6 +60,7 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
 import edu.wisc.cs.will.stdAIsearch.SearchResult;
 import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
+import edu.wisc.cs.will.Utils.condor.CondorFile;
 import java.io.BufferedReader;
 import java.util.Arrays;
 
@@ -104,7 +102,7 @@ import java.util.Arrays;
  *         add bottom clause code?
  */
 public class ILPouterLoop implements GleanerFileNameProvider {
-	public  static final String systemName = "WILL"; // See comment above for explanation.
+	private static final String systemName = "WILL"; // See comment above for explanation.
    
 	public  LearnOneClause innerLoopTask;  // LearnOnClause performs the inner loop of ILP.
 
@@ -1399,14 +1397,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 
 	}		
 
-	/**
-     * 
-     * @param all_pos_wt : Weight set on all positive regression examples.
-     * @param all_neg_wt : Weight set on all negative regression examples
-     * @param ratioOfNegToPositiveEx : How many negative examples for each positive example. Set it to a negative number if you dont
-     * want to subsample. 
-     */
-    
     // TODO - put all this RDN stuff in a subclass of ILPouterLoop.
     public  void setLearnMLNTheory(boolean val) {
     	learnMLNTheory = val;
@@ -1570,42 +1560,26 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		
 		Utils.println("% Kept " + (useSamplingWithReplacementOnPos ? "(via sampling with replacement) " : "") + Utils.comma(countOfPosKept)  + " of the " + Utils.comma(numbOrigPosExamples) + " positive examples.");
 		Utils.println("% Kept " + (useSamplingWithReplacementOnNeg ? "(via sampling with replacement) " : "") + Utils.comma(countOfNegsKept) + " of the " + Utils.comma(numbOrigNegExamples) + " negative examples.");
-	//	Utils.waitHere("in prepareExamplesForTarget, useSamplingWithReplacementOnPos=" + useSamplingWithReplacementOnPos + ", useSamplingWithReplacementOnNeg=" + useSamplingWithReplacementOnNeg + ", ratioOfNegToPositiveEx=" + ratioOfNegToPositiveEx + ", samplePositiveProb=" + samplePositiveProb);
 		setPosExamples(positiveExamples);
-		setNegExamples(new ArrayList<Example>(0));
-	//	Utils.waitHere();
+		setNegExamples(new ArrayList<>(0));
     }
 
-	
-
-	/**
-	 * @return the learnMultiValPredicates
-	 */
-	public boolean isLearnMultiValPredicates() {
+	private boolean isLearnMultiValPredicates() {
 		return learnMultiValPredicates;
 	}
-	/**
-	 * @param learnMultiValPredicates the learnMultiValPredicates to set
-	 */
+
 	public void setLearnMultiValPredicates(boolean learnMultiValPredicates) {
 		this.learnMultiValPredicates = learnMultiValPredicates;
 		innerLoopTask.setLearnMultiVal(learnMultiValPredicates);
 	}
-	public Theory produceFinalTheory() {
+	private Theory produceFinalTheory() {
 		// TODO allow theories to come from some covering algorithm, possibly based on all the Gleaners.		
-		Theory result = null;
+		Theory result;
 		if (learningTreeStructuredTheory) {
 			// Note: this code assumes all the heads have the same arguments, other than the last variables that stores the numeric answer. 
 			// The renameAllVariables() is only used to make the tree-structured theory a bit more human readable.
 			result = outerLoopState.getTreeBasedTheory().renameAllVariables().convertToStandardTheory(innerLoopTask.getInlineManager()).renameAllClausesWithUniqueBodyVariables(); // Cleanup the variable names and then convert to Horn clauses.
-			
-			/* For debugging ...
-			TreeStructuredTheory r1 = outerLoopState.getTreeBasedTheory(); Utils.println("R1: " + r1);
-			TreeStructuredTheory r2 = r1.renameAllVariables();             Utils.println("R2: " + r2);
-			TreeStructuredTheory r3 = r2.convertToStandardTheory(innerLoopTask.getInlineManager()); Utils.println("R3: " + r3);
-			TreeStructuredTheory r4 = r3.renameAllClausesWithUniqueBodyVariables();                 Utils.println("R4: " + r4);
-			*/
-			
+
 		} else {
 			result = getStdILPtheory(); // Is in-lining properly handled here?  Presumably this should happen when clauses are learned?
 			if (learnMLNTheory) {
@@ -1614,16 +1588,12 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 					Term leafValue =  innerLoopTask.stringHandler.getNumericConstant(cl.getWeightOnSentence());
 					Utils.println("Added " + cl.getWeightOnSentence() + " to " + cl);
 					Literal      headCopy = cl.getDefiniteClauseHead();
-					//List<Term>   args     = headCopy.getArguments();
 					List<String> argNames = headCopy.getArgumentNames();
 					if (argNames != null) {
 						headCopy.addArgument(leafValue, "OutputVarTreeLeaf");
 					} else {
 						headCopy.addArgument(leafValue);
 					}
-					//args.add(leafValue);
-					//if (argNames != null) { headCopy.addargNames.add("OutputVarTreeLeaf"); } // Presumably this is a unique name ...
-					//Utils.println(cl.toString());
 				}
 				
 			}
@@ -1896,7 +1866,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         innerLoopTask.setActiveAdvice(activeAdvice);
     }
 
-    // <editor-fold defaultstate="collapsed" desc="Getters and Setters">
     protected void setTotal_nodesRemovedFromOPENsinceMaxScoreNowTooLow(int total_nodesRemovedFromOPENsinceMaxScoreNowTooLow) {
         outerLoopState.setTotal_nodesRemovedFromOPENsinceMaxScoreNowTooLow(total_nodesRemovedFromOPENsinceMaxScoreNowTooLow);
     }
@@ -2276,8 +2245,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     /** Returns the PosExamples to use for the search.
      *
      * This is just a convenience method.  The list is actually stored in the LearnOneClause object.
-     *
-     * @return
      */
     public List<Example> getPosExamples() {
         return innerLoopTask.getPosExamples();
@@ -2286,58 +2253,37 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     /** Returns the NegExamples to use for the search.
      *
      * This is just a convenience method.  The list is actually stored in the LearnOneClause object.
-     *
-     * @return
      */
     public List<Example> getNegExamples() {
         return innerLoopTask.getNegExamples();
     }
 
-    /**
-     * @return the evaltSetPosExamples
-     */
-    public List<Example> getEvalSetPosExamples() {
+    List<Example> getEvalSetPosExamples() {
         return evalSetPosExamples;
     }
 
-    /**
-     * @param evalSetPosExamples the evaSetPosExamples to set
-     */
-    public void setEvalSetPosExamples(List<Example> evaSetPosExamples) {
+
+    void setEvalSetPosExamples(List<Example> evaSetPosExamples) {
         this.evalSetPosExamples = evaSetPosExamples;
     }
 
-    /**
-     * @return the evalSetNegExamples
-     */
-    public List<Example> getEvalSetNegExamples() {
+    List<Example> getEvalSetNegExamples() {
         return evalSetNegExamples;
     }
 
-    /**
-     * @param evalSetNegExamples the evalSetNegExamples to set
-     */
-    public void setEvalSetNegExamples(List<Example> evalSetNegExamples) {
+    void setEvalSetNegExamples(List<Example> evalSetNegExamples) {
         this.evalSetNegExamples = evalSetNegExamples;
     }
 
-    public Set<Example> getNegExamplesUsedAsSeeds() {
+	private Set<Example> getNegExamplesUsedAsSeeds() {
         return outerLoopState.getNegExamplesUsedAsSeeds();
     }
 
-    protected void setSeedPosExamplesUsed(Set<Example> seedPosExamplesUsed) {
-        outerLoopState.setSeedPosExamplesUsed(seedPosExamplesUsed);
-    }
-
-    protected void setSeedNegExamplesUsed(Set<Example> seedNegExamplesUsed) {
-        outerLoopState.setSeedNegExamplesUsed(seedNegExamplesUsed);
-    }
-
-    protected Set<Example> getSeedPosExamplesUsed() {
+	private Set<Example> getSeedPosExamplesUsed() {
         return outerLoopState.getSeedPosExamplesUsed();
     }
 
-    protected Set<Example> getSeedNegExamplesUsed() {
+	private Set<Example> getSeedNegExamplesUsed() {
         return outerLoopState.getSeedNegExamplesUsed();
     }
 
@@ -2347,23 +2293,19 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         outerLoopState.setMaximumClockTimeInMillisec(maximumClockTime);
     }
 
-    protected void setClockTimeUsedInMillisec(long clockTimeUsed) {
+    private void setClockTimeUsedInMillisec(long clockTimeUsed) {
         outerLoopState.setClockTimeUsedInMillisec(clockTimeUsed);
     }
 
-    public long getMaximumClockTimeInMillisec() {
+    private long getMaximumClockTimeInMillisec() {
         return outerLoopState.getMaximumClockTimeInMillisec();
     }
 
-    public long getClockTimeUsedInMillisec() {
+    private long getClockTimeUsedInMillisec() {
         return outerLoopState.getClockTimeUsedInMillisec();
     }
 
-    /** Returns the amount of time in milliseconds left for the search.
-     *
-     * @return
-     */
-    public long getTimeAvailableInMillisec() {
+	private long getTimeAvailableInMillisec() {
        return getMaximumClockTimeInMillisec() == Long.MAX_VALUE ? Long.MAX_VALUE : Math.max(0, getMaximumClockTimeInMillisec() - getClockTimeUsedInMillisec());
     }
 
@@ -2395,37 +2337,20 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		this.maxTreeDepthInLiterals = Math.max(1, maxTreeDepthInLiterals);
 	}
 
-	public String getPrefixForExtractedRules() {
-		return prefixForExtractedRules;
-	}
-
 	public void setPrefixForExtractedRules(String prefixForExtractedRules) {
 		this.prefixForExtractedRules = prefixForExtractedRules;
-	}
-
-	public String getPostfixForExtractedRules() {
-		return postfixForExtractedRules;
 	}
 
 	public void setPostfixForExtractedRules(String postfixForExtractedRules) {
 		this.postfixForExtractedRules = postfixForExtractedRules;
 	}
 
-    /**
-	 * @return the "maxTreeDepthInInteriorNodes
-	 */
 	public int getMaxTreeDepth() {
 		return maxTreeDepthInInteriorNodes;
 	}
 
-	/**
-	 * @param maxTreeDepth the maxTreeDepth to set
-	 */
 	public void setMaxTreeDepth(int maxTreeDepth) {
 		this.maxTreeDepthInInteriorNodes = Math.max(1, maxTreeDepth);
 	}
-
-
-    // </editor-fold>
 
 }

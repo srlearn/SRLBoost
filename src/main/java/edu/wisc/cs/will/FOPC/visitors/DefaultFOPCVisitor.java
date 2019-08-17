@@ -4,7 +4,6 @@ import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.ConnectedSentence;
 import edu.wisc.cs.will.FOPC.ConnectiveName;
 import edu.wisc.cs.will.FOPC.ConsCell;
-import edu.wisc.cs.will.FOPC.Constant;
 import edu.wisc.cs.will.FOPC.Function;
 import edu.wisc.cs.will.FOPC.ListAsTerm;
 import edu.wisc.cs.will.FOPC.Literal;
@@ -60,7 +59,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
      */
     static Sentence getCombinedConnectedSentence(ConnectedSentence originalSentence, Sentence newA, Sentence newB) {
 
-        Sentence result = null;
+        Sentence result;
 
         if (ConnectiveName.isaNOT(originalSentence.getConnective().name)) {
             if (newB == null) {
@@ -105,7 +104,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
 
         if (clause.getPosLiteralCount() > 0) {
             if (buildSentence) {
-                positiveLits = new ArrayList<Literal>();
+                positiveLits = new ArrayList<>();
             }
             for (Literal literal : clause.getPositiveLiterals()) {
                 Sentence newStuff = literal.accept(this, data);
@@ -117,7 +116,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
 
         if (clause.getNegLiteralCount() > 0) {
             if (buildSentence) {
-                negativeLits = new ArrayList<Literal>();
+                negativeLits = new ArrayList<>();
             }
             for (Literal literal : clause.getNegativeLiterals()) {
                 Sentence newStuff = literal.accept(this, data);
@@ -146,7 +145,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
 
         if (literal.getArity() != 0) {
             if (buildSentence) {
-                newTerms = new ArrayList<Term>();
+                newTerms = new ArrayList<>();
             }
             
             for (Term term : literal.getArguments()) {
@@ -172,7 +171,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
 
         if (function.getArity() != 0) {
             if (buildSentence) {
-                newTerms = new ArrayList<Term>();
+                newTerms = new ArrayList<>();
             }
             for (Term term : function.getArguments()) {
                 Term newTerm = term.accept(this, data);
@@ -252,7 +251,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
     }
 
     public Term visitVariable(Variable variable, Data data) {
-        return buildSentence == false ? null : variable;
+        return !buildSentence ? null : variable;
     }
 
     public Term visitSentenceAsTerm(SentenceAsTerm sentenceAsTerm, Data data) {
@@ -288,7 +287,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
             List<Term> objects = null;
 
             if (buildSentence) {
-                objects = new ArrayList<Term>();
+                objects = new ArrayList<>();
             }
             for (Term term : listAsTerm.getObjects()) {
                 Term newTerm = term.accept(this, data);
@@ -312,11 +311,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
         return !buildSentence ? null : stringConstant;
     }
 
-    public Term visitOtherConstant(Constant constant, Data data) {
-        return buildSentence == false ? null : constant;
-    }
-
     public Term visitOtherTerm(Term term, Data data) {
-        return buildSentence == false ? null : term;
+        return !buildSentence ? null : term;
     }
 }

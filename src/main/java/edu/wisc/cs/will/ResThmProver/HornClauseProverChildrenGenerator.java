@@ -436,7 +436,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     }
 
     private List<HornSearchNode> collectChildrenActual(HornSearchNode hornSearchNode) throws SearchInterrupted {
-// </editor-fold>
 
 
         // Grab the first negated literal in this node, and find all "rules" in the theory that unify with it.
@@ -449,7 +448,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         if (HornClauseProver.debugLevel > 2) {
             Utils.println("\nNode being expanded: " + hornSearchNode);
-        } //  + "\n open = " + ((HornClauseProver) task).open); }
+        }
 
         List<Literal> queryLiterals = hornSearchNode.clause.negLiterals;
         Literal negatedLiteral = queryLiterals.get(0);
@@ -820,7 +819,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     return null;
                 }
             }
-        }// </editor-fold>
+        }
 
         // See if there is a special procedurally defined predicate, and if so, call its handler.
         int arity = negatedLiteral.numberArgs();
@@ -873,7 +872,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 Utils.println("      Built-in procedurally defined literal failed.");
             }
             return null;  // If the built-in procedurally defined predicate failed, then this search path has failed.
-        }// </editor-fold>
+        }
 
         // If we get here, there is no special handling to do.  Just look the literal up in the clause base and
         // handle it appropriately.
@@ -1232,7 +1231,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             predicateName = traceLiteral.getStringHandler().getPredicateName("StackTrace");
         }
 
-        public int getExpansion() {
+        int getExpansion() {
             return expansion;
         }
 

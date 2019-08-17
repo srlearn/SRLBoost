@@ -1,20 +1,12 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.MLN;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import edu.wisc.cs.will.Boosting.Advice.AdviceReader;
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.RDN.InferBoostedRDN;
@@ -23,15 +15,11 @@ import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
 import edu.wisc.cs.will.Boosting.RDN.LearnBoostedRDN;
 import edu.wisc.cs.will.Boosting.RDN.ConditionalModelPerPredicate;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
-import edu.wisc.cs.will.Boosting.Trees.RegressionMLNModel;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
-import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.FOPC.AllOfFOPC;
 import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
-//import edu.wisc.cs.will.test.ILP.AdviceTest;
 
 /**
  * MLN-Boost specific code for learning and inference
@@ -43,7 +31,7 @@ import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
  */
 public class RunBoostedMLN extends RunBoostedModels {
 
-	JointRDNModel fullModel = null;
+	private JointRDNModel fullModel = null;
 	
 	public void learn() {
 		fullModel = new JointRDNModel();
@@ -92,9 +80,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 					int maxSamples = 30*((minTreesInModel/iterStepSize) + 1);
 					maxSamples = 500;
 					// TODO (tvk) Get more samples but pick the 200 most likely states.
-					//if (cmdArgs.getNumberOfHiddenStates() > 0 ) {
-					//	maxSamples = cmdArgs.getNumberOfHiddenStates();
-					//}
 					if (cmdArgs.getHiddenStrategy().equals("MAP")) { 
 						maxSamples = -1; 
 					}
@@ -103,10 +88,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 						returnMap = true;
 					}
 					jtSampler.sampleWorldStates(setup.getHiddenExamples(), sampledStates, false, maxSamples, returnMap);
-//					if (cmdArgs.getHiddenStrategy().equals("MAP")) {
-//						sampledStates = sampledStates.getMostLikelyState();
-//						Utils.println("% Percent of true states:" + sampledStates.getWorldStates().get(0).percentOfTrues());
-//					}
 					if (sampledStates.getWorldStates().size() == 0) { Utils.waitHere("No sampled states");}
 					// This state won't change anymore so cache probs;
 					Utils.println("Building assignment map");
@@ -121,9 +102,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 							sampledStates.pickMostLikelyStates(cmdArgs.getNumberOfHiddenStates());
 						}
 					}
-					//double cll = BoostingUtils.computeHiddenStateCLL(sampledStates, setup.getHiddenExamples());
-					//Utils.println("CLL of hidden states:" + cll);
-					//Utils.println("Prob of states: " + sampledStates.toString());
 					setup.setLastSampledWorlds(sampledStates);
 					newModel = false;
 					long sampleEnd = System.currentTimeMillis();
@@ -156,8 +134,7 @@ public class RunBoostedMLN extends RunBoostedModels {
 			saveModelAsMLN();			
 		}
 	}
-	
-	
+
 	private void saveModelAsMLN() {
 
 		String mlnFile=setup.getOuterLooper().getWorkingDirectory() + "/"+
@@ -166,7 +143,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 		try {
 			writer = new BufferedWriter(new CondorFileWriter(mlnFile));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -184,7 +160,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 				writer.write(str);
 				writer.newLine();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -196,7 +171,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 					writer.write(entry.getKey().toString());
 					writer.newLine();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -209,7 +183,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 		try {
 			writer.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -224,7 +197,7 @@ public class RunBoostedMLN extends RunBoostedModels {
 			modelPreds = cmdArgs.getTargetPredVal();
 		}
 		for (String pred : modelPreds) {
-			ConditionalModelPerPredicate rdn = null;
+			ConditionalModelPerPredicate rdn;
 			if (fullModel.containsKey(pred)) {
 				rdn = fullModel.get(pred);
 				rdn.reparseModel(setup);

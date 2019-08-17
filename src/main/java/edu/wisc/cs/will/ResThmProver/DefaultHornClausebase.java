@@ -319,9 +319,8 @@ public class DefaultHornClausebase implements HornClausebase {
         List<DefiniteClause> clausesToRemove;
 
         if (matchAssertions != null) {
-            clausesToRemove = new ArrayList<>();
 
-            clausesToRemove.addAll(matchAssertions);
+            clausesToRemove = new ArrayList<>(matchAssertions);
 
             removeClauses(clausesToRemove);
         }

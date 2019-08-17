@@ -104,8 +104,8 @@ public class DuplicateDeterminateRemover {
             if (literal.getStringHandler().isNegationByFailure(literal)) {
                 Clause contents = literal.getStringHandler().getNegationByFailureContents(literal);
                 Clause newContents = (Clause) contents.accept(this, data);
-                if (newContents != null && newContents.getPosLiteralCount() == 0) {
-                    newContents = literal.getStringHandler().trueClause;
+                if (newContents != null) {
+                    newContents.getPosLiteralCount();
                 }
             }
             else {
@@ -123,8 +123,8 @@ public class DuplicateDeterminateRemover {
             if (function.getStringHandler().isNegationByFailure(function)) {
                 Clause contents = function.getStringHandler().getNegationByFailureContents(function);
                 Clause newContents = (Clause) contents.accept(this, data);
-                if (newContents != null && newContents.getPosLiteralCount() == 0) {
-                    newContents = function.getStringHandler().trueClause;
+                if (newContents != null) {
+                    newContents.getPosLiteralCount();
                 }
             }
             else {
@@ -417,7 +417,7 @@ public class DuplicateDeterminateRemover {
         }
     }
 
-    public static class PassTwoData {
+    static class PassTwoData {
 
         private PassTwoData parent;
 

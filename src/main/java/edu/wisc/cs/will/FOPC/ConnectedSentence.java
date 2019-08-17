@@ -600,27 +600,5 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 		return total;
 	}
 
-    public Sentence getAntecedent() {
-        if ( getConnective() != ConnectiveName.IMPLIES) throw new IllegalStateException("Sentence is not an implication: " + this + ".");
-
-        if ( sentenceA == null ) {
-            return stringHandler.trueLiteral;
-        }
-        else {
-            return sentenceA;
-        }
-    }
-
-    public Sentence getConsequence() {
-        if ( getConnective() != ConnectiveName.IMPLIES) throw new IllegalStateException("Sentence is not an implication: " + this + ".");
-
-        if ( sentenceB == null ) {
-            return stringHandler.trueLiteral;
-        }
-        else {
-            return sentenceB;
-        }
-    }
-
 
 }

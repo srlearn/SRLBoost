@@ -33,12 +33,9 @@ public class DoBuiltInListProcessing extends AllOfFOPC {
 	private FunctionName fastAppend, fastIntersection, fastUnion;
 
 	private HandleFOPCstrings stringHandler;
-	private Map<FunctionName,Set<Integer>> canHandle = new HashMap<FunctionName,Set<Integer>>(16);
-	
-	/**
-	 * 
-	 */
-	public DoBuiltInListProcessing(HandleFOPCstrings stringHandler) {
+	private Map<FunctionName,Set<Integer>> canHandle = new HashMap<>(16);
+
+	DoBuiltInListProcessing(HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
 		boolean hold = stringHandler.cleanFunctionAndPredicateNames;
 		stringHandler.cleanFunctionAndPredicateNames = false;
@@ -64,11 +61,7 @@ public class DoBuiltInListProcessing extends AllOfFOPC {
 	
 	private FunctionName addFunctionName(String fNameString, int arity) {
 		FunctionName fName = stringHandler.getFunctionName(fNameString);
-		Set<Integer> lookup = canHandle.get(fName);
-		if (lookup == null) {
-			lookup = new HashSet<Integer>(4);
-			canHandle.put(fName, lookup);
-		}
+		Set<Integer> lookup = canHandle.computeIfAbsent(fName, k -> new HashSet<>(4));
 		lookup.add(arity);
 		return fName;
 	}
@@ -89,7 +82,6 @@ public class DoBuiltInListProcessing extends AllOfFOPC {
 	
 	/** 
 	 * Simplify expressions involving lists.  Complain if this can't be done.
-	 * @param expression
 	 * @return The simplification of the given expression.
 	 */
 	public Term simplify(Term expression) {

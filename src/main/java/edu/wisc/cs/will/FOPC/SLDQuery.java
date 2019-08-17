@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC;
 
 /** This is just an interface to simplify the proof definitions.
@@ -19,5 +14,5 @@ public interface SLDQuery {
      * @throws IllegalArgumentException An illegal argument exception is thrown
      * if the SLDQuery can not be converted to a legal SLD query clause.
      */
-    public Clause getNegatedQueryClause() throws IllegalArgumentException;
+    Clause getNegatedQueryClause() throws IllegalArgumentException;
 }

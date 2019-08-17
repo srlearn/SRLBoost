@@ -1,13 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC;
 
 import java.util.List;
 
-/** Interface describing the operations commmon between literals and terms.
+/** Interface describing the operations common between literals and terms.
  *
  * Literal and terms often play a similar role.  Literals are the arguments
  * of Clauses while Terms are the arguments of Functions.  Literals are easily
@@ -19,21 +14,21 @@ import java.util.List;
  */
 public interface LiteralOrFunction {
 
-    public Function asFunction();
+    Function asFunction();
 
-    public Literal asLiteral();
+    Literal asLiteral();
 
-    public PredicateName getPredicateName();
+    PredicateName getPredicateName();
 
-    public FunctionName getFunctionName();
+    FunctionName getFunctionName();
 
-    public int getArity();
+    int getArity();
 
     PredicateNameAndArity getPredicateNameAndArity();
 
-    public List<Term> getArguments();
+    List<Term> getArguments();
 
-    public Term getArgument(int index);
+    Term getArgument(int index);
 
-    public HandleFOPCstrings getStringHandler();
+    HandleFOPCstrings getStringHandler();
 }

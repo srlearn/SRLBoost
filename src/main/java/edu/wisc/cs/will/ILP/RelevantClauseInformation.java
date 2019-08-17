@@ -1092,11 +1092,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         }
 
         @Override
-        public Term visitOtherConstant(Constant constant, ConstantMarkerData data) {
-            return wrapTermInConstantMarker(constant, data);
-        }
-
-        @Override
         public Term visitStringConstant(StringConstant stringConstant, ConstantMarkerData data) {
             return wrapTermInConstantMarker(stringConstant, data);
         }
@@ -1196,11 +1191,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
         @Override
         public Term visitNumericConstant(NumericConstant term, GeneralizerData2 data) {
-            return handleConstant(term, data);
-        }
-
-        @Override
-        public Term visitOtherConstant(Constant term, GeneralizerData2 data) {
             return handleConstant(term, data);
         }
 
@@ -1380,11 +1370,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
         @Override
         public Term visitNumericConstant(NumericConstant term, GeneralizerData data) {
-            return handleConstant(term, data);
-        }
-
-        @Override
-        public Term visitOtherConstant(Constant term, GeneralizerData data) {
             return handleConstant(term, data);
         }
 

@@ -142,8 +142,6 @@ public class ExampleSubSampler {
 
 	private List<RegressionRDNExample> sampleByRegression(
 			List<RegressionRDNExample> all_exs) {
-		int pos = 0;
-		int neg = 0;
 		double min_abs_grad = Double.POSITIVE_INFINITY;
 		List<RegressionRDNExample> negExs = new ArrayList<>();
 		List<RegressionRDNExample> posExs = new ArrayList<>();
@@ -152,10 +150,8 @@ public class ExampleSubSampler {
 
 			if (!eg.isOriginalTruthValue()) {
 				negExs.add(eg);
-				neg++;
 			} else {
 				posExs.add(eg);
-				pos ++;
 			}
 			if (min_abs_grad > Math.abs(eg.getOutputValue())) {
 				min_abs_grad = Math.abs(eg.getOutputValue());
@@ -225,7 +221,7 @@ public class ExampleSubSampler {
 		if (numbOrigNegExamplestoUse <= 0 || numbOrigNegExamplestoUse >= negExs.size()) {
 			return negExs;
 		}
-		SortedSet<RegressionRDNExample> topExamples = new TreeSet<RegressionRDNExample>(new GradientComparator());
+		SortedSet<RegressionRDNExample> topExamples = new TreeSet<>(new GradientComparator());
 		
 		for (RegressionRDNExample eg : negExs) {
 			topExamples.add(eg);

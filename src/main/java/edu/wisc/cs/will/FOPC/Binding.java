@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.Map;
@@ -9,13 +6,12 @@ import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author shavlik
- *
  */
 public class Binding extends AllOfFOPC {
 	public Variable var;
 	public Term     term;
 
-	public Binding(Variable var, Term term) {
+	Binding(Variable var, Term term) {
 		this.var  = var;
 		this.term = term;
 	}
@@ -27,8 +23,6 @@ public class Binding extends AllOfFOPC {
 	public String toString(int precedenceOfCaller, BindingList bindingList) {
 		return var + "/" + term;
 	}
-
-
 
 	@Override
 	public Binding applyTheta(Map<Variable,Term> bindings) {

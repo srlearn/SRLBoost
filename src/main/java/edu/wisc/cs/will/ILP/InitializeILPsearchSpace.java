@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
 
 import java.util.ArrayList;
@@ -29,24 +26,15 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 /**
  * @author shavlik
- *
  */
 public class InitializeILPsearchSpace extends Initializer {
 
-	public boolean alwaysAddMostGeneralHeadClause = true; // Should put this elsewhere and document.  TODO
-	public boolean createMinGeneralHeadClause     = true;  // Use one variable per unique constant in the head.
-	
 	private SingleClauseNode bestNodeFromPreviousSearch;
-	/**
-	 * 
-	 */
-	public InitializeILPsearchSpace() {
+
+	InitializeILPsearchSpace() {
 	}
-	
-	public SingleClauseNode getBestNodeFromPreviousSearch() {
-		return bestNodeFromPreviousSearch;
-	}
-	public void setBestNodeFromPreviousSearch(SingleClauseNode bestNodeFromPreviousSearch) {
+
+	void setBestNodeFromPreviousSearch(SingleClauseNode bestNodeFromPreviousSearch) {
 		this.bestNodeFromPreviousSearch = bestNodeFromPreviousSearch;
 	}
 
@@ -56,8 +44,7 @@ public class InitializeILPsearchSpace extends Initializer {
 		
 		if (bestNodeFromPreviousSearch != null) {   // If this is non-null, pick up where last search left off.
 			if (task.scorer != null) { open.insertByScoreIntoOpenList(bestNodeFromPreviousSearch); }
-			else                     { open.addToEndOfOpenList(       bestNodeFromPreviousSearch); } 	
-		//	Utils.waitHere("% initializeOpen: " + bestNodeFromPreviousSearch + "  score = " + bestNodeFromPreviousSearch.score);
+			else                     { open.addToEndOfOpenList(       bestNodeFromPreviousSearch); }
 			return;
 		}
 		
@@ -76,8 +63,8 @@ public class InitializeILPsearchSpace extends Initializer {
 			PredicateName      targetPred   = target.predicateName;
 			List<Term>         variables    = varLists.get(i);
 			List<ArgSpec>      specs        = specsList.get(i);
-			List<Type>         typesPresent = new ArrayList<Type>(4);
-			Map<Type,List<Term>> typesMap   = new HashMap<Type,List<Term>>(4);  // Collect the existing constants and variables that go with each type. 
+			List<Type>         typesPresent = new ArrayList<>(4);
+			Map<Type,List<Term>> typesMap   = new HashMap<>(4);  // Collect the existing constants and variables that go with each type.
 			for (ArgSpec spec : specs) {
 				Type type = spec.typeSpec.isaType;
 				
@@ -86,7 +73,7 @@ public class InitializeILPsearchSpace extends Initializer {
 					terms.add(spec.arg);
 					typesMap.put(type, terms);
 				} else { // This type not yet seen.
-					List<Term> termsNew = new ArrayList<Term>(1);
+					List<Term> termsNew = new ArrayList<>(1);
 					termsNew.add(spec.arg);
 					typesMap.put(type, termsNew);
 					typesPresent.add(type);
@@ -109,9 +96,8 @@ public class InitializeILPsearchSpace extends Initializer {
 
 			boolean containsMustBeConstant = containsMustBeConstantType(pSpec);
 			// First look at the seeds and see if there are any restricted variablizations.
-			boolean addedRestrictedVersion = false;
-			List<Literal> targetsCreated = new ArrayList<Literal>(1);
-			if (createMinGeneralHeadClause && !ilpTask.isaTreeStructuredTask()) for (Example posSeed : posSeeds) {  // Utils.println("posSeed=" + posSeed);
+			// Use one variable per unique constant in the head.
+			if (!ilpTask.isaTreeStructuredTask()) for (Example posSeed : posSeeds) {  // Utils.println("posSeed=" + posSeed);
 				BindingList bl = unifier.unify(posSeed, target);
 				
 				// NOTE: since this process can use CONSTANTS instead of variables, some things with 'var' in their name really should say 'term' - TODO: cleanup once this is better debugged.
@@ -124,9 +110,7 @@ public class InitializeILPsearchSpace extends Initializer {
 						varsNeeded.clear();
 						collectStillNeededVars(newTarget.getArguments(), varsNeeded);
 						List<ArgSpec>      newSpecs      = collectNewSpecs(specs, variables, varsNeeded);
-						PredicateSpec      newPspec      = pSpec;        // No need to change this, the arguments still have the same types.
-						List<Type>         newTypesPresent = typesPresent; // Cannot change this, since only arguments of the SAME TYPE and value affect things (so, by definition, the types do not change).
-						Map<Type,List<Term>> newTypesMap = collectNewTypes(newSpecs, variables, varsNeeded);
+						Map<Type,List<Term>> newTypesMap = collectNewTypes(newSpecs);
 						if (LearnOneClause.debugLevel > 2) { 
 							Utils.println(" seed         = " + posSeed);
 							Utils.println(" old theta    = " + bl.theta);
@@ -138,60 +122,32 @@ public class InitializeILPsearchSpace extends Initializer {
 							Utils.println(" old specs    = " + specs);
 							Utils.println(" new specs    = " + newSpecs);
 							Utils.println(" predSpec     = " + pSpec        + " [should not change]");
-						//	Utils.println(" new predSpec = " + newPspec);
 							Utils.println(" typesPresent = " + typesPresent + " [should not change]");
-						//	Utils.println(" new typesPres= " + newTypesPresent);
 							Utils.println(" old typesMap = " + typesMap);
-							Utils.println(" new typesMap = " + newTypesMap); // Utils.waitHere();
+							Utils.println(" new typesMap = " + newTypesMap);
 						}
 						// Check for duplicates here if more than one seed.
-						boolean isaNewTarget = true;
-						for (Literal lit : targetsCreated) {
-							BindingList variants = lit.variants(newTarget, new BindingList());
-							if (lit.variants(newTarget, new BindingList()) != null) { isaNewTarget = false; break; }
-						}
-						if (isaNewTarget) {
-							SingleClauseRootNode targetAsSearchNode2 = new SingleClauseRootNode(ilpTask, newTarget, newSpecs, varsNeeded, newPspec, newTypesPresent, newTypesMap);
-							if (task.scorer != null) { open.insertByScoreIntoOpenList(targetAsSearchNode2); }
-							else                     { open.addToEndOfOpenList(       targetAsSearchNode2); }
-						
-							// Note: can cover 0, even if covering the seed, if the total number covered is less than the minimum specified.
-							if (LearnOneClause.debugLevel > -1) { 
-								Utils.println("% New min-general root: " + targetAsSearchNode2 + "  score = " + Utils.truncate(targetAsSearchNode2.score, 3));
-								//	Utils.waitHere(); 							
-							}
-							addedRestrictedVersion = true;
-						}
+						SingleClauseRootNode targetAsSearchNode2 = new SingleClauseRootNode(ilpTask, newTarget, newSpecs, varsNeeded, pSpec, typesPresent, newTypesMap);
+						if (task.scorer != null) { open.insertByScoreIntoOpenList(targetAsSearchNode2); }
+						else                     { open.addToEndOfOpenList(       targetAsSearchNode2); }
+
+						// Note: can cover 0, even if covering the seed, if the total number covered is less than the minimum specified.
+						Utils.println("% New min-general root: " + targetAsSearchNode2 + "  score = " + Utils.truncate(targetAsSearchNode2.score, 3));
 					}
 				}
 			}
-			
-			//  Utils.println("% addedRestrictedVersion=" + addedRestrictedVersion);
-			
+
 			// Stick in the version with all unique variables if no restricted version created (or requested to do so regardless).
 			// See chooseTargetMode for how the mode for the head is chosen.
-			if (!addedRestrictedVersion || alwaysAddMostGeneralHeadClause) {
-				
-				if (containsMustBeConstant) {
-					// If this code is ever written, should ONLY constrain the specified arguments using one or all of the seeds.
-					Utils.warning("TODO: Should handle this case by altering the target in the 'must be constant' arguments.  Or maybe an '@' type was meant?");
-				}
-				boolean isaNewTarget = true;
-				for (Literal lit : targetsCreated) {
-					BindingList variants = lit.variants(target, new BindingList());
-					if (variants != null) { isaNewTarget = false; break; }
-				}
-				// Utils.println("isaNewTarget=" + isaNewTarget);
-				if (isaNewTarget) {
-					SingleClauseRootNode targetAsSearchNode = new SingleClauseRootNode(ilpTask, target, specs, variables, pSpec, typesPresent, typesMap);
-					if (task.scorer != null) { open.insertByScoreIntoOpenList(targetAsSearchNode); }
-					else                     { open.addToEndOfOpenList(       targetAsSearchNode); } // We want any specific heads to be tried first.
-					if (LearnOneClause.debugLevel > -1) { 
-						Utils.println(MessageType.ILP_INNERLOOP, "% Most-general root: " + targetAsSearchNode + "  score = " + Utils.truncate(targetAsSearchNode.score, 3));
-					//	Utils.waitHere("% |open| = " + open.size());
-					}
-				}
-			}			
+
+			if (containsMustBeConstant) {
+				// If this code is ever written, should ONLY constrain the specified arguments using one or all of the seeds.
+				Utils.warning("TODO: Should handle this case by altering the target in the 'must be constant' arguments.  Or maybe an '@' type was meant?");
+			}
+			SingleClauseRootNode targetAsSearchNode = new SingleClauseRootNode(ilpTask, target, specs, variables, pSpec, typesPresent, typesMap);
+			if (task.scorer != null) { open.insertByScoreIntoOpenList(targetAsSearchNode); }
+			else                     { open.addToEndOfOpenList(       targetAsSearchNode); } // We want any specific heads to be tried first.
+			Utils.println(MessageType.ILP_INNERLOOP, "% Most-general root: " + targetAsSearchNode + "  score = " + Utils.truncate(targetAsSearchNode.score, 3));
 		}
 	}
 	
@@ -217,9 +173,9 @@ public class InitializeILPsearchSpace extends Initializer {
 		return false;
 	}
 
-	private Map<Type,List<Term>> collectNewTypes(List<ArgSpec> argSpecs, List<Term> origVarsNeeded, List<Term> currentVarsNeeded) {
+	private Map<Type,List<Term>> collectNewTypes(List<ArgSpec> argSpecs) {
 		if (argSpecs == null) { return null; }
-		Map<Type,List<Term>> results = new HashMap<Type,List<Term>>(4);		
+		Map<Type,List<Term>> results = new HashMap<>(4);
 		for (ArgSpec spec : argSpecs) {
 			Type       type  = spec.typeSpec.isaType;			
 			List<Term> terms = results.get(type);
@@ -227,7 +183,7 @@ public class InitializeILPsearchSpace extends Initializer {
 				terms.add(spec.arg);
 				results.put(type, terms);
 			} else { // This type not yet seen.
-				List<Term> termsNew = new ArrayList<Term>(1);
+				List<Term> termsNew = new ArrayList<>(1);
 				termsNew.add(spec.arg);
 				results.put(type, termsNew);
 			}
@@ -237,13 +193,13 @@ public class InitializeILPsearchSpace extends Initializer {
 	
 	private List<ArgSpec> collectNewSpecs(List<ArgSpec> specs, List<Term> origVarsNeeded, List<Term> currentVarsNeeded) {
 		if (specs == null || currentVarsNeeded == null) { return null; }
-		List<ArgSpec> results = new ArrayList<ArgSpec>(1);  //  Utils.println("specs=" + specs);  Utils.println("origVarsNeeded=" + origVarsNeeded);   Utils.println("currentVarsNeeded=" + currentVarsNeeded); 
+		List<ArgSpec> results = new ArrayList<>(1);
 		for (int i = 0; i < specs.size(); i++)  {
 			ArgSpec spec = specs.get(i);  
 			if (origVarsNeeded.get(i) == spec.arg) { 
 				if (currentVarsNeeded.contains(spec.arg)) {
 					results.add(spec);
-				} // else { results.add(new ArgSpec(currentVarsNeeded.get(i), spec.typeSpec));	}
+				}
 			}
 			else { Utils.error("Are these not in order?  If so, do a double for loop."); }
 		}
@@ -253,15 +209,15 @@ public class InitializeILPsearchSpace extends Initializer {
 	// Do all these variables have a UNIQUE match?  Note: equals is properly defined for FOPC functions.
 	private boolean allUniqueBindings(BindingList bl, List<Term> vars, PredicateSpec pSpec) {
 		if (Utils.getSizeSafely(vars) < 2) { return true; } 
-		Map<Term,List<Type>> termsSeen = new HashMap<Term,List<Type>>(4);  // Use List instead instead of Set since these should be small.
+		Map<Term,List<Type>> termsSeen = new HashMap<>(4);  // Use List instead instead of Set since these should be small.
 		if (Utils.getSizeSafely(vars) != Utils.getSizeSafely(pSpec.getTypeSpecList())) { Utils.error("Mismatch: " + vars + " vs." + pSpec.getTypeSpecList()); }
 		for (int i = 0; i < vars.size(); i++) if (vars.get(i) instanceof Variable) {
-			Term var = vars.get(i);  // Utils.println("   i1=" + i + " typeSpec=" + pSpec.getTypeSpecList().get(i));
+			Term var = vars.get(i);
 			Type type = pSpec.getTypeSpecList().get(i).isaType;
 			Term term = bl.lookup((Variable) var);
 			List<Type> lookup = termsSeen.get(term); 
 			if (lookup != null && lookup.contains(type)) { return false; }
-			if (lookup == null) { lookup = new ArrayList<Type>(1); }
+			if (lookup == null) { lookup = new ArrayList<>(1); }
 			lookup.add(type);
 			termsSeen.put(term, lookup);
 		}
@@ -270,16 +226,16 @@ public class InitializeILPsearchSpace extends Initializer {
 	
 	private List<Term> getVarsNeeded(BindingList bl, List<Term> vars, PredicateSpec pSpec) {
 		if (Utils.getSizeSafely(vars) < 2) { return vars; } 
-		Map<Term,List<Type>> termsSeen = new HashMap<Term,List<Type>>(4);  // Use List instead instead of Set since these should be small.
-		List<Term>          varsNeeded = new ArrayList<Term>(1);
+		Map<Term,List<Type>> termsSeen = new HashMap<>(4);  // Use List instead instead of Set since these should be small.
+		List<Term>          varsNeeded = new ArrayList<>(1);
 		if (Utils.getSizeSafely(vars) != Utils.getSizeSafely(pSpec.getTypeSpecList())) { Utils.error("Mismatch: " + vars + " vs." + pSpec.getTypeSpecList()); }
-		for (int i = 0; i < vars.size(); i++) if (vars.get(i) instanceof Variable) { // Utils.println("   i2=" + i + " typeSpec=" + pSpec.getTypeSpecList().get(i));
+		for (int i = 0; i < vars.size(); i++) if (vars.get(i) instanceof Variable) {
 			Variable var = (Variable) vars.get(i);
 			Type    type = pSpec.getTypeSpecList().get(i).isaType;
 			Term    term = bl.lookup(var);
 			List<Type> lookup = termsSeen.get(term);
 			if (lookup != null && lookup.contains(type)) { continue; } // Have a duplicate, skip it.
-			if (lookup == null) { lookup = new ArrayList<Type>(1); }
+			if (lookup == null) { lookup = new ArrayList<>(1); }
 			lookup.add(type);
 			termsSeen.put(term, lookup);
 			varsNeeded.add(var);
@@ -289,18 +245,18 @@ public class InitializeILPsearchSpace extends Initializer {
 	
 	private Map<Variable,Term> getNewTheta(BindingList bl, List<Term> vars, PredicateSpec pSpec) {
 		if (Utils.getSizeSafely(vars) < 2) { return bl.theta; } 
-		Map<Term,List<TypeVarPair>> termsSeen = new HashMap<Term,List<TypeVarPair>>(4);  // Use List instead instead of Set since these should be small.
-		Map<Variable,Term>          newTheta  = new HashMap<Variable,Term>(4);
+		Map<Term,List<TypeVarPair>> termsSeen = new HashMap<>(4);  // Use List instead instead of Set since these should be small.
+		Map<Variable,Term>          newTheta  = new HashMap<>(4);
 		if (Utils.getSizeSafely(vars) != Utils.getSizeSafely(pSpec.getTypeSpecList())) { Utils.error(); }
-		for (int i = 0; i < vars.size(); i++) if (vars.get(i) instanceof Variable) {  // Utils.println("   i3=" + i + " typeSpec=" + pSpec.getTypeSpecList().get(i));
+		for (int i = 0; i < vars.size(); i++) if (vars.get(i) instanceof Variable) {
 			Variable var = (Variable) vars.get(i);
 			Type    type = pSpec.getTypeSpecList().get(i).isaType;
 			Term    term = bl.lookup(var);
-			List<TypeVarPair> lookup = termsSeen.get(term); // Utils.println("       var=" + var + " type=" + type + " term=" + term + "  lookup=" + lookup); 
+			List<TypeVarPair> lookup = termsSeen.get(term);
 			if (lookup != null) for (TypeVarPair pair : lookup) if (pair.type == type) { // Have a duplicate, need to add it to the returned result.
 				newTheta.put(var, pair.variable);
 			}
-			if (lookup == null) { lookup = new ArrayList<TypeVarPair>(1); }
+			if (lookup == null) { lookup = new ArrayList<>(1); }
 			lookup.add(new TypeVarPair(type, var));
 			termsSeen.put(term, lookup);
 		}
@@ -312,7 +268,7 @@ public class InitializeILPsearchSpace extends Initializer {
 	}
 	private List<Term> help_getNewTarget(List<Term> args, int counter, List<Term> exampleArgs, PredicateSpec pSpec, Map<Variable,Term> theta) {
 		if (args == null) { return null; }
-		List<Term> result = new ArrayList<Term>(args.size());
+		List<Term> result = new ArrayList<>(args.size());
 		for (int i = 0; i < args.size(); i++) {
 			Term arg   = args.get(i);
 			Term exArg = exampleArgs.get(i); // Since the target unifies with the seed, we can follow along.
@@ -356,16 +312,14 @@ public class InitializeILPsearchSpace extends Initializer {
 	}
 
     // A simple 'helper' class.
-    private class TypeVarPair {
+    private static class TypeVarPair {
         protected Type     type;
         protected Variable variable;
 
-        public TypeVarPair(Type type, Variable var) {
+        TypeVarPair(Type type, Variable var) {
             this.type = type;
             variable  = var;
         }
     }
 
 }
-
-

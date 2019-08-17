@@ -930,13 +930,8 @@ class CompareProbsInModelPredictions implements java.util.Comparator<Literal> {
 		NumericConstant   nc2 = (NumericConstant) arg0_arg2_lit2;
 		double           dbl1 = nc1.value.doubleValue();
 		double           dbl2 = nc2.value.doubleValue();
-			   
-		if (dbl1 < dbl2) { // We want HIGHER numbers at the front of the sorted list.
-			return 1;
-		}
-		if (dbl1 > dbl2) {
-		   return -1;
-		}
-		return 0;
+
+		// We want HIGHER numbers at the front of the sorted list.
+		return Double.compare(dbl2, dbl1);
 	}
 }

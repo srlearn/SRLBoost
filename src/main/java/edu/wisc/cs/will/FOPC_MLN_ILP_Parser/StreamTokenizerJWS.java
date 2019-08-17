@@ -7,10 +7,6 @@ import java.io.StreamTokenizer;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
- * 
- */
-
-/**
  * @author shavlik
  *
  * The built-in StreamReader doens't support more than one pushBack.
@@ -34,21 +30,8 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
 	private int[]    saved_lineno;
 	
 	private boolean  doingSuperCall = false; // Apparently when dealing with comments, there is a recursive call to nextToken.  So have to know to ignore that.
-	
-	@SuppressWarnings("unused")
-	private double nval; // Block access so that the user doesn't bypass this code. 
-	@SuppressWarnings("unused")
-	private String sval;
-	@SuppressWarnings("unused")
-	private int    ttype;
-	
-	/**
-	 * 
-	 */
-	public StreamTokenizerJWS(Reader reader) {
-		this(reader, 10); // Stick in a reasonable default.
-	}
-	public StreamTokenizerJWS(Reader reader, int k) {
+
+	StreamTokenizerJWS(Reader reader, int k) {
 		super(reader);
 		this.k          = k;
 		saved_ttype     = new int[k];
@@ -57,7 +40,7 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
 		saved_lineno    = new int[k];
 	}
 	
-	public int prevToken() {
+	int prevToken() {
 		if (itemsInBuffer < 2) { return Integer.MIN_VALUE; } // Nothing yet to return.
 		int prevCounter = (counter - 1 + k) % k;
 		return saved_ttype[prevCounter];
@@ -65,7 +48,7 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
 
 	private String holdString        = null; 
 	private int    holdStringcounter = -1;
-	public void pushBack(String str) { // A hack to allow a string to be pushed (can only do this ONCE).  prevToken wont work ...
+	void pushBack(String str) { // A hack to allow a string to be pushed (can only do this ONCE).  prevToken wont work ...
 		if ("-".equals(str)) { Utils.waitHere("pushing back a '-' as a string ..."); }
 		if ("+".equals(str)) { Utils.waitHere("pushing back a '+' as a string ..."); }
 		holdString        = str;
@@ -113,12 +96,10 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
         return superNextToken;
     }
 	
-	/**
+	/*
 	 * Push back the last n items.
-	 *  
-	 * @param n
 	 */
-	public void pushBack(int n) {
+	void pushBack(int n) {
 		for (int i = 0; i < n; i++) { pushBack(); }
 	}
 	
@@ -132,55 +113,53 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
 		itemsToReturn++;
 	}
 	
-	/**
-         * Rather than managing quoted strings here, require the caller to
-         * decide if it wants to get the sval associated with a pair of quote
-         * marks.
-         * 
-         * @return A quoted string.
-         */
-	public String svalQuoted() {
+	/*
+	 * Rather than managing quoted strings here, require the caller to
+	 * decide if it wants to get the sval associated with a pair of quote
+	 * marks.
+	 */
+	String svalQuoted() {
 		if (counter < 0)                     { if (debugLevel > 0) dump(); Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
 		return saved_sval[counter];
 	}
 
-	public String sval() { // In the existing code these are not methods (presumably for speed reasons), but need to convert in order to buffer.
+	String sval() { // In the existing code these are not methods (presumably for speed reasons), but need to convert in order to buffer.
 		if (holdStringcounter >= 0){ return holdString; }
 		if (counter < 0)                     { if (debugLevel > 0) dump(); Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
-     // if (saved_ttype[counter] == '"' || saved_ttype[counter] == '\'') { return saved_sval[counter]; } // TODO - should "spy" on the requests for quoteChar() to the StreamTokenizer.
 		if (saved_ttype[counter] != TT_WORD) { if (debugLevel > 0) dump(); Utils.error("Shouldn't ask for a WORD when the type != TT_WORD.  Read '" + reportCurrentToken() + "' at line #" + lineno()); }
 		return saved_sval[counter];
 	}
 	
-	public double nval() { // In the existing code these are not methods (presumably for speed reasons), but need to convert in order to buffer.
+	double nval() { // In the existing code these are not methods (presumably for speed reasons), but need to convert in order to buffer.
 		if (counter < 0)                                                   { Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
 		if (saved_ttype[counter] != TT_NUMBER) { if (debugLevel > 0) dump(); Utils.error("Shouldn't ask for a NUMBER when the type != TT_NUMBER.  Read '" + reportCurrentToken() + "' at line #" + lineno()); }
 		return saved_nval[counter];
 	}
 	
-	public int ttype() { // In the existing code these are not methods (presumably for speed reasons), but need to convert in order to buffer.
+	int ttype() { // In the existing code these are not methods (presumably for speed reasons), but need to convert in order to buffer.
 		if (holdStringcounter >= 0) { return StreamTokenizer.TT_WORD; }
 		if (counter < 0) { if (debugLevel > 0) dump(); Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
 		return saved_ttype[counter];
 	}
 	
 	public int lineno() {
-		// DONOT use lineno() here as would lead to infinitely recursive calls.
-		if (counter < 0) { if (debugLevel > -10) dump(); Utils.error("Need to call nextToken() before reading the stream's contents."); }
+		// DO NOT use lineno() here as would lead to infinitely recursive calls.
+		if (counter < 0) {
+			dump();
+			Utils.error("Need to call nextToken() before reading the stream's contents."); }
 		return saved_lineno[counter];
 	}
 	
-	public String reportCurrentToken() {
+	String reportCurrentToken() {
 		if (holdStringcounter >= 0){ return holdString; }
 		if (ttype() == TT_WORD)    { return sval(); }
 		if (ttype() == TT_NUMBER)  { return Double.toString(nval()); }
 		return String.valueOf((char) ttype());
 	}
 	
-	public void dump() {
+	private void dump() {
 		Utils.println("The contexts of the StreamTokenizer buffer (of size = " + itemsInBuffer + "):");
 		int topOfBuffer    = (counter + itemsToReturn) % k;
-     // int bottomOfBuffer = (topOfBuffer + 1)         % k;
 		for (int i = 0; i < k; i++) {
 			int index =  (topOfBuffer - i + k) % k; // Add the k so that no need to take mods of negative numbers.
 			if (index >= itemsInBuffer) { continue; }
@@ -192,5 +171,4 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
 			if (saved_ttype[index] != TT_WORD && saved_ttype[index] != TT_NUMBER) Utils.println("  ttype  =  " + (char)saved_ttype[index]);
 		}
 	}
-
 }

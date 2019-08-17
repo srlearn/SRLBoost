@@ -1,19 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.ElementAndPath;
-import edu.wisc.cs.will.FOPC.visitors.ElementFinder;
 import edu.wisc.cs.will.FOPC.visitors.ElementPath;
 import edu.wisc.cs.will.FOPC.visitors.ElementRemover;
 import edu.wisc.cs.will.ResThmProver.DefaultProof;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.Proof;
-import edu.wisc.cs.will.Utils.Filter;
-import java.util.Collection;
-import java.util.List;
 
 /**
  *
@@ -21,9 +12,9 @@ import java.util.List;
  */
 public class PruneIfTrueRule implements PruningRule {
 
-    PredicateNameAndArity prunedPredicate;
+    private PredicateNameAndArity prunedPredicate;
 
-    DefiniteClause condition;
+    private DefiniteClause condition;
 
     public PruneIfTrueRule(PredicateNameAndArity prunedPredicate, Clause condition) {
         this.prunedPredicate = prunedPredicate;
@@ -50,7 +41,6 @@ public class PruneIfTrueRule implements PruningRule {
                 c = c.applyTheta(bl);
 
                 Proof p = new DefaultProof(context, c);
-                //p.getProver().setTraceLevel(2);
                 BindingList newBindings = p.prove();
 
                 if (newBindings != null) {
@@ -61,9 +51,6 @@ public class PruneIfTrueRule implements PruningRule {
                 }
             }
         }
-
         return sentence;
     }
-
-
 }

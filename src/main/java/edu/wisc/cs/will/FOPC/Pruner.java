@@ -13,7 +13,7 @@ public class Pruner {
 	private Literal prunableLiteral;  // No need to add this literal to a clause that contains 'ifPresentLiteral.'
 	private Literal ifPresentLiteral;
 	public int     warnIfPresentLiteralCount; // If 'ifPresentLiteral' is the head of this many or more clauses, throw an error.  A negative value means "ignore this test."
-	public int     truthValue = 0;            // TruthValue: -1 means 'prune because false', 1 means because true, and 0 means unknown.
+	int     truthValue;            // TruthValue: -1 means 'prune because false', 1 means because true, and 0 means unknown.
 
 	Pruner(Literal prunableLiteral, Literal ifPresentLiteral, int warnIfPresentLiteralCount, int truthValue) {
 		this.prunableLiteral           = prunableLiteral;

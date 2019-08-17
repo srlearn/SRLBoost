@@ -1,14 +1,11 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
@@ -35,7 +32,7 @@ public class ListAsTerm extends Term {
 	
 	public Term applyTheta(Map<Variable,Term> bindings) {
 		if (processItemsInList) {
-			List<Term> newObjects = new ArrayList<Term>(Utils.getSizeSafely(objects));
+			List<Term> newObjects = new ArrayList<>(Utils.getSizeSafely(objects));
 			for (Term t : objects) { newObjects.add(t.applyTheta(bindings)); }
 			return stringHandler.getListAsTerm(newObjects);
 		}
@@ -52,7 +49,7 @@ public class ListAsTerm extends Term {
 
 	public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
 		if (processItemsInList) {
-			List<Variable> result = new ArrayList<Variable>(1);
+			List<Variable> result = new ArrayList<>(1);
 			for (Term t : objects) {
 				Collection<Variable> tempVarList = t.collectFreeVariables(boundVariables);
 				
@@ -65,8 +62,8 @@ public class ListAsTerm extends Term {
 
 	public Term copy(boolean recursiveCopy) {
 		if (processItemsInList && recursiveCopy) {
-			List<Term> newObjects = new ArrayList<Term>(objects.size());
-			for (Term t : objects) { newObjects.add(t.copy(recursiveCopy)); }
+			List<Term> newObjects = new ArrayList<>(objects.size());
+			for (Term t : objects) { newObjects.add(t.copy(true)); }
 			return stringHandler.getListAsTerm(newObjects);
 		}
 		return stringHandler.getListAsTerm(objects);
@@ -74,8 +71,8 @@ public class ListAsTerm extends Term {
 
     public Term copy2(boolean recursiveCopy, BindingList bindingList) {
 		if (processItemsInList && recursiveCopy) {
-			List<Term> newObjects = new ArrayList<Term>(objects.size());
-			for (Term t : objects) { newObjects.add(t.copy2(recursiveCopy, bindingList)); }
+			List<Term> newObjects = new ArrayList<>(objects.size());
+			for (Term t : objects) { newObjects.add(t.copy2(true, bindingList)); }
 			return stringHandler.getListAsTerm(newObjects);
 		}
 		return stringHandler.getListAsTerm(objects);

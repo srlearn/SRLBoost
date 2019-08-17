@@ -1,11 +1,7 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.OneClass;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,21 +42,21 @@ public class PropositionalizationModel {
 	
 	private List<FeatureVector> oneClassExamples = null;
 	
-	public PropositionalizationModel() {	
+	PropositionalizationModel() {
 		numTrees     = 0;
 		treeList     = new ArrayList<FeatureTree>();
 	}
 	
-	public void setTargetPredicate(String pred) {
+	void setTargetPredicate(String pred) {
 		predicate = pred;
 		
 	}
 
-	public int getNumTrees() {
+	int getNumTrees() {
 		return numTrees;
 	}
 
-	public void saveModel(String filename) {
+	void saveModel(String filename) {
 		Utils.println("% Saving model in: " + filename);
 		Utils.ensureDirExists(filename);
 		try {
@@ -100,7 +96,7 @@ public class PropositionalizationModel {
 
 		try {
 			BufferedReader reader = new BufferedReader(new CondorFileReader(filename));
-			String line = null;
+			String line;
 			// Number of trees
 			line = reader.readLine();
 			int numberOfTrees = Integer.parseInt(line);
@@ -146,18 +142,15 @@ public class PropositionalizationModel {
 			}
 			reader.close();
 			Utils.println("%  Done loading " + Utils.comma(numberOfTrees) + " models.");
-		} catch (FileNotFoundException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem encountered reading model:\n " + filename);
 		} catch (IOException e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Problem encountered reading model:\n " + filename);
 		}
-		
+
 	}
 	
 
-	public void setTreePrefix(String prefix) {
+	void setTreePrefix(String prefix) {
 		this.treePrefix = prefix;
 		
 	}
@@ -166,12 +159,12 @@ public class PropositionalizationModel {
 		this.numTrees = maxTrees;		
 	}
 
-	public void addTree(FeatureTree tree) {
+	void addTree(FeatureTree tree) {
 		treeList.add(tree);
 		numTrees++;
 	}
 
-	public FeatureVector getFeatureVector(RegressionRDNExample rex) {
+	FeatureVector getFeatureVector(RegressionRDNExample rex) {
 		FeatureVector features = new FeatureVector();
 		for (FeatureTree ftree : treeList) {
 			features.append(ftree.getFeatureVector(rex));
@@ -180,7 +173,7 @@ public class PropositionalizationModel {
 	}
 	
 	
-	public void reparseModel(WILLSetup setup) {
+	void reparseModel(WILLSetup setup) {
 			for (FeatureTree ftree : treeList) {
 				ftree.setSetup(setup);
 				ftree.reparseFeatureTree();
@@ -207,14 +200,14 @@ public class PropositionalizationModel {
 	/**
 	 * @return the oneClassExamples
 	 */
-	public List<FeatureVector> getOneClassExamples() {
+	List<FeatureVector> getOneClassExamples() {
 		return oneClassExamples;
 	}
 
 	/**
 	 * @param oneClassExamples the oneClassExamples to set
 	 */
-	public void setOneClassExamples(List<FeatureVector> oneClassExamples) {
+	void setOneClassExamples(List<FeatureVector> oneClassExamples) {
 		this.oneClassExamples = oneClassExamples;
 	}
 

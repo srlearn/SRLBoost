@@ -1,20 +1,16 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author shavlik
- *
  */
 @SuppressWarnings("serial")
 public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, Comparable<Term>, SentenceOrTerm {
@@ -34,21 +30,17 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 	}
 
 	// Only allow ONE type per term?  Note: numbers should not have spec's.
-	public void clearTypeSpec() { 
-		typeSpec = null;
-	}
-	// Only allow ONE type per term?  Note: numbers should not have spec's.
 	public void setTypeSpec(TypeSpec typeSpec) {
 		setTypeSpec(typeSpec, true);
 	}
-	public void setTypeSpec(TypeSpec typeSpec, boolean complainIfSet) {
+	private void setTypeSpec(TypeSpec typeSpec, boolean complainIfSet) {
 		if (     typeSpec == null) { return; }
 		if (this.typeSpec == null) { this.typeSpec = typeSpec; return; }
 
-		if (complainIfSet && !this.typeSpec.equals(typeSpec) && !this.typeSpec.isNotYetSet()) { 
-			//Utils.error(   "Cannot set the type of '" + this + "' to '" + typeSpec + "' since it already is of type '" + this.typeSpec + "'.");
+		if (complainIfSet && !this.typeSpec.equals(typeSpec)) {
+			this.typeSpec.isNotYetSet();
 		}
-		
+
 		int newMode =      typeSpec.mode;
 		int oldMode = this.typeSpec.mode;
 		if (newMode != oldMode) { this.typeSpec.mode = newMode; }
@@ -60,12 +52,7 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 		this.typeSpec.isaType = newType;
 	}
 
-	public void setTypeSpecRegardless(TypeSpec typeSpec) {
-		if (typeSpec == null) { Utils.error("setTypeSpecRegardless: cannot have typeSpec=null."); }
-		this.typeSpec.isaType = typeSpec.isaType;
-	}
-	
-	public Term copyAndRenameVariables() {
+	Term copyAndRenameVariables() {
 		stringHandler.pushVariableHash();
 		Term result = copy(true);
 		stringHandler.popVariableHash();
@@ -82,8 +69,6 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 	public abstract Term           applyTheta(Map<Variable,Term> bindings) ;
 	public abstract Term           copy(boolean recursiveCopy);
     public abstract Term           copy2(boolean recursiveCopy, BindingList bindingList);
- //	public abstract int            hashCode();
-	//public abstract boolean        equals(Object other);
 	public abstract BindingList    variants(Term term, BindingList bindings);
 	public abstract boolean        containsVariables();
 	public abstract boolean        freeVariablesAfterSubstitution(BindingList theta);
@@ -106,12 +91,8 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
      * @return Sentence representation of this term, or null if one does not exist.
      */
     public abstract Sentence       asSentence();
+
     /** Returns the Term as a clause.
-     *
-     * @param <Return>
-     * @param <Data>
-     * @param visitor
-     * @param data
      * @return Clause represented by the term, or null if one does not exist.
      */
     public Clause         asClause() { return null; }
@@ -155,13 +136,9 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 
 	
    /** Methods for reading a Object cached to disk.
-    *
-    * @param in
-    * @throws java.io.IOException
-    * @throws java.lang.ClassNotFoundException
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        if ( in instanceof FOPCInputStream == false ) {
+        if (!(in instanceof FOPCInputStream)) {
             throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject() input stream must support FOPCObjectInputStream interface");
         }
 
@@ -175,8 +152,4 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
     public HandleFOPCstrings getStringHandler() {
         return stringHandler;
     }
-
-    
-
-
 }

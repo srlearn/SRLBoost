@@ -8,12 +8,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
  * @author twalker
  */
 public class StandardPredicateNames { // A few FUNCTION names also appear here; for instance, sometimes we need to convert a literal to a function.
 
-    HandleFOPCstrings stringHandler;
+    private HandleFOPCstrings stringHandler;
 
     public final PredicateName dateToString;
 
@@ -294,60 +293,59 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final FunctionName lengthFunction;   // Since this returns a number, do here as well as in DoBuiltInListProcessing.
 
-    public final FunctionName positionFunction; // Since this returns a number, do here as well as in DoBuiltInListProcessing.
+    final FunctionName positionFunction; // Since this returns a number, do here as well as in DoBuiltInListProcessing.
 
-    public final FunctionName minus2Function;
+    final FunctionName minus2Function;
 
-    public final FunctionName isFunction;
+    final FunctionName isFunction;
 
-    public final PredicateName unify2;
+    final PredicateName unify2;
 
     public final PredicateName unify;
 
-    public final PredicateName ununifiable;
+    final PredicateName ununifiable;
 
-    public final PredicateName ununifiable2;
+    final PredicateName ununifiable2;
 
     public final PredicateName equal;
 
-    public final PredicateName equal2;
+    final PredicateName equal2;
 
-    public final PredicateName diff;
+    final PredicateName diff;
 
-    public final PredicateName notEqual;
-//	public final PredicateName not; // This had been defined as a synonym for negation-by-failure, but that seems dangerous, so I (JWS) have commented it out (8/21/10).
+    final PredicateName notEqual;
 
     public final PredicateName ground;
 
-    public final PredicateName copyTerm;
+    final PredicateName copyTerm;
 
     public final PredicateName gt;  // Prefix versions of these comparators haven't been provided.
 
-    public final PredicateName gt2;
+    final PredicateName gt2;
 
     public final PredicateName lt;
 
-    public final PredicateName lt2;
+    final PredicateName lt2;
 
-    public final PredicateName gte;   // gte = greater-than-or-equal
+    final PredicateName gte;   // gte = greater-than-or-equal
 
-    public final PredicateName gte2;
+    final PredicateName gte2;
 
     public final PredicateName lte;   // lte = less-than-or-equal
 
-    public final PredicateName lte2;
+    final PredicateName lte2;
 
-    public final PredicateName lte3;
+    final PredicateName lte3;
 
-    public final PredicateName equalNumbers;  // Equal numbers.
+    final PredicateName equalNumbers;  // Equal numbers.
 
-    public final PredicateName notEqualNumbers; // Not equal numbers.
+    final PredicateName notEqualNumbers; // Not equal numbers.
 
-    public final PredicateName equalDotDot;
+    final PredicateName equalDotDot;
 
     public final Set<PredicateName> buildinPredicates;
 
-    protected StandardPredicateNames(HandleFOPCstrings stringHandler) {
+    StandardPredicateNames(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
 
 
@@ -508,7 +506,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         equalFunction = stringHandler.getFunctionName("equal");
         equal2Function = stringHandler.getFunctionName("==");
         notEqualFunction = stringHandler.getFunctionName("\\==");
-       // notFunction = stringHandler.getFunctionName("\\+");  // Note that there is also negationByFailure
         gtFunction = stringHandler.getFunctionName(">");  // Prefix versions of these comparators haven't been provided.
         gt2Function = stringHandler.getFunctionName("gt");
         ltFunction = stringHandler.getFunctionName("<");
@@ -556,7 +553,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         divideFunction.printUsingInFixNotation = true;
         intDivFunction.printUsingInFixNotation = true;
         starStarFunction.printUsingInFixNotation = true;
-        isFunction.printUsingInFixNotation = true;
         unify2Function.printUsingInFixNotation = true;
         ununifiable2Function.printUsingInFixNotation = true;
         equal2Function.printUsingInFixNotation = true;
@@ -574,7 +570,7 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         negationByFailure.setContainsCallable(1);
         once.setContainsCallable(1);
 
-        buildinPredicates = new HashSet<PredicateName>(32);
+        buildinPredicates = new HashSet<>(32);
         buildinPredicates.add(trueName);
         buildinPredicates.add(falseName);
         buildinPredicates.add(fail);

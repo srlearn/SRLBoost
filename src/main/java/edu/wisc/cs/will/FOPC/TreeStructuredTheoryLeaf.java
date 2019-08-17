@@ -10,7 +10,7 @@ import edu.wisc.cs.will.Utils.Utils;
 public class TreeStructuredTheoryLeaf extends TreeStructuredTheoryNode {
 	private Term   leafValue;
 	private double variance;
-	private String extraLabel = null; // Allow examples to be marked with a string that can be used in whatever way some algorithm wishes.
+	private String extraLabel; // Allow examples to be marked with a string that can be used in whatever way some algorithm wishes.
 	
 	public TreeStructuredTheoryLeaf(double weightedCountOfPositiveExamples, double weightedCountOfNegativeExamples, double variance, Term leafValue, String extraLabel) {
 		super();
@@ -19,13 +19,6 @@ public class TreeStructuredTheoryLeaf extends TreeStructuredTheoryNode {
 		this.extraLabel = extraLabel;
 		this.weightedCountOfPositiveExamples = weightedCountOfPositiveExamples;
 		this.weightedCountOfNegativeExamples = weightedCountOfNegativeExamples;
-	}
-
-	public Term getLeafValue() {
-		return leafValue;
-	}
-	public void setLeafValue(Term leafValue) {
-		this.leafValue = leafValue;
 	}
 
 	public String getExtraLabel() {
@@ -58,7 +51,7 @@ public class TreeStructuredTheoryLeaf extends TreeStructuredTheoryNode {
 	public List<Clause> collectPathsToRoots(TreeStructuredTheory treeTheory) {		
 		if (leafValue == treeTheory.stringHandler.falseIndicator) { return null; } // If classification tree, only return the TRUE leaves.
 				
-		List<Clause> results = new ArrayList<Clause>(1);		
+		List<Clause> results = new ArrayList<>(1);
 		if (leafValue == treeTheory.stringHandler.trueIndicator) {
 			Literal head = treeTheory.getHeadLiteral();
 			Clause  c    = treeTheory.stringHandler.getClause(head, true, extraLabel);
@@ -100,7 +93,7 @@ public class TreeStructuredTheoryLeaf extends TreeStructuredTheoryNode {
 
 	@Override
 	public String writeDotFormat() {
-		String labelStr = "";
+		String labelStr;
 		if (leafValue instanceof NumericConstant) {
 			double reg = ((NumericConstant) leafValue).value.doubleValue();
 			double prob = Math.exp(reg) / (1 + Math.exp(reg));
@@ -108,8 +101,7 @@ public class TreeStructuredTheoryLeaf extends TreeStructuredTheoryNode {
 		} else {
 			labelStr = leafValue.toPrettyString();
 		}
-		String result = nodeNumber + "[shape = box,label = \"" + labelStr + "\"];\n";
-		return result;
+		return nodeNumber + "[shape = box,label = \"" + labelStr + "\"];\n";
 	}
 
 	@Override

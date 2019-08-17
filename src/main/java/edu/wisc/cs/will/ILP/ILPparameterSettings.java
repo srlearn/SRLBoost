@@ -18,11 +18,10 @@ public class ILPparameterSettings {
 	protected final static int debugLevel = 1; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	
 	public TuneParametersForILP caller;
-	public ILPouterLoop    outerLooper        = null;
-	public CrossValidationFoldResult crossValidResult   = null;
+	ILPouterLoop    outerLooper;
 	private boolean flipFlopPosAndNegExamples = false;
 	private boolean reconsideredSetting       = false; // Mark if this setting has been corrupted from its initial version.
-	private String  annotationForSetting      = null;  // Used to provide a (presumably) short string that 'describes' this setting.
+	private String  annotationForSetting;  // Used to provide a (presumably) short string that 'describes' this setting.
 	
 	// By using constants, the toString() is able to report only those settings that ARE DIFFERENT FROM THEIR DEFAULTS.
 	private final static int default_maxNumberOfCycles      =   250; // Will only consider this many calls to the ILP inner loop.
@@ -65,12 +64,8 @@ public class ILPparameterSettings {
 	
 	private int    starModeMap         = default_starModeMap;
 
-	private RelevanceStrength onlyConsiderIfRelevanceLevelAtLeastThisStrong = default_onlyConsiderIfRelevanceLevelAtLeastThisStrong;	
+	private RelevanceStrength onlyConsiderIfRelevanceLevelAtLeastThisStrong = default_onlyConsiderIfRelevanceLevelAtLeastThisStrong;
 
-	// To be implemented when needed.
-	private boolean allowConstantsInAllMinusModes = false;
-	private boolean convertAllModesToMinus        = false;
-	
 	// Can override the TuneParametersForILP general loop on a per-setting basis.
 	private boolean runAllAsTrainSet   = false;
 	private boolean runCrossValidation = true;
@@ -93,24 +88,24 @@ public class ILPparameterSettings {
 
     private int onionLayer;
 	
-	public ILPparameterSettings(ILPouterLoop outerLooper, TuneParametersForILP caller, String annotationForSetting) {
+	ILPparameterSettings(ILPouterLoop outerLooper, TuneParametersForILP caller, String annotationForSetting) {
 		this.outerLooper = outerLooper;
 		this.caller      = caller;
 		this.annotationForSetting = annotationForSetting;
 	}
 	
-	public CrossValidationResult runAllAsTrainSet(double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis,   double stopIfAccuracyCannotMeetOrExceedThis, double stopIfFScoreCannotMeetOrExceedThis, long maximumTimeInMilliseconds) throws SearchInterrupted {
+	CrossValidationResult runAllAsTrainSet(double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis, double stopIfAccuracyCannotMeetOrExceedThis, double stopIfFScoreCannotMeetOrExceedThis, long maximumTimeInMilliseconds) throws SearchInterrupted {
 		ILPCrossValidationLoop cv = new ILPCrossValidationLoop(outerLooper, 1);
 		return helpRun(cv, stopIfPrecisionCannotMeetOrExceedThis, stopIfRecallCannotMeetOrExceedThis, stopIfAccuracyCannotMeetOrExceedThis, stopIfFScoreCannotMeetOrExceedThis, maximumTimeInMilliseconds);
 	}
 
-	public CrossValidationResult runCrossValidation(double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis, double stopIfAccuracyCannotMeetOrExceedThis, double stopIfFScoreCannotMeetOrExceedThis, long maximumTimeInMilliseconds) throws SearchInterrupted {
+	CrossValidationResult runCrossValidation(double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis, double stopIfAccuracyCannotMeetOrExceedThis, double stopIfFScoreCannotMeetOrExceedThis, long maximumTimeInMilliseconds) throws SearchInterrupted {
 		int folds = caller.getNumberOfFoldsToUse();
 		ILPCrossValidationLoop cv = new ILPCrossValidationLoop(outerLooper, folds);
 		return helpRun(cv, stopIfPrecisionCannotMeetOrExceedThis, stopIfRecallCannotMeetOrExceedThis, stopIfAccuracyCannotMeetOrExceedThis, stopIfFScoreCannotMeetOrExceedThis, maximumTimeInMilliseconds);
 	}
 	
-	public CrossValidationResult runWithSpecifiedTrainTuneSplit(double firstTrain, double lastTrain, double firstTune, double lastTune, double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis,   double stopIfAccuracyCannotMeetOrExceedThis, double stopIfFScoreCannotMeetOrExceedThis, long maximumTimeInMilliseconds) throws SearchInterrupted {
+	CrossValidationResult runWithSpecifiedTrainTuneSplit(double firstTrain, double lastTrain, double firstTune, double lastTune, double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis, double stopIfAccuracyCannotMeetOrExceedThis, double stopIfFScoreCannotMeetOrExceedThis, long maximumTimeInMilliseconds) throws SearchInterrupted {
 		SingleFoldPartialSplitExampleSet exampleSets = new SingleFoldPartialSplitExampleSet(outerLooper.getPosExamples(), outerLooper.getNegExamples(), firstTrain, lastTrain, firstTune, lastTune);
         ILPCrossValidationLoop cv = new ILPCrossValidationLoop(outerLooper, 1, exampleSets);
     	return helpRun(cv, stopIfPrecisionCannotMeetOrExceedThis, stopIfRecallCannotMeetOrExceedThis, stopIfAccuracyCannotMeetOrExceedThis, stopIfFScoreCannotMeetOrExceedThis, maximumTimeInMilliseconds);
@@ -119,18 +114,10 @@ public class ILPparameterSettings {
 	
 	private CrossValidationResult helpRun(ILPCrossValidationLoop cv, double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis, double stopIfAccuracyCannotMeetOrExceedThis, double stopIfFScoreCannotMeetOrExceedThis, long maximumTimeInMilliseconds) throws SearchInterrupted  {
 
-
-//        try {
-//            com.yourkit.api.Controller yjp = new com.yourkit.api.Controller();
-//            yjp.advanceGeneration("Starting onion layer " + getOnionLayer());
-//        } catch (Exception exception) {
-//            System.out.println(exception);
-//        }
         CrossValidationResult result = null;
 
         setParameters();
 		cv.setEarlyStoppingCondition( new CVMaximumObtainableAverageCoverageStoppingCondition(stopIfPrecisionCannotMeetOrExceedThis, stopIfRecallCannotMeetOrExceedThis));
-	//	Utils.println("% ILPparameterSettings.helpRun: flipFlopPosAndNegExamples = " + flipFlopPosAndNegExamples);
 		cv.setFlipFlopPositiveAndNegativeExamples(flipFlopPosAndNegExamples);
         cv.setMaximumCrossValidationTimeInMillisec(maximumTimeInMilliseconds);
         Utils.println("% ILPparameterSettings.helpRun: annotationForSetting = " + annotationForSetting);
@@ -153,7 +140,7 @@ public class ILPparameterSettings {
         return result;
 	}
 	
-	public void setModesToUse() {		
+	void setModesToUse() {
 		// Seems the following can be called once-and-for-all rather than when setting used.  If need be, call initially and again later.
 		// This could be spend up by using some hashes.  Currently it is quadratic (i.e., two embedded FOR loops).
 		HandleFOPCstrings stringHandler = outerLooper.innerLoopTask.stringHandler;
@@ -161,21 +148,18 @@ public class ILPparameterSettings {
 		used_knownModes = save_knownModes; // Set this here in case the IF below is skipped (i.e, all modes should be used).
 		if (onlyConsiderIfRelevanceLevelAtLeastThisStrong != null && save_knownModes != null &&
 			onlyConsiderIfRelevanceLevelAtLeastThisStrong.compareTo(RelevanceStrength.getWeakestRelevanceStrength()) > 0) { // If all acceptable, don't bother to filter.
-			used_knownModes = new ArrayList<PredicateNameAndArity>(4);
-			
-			//	Utils.println(" saved modes: "); if (new_knownModes != null) for (PredicateName pName : save_knownModes) { Utils.println("  " + pName); }			
+			used_knownModes = new ArrayList<>(4);
+
 			if (Utils.getSizeSafely(caller.relevantLiterals) < 1) { Utils.error("Should have some relevant features if this is being considered."); }
 			// Keep a mode if (a) we want 'positive' relevance and this has ENOUGH positive relevance (so modes without any relevance will be discarded) 
 			//             or (b) we want to limit the negative relevance, and this does not have too much 'irrelevance' (so modes without any relevance will be kept)
 			boolean keepModesWithNoRelevanceMatch = onlyConsiderIfRelevanceLevelAtLeastThisStrong.compareTo(RelevanceStrength.NEUTRAL) <= 0;
-			//	Utils.println("save_knownModes="  + save_knownModes + " keepModesWithNoRelevanceMatch=" + keepModesWithNoRelevanceMatch + " for " + onlyConsiderIfRelevanceLevelAtLeastThisStrong);
-			for (PredicateNameAndArity       pName    : save_knownModes) {  //Utils.println("CONSIDER MODES FOR: " + pName);
+			for (PredicateNameAndArity       pName    : save_knownModes) {
 				boolean matchesRelevanceStmt = false;
 				for (RelevantLiteral relevant : caller.relevantLiterals) {
-					//for (PredicateSpec spec : pName.getTypeList()) { // TODO IF WE WANT TO SAY RELEVANT FOR THE SPECIFIC ARITY, WILL NEED TO REWRITE CODE AT A FINER GRAIN.  TODO
-					if (relevant.getPredicateNameAndArity().equals(pName)) {   //Utils.println("    matches: " + relevant);
+					// TODO IF WE WANT TO SAY RELEVANT FOR THE SPECIFIC ARITY, WILL NEED TO REWRITE CODE AT A FINER GRAIN.  TODO
+					if (relevant.getPredicateNameAndArity().equals(pName)) {
 						matchesRelevanceStmt = true;
-						//Utils.println("  consider " + pName + "=" + relevant); 
 						if (relevant.atLeastThisRelevant(onlyConsiderIfRelevanceLevelAtLeastThisStrong)) {
 							if (!used_knownModes.contains(pName)) { used_knownModes.add(pName); }
 						}
@@ -190,7 +174,7 @@ public class ILPparameterSettings {
 	}
 	
 	private void setParameters() {
-		if (haveSetModesToUse == false) { setModesToUse(); }
+		if (!haveSetModesToUse) { setModesToUse(); }
 		hold_maxNumberOfCycles      = outerLooper.maxNumberOfCycles;
 		hold_maxNumberOfClauses     = outerLooper.maxNumberOfClauses;
 		hold_maxBodyLength          = outerLooper.innerLoopTask.maxBodyLength;
@@ -215,16 +199,13 @@ public class ILPparameterSettings {
 		outerLooper.innerLoopTask.setMEstimatePos(  mEstimatePos);
 		outerLooper.innerLoopTask.setMEstimateNeg(  mEstimateNeg);
 		outerLooper.innerLoopTask.stringHandler.setStarMode(starModeMap);
-		// Utils.println(" known modes: "); if (new_knownModes != null) for (PredicateName pName : new_knownModes) { Utils.println("  " + pName); }
 		outerLooper.innerLoopTask.resetModes(used_knownModes);
         outerLooper.innerLoopTask.setCurrentRelevanceStrength(onlyConsiderIfRelevanceLevelAtLeastThisStrong);
-		//Utils.println("%  Modes in use: " + Utils.limitLengthOfPrintedList(outerLooper.innerLoopTask.bodyModes, 25)); 
-		//Utils.println("%  All modes:    " + Utils.limitLengthOfPrintedList(save_knownModes, 25)); 
 	}
 	
 	// TODO - use some hashing to make this faster (ditto for code above).
 	// Keep this near setParameters since these two share the double for loop.
-	protected static boolean modeExistsNotInTheseRelevances(Set<RelevantLiteral> relevantLiterals, List<PredicateNameAndArity> modes) {
+	static boolean modeExistsNotInTheseRelevances(Set<RelevantLiteral> relevantLiterals, List<PredicateNameAndArity> modes) {
 		for (PredicateNameAndArity       pnaa    : modes) {
             PredicateName pName = pnaa.getPredicateName();
 			boolean matchesRelevanceStmt = false;
@@ -251,19 +232,11 @@ public class ILPparameterSettings {
 		if (save_knownModes != null) { outerLooper.innerLoopTask.stringHandler.setKnownModes(save_knownModes); } // Restore the known modes if they were temporarily altered.
 	}
 	
-	public void onlyConsiderFeaturesAtLeastThisRelevant(RelevanceStrength minRelStrength) {
+	void onlyConsiderFeaturesAtLeastThisRelevant(RelevanceStrength minRelStrength) {
 		onlyConsiderIfRelevanceLevelAtLeastThisStrong = minRelStrength;		
 	}
-	
-	public RelevanceStrength getOnlyConsiderFeaturesAtLeastThisRelevant() {
-		return onlyConsiderIfRelevanceLevelAtLeastThisStrong;		
-	}
-	
-	public int getMaxNumberOfCycles() {
-		return maxNumberOfCycles;
-	}
 
-	public void setMaxNumberOfCycles(int maxNumberOfCycles) {
+	void setMaxNumberOfCycles(int maxNumberOfCycles) {
 		this.maxNumberOfCycles = maxNumberOfCycles;
 	}
 
@@ -273,10 +246,6 @@ public class ILPparameterSettings {
 
 	public void setMaxBodyLength(int maxBodyLength) {
 		this.maxBodyLength = maxBodyLength;
-	}
-
-	public int getMaxNodesToCreate() {
-		return maxNodesToCreate;
 	}
 
 	public void setMaxNodesToCreate(int maxNodesToCreate) {
@@ -291,67 +260,31 @@ public class ILPparameterSettings {
 		this.maxNodesToConsider = maxNodesToConsider;
 	}
 
-	public int getMinNumberOfNegExamples() {
-		return minNumberOfNegExamples;
-	}
-
-	public void setMinNumberOfNegExamples(int minNumberOfNegExamples) {
-		this.minNumberOfNegExamples = minNumberOfNegExamples;
-	}
-
-	public double getMinPosCoverage() {
-		return minPosCoverage;
-	}
-
 	public void setMinPosCoverage(double minPosCoverage) {
 		this.minPosCoverage = minPosCoverage;
 	}
 
-	public double getMaxNegCoverage() {
-		return maxNegCoverage;
-	}
-
-	public void setMaxNegCoverage(double maxNegCoverage) {
+	void setMaxNegCoverage(double maxNegCoverage) {
 		this.maxNegCoverage = maxNegCoverage;
 	}
 
-	public boolean isAllowConstantsInAllMinusModes() {
-		return allowConstantsInAllMinusModes;
-	}
-
-	public void setAllowConstantsInAllMinusModes(boolean allowConstantsInAllMinusModes) {
-		this.allowConstantsInAllMinusModes = allowConstantsInAllMinusModes;
-	}
-
-	public boolean isConvertAllModesToMinus() {
-		return convertAllModesToMinus;
-	}
-
-	public void setConvertAllModesToMinus(boolean convertAllModesToMinus) {
-		this.convertAllModesToMinus = convertAllModesToMinus;
-	}
-
-	public boolean isRunAllAsTrainSet() {
+	boolean isRunAllAsTrainSet() {
 		return runAllAsTrainSet;
 	}
 
-	public void setRunAllAsTrainSet(boolean runAllAsTrainSet) {
+	void setRunAllAsTrainSet(boolean runAllAsTrainSet) {
 		this.runAllAsTrainSet = runAllAsTrainSet;
 	}
 
-	public boolean isRunCrossValidation() {
+	boolean isRunCrossValidation() {
 		return runCrossValidation;
 	}
 
-	public void setRunCrossValidation(boolean runCrossValidation) {
+	void setRunCrossValidation(boolean runCrossValidation) {
 		this.runCrossValidation = runCrossValidation;
 	}
 
-	public boolean isFlipFlopPosAndNegExamples() {
-		return flipFlopPosAndNegExamples;
-	}
-
-	public void setFlipFlopPosAndNegExamples(boolean flipFlopPosAndNegExamples) {
+	void setFlipFlopPosAndNegExamples(boolean flipFlopPosAndNegExamples) {
 		this.flipFlopPosAndNegExamples = flipFlopPosAndNegExamples;
 	}
 
@@ -371,84 +304,66 @@ public class ILPparameterSettings {
 		this.minPrecision = minPrecision;
 	}
 
-	public double getMEstimatePos() {
-		return mEstimatePos;
-	}
-
-	public void setMEstimatePos(double estimatePos) {
+	void setMEstimatePos(double estimatePos) {
 		mEstimatePos = estimatePos;
 	}
 
-	public double getMEstimateNeg() {
-		return mEstimateNeg;
-	}
-
-	public void setMEstimateNeg(double estimateNeg) {
+	void setMEstimateNeg(double estimateNeg) {
 		mEstimateNeg = estimateNeg;
 	}
-	public int getStarModeMap() {
-		return starModeMap;
-	}
-	public void setStarModeMap(int starModeMap) {
+
+	void setStarModeMap(int starModeMap) {
 		this.starModeMap = starModeMap;
 	}
-	
-	public List<PredicateNameAndArity> getModesToUse() {
-		return used_knownModes;
-	}
-	
-	public void markAsReconsidered() {
+
+	void markAsReconsidered() {
 		reconsideredSetting = true;
 	}
 
 
-	public double getMinPrecisionToStop() {
+	double getMinPrecisionToStop() {
 		return minPrecisionToStop;
 	}
-	public void setMinPrecisionToStop(double minPrecisionToStop) {
+	void setMinPrecisionToStop(double minPrecisionToStop) {
 		if (this.minPrecisionToStop != minPrecisionToStop) { Utils.println(MessageType.ONION_VERBOSE_LAYER_CREATION,"% setMinPrecisionToStop = " + minPrecisionToStop); }
 		this.minPrecisionToStop = minPrecisionToStop;
 	}
 
-	public double getMinRecallToStop() {
+	double getMinRecallToStop() {
 		return minRecallToStop;
 	}
-	public void setMinRecallToStop(double minRecallToStop) {
+	void setMinRecallToStop(double minRecallToStop) {
 		if (this.minRecallToStop != minRecallToStop) { Utils.println(MessageType.ONION_VERBOSE_LAYER_CREATION,"% setMinRecallToStop = " + minRecallToStop); }
 		this.minRecallToStop = minRecallToStop;
 	}
 
-	public double getMinF1toStop() {
+	double getMinF1toStop() {
 		return minF1ToStop;
 	}
-	public void setMinF1toStop(double minF1ToStop) {
+	void setMinF1toStop(double minF1ToStop) {
 		if (this.minF1ToStop != minF1ToStop) { Utils.println(MessageType.ONION_VERBOSE_LAYER_CREATION,"% setMinF1toStop = " + minF1ToStop); }
 		this.minF1ToStop = minF1ToStop;
 	}
 
-	public double getMinAccuracyToStop() {
+	double getMinAccuracyToStop() {
 		return minAccuracyToStop;
 	}
-	public void setMinAccuracyToStop(double minAccuracyToStop) {
+	void setMinAccuracyToStop(double minAccuracyToStop) {
 		if (this.minAccuracyToStop != minAccuracyToStop) { Utils.println(MessageType.ONION_VERBOSE_LAYER_CREATION, "%   setMinAccuracyToStop = " + minAccuracyToStop); }
 		this.minAccuracyToStop = minAccuracyToStop;
 	}
 
-    public RelevanceStrength getMinimumStrength() {
-        return onlyConsiderIfRelevanceLevelAtLeastThisStrong;
-    }
-
-    public int getOnionLayer() {
+	int getOnionLayer() {
         return onionLayer;
     }
 
-    public void setOnionLayer(int onionLayer) {
+    void setOnionLayer(int onionLayer) {
         this.onionLayer = onionLayer;
     }
 
     
 
-	public String toStringShort() {
+	String toStringShort() {
 		String result = ("MinRelevance(" + onlyConsiderIfRelevanceLevelAtLeastThisStrong + (flipFlopPosAndNegExamples ? ")/Flipped(true)" : ")") +
 							"/MaxLen("    + maxBodyLength       + ")" +
 							"/MaxClauses(" + maxNumberOfClauses + ")" +
@@ -488,10 +403,8 @@ public class ILPparameterSettings {
 		if (reportAllValues || onlyConsiderIfRelevanceLevelAtLeastThisStrong != default_onlyConsiderIfRelevanceLevelAtLeastThisStrong)  result += "\n%   minimum strength   = " + onlyConsiderIfRelevanceLevelAtLeastThisStrong;
 		if (reportAllValues || starModeMap != default_starModeMap)  result += "\n%   map mode '*' to '" + TypeSpec.getModeString(starModeMap) + "'";
 
-		if (reportAllValues || true) {
-			result += "\n%   modes in use: " + Utils.limitLengthOfPrintedList(used_knownModes, 100);
-			result += "\n%   all modes:    " + Utils.limitLengthOfPrintedList(save_knownModes, 100);
-		}
+		result += "\n%   modes in use: " + Utils.limitLengthOfPrintedList(used_knownModes, 100);
+		result += "\n%   all modes:    " + Utils.limitLengthOfPrintedList(save_knownModes, 100);
 		return result;
 	}
 

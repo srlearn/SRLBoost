@@ -66,6 +66,6 @@ public interface UserDefinedLiteral {
      * @return If the user defined literal evaluates to true, the bindingList is returned.  If false,
      * null is returned.
      */
-    public BindingList handleUserDefinedLiteral(Literal caller, Unifier unifier, BindingList bindingList, HornClauseContext context);
+    BindingList handleUserDefinedLiteral(Literal caller, Unifier unifier, BindingList bindingList, HornClauseContext context);
 
 }

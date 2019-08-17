@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.ConsCell;
-import edu.wisc.cs.will.FOPC.Constant;
 import edu.wisc.cs.will.FOPC.Function;
 import edu.wisc.cs.will.FOPC.ListAsTerm;
 import edu.wisc.cs.will.FOPC.LiteralAsTerm;
@@ -23,6 +22,5 @@ public interface TermVisitor<Return, Data> {
     Return visitListAsTerm(ListAsTerm listAsTerm, Data data);
     Return visitNumericConstant(NumericConstant numericConstant, Data data);
     Return visitStringConstant(StringConstant stringConstant, Data data);
-    Return visitOtherConstant(Constant constant, Data data);
     Return visitOtherTerm(Term term, Data data);
 }

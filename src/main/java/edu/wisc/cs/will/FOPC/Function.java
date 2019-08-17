@@ -1,9 +1,5 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
@@ -22,13 +19,10 @@ import edu.wisc.cs.will.Utils.Utils;
 public class Function extends Term implements LiteralOrFunction {
 	public  FunctionName functionName;
 	protected List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
-	protected List<String> argumentNames; // (Optional) names of the arguments.
-	protected int        cached_arity      = -1;
-	protected int        cachedVariableCount = -1; // Only set to false if CHECKED.  (Key: -1 = unknown, 0 = false, 1 = true.)  TODO protect against changes to 'arguments'
-	
-	/**
-	 * 
-	 */
+	private List<String> argumentNames; // (Optional) names of the arguments.
+	private int        cached_arity      = -1;
+	int        cachedVariableCount = -1; // Only set to false if CHECKED.  (Key: -1 = unknown, 0 = false, 1 = true.)
+
 	public    Function() { // This one is only used in special circumstances, e.g. by WeightedSumModel.		
 	}
 	protected Function(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, TypeSpec typeSpec) {
@@ -37,6 +31,7 @@ public class Function extends Term implements LiteralOrFunction {
 		this.arguments     = arguments;
 		this.setTypeSpec(typeSpec);
 		if (functionName == null) {         Utils.error("You have not provided a function name!"); }
+		assert functionName != null;
 		if (functionName.name.equals("")) { Utils.error("You have not provided a function name that is the empty string!"); }
 	}
 	protected Function(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
@@ -51,25 +46,12 @@ public class Function extends Term implements LiteralOrFunction {
 			Utils.error("Have " + arguments + " and " + argumentNames + " - number of arguments and number of names must match.");
 		}
 	}
-	
-	// Access values by name if argument names have been stored.
-	public String getArgumentName(int index) {
-		if (argumentNames == null) { return null; } //Utils.error("Asked for arg #" + index + " but no argument names are stored."); }
-		if (argumentNames.size() <= index) { Utils.error("Asked for arg #" + index + " but only have: " + argumentNames); }
-		return argumentNames.get(index);
-	}
 
-	public Function copyAndClearArgumentNames() {
-		return copy(true).clearArgumentNamesInPlace(); // Need to recur in case functions in the terms.
+	void clearArgumentNamesInPlace() {
+		clearArgumentNamesInPlace(true);
 	}
-	public Function copyAndClearArgumentNames(boolean removeNameArg) {
-		return copy(true).clearArgumentNamesInPlace(true);
-	}
-	public Function clearArgumentNamesInPlace() {
-		return clearArgumentNamesInPlace(true);
-	}
-	public Function clearArgumentNamesInPlace(boolean removeNameArg) {	
-		if (numberArgs() < 1) { return this; }		
+	private void clearArgumentNamesInPlace(boolean removeNameArg) {
+		if (numberArgs() < 1) { return; }
 		if (argumentNames != null) {
 			List<String> argOrdering = functionName.getNamedArgOrdering(numberArgs());
 			
@@ -79,36 +61,30 @@ public class Function extends Term implements LiteralOrFunction {
 				}
 			}			
 
-			if (argOrdering == null) { } // Utils.waitHere("No arg ordering for: " + this); }
-			else {
-				List<Term> newArgs = new ArrayList<Term>(numberArgs());
-				for (String argName : argOrdering) { newArgs.add(getArgumentByName(argName, true)); }
+			if (!(argOrdering == null)) {
+				List<Term> newArgs = new ArrayList<>(numberArgs());
+				for (String argName : argOrdering) { newArgs.add(getArgumentByName(argName)); }
 				arguments = newArgs;
 			}
 		}
 		argumentNames = null;
-		if (arguments == null) { return this; }
+		if (arguments == null) { return; }
 		for (Term term : arguments) if (term instanceof Function) {
 			((Function) term).clearArgumentNamesInPlace();
 		}
-		return this;
 	}
-	
-	// Access a value by name, rather than by position.
-	public Term getArgumentByName(String name) {
-		return getArgumentByName(name, true);
-	}
-	public Term getArgumentByName(String name, boolean complainIfNotFound) {
-		if (argumentNames == null)    { 
-			if (complainIfNotFound) { Utils.error("Cannot find '" + name + "' in " + argumentNames + " of " + this); }
+
+	private Term getArgumentByName(String name) {
+		if (argumentNames == null)    {
+			Utils.error("Cannot find '" + name + "' in " + null + " of " + this);
 			return null; } 
-		if (argumentNames.size() < 1) { 
-			if (complainIfNotFound) { Utils.error("Cannot find '" + name + "' in " + argumentNames); }
+		if (argumentNames.size() < 1) {
+			Utils.error("Cannot find '" + name + "' in " + argumentNames);
 			return null; }
 		for (int i = 0; i < numberArgs(); i++) {
 			if (argumentNames.get(i).equalsIgnoreCase(name)) { return arguments.get(i); }
 		}
-		if (complainIfNotFound) { Utils.error("Cannot find '" + name + "' in " + argumentNames + " of " + this); }
+		Utils.error("Cannot find '" + name + "' in " + argumentNames + " of " + this);
 		return null;
 	}
 	
@@ -120,37 +96,8 @@ public class Function extends Term implements LiteralOrFunction {
 		if (arguments == null) { cached_arity = 0; }
 		else                   { cached_arity =  arguments.size(); }
 	}
-	
-	public void addArgument(Term term) {
-		if (argumentNames != null) { Utils.error("Current arguments are named, so you need to pass in term and name for '" + this + "'."); }
-		arguments.add(term);
-		setNumberArgs();
-	}	
-	public void addArgument(Term term, String name) {
-		addArgument(term, name, true);
-	}
-	public void addArgument(Term term, String name, boolean sort) {
-		arguments.add(term);
-		argumentNames.add(name);
-		setNumberArgs();
-		if (sort) { sortArgumentsByName(); }
-	}
-	public void addArgument(int position, Term term, String name) {
-		addArgument(position, term, name, true);
-	}
-	public void addArgument(int position, Term term, String name, boolean sort) {
-		arguments.add(    position, term);
-		argumentNames.add(position, name);
-		setNumberArgs();
-		if (sort) { sortArgumentsByName(); }
-	}
-	
-	public void removeArgument(Term term) {
-		if (argumentNames != null) { Utils.error("Current arguments are named, so you need to pass in term and name for '" + this + "'."); }
-		if (!arguments.remove(term)) { Utils.error("Could not remove '" + term + "' from '" + this + "'."); }
-		setNumberArgs();
-	}	
-	public void removeArgument(Term term, String name) {
+
+	private void removeArgument(Term term, String name) {
 		if (!arguments.remove(term))     { Utils.error("Could not remove '" + term + "' from '" + this + "'."); }
 		if (!argumentNames.remove(name)) { Utils.error("Could not remove '" + name + "' from '" + this + "'."); }
 		setNumberArgs();
@@ -163,7 +110,7 @@ public class Function extends Term implements LiteralOrFunction {
 			if (arguments == null) { cachedVariableCount = 0; return false; }
 			for (Term term : arguments) { 
 				if ( term instanceof Variable)                                           { cachedVariableCount = 1; return true; }
-				if ((term instanceof Function) && ((Function) term).containsVariables()) { cachedVariableCount = 1; return true; }
+				if ((term instanceof Function) && term.containsVariables()) { cachedVariableCount = 1; return true; }
 			}
 			if (cachedVariableCount < 0) { cachedVariableCount = 0; }
 		}
@@ -172,11 +119,11 @@ public class Function extends Term implements LiteralOrFunction {
 
     @Override
     public BindingList isEquivalentUptoVariableRenaming(Term that, BindingList bindings) {
-        if (that instanceof Function == false) return null;
+        if (!(that instanceof Function)) return null;
 
         Function function = (Function) that;
 
-        if ( this.functionName.equals(function.functionName) == false ) return null;
+        if (!this.functionName.equals(function.functionName)) return null;
         if ( this.numberArgs() != function.numberArgs() ) return null;
 
         for (int i = 0; i < numberArgs(); i++) {
@@ -187,11 +134,7 @@ public class Function extends Term implements LiteralOrFunction {
         return bindings;
     }
 
-
-
-	/** Would any variables in this function remain UNBOUND if this binding list were to be applied?	
-	 * @param theta
-	 * @return
+	/** Would any variables in this function remain UNBOUND if this binding list were to be applied?
 	 */
     @Override
 	public boolean freeVariablesAfterSubstitution(BindingList theta) {
@@ -201,15 +144,13 @@ public class Function extends Term implements LiteralOrFunction {
 		return false;
 	}
 
-    static int depth = 0; // NOTE: this is risky if we every want to allow parallel WILLs ... JWS 7/24/10
-    @Override
-	public Function applyTheta(Map<Variable,Term> theta) { // Utils.println("applyTheta to " + this);
-        depth++;
-        // This should be essentially the same code as in Literal.applyTheta
+	@Override
+	public Function applyTheta(Map<Variable,Term> theta) {
+		// This should be essentially the same code as in Literal.applyTheta
         boolean needNewFunction = false; // See if there is a chance this might need to change (only do a one-level deep evaluation).
         if (arguments != null) {
             for (Term term : arguments) {
-                if (!((term instanceof Variable && theta.get((Variable)term) == null) || term instanceof Constant)) {
+                if (!((term instanceof Variable && theta.get(term) == null) || term instanceof Constant)) {
                     needNewFunction = true;
                     break;
                 }
@@ -217,28 +158,21 @@ public class Function extends Term implements LiteralOrFunction {
         }
 
         if (!needNewFunction) {
-            depth--;
-            return this;
+			return this;
         }
-        
-    //    if (depth > 1000) {
-    //    	Utils.waitHere(toString());
-    //   }
 
         int numbArgs = numberArgs();
-        List<Term> newArguments = (numbArgs == 0 ? null : new ArrayList<Term>(numberArgs()));
+        List<Term> newArguments = (numbArgs == 0 ? null : new ArrayList<>(numberArgs()));
         if (numbArgs > 0) {
             for (int i = 0; i < numbArgs; i++) {
                 Term arg = arguments.get(i);
                 if (arg == null) {
                     Utils.error("Has an arg=null: " + this);
                 }
-               // Utils.println(" Function.applyTheta arg(" + i + ") = " + arg + "    this = " + this + " theta: " + theta);
                 newArguments.add(arg == null ? null : arg.applyTheta(theta));
             }
         }
-        depth--;
-        return getBareCopy(newArguments);
+		return getBareCopy(newArguments);
 	}
 
     public Function applyTheta(BindingList bindings) {
@@ -252,53 +186,43 @@ public class Function extends Term implements LiteralOrFunction {
 	public Function getBareCopy(List<Term> newArguments) {
 		return stringHandler.getFunction(functionName, newArguments, argumentNames, typeSpec);
 	}
-	public Function getBareCopy(List<Term> newArguments, List<String> newArgumentNames) {
+	private Function getBareCopy(List<Term> newArguments, List<String> newArgumentNames) {
 		return stringHandler.getFunction(functionName, newArguments, newArgumentNames, typeSpec);
 	}
-	public Function getBareCopy(FunctionName functionName, List<Term> newArguments, TypeSpec typeSpec) {
-		return stringHandler.getFunction(functionName, newArguments, argumentNames, typeSpec);
-	}
-	public Function getBareCopy(List<Term> newArguments, List<String> newArgumentNames, TypeSpec typeSpec) {
-		return stringHandler.getFunction(functionName, newArguments, newArgumentNames, typeSpec);
-	}
-	
-    @Override
+
+	@Override
 	public Function copy(boolean recursiveCopy) { // recursiveCopy=true means that the copying recurs down to the leaves.
-		List<Term>   newArguments = (arguments     != null ? new ArrayList<Term>(  numberArgs()) : null);
-		List<String> newArgNames  = (argumentNames != null ? new ArrayList<String>(numberArgs()) : null);
+		List<Term>   newArguments = (arguments     != null ? new ArrayList<>(  numberArgs()) : null);
+		List<String> newArgNames  = (argumentNames != null ? new ArrayList<>(numberArgs()) : null);
 		if (argumentNames != null) { newArgNames.addAll(argumentNames); }
+		assert newArguments != null;
 		if (recursiveCopy) {
 			if (arguments != null) {				
 				for (Term term : arguments) {	
-					newArguments.add(term == null ? null : term.copy(recursiveCopy));
+					newArguments.add(term == null ? null : term.copy(true));
 				}
 			}
 			return getBareCopy(newArguments, newArgNames);
 		}
 		if (arguments!= null) { newArguments.addAll(arguments);    }
-		if (typeSpec != null && recursiveCopy) {
-			return getBareCopy(newArguments, newArgNames, typeSpec.copy(recursiveCopy));
-		}
 		return getBareCopy(newArguments, newArgNames);
 	}
 
     @Override
 	public Function copy2(boolean recursiveCopy, BindingList bindingList) { // recursiveCopy=true means that the copying recurs down to the leaves.
-		List<Term>   newArguments = (arguments     != null ? new ArrayList<Term>(  numberArgs()) : null);
-		List<String> newArgNames  = (argumentNames != null ? new ArrayList<String>(numberArgs()) : null);
+		List<Term>   newArguments = (arguments     != null ? new ArrayList<>(  numberArgs()) : null);
+		List<String> newArgNames  = (argumentNames != null ? new ArrayList<>(numberArgs()) : null);
 		if (argumentNames != null) { newArgNames.addAll(argumentNames); }
+		assert newArguments != null;
 		if (recursiveCopy) {
 			if (arguments != null) {
 				for (Term term : arguments) {
-					newArguments.add(term == null ? null : term.copy2(recursiveCopy, bindingList));
+					newArguments.add(term == null ? null : term.copy2(true, bindingList));
 				}
 			}
 			return getBareCopy(newArguments, newArgNames);
 		}
 		if (arguments!= null) { newArguments.addAll(arguments);    }
-		if (typeSpec != null && recursiveCopy) {
-			return getBareCopy(newArguments, newArgNames, typeSpec.copy(recursiveCopy));
-		}
 		return getBareCopy(newArguments, newArgNames);
 	}
 
@@ -317,7 +241,7 @@ public class Function extends Term implements LiteralOrFunction {
 	
     @Override
 	public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
-		List<Variable> result = new ArrayList<Variable>(numberArgs());
+		List<Variable> result = new ArrayList<>(numberArgs());
 		
 		if (arguments != null) for (Term term : arguments) if (term != null) {	
 			Collection<Variable> tempVarList = term.collectFreeVariables(boundVariables);
@@ -334,7 +258,8 @@ public class Function extends Term implements LiteralOrFunction {
 		result = prime * result + ((functionName == null) ? 0 : functionName.hashCode());
 		result = prime * result + ((arguments    == null) ? 0 : arguments.hashCode());
 		return result;
-	}	
+	}
+
 	// Are these two literals identical even if not the same instance?  Can be overridden by stringHandler.useStrictEqualsForLiterals
     @Override
 	public boolean equals(Object other) {
@@ -350,21 +275,24 @@ public class Function extends Term implements LiteralOrFunction {
 		int thisNumberOfArgs  =                 numberArgs();
 		int otherNumberOfArgs = otherAsFunction.numberArgs();
 		if (thisNumberOfArgs != otherNumberOfArgs)       { return false; }
-		for (int i = 0; i < thisNumberOfArgs; i++) { // Should do a double walk of the two lists, but I don't recall the syntax (TODO).
+
+		// Should do a double walk of the two lists, but I don't recall the syntax
+		for (int i = 0; i < thisNumberOfArgs; i++) {
 			if (!arguments.get(i).equals(otherAsFunction.arguments.get(i))) { return false; }
 		}
 		if (argumentNames == null && otherAsFunction.argumentNames == null) { return true;  }
 		if (argumentNames == null || otherAsFunction.argumentNames == null) { return false; }
-		for (int i = 0; i < thisNumberOfArgs; i++) { // Should do a double walk of the two lists, but I don't recall the syntax (TODO).
+		// Should do a double walk of the two lists, but I don't recall the syntax
+		for (int i = 0; i < thisNumberOfArgs; i++) {
 			if (!argumentNames.get(i).equalsIgnoreCase(otherAsFunction.argumentNames.get(i))) { return false; }
 		}
 		return true;
 	}
 
-	   // Are these two equivalent POSSIBLY AFTER SOME VARIABLE RENAMING.
+   // Are these two equivalent POSSIBLY AFTER SOME VARIABLE RENAMING.
     @Override
     public BindingList variants(Term other, BindingList bindings) {
-        // if (this == other) { return bindings; }	// Need to collect the matched variables (so they don't get matched to another variable elsewhere).
+        // Need to collect the matched variables (so they don't get matched to another variable elsewhere).
         if (!(other instanceof Function)) {
             return null;
         }
@@ -399,7 +327,8 @@ public class Function extends Term implements LiteralOrFunction {
             return null;
         }
         
-        for (int j = 0; j < thisNumberOfArgs; j++) { // Should do a double walk of the two lists, but I don't recall the syntax (TODO).
+        for (int j = 0; j < thisNumberOfArgs; j++) {
+        	// Should do a double walk of the two lists, but I don't recall the syntax
             if (!argumentNames.get(j).equalsIgnoreCase(otherAsFunction.argumentNames.get(j))) {
                 return null;
             }
@@ -409,8 +338,7 @@ public class Function extends Term implements LiteralOrFunction {
 
 	public Literal convertToLiteral(HandleFOPCstrings stringHandler) {
 		PredicateName predicateName = stringHandler.getPredicateName(functionName.name);
-		Literal       result        = stringHandler.getLiteral(predicateName, arguments, argumentNames);
-		return result;
+		return stringHandler.getLiteral(predicateName, arguments, argumentNames);
 	}
 	
     @Override
@@ -433,14 +361,16 @@ public class Function extends Term implements LiteralOrFunction {
 			if (precedenceOfCaller < precedence) { return "(" + (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toPrettyString(newLineStarter, precedence, bindingList) + ")" + end; }
 			return                                              (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toPrettyString(newLineStarter, precedence, bindingList)       + end;
 	    }
-		String result = fNameStr + "(";
+		StringBuilder result = new StringBuilder(fNameStr + "(");
 		for (int i = 0; i < numberArgs(); i++) {
 			Term arg = arguments.get(i);
-			if (firstOne) { firstOne = false; } else {result += ", "; }
-			result += (hasArgNames ? argumentNames.get(i) + "=": "") + arg.toPrettyString(newLineStarter, Integer.MAX_VALUE, bindingList); // No need for extra parentheses in an argument list.
+			if (firstOne) { firstOne = false; } else {
+				result.append(", "); }
+			result.append(hasArgNames ? argumentNames.get(i) + "=" : "").append(arg.toPrettyString(newLineStarter, Integer.MAX_VALUE, bindingList)); // No need for extra parentheses in an argument list.
 		}		
 		return result + ")" + end;
 	}
+
     @Override
 	public String toString(int precedenceOfCaller, BindingList bindingList) {
 		if (functionName.name.equalsIgnoreCase("consCell")) {
@@ -462,14 +392,13 @@ public class Function extends Term implements LiteralOrFunction {
 			if (precedenceOfCaller <= precedence) { return "(" + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList) + ")" + end; }
 			return                                               (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList)       + end;
 	    }
-		//if (functionName.name.equalsIgnoreCase("consCell")) {
-			//return ((ConsCell) this).toString(precedenceOfCaller);
-		//}
-		String result = fNameStr + "(";
+
+		StringBuilder result = new StringBuilder(fNameStr + "(");
 		for (int i = 0; i < numberArgs(); i++) {
 			Term arg = arguments.get(i);	
-			if (firstOne) { firstOne = false; } else {result += ", "; }
-			result += (hasArgNames && i < argumentNames.size() ? argumentNames.get(i) + "=": "") + arg.toString(Integer.MAX_VALUE, bindingList); // No need for extra parentheses in an argument list.
+			if (firstOne) { firstOne = false; } else {
+				result.append(", "); }
+			result.append(hasArgNames && i < argumentNames.size() ? argumentNames.get(i) + "=" : "").append(arg.toString(Integer.MAX_VALUE, bindingList)); // No need for extra parentheses in an argument list.
 		}		
 		return result + ")" + end;
 	}
@@ -497,7 +426,7 @@ public class Function extends Term implements LiteralOrFunction {
 	public List<String> getArgumentNames() {
 		return argumentNames;
 	}
-	public void setArgumentNames(List<String> argumentNames) {
+	void setArgumentNames(List<String> argumentNames) {
 		this.argumentNames = argumentNames;
 		sortArgumentsByName();
 	}
@@ -509,15 +438,15 @@ public class Function extends Term implements LiteralOrFunction {
 										   + Utils.getSizeSafely(argumentNames) + "):\n   args = " + arguments + "\n  names = " + argumentNames + "\n    lit = " + this);
 		}
 		if (numbArgs < 2) { return; }
-		List<NamedTerm> namedTerms = new ArrayList<NamedTerm>(numbArgs);
-		Set<String> namesSeen = new HashSet<String>(4);
+		List<NamedTerm> namedTerms = new ArrayList<>(numbArgs);
+		Set<String> namesSeen = new HashSet<>(4);
 		for (int i = 0; i < numbArgs; i++) {
 			String argName = argumentNames.get(i);
 			if (namesSeen.contains(argName)) { Utils.error("Cannot have duplicate names (" + argName + "): " + argumentNames); }
 			if ( argName != null ) namesSeen.add(argName);
             namedTerms.add(new NamedTerm(arguments.get(i), argName));
 		}
-		Collections.sort(namedTerms, NamedTerm.comparator);
+		namedTerms.sort(NamedTerm.comparator);
 		arguments.clear();
 		argumentNames.clear();
 		for (NamedTerm nt : namedTerms) { 
@@ -538,19 +467,14 @@ public class Function extends Term implements LiteralOrFunction {
 		return false;
 	}
 
-
     protected void appendToString(StringBuilder sb, int precedenceOfCaller, BindingList bindingList) {
-
         Term arg0 = getArgument(0);
-
         sb.append( arg0.toString(precedenceOfCaller, bindingList) );
-
-
         Term arg1 = getArgument(1);
 
         // Be robust to ConsCell's masquerading as Function's.
         boolean arg2isNil = (isaConsCell(arg1) && ((Function) arg1).numberArgs() == 0);
-        if (arg2isNil == false  ) {
+        if (!arg2isNil) {
             if (isaConsCell(arg1)) {
                 sb.append(", ");
                 ((Function) arg1).appendToString(sb, precedenceOfCaller, bindingList);
@@ -577,8 +501,6 @@ public class Function extends Term implements LiteralOrFunction {
      * Technically, a function doesn't have predicate name, but
      * we convert of the function to the a predicate of the same
      * name.
-     *
-     * @return
      */
     public PredicateNameAndArity getPredicateNameAndArity() {
         return stringHandler.getPredicate(stringHandler.getPredicateName(functionName.name), getArity());
@@ -599,8 +521,6 @@ public class Function extends Term implements LiteralOrFunction {
     public PredicateName getPredicateName() {
         return getStringHandler().getPredicateName( functionName.name );
     }
-
-
 
 }
 

@@ -1,29 +1,26 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
+
 import java.io.IOException;
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.List;
 
+import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
-import java.io.ObjectStreamException;
 
 @SuppressWarnings("serial")
 public class Variable extends Term {
 
-    protected static final boolean useShortNames = true; // If false, will write out x1, x2, etc so printouts are more readable during debugging.
+    private static final boolean useShortNames = true; // If false, will write out x1, x2, etc so printouts are more readable during debugging.
 
     public String name;
 
     public long counter; // This isn't used in the internal code (instead, instances are compared, not string names), but each variable has a unique counter value, and printing this can help with debugging.
 
-    public static long instancesCreated = 0;   
-
-    
     protected Variable() {
-    	instancesCreated++;
     }
     /**
      * The way this works is that a request for variable 'x' will always return the SAME instance,
@@ -55,7 +52,7 @@ public class Variable extends Term {
     }
 
     public Term applyTheta(BindingList bindings) {
-        return (Term) super.applyTheta(bindings);
+        return super.applyTheta(bindings);
     }
 
     @Override
@@ -108,7 +105,6 @@ public class Variable extends Term {
                 bindingList.addBinding(this, copy);
             }
 
-            //stringHandler.recordParentVariable(copy, this);
             return copy;
         }
     }
@@ -129,7 +125,7 @@ public class Variable extends Term {
         if (boundVariables != null && boundVariables.contains(this)) {
             return null;
         } // In the list, so not free.
-        Collection<Variable> result = new ArrayList<Variable>(1);
+        Collection<Variable> result = new ArrayList<>(1);
         result.add(this);
         return result;
     }
@@ -142,7 +138,6 @@ public class Variable extends Term {
         Term lookupA = bindings.theta.get(this);
         Term lookupB = bindings.theta.get(other);
 
-        //Utils.println("     A=" + this + " lookupA=" + lookupA + "   B=" + other + " lookupB=" + lookupB);
         if (lookupA == null && lookupB == null) { // Need to record these two are matched.
             bindings.theta.put(this, other);
             if (this != other) {
@@ -168,7 +163,7 @@ public class Variable extends Term {
     }
 
     // Append two lists, but don't include any duplicates (assume the two lists already are duplicate free).
-    public static Collection<Variable> combineSetsOfVariables(Collection<Variable> listA, Collection<Variable> listB) {
+    static Collection<Variable> combineSetsOfVariables(Collection<Variable> listA, Collection<Variable> listB) {
 
         if (listA == null && listB == null) {
             return null;
@@ -179,20 +174,16 @@ public class Variable extends Term {
         if (listB == null) {
             return listA;
         }
-        List<Variable> result = new ArrayList<Variable>(listA.size() + listB.size());
+        List<Variable> result = new ArrayList<>(listA.size() + listB.size());
 
-        if (listA != null) {
-            for (Variable v : listA) {
-                if (!result.contains(v)) {
-                    result.add(v);
-                }
+        for (Variable v : listA) {
+            if (!result.contains(v)) {
+                result.add(v);
             }
         }
-        if (listB != null) {
-            for (Variable v : listB) {
-                if (!result.contains(v)) {
-                    result.add(v);
-                }
+        for (Variable v : listB) {
+            if (!result.contains(v)) {
+                result.add(v);
             }
         }
 
@@ -201,7 +192,6 @@ public class Variable extends Term {
 
     @Override
     public boolean containsVariables() {
-    //	Utils.println("I am a variable: " + this);
         return true;
     }
 
@@ -210,16 +200,13 @@ public class Variable extends Term {
         if (theta == null) {
             return false;
         }
-        // Utils.println(" VARIABLE: freeVariablesAfterSubstitution: " + theta + "  " + this);
-        if (theta.lookup(this) == null) {
-            return true;
-        } // Unbound.
-        return false;
+        // Unbound.
+        return theta.lookup(this) == null;
     }
 
     @Override
     public BindingList isEquivalentUptoVariableRenaming(Term that, BindingList bindings) {
-        if (that instanceof Variable == false) {
+        if (!(that instanceof Variable)) {
             return null;
         }
 
@@ -254,18 +241,9 @@ public class Variable extends Term {
 
     }
 
-    public String toTypedString() {
-//		String nameToUse = getNameToUse(name);
-//		String result = (typeSpec != null ? typeSpec.getModeString()  + typeSpec.isaType.typeName + ":" + nameToUse : nameToUse);
-//		String end    = (typeSpec != null ? typeSpec.getCountString() : "");
-//		if (stringHandler.printVariableCounters) { return result + ":"  + counter + end; } // TODO - need to change to underscore if want to read these back in
-//		if (useShortNames || counter <= 0)       { return result                  + end; }
-//		return                                            result + "_v" + counter + end;
-
+    private String toTypedString() {
         StringBuilder sb = new StringBuilder();
-
         appendTypedString(sb);
-
         return sb.toString();
     }
 
@@ -296,7 +274,7 @@ public class Variable extends Term {
     }
     
     private String getAnonNameToUse() {
-        if ( stringHandler.underscoredAnonymousVariables == false) {
+        if (!stringHandler.underscoredAnonymousVariables) {
             if (stringHandler.doVariablesStartWithQuestionMarks()) { return "?anon" + counter; }
             if (stringHandler.usingStdLogicNotation())             { return  "anon" + counter; }
             return "Anon" + counter;
@@ -329,7 +307,6 @@ public class Variable extends Term {
                 stringToPrint = t.getBareName();
             }
         }
-
         if (stringToPrint == null) {
             if (getName() == null) {
                 stringToPrint = getAnonNameToUse();
@@ -338,100 +315,45 @@ public class Variable extends Term {
                 stringToPrint = getNameToUse(getName());
                 if (stringHandler.printVariableCounters) {
                     stringToPrint += "_" + counter;
-                } // TODO - need to change to underscore if want to read these back in
-                else if (useShortNames == false && counter > 0) {
+                }
+                else if (!useShortNames && counter > 0) {
                     stringToPrint += "_v" + counter;
                 }
             }
         }
-
         return stringToPrint;
-
-//        StringBuilder sb = new StringBuilder();
-//
-//        appendString(sb,"", precedenceOfCaller, Integer.MAX_VALUE);
-//
-//        return sb.toString();
     }
 
-//    @Override
-//    public int appendPrettyString(Appendable appendable, String newLineStarter, int precedenceOfCaller, int maximumLength) {
-//        return appendString(appendable, newLineStarter, precedenceOfCaller, maximumLength);
-//    }
-//
-//    @Override
-//    public int appendString(Appendable appendable, String newLineStarter, int precedenceOfCaller, int maximumLength) {
-//
-//        int length = 0;
-//
-//        try {
-//            if (stringHandler.printTypedStrings) {
-//                length += appendTypedString(appendable);
-//            }
-//            else {
-//                String nameToUse = getNameToUse(name);
-//                appendable.append(nameToUse);
-//                length += nameToUse.length();
-//
-//                if (stringHandler.printVariableCounters) {
-//                    String counterString = Integer.toString(counter);
-//                    appendable.append(":").append(counterString);
-//                    length += 1 + counterString.length();
-//                }
-//                else if (useShortNames == false && counter > 0) {
-//                    String counterString = Integer.toString(counter);
-//                    appendable.append(" v").append(counterString);
-//                    length += 2 + counterString.length();
-//                }
-//            }
-//        } catch (IOException iOException) {
-//        }
-//
-//        return length;
-//    }
-//
-    public int appendTypedString(Appendable appendable) {
+    private void appendTypedString(Appendable appendable) {
         String nameToUse = getNameToUse(getName());
-
-        int length = 0;
 
         try {
             if (typeSpec != null) {
                 String modeString = typeSpec.getModeString();
                 appendable.append(modeString).append(typeSpec.isaType.typeName).append(":").append(nameToUse);
-                length += modeString.length() + typeSpec.isaType.typeName.length() + 1 + nameToUse.length();
             }
             else {
                 appendable.append(nameToUse);
-                length += nameToUse.length();
             }
 
             if (stringHandler.printVariableCounters) {
                 String counterString = Long.toString(counter);
                 appendable.append(":").append(counterString);
-                length += 1 + counterString.length();
             }
-            else if (useShortNames == false && counter > 0) {
+            else if (!useShortNames && counter > 0) {
                 String counterString = Long.toString(counter);
                 appendable.append(" v").append(counterString);
-                length += 2 + counterString.length();
             }
 
             if (typeSpec != null) {
                 String s = typeSpec.getCountString();
                 appendable.append(s);
-                length += s.length();
             }
-        } catch (IOException iOException) {
+        } catch (IOException ignored) {
         }
-
-        return length;
     }
 
     /** Replace with the cached version from stringHandler.
-     *
-     * @return
-     * @throws ObjectStreamException
      */
     private Object readResolve() throws ObjectStreamException {
     	if (isaGeneratedVariable()) {

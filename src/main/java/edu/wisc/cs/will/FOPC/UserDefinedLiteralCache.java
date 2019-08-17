@@ -1,76 +1,37 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import edu.wisc.cs.will.Utils.AlphanumComparator;
 import edu.wisc.cs.will.Utils.TimeScale;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.CompressedOutputStream;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 
 /**
- *
  * @author twalker
  */
 public final class UserDefinedLiteralCache {
 
-    public static final int DEFAULT_CACHE_SIZE = 10000;
+    private static final int DEFAULT_CACHE_SIZE = 10000;
 
     /** Indicates a fail during previous evaluation of the predicate. */
-    public static final Object FAILURE_INDICATOR = new Object();
+    static final Object FAILURE_INDICATOR = new Object();
 
-    private SizeLimitedCacheMap<CacheKey, Object> cacheMap;
+    private SizeLimitedCacheMap cacheMap;
 
     private CacheStatistics globalStatistics;
 
     private Map<PredicateNameAndArity, CacheStatistics> statisticsMap;
 
-    private boolean cacheTimingEnabled = true;
-
-    public UserDefinedLiteralCache() {
+    UserDefinedLiteralCache() {
         cacheMap = new SizeLimitedCacheMap(DEFAULT_CACHE_SIZE);
-        statisticsMap = new HashMap<PredicateNameAndArity, CacheStatistics>();
+        statisticsMap = new HashMap<>();
         globalStatistics = new CacheStatistics("Overall Cache Statistics");
-    }
-
-    /** Returns the current maximum size of the cache.
-     *
-     * @return maximum size of the cache.
-     */
-    public int getMaximumCacheSize() {
-        return cacheMap.maximumSize;
-    }
-
-    /** Sets the maximum size of the cache.
-     *
-     * This value can be modified at runtime.  However, if
-     * the maximumSize is reduced to less than the caches
-     * current size, the cache will be recreated.
-     *
-     * @param maximumSize new maximum size of the cache.
-     */
-    public void setMaximumCacheSize(int maximumSize) {
-        if (maximumSize < cacheMap.size()) {
-            cacheMap = new SizeLimitedCacheMap(maximumSize);
-        }
-        else {
-            cacheMap.maximumSize = maximumSize;
-        }
     }
 
     /** Indicates that Cache timing are desired.
@@ -78,19 +39,9 @@ public final class UserDefinedLiteralCache {
      * Cache timing is always optional on the clients part.  If the client
      * does not want/need to perform timings due to performance reasons,
      * it does not have too.
-     *
-     * @return
      */
-    public boolean isCacheTimingEnabled() {
-        return cacheTimingEnabled;
-    }
-
-    /** Enables/Disables Cache timing by clients of the cache.
-     * 
-     * @param cacheTimingEnabled
-     */
-    public void setCacheTimingEnabled(boolean cacheTimingEnabled) {
-        this.cacheTimingEnabled = cacheTimingEnabled;
+    boolean isCacheTimingEnabled() {
+        return true;
     }
 
     /** Returns a CacheEntry for the predicateName/Arity and the set of ground terms.
@@ -120,7 +71,7 @@ public final class UserDefinedLiteralCache {
      * @return A CacheEntry associated with the predicateName/Arity and terms.
      *
      */
-    public CacheEntry lookupCacheEntry(PredicateNameAndArity predicateNameArity, List<Term> terms, UserDefinedCacheResolver cacheResolver) {
+    CacheEntry lookupCacheEntry(PredicateNameAndArity predicateNameArity, List<Term> terms, UserDefinedCacheResolver cacheResolver) {
 
         CacheStatistics cs = getCacheStatistics(predicateNameArity);
 
@@ -139,17 +90,11 @@ public final class UserDefinedLiteralCache {
         return new CacheEntry(ck, cs, cachedValue);
     }
 
-    public String getCacheStatistics() {
+    private String getCacheStatistics() {
         StringBuilder sb = new StringBuilder();
 
-        List<PredicateNameAndArity> cachedPreds = new ArrayList<PredicateNameAndArity>(statisticsMap.keySet());
-        Collections.sort(cachedPreds, new Comparator<PredicateNameAndArity>() {
-
-            @Override
-            public int compare(PredicateNameAndArity o1, PredicateNameAndArity o2) {
-                return AlphanumComparator.ALPHANUM_COMPARATOR.compare(o1.toString(), o2.toString());
-            }
-        });
+        List<PredicateNameAndArity> cachedPreds = new ArrayList<>(statisticsMap.keySet());
+        cachedPreds.sort((o1, o2) -> AlphanumComparator.ALPHANUM_COMPARATOR.compare(o1.toString(), o2.toString()));
 
         int descWidth = globalStatistics.description.length();
         for (PredicateNameAndArity predicateNameArity : cachedPreds) {
@@ -186,45 +131,9 @@ public final class UserDefinedLiteralCache {
         return cs;
     }
 
-    public int getCachedLiteralCount() {
-        return statisticsMap.size();
-    }
-
     @Override
     public String toString() {
         return "UserDefiniteLiteral Cache:\n" + getCacheStatistics();
-    }
-
-    public void dumpCacheEntries(File file) throws IOException {
-        Writer writer = null;
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(new CompressedOutputStream(file)));
-
-            for (Entry<CacheKey, Object> entry : cacheMap.entrySet()) {
-                CacheKey key = entry.getKey();
-
-                if (key.cacheResolver != null) {
-                    PredicateNameAndArity pnaa = key.predicateNameAndArity;
-                    List<Term> terms = key.terms;
-                    Object cachedValue = entry.getValue();
-
-                    Literal resolvedLiteral = key.cacheResolver.resolveCacheEntry(pnaa, terms, cachedValue);
-
-                    if (resolvedLiteral != null) {
-                        writer.append(resolvedLiteral.toString());
-                        writer.append("\n");
-                    }
-                }
-            }
-        } finally {
-            try {
-                if (writer != null) {
-                    writer.close();
-                }
-            } catch (IOException e) {
-            }
-        }
-
     }
 
     @SuppressWarnings("serial")
@@ -232,7 +141,7 @@ public final class UserDefinedLiteralCache {
 
         private int maximumSize;
 
-        public SizeLimitedCacheMap(int maximumSize) {
+        SizeLimitedCacheMap(int maximumSize) {
             super(16, 0.75f, true);
 
             this.maximumSize = maximumSize;
@@ -252,7 +161,7 @@ public final class UserDefinedLiteralCache {
 
         private Object cachedValue;
 
-        public CacheEntry(CacheKey cacheKey, CacheStatistics cacheStatistics, Object cachedValue) {
+        CacheEntry(CacheKey cacheKey, CacheStatistics cacheStatistics, Object cachedValue) {
             this.cacheKey = cacheKey;
             this.cacheStatistics = cacheStatistics;
             this.cachedValue = cachedValue;
@@ -275,13 +184,13 @@ public final class UserDefinedLiteralCache {
          *
          * @param value Value to cache or FAILURE_INDICATOR (or null) if the evaluation of the literal for terms failed.
          */
-        protected void setCachedValue(Object value) {
+        void setCachedValue(Object value) {
 
             if (value == null) {
                 value = FAILURE_INDICATOR;
             }
 
-            if (this.cachedValue != value && (this.cachedValue == null || this.cachedValue.equals(value) == false)) {
+            if (!Objects.equals(this.cachedValue, value)) {
                 if (this.cachedValue != null) {
                     Utils.warning("Previously set cache value for " + cacheKey + " has been reset.");
                 }
@@ -298,16 +207,8 @@ public final class UserDefinedLiteralCache {
          * failed.  If the lookup is unsuccessful (ie the value for terms isn't currently
          * cached) then null is returned.
          */
-        public Object getCachedValue() {
+        Object getCachedValue() {
             return cachedValue;
-        }
-
-        /** Returns the cache statistics associated with the predicateName/Arity.
-         *
-         * @return CacheStatistics, gauranteed non-null.
-         */
-        public CacheStatistics getCacheStatistics() {
-            return cacheStatistics;
         }
 
         /** Records the time necessary to perform a cache lookup.
@@ -320,7 +221,7 @@ public final class UserDefinedLiteralCache {
          *
          * @param timeInNanoseconds Time in nanoseconds taken to perform a lookup.
          */
-        public void recordLookupTime(long timeInNanoseconds) {
+        void recordLookupTime(long timeInNanoseconds) {
             globalStatistics.recordLookupTime(timeInNanoseconds);
             cacheStatistics.recordLookupTime(timeInNanoseconds);
         }
@@ -334,7 +235,7 @@ public final class UserDefinedLiteralCache {
          *
          * @param timeInNanoseconds Time in nanoseconds taken to perform an evalution of the literal.
          */
-        public void recordEvaluationTime(long timeInNanoseconds) {
+        void recordEvaluationTime(long timeInNanoseconds) {
             globalStatistics.recordEvaluationTime(timeInNanoseconds);
             cacheStatistics.recordEvaluationTime(timeInNanoseconds);
         }
@@ -353,15 +254,10 @@ public final class UserDefinedLiteralCache {
 
         UserDefinedCacheResolver cacheResolver;
 
-        public CacheKey(PredicateNameAndArity predicateNameAndArity, List<Term> terms, UserDefinedCacheResolver cacheResolver) {
+        CacheKey(PredicateNameAndArity predicateNameAndArity, List<Term> terms, UserDefinedCacheResolver cacheResolver) {
             this.predicateNameAndArity = predicateNameAndArity;
             this.terms = terms;
             this.cacheResolver = cacheResolver;
-        }
-
-        private CacheKey(PredicateNameAndArity predicateNameAndArity, List<Term> terms) {
-            this.predicateNameAndArity = predicateNameAndArity;
-            this.terms = terms;
         }
 
         @Override
@@ -373,13 +269,10 @@ public final class UserDefinedLiteralCache {
                 return false;
             }
             final CacheKey other = (CacheKey) obj;
-            if (this.predicateNameAndArity != other.predicateNameAndArity && (this.predicateNameAndArity == null || !this.predicateNameAndArity.equals(other.predicateNameAndArity))) {
+            if (!Objects.equals(this.predicateNameAndArity, other.predicateNameAndArity)) {
                 return false;
             }
-            if (this.terms != other.terms && (this.terms == null || !this.terms.equals(other.terms))) {
-                return false;
-            }
-            return true;
+            return Objects.equals(this.terms, other.terms);
         }
 
         @Override
@@ -407,49 +300,39 @@ public final class UserDefinedLiteralCache {
 
         private long totalLookupTimeCount = 0;
 
-        private Object cacheValue = null;
-
-        public CacheStatistics(String description) {
+        CacheStatistics(String description) {
             this.description = description;
         }
 
-        public Object getCacheValue() {
-            return cacheValue;
-        }
-
-        public long getAccessCount() {
+        long getAccessCount() {
             return accessCount;
         }
 
-        public long getHits() {
+        long getHits() {
             return accessCount - missCount;
         }
 
-        public double getHitFraction() {
+        double getHitFraction() {
             return accessCount == 0 ? Double.NaN : (double) (accessCount - missCount) / accessCount;
         }
 
-        public long getMisses() {
+        long getMisses() {
             return missCount;
         }
 
-        public double getMissFraction() {
+        double getMissFraction() {
             return accessCount == 0 ? Double.NaN : (double) missCount / accessCount;
         }
 
-        public long getMissCount() {
-            return missCount;
-        }
-
-        public double getMeanEvaluationTimeInMicroseconds() {
+        double getMeanEvaluationTimeInMicroseconds() {
             return totalEvaluationCount == 0 ? Double.NaN : (double) totalEvaluationTime / totalEvaluationCount / 1000.0;
         }
 
-        public double getMeanLookupTimeInMicroseconds() {
+        double getMeanLookupTimeInMicroseconds() {
             return totalLookupTimeCount == 0 ? Double.NaN : (double) totalLookupTime / totalLookupTimeCount / 1000.0;
         }
 
-        public double getDeltaTimeInMicroseconds() {
+        double getDeltaTimeInMicroseconds() {
             double memoizedTime = accessCount * getMeanLookupTimeInMicroseconds() + missCount * getMeanEvaluationTimeInMicroseconds();
             double notMemoizedTime = accessCount * getMeanEvaluationTimeInMicroseconds();
 

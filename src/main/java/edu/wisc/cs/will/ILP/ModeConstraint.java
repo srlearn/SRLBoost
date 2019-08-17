@@ -1,12 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import java.util.Set;
+
+import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 
 /**
  *
@@ -26,8 +22,8 @@ public interface ModeConstraint {
      * true, the current set can (and should) be modified directly.
      *
      * @param nodeBeingExpanded Node currently being expanded.
-     * @param possibleExpansionModes Set of currently eligible expansion modes.
+     * @param eligibleExpansionModes Set of currently eligible expansion modes.
      * @return returns the new set of eligible expansion modes, or null if the current set did not change.
      */
-    public Set<PredicateNameAndArity> applyConstraint(SingleClauseNode nodeBeingExpanded, Set<PredicateNameAndArity> eligibleExpansionModes, boolean isMutable);
+    Set<PredicateNameAndArity> applyConstraint(SingleClauseNode nodeBeingExpanded, Set<PredicateNameAndArity> eligibleExpansionModes, boolean isMutable);
 }

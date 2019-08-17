@@ -15,7 +15,7 @@ import edu.wisc.cs.will.Utils.Utils;
 @SuppressWarnings("serial")
 public class ExistentialSentence extends QuantifiedSentence {
 	
-	protected ExistentialSentence(HandleFOPCstrings stringHandler, Collection<Variable> variables, Sentence body) {
+	ExistentialSentence(HandleFOPCstrings stringHandler, Collection<Variable> variables, Sentence body) {
 		this.stringHandler = stringHandler;
 		this.variables     = variables;
 		this.body          = body;
@@ -27,11 +27,11 @@ public class ExistentialSentence extends QuantifiedSentence {
 	public ExistentialSentence copy(boolean recursiveCopy) { // recursiveCopy=true means that the copying recurs down to the leaves. 
 		if (recursiveCopy) {
 			stringHandler.stackTheseVariables(variables);
-			Collection<Variable> newVariables = new ArrayList<Variable>(variables.size());
+			Collection<Variable> newVariables = new ArrayList<>(variables.size());
 			for (Variable var : variables) {
-				newVariables.add(var.copy(recursiveCopy));
+				newVariables.add(var.copy(true));
 			}
-			Sentence            newBody = body.copy(recursiveCopy);
+			Sentence            newBody = body.copy(true);
 			ExistentialSentence result  = (ExistentialSentence) stringHandler.getExistentialSentence(newVariables, newBody).setWeightOnSentence(wgtSentence);
 			stringHandler.unstackTheseVariables(variables);
 			return result;	
@@ -42,13 +42,12 @@ public class ExistentialSentence extends QuantifiedSentence {
     @Override
 	public ExistentialSentence copy2(boolean recursiveCopy, BindingList bindingList) { // recursiveCopy=true means that the copying recurs down to the leaves.
 		if (recursiveCopy) {
-			Collection<Variable> newVariables = new ArrayList<Variable>(variables.size());
+			Collection<Variable> newVariables = new ArrayList<>(variables.size());
 			for (Variable var : variables) {
-				newVariables.add(var.copy2(recursiveCopy, bindingList));
+				newVariables.add(var.copy2(true, bindingList));
 			}
-			Sentence            newBody = body.copy2(recursiveCopy, bindingList);
-			ExistentialSentence result  = (ExistentialSentence) stringHandler.getExistentialSentence(newVariables, newBody).setWeightOnSentence(wgtSentence);
-			return result;
+			Sentence            newBody = body.copy2(true, bindingList);
+			return (ExistentialSentence) stringHandler.getExistentialSentence(newVariables, newBody).setWeightOnSentence(wgtSentence);
 		}
 		return (ExistentialSentence) stringHandler.getExistentialSentence(variables, body).setWeightOnSentence(wgtSentence);
 	}
@@ -74,7 +73,6 @@ public class ExistentialSentence extends QuantifiedSentence {
             return this;
         }
     }
-    
 
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
@@ -85,7 +83,7 @@ public class ExistentialSentence extends QuantifiedSentence {
 		return result;
 	}	
     @Override
-	public boolean equals(Object other) { // This doesn't handle permuted variable binding lists.  TODO
+	public boolean equals(Object other) { // This doesn't handle permuted variable binding lists.
 		if (!(other instanceof ExistentialSentence)) { return false; }
 		
 		ExistentialSentence otherUsent = (ExistentialSentence) other;
@@ -96,12 +94,11 @@ public class ExistentialSentence extends QuantifiedSentence {
 			
 			if (!var1.equals(var2)) { return false; }
 		}
-		if (!body.equals(((ExistentialSentence) other).body)) { return false; }
-		return true;
+		return body.equals(((ExistentialSentence) other).body);
 	}
 	
     @Override
-	public BindingList variants(Sentence other, BindingList bindings) { // This doesn't handle permuted variable binding lists.  TODO
+	public BindingList variants(Sentence other, BindingList bindings) { // This doesn't handle permuted variable binding lists.
 		if (!(other instanceof ExistentialSentence)) { return null; }
 		
 		BindingList bList2 = bindings;
@@ -154,77 +151,30 @@ public class ExistentialSentence extends QuantifiedSentence {
 		if (body.wgtSentence < Sentence.maxWeight) { Utils.error("Dont know what to do when the weight on the body of an existential is not infinite."); }
 		return newBody1.skolemize(outerUniversalVars).setWeightOnSentence(wgtSentence); // Pass the weight of the existential to the body (which has infinite weight).
 	}	
-    
-//    @Override
-//    protected Sentence standardizeVariableNames(Set<Variable> usedVariables, BindingList newToOldBindings) {
-//
-//        Collection<Variable> newVariables = null;
-//        boolean variableRenamed = false;
-//
-//        if ( variables != null && variables.size() > 0) {
-//
-//            newVariables = new HashSet<Variable>();
-//
-//            if ( usedVariables == null ) {
-//                usedVariables = new HashSet<Variable>();
-//            }
-//
-//            for (Variable variable : variables) {
-//                if ( usedVariables.contains(variable) ) {
-//                    Variable newVariable = variable.copy(true, true);
-//
-//                    if ( newToOldBindings == null ) {
-//                        newToOldBindings = new BindingList();
-//                    }
-//
-//                    newToOldBindings.addBinding(newVariable, variable);
-//
-//                    variable = newVariable;
-//                    variableRenamed = true;
-//                }
-//
-//                usedVariables.add(variable);
-//                newVariables.add(variable);
-//            }
-//        }
-//
-//        Sentence newBody = body.standardizeVariableNames(usedVariables, newToOldBindings);
-//
-//        if ( newBody != body || variableRenamed == true) {
-//            ExistentialSentence newSentence = stringHandler.getExistentialSentence(variables, newBody);
-//            newSentence.setWeightOnSentence(wgtSentence);
-//            return newSentence;
-//        }
-//        else {
-//            return this;
-//        }
-//    }
-
-
 
     @Override
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		int    precedence = 1500;
-		String result     = returnWeightString() + "Exists ";
-		if (variables.size() == 1) { return result + Utils.getIthItemInCollectionUnsafe(variables, 0) + " " + body.toPrettyString(newLineStarter, precedence, bindingList); }
-		result += "{";
+		StringBuilder result     = new StringBuilder(returnWeightString() + "Exists ");
+		if (variables.size() == 1) { return result.toString() + Utils.getIthItemInCollectionUnsafe(variables, 0) + " " + body.toPrettyString(newLineStarter, precedence, bindingList); }
+		result.append("{");
 		boolean firstTime = true;
 		for (Variable var : variables) {
-			if (firstTime) { firstTime = false; } else { result += ", "; }
-			result += var.toString();
+			if (firstTime) { firstTime = false; } else { result.append(", "); }
+			result.append(var.toString());
 		}
 		return result + "} " + body.toPrettyString(newLineStarter, precedence, bindingList);
 	}
     @Override
 	public String toString(int precedenceOfCaller, BindingList bindingList) {
 		int    precedence = 1500;
-		String result     = returnWeightString() + "Exists ";
-		if (variables.size() == 1) { return result + Utils.getIthItemInCollectionUnsafe(variables, 0) + " " + body.toString(precedence, bindingList); }
-		result += "{";
+		StringBuilder result     = new StringBuilder(returnWeightString() + "Exists ");
+		if (variables.size() == 1) { return result.toString() + Utils.getIthItemInCollectionUnsafe(variables, 0) + " " + body.toString(precedence, bindingList); }
+		result.append("{");
 		boolean firstTime = true;
 		for (Variable var : variables) {
-			if (firstTime) { firstTime = false; } else { result += ", "; }
-			result += var.toString();
+			if (firstTime) { firstTime = false; } else { result.append(", "); }
+			result.append(var.toString());
 		}
 		return result + "} " + body.toString(precedence, bindingList);
 	}

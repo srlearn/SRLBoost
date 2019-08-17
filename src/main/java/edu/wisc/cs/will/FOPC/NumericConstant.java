@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
@@ -10,7 +7,6 @@ import java.io.Serializable;
 
 /**
  * @author shavlik
- *
  */
 @SuppressWarnings("serial")
 public class NumericConstant extends Constant implements Serializable {
@@ -19,22 +15,17 @@ public class NumericConstant extends Constant implements Serializable {
 
     private int type;
 
-    public static final int isaInteger = 0;
+    static final int isaInteger = 0;
 
-    public static final int isaDouble = 1;
+    static final int isaDouble = 1;
 
-    public static final int isaFloat = 2; // Not used, but leave in case this changes.
+    private static final int isaFloat = 2; // Not used, but leave in case this changes.
 
-    public static final int isaLong = 3;
+    static final int isaLong = 3;
 
-    public static long instancesCreated = 0;
-    
     protected NumericConstant() {
-    	instancesCreated++;
     }
-    /**
-     *
-     */
+
     // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.
     protected NumericConstant(HandleFOPCstrings stringHandler, Number value, int type, TypeSpec typeSpec) {
     	this();
@@ -69,25 +60,21 @@ public class NumericConstant extends Constant implements Serializable {
         return type;
     }
 
-    public boolean isaInteger() {
+    boolean isaInteger() {
         return getType() == isaInteger;
     }
 
-    public boolean isaLong() {
-        return getType() == isaLong;
-    }
-
-    public boolean isaDouble() {
+    boolean isaDouble() {
         return getType() == isaDouble;
     }
 
-    public boolean isaFloat() {
+    boolean isaFloat() {
         return getType() == isaFloat;
     }
 
     @Override
     public BindingList isEquivalentUptoVariableRenaming(Term that, BindingList bindings) {
-        if (that instanceof NumericConstant == false) {
+        if (!(that instanceof NumericConstant)) {
             return null;
         }
 
@@ -101,7 +88,7 @@ public class NumericConstant extends Constant implements Serializable {
         return false;
     }
 
-    public String toTypedString() {
+    private String toTypedString() {
         String end = (typeSpec != null ? typeSpec.getCountString() : "");
         return (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" + value + end : value.toString() + end);
     }

@@ -8,8 +8,6 @@ package edu.wisc.cs.will.ILP;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Theory;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -42,13 +40,6 @@ public class DefaultLoopState implements ILPLoopState, Cloneable {
     }
 
     /**
-     * @return the negativeExamples
-     */
-    public List<Example> getNegativeExamples() {
-        return negativeExamples;
-    }
-
-    /**
      * @param negativeExamples the negativeExamples to set
      */
     public void setNegativeExamples(List<Example> negativeExamples) {
@@ -63,31 +54,10 @@ public class DefaultLoopState implements ILPLoopState, Cloneable {
     }
 
     /**
-     * @param maximumTimeInSeconds the maximumTimeInSeconds to set
-     */
-    public void setMaximumTimeInSeconds(long maximumTimeInSeconds) {
-        this.maximumTimeInSeconds = maximumTimeInSeconds;
-    }
-
-    /**
-     * @return the learnedTheory
-     */
-    public Theory getLearnedTheory() {
-        return learnedTheory;
-    }
-
-    /**
      * @param learnedTheory the learnedTheory to set
      */
     public void setLearnedTheory(Theory learnedTheory) {
         this.learnedTheory = learnedTheory;
-    }
-
-    /**
-     * @return the coverageScore
-     */
-    public CoverageScore getCoverageScore() {
-        return coverageScore;
     }
 
     /**

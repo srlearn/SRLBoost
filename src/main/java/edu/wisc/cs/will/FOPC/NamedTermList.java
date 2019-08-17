@@ -7,7 +7,6 @@ import java.util.List;
  * This is an awkward 'add in' rather than being designed in from scratch, since this is not generally used.
  * 
  * @author shavlik
- *
  */
 public class NamedTermList {
 	private List<Term>   terms;

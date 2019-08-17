@@ -12,9 +12,6 @@ public abstract class Constant extends Term {
 	
 	private Set<Literal> generatorsOfThisConstantsTypes; // Helps track down errors in type inference.
 
-	/**
-	 * 
-	 */
 	protected Constant() { } // Compiler complains without this (for subtypes).
 	protected Constant(HandleFOPCstrings stringHandler) { // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.
 		this.stringHandler = stringHandler;
@@ -70,5 +67,4 @@ public abstract class Constant extends Term {
 	}
 	
 	public abstract String getName();
-
 }

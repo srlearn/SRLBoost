@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.OneClass;
 
 import java.util.ArrayList;
@@ -8,9 +5,8 @@ import java.util.List;
 
 /**
  * @author tkhot
- *
  */
-public class KernelEstimator {
+class KernelEstimator {
 
 	private double bandwidth;
 	
@@ -21,19 +17,19 @@ public class KernelEstimator {
 	
 	private KernelFunction kernelType;
 	
-	public KernelEstimator() {
+	KernelEstimator() {
 		bandwidth = 0.5;
 		kernelType = KernelFunction.GAUSSIAN;
 	}
 	
-	public double getDistance(int commonEdges) {
+	double getDistance(int commonEdges) {
 		if (commonEdges == -1) {
 			return 0; 
 		}
 		return Math.exp(-(double)commonEdges);
 	}
 	
-	public double getKernelValue(double distance) {
+	double getKernelValue(double distance) {
 		switch (kernelType) {
 		case EPAN:
 			return (3.0/4.0) * (1 - Math.pow(distance/bandwidth, 2));
@@ -45,20 +41,16 @@ public class KernelEstimator {
 			return distance;
 		}
 	}
-	
-	public double getKernelFromEdges(int commonEdges) {
-		return getKernelValue(getDistance(commonEdges));
-	}
-	
-	public double getProbabilityFromDistance(List<Double> distances) {
-		List<Double> kernelVals = new ArrayList<Double>();
+
+	double getProbabilityFromDistance(List<Double> distances) {
+		List<Double> kernelVals = new ArrayList<>();
 		for (Double dist : distances) {
 			kernelVals.add(getKernelValue(dist));
 		}
 		return getProbabilityFromKernel(kernelVals);
 	}
 
-	public double getProbabilityFromKernel(List<Double> kernelVals) {
+	private double getProbabilityFromKernel(List<Double> kernelVals) {
 		double sum = 0;
 		for (Double kval : kernelVals) {
 			sum += kval;
@@ -66,18 +58,8 @@ public class KernelEstimator {
 		return (1/((double)kernelVals.size() * bandwidth)) * sum;
 	}
 
-	/**
-	 * @return the bandwidth
-	 */
-	public double getBandwidth() {
+	double getBandwidth() {
 		return bandwidth;
 	}
 
-	/**
-	 * @param bandwidth the bandwidth to set
-	 */
-	public void setBandwidth(double bandwidth) {
-		this.bandwidth = bandwidth;
-	}
-	
 }

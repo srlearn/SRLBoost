@@ -20,7 +20,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public    String                   name;	
 	private   List<PredicateSpec>      typeSpecList = null; // Information about this Predicate, e.g. legal arguments to it.  A 'type' describes both the kind of arguments it takes (e.g., 'people' are 'books') and whether these arguments are "input" variables, "output" variables, or constants.
 	private   List<PredicateSpec>      typeOnlyList = null; // Similar to above, but the input/output markers are not included.
-	private   Set<Integer>             typeDeSpeced = null; // Modes that have been disabled - currently all modes of a given arity are disabled (TODO - handle '*').
+	private   Set<Integer>             typeDeSpeced = null; // Modes that have been disabled - currently all modes of a given arity are disabled
 	Set<Integer> boundariesAtEnd_1D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
 	private Set<Integer> boundariesAtEnd_2D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
 	private Set<Integer> boundariesAtEnd_3D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
@@ -34,7 +34,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Set<Integer> canBeAbsentThisArity                         = null;  // OK if this predicate name with one of these arities can be absent during theorem proving.
 	private   boolean      canBeAbsentAnyArity                          = false;
 	private   Set<Integer> dontComplainAboutMultipleTypesThisArity      = null;  // OF if this predicate/arity have multiple types for some argument.
-	private   boolean      dontComplainAboutMultipleTypesAnyArity       = false; // TODO - should this be per argument as well?  Eg, provide TWO integers?
+	private   boolean      dontComplainAboutMultipleTypesAnyArity       = false;
 	private   Map<Integer,Map<Integer,Type>> determinateSpec            = null;  // Used to say this predicate with this arity has only one (at most one?) value for this position, and that value is of this type.
 	private   Map<FunctionAsPredType,Map<Integer,Integer>>  functionAsPredSpec  = null;  // See if this predicate/arity holds a value of the type specified by String in this position.
 	private   Set<Integer>                   bridgerSpec                = null;  // See if this predicate/arity is meant to be a 'bridger' predicate during ILP's search for clauses.  If the arg# is given (defaults to -1 otherwise), then all other arguments should be bound before this is treated as a 'bridger.'
@@ -115,12 +115,12 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return results;
 	}
 
-	// See if this literal is a determinate.  FOR NOW, JUST CHECK THE PREDICATE NAME AND ARITY, BUT SHOULD REALLY CHECK IT MATCHES THE TYPE IN THE DETERMINATE SPEC. TODO
+	// See if this literal is a determinate.  FOR NOW, JUST CHECK THE PREDICATE NAME AND ARITY, BUT SHOULD REALLY CHECK IT MATCHES THE TYPE IN THE DETERMINATE SPEC.
 	boolean isDeterminatePredicate(List<Term> arguments) {
 		return (determinateSpec != null && determinateSpec.get(Utils.getSizeSafely(arguments)) != null);
 	}
 
-    boolean isDeterminatePredicate(int arity) {
+    private boolean isDeterminatePredicate(int arity) {
 		return (determinateSpec != null && determinateSpec.get(arity) != null);
 	}
 
@@ -132,7 +132,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return (lookup1.get(Utils.getSizeSafely(arguments)) != null);
 	}
 
-    boolean isFunctionAsPredicate(int arity) {
+    private boolean isFunctionAsPredicate(int arity) {
         if ( functionAsPredSpec != null ) {
             for (FunctionAsPredType type : FunctionAsPredType.values()) {
                 Map<Integer,Integer> lookup1 = functionAsPredSpec.get(type);
@@ -145,7 +145,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         return false;
     }
 
-    int getFunctionAsPredicateOutputIndex(int arity) {
+    private int getFunctionAsPredicateOutputIndex(int arity) {
         if ( functionAsPredSpec != null ) {
             for (FunctionAsPredType type : FunctionAsPredType.values()) {
                 Map<Integer, Integer> lookup1 = functionAsPredSpec.get(type);
@@ -253,6 +253,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		if (variantHashMap == null) {
 			variantHashMap = new HashMap<>(4);
 		}
+		assert lit1 != null;
 		int arity = lit1.numberArgs();
 		List<ConnectedSentence> lookup = variantHashMap.computeIfAbsent(arity, k -> new ArrayList<>(1));
 
@@ -280,7 +281,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			pruneHashMap = new HashMap<>();
 		}
 
-        int arity = prunableLiteral.getArity();
+		assert prunableLiteral != null;
+		int arity = prunableLiteral.getArity();
 		MapOfLists<PredicateNameAndArity, Pruner> prunes = getPruners(arity);
 		if (prunes == null) {
 			prunes = new MapOfLists<>();
@@ -295,7 +297,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	/**
 	 * Get the list of pruning rules for this literal (whose head should be that of this PredicateName instance, but we also need the specific arity).
 	 * Note that this method does not check for those pruners that unify with prunableLiteral.  That is the job of the caller.
-	 * @return TODO what does this return?
 	 */
 	   public MapOfLists<PredicateNameAndArity, Pruner> getPruners(int arityOfPrunableLiteral) {
 		if (pruneHashMap == null) { return null; }
@@ -309,7 +310,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		Map<Integer, List<Object>> firstLookUp = constrainsType.computeIfAbsent(arity, k -> new HashMap<>(4));
 		List<Object> secondLookUp = firstLookUp.get(position);
 		if (secondLookUp == null) { // Not currently specified.
-			List<Object> newList = new ArrayList<Object>(2); // Not worth creating a new class for this.
+			List<Object> newList = new ArrayList<>(2); // Not worth creating a new class for this.
 			newList.add(type);
 			newList.add(pruneIfNoEffect);
 			firstLookUp.put(position, newList);
@@ -500,7 +501,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		int arity = lit.numberArgs();
 		List<PredicateSpec> items = getTypeList();
 		for (PredicateSpec spec : items) if (arity == Utils.getSizeSafely(spec.getSignature())) { return true; }
-		if (typeDeSpeced == null) { Utils.println("% No mode match to '" + lit + "' in " + items); }  // Only warn if not de-spec'ed.  TODO - also check arity.
+		if (typeDeSpeced == null) { Utils.println("% No mode match to '" + lit + "' in " + items); }  // Only warn if not de-spec'ed.
 		return false;
 	}
 	
@@ -514,7 +515,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		if (canBeAbsentThisArity.contains(arity)) { return; } // No need to add again.
 		canBeAbsentThisArity.add(arity);
 	}
-		
+
 	public boolean dontComplainAboutMultipleTypes(int arity) {
 		if (dontComplainAboutMultipleTypesAnyArity) { return true; }
 		return dontComplainAboutMultipleTypesThisArity != null && dontComplainAboutMultipleTypesThisArity.contains(arity);
@@ -534,9 +535,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public void setIsaInterval_1D(int arity, boolean boundariesAtEnd) {
 		if (isaInterval_1D     == null) { isaInterval_1D     = new HashSet<>(4); }
 		if (boundariesAtEnd_1D == null) { boundariesAtEnd_1D = new HashSet<>(4); }
-		if (isaInterval_1D(    arity)) { return; } // Already recorded.  TODO check if boundariesAtEnd has changed!
+		if (isaInterval_1D(    arity)) { return; }
 		isaInterval_1D.add(    arity);
-		// if (boundariesAtEnd_1D.get(arity)) { return; } // Already recorded.  TODO check if boundariesAtEnd has changed!
 		if (boundariesAtEnd) { boundariesAtEnd_1D.add(arity); }
 	}
 
@@ -547,7 +547,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public void setIsaInterval_2D(int arity, boolean boundariesAtEnd) {
 		if (isaInterval_2D     == null) { isaInterval_2D     = new HashSet<>(4); }
 		if (boundariesAtEnd_2D == null) { boundariesAtEnd_2D = new HashSet<>(4); }
-		if (isaInterval_2D(    arity)) { return; } // Already recorded.  TODO check if boundariesAtEnd has changed!
+		if (isaInterval_2D(    arity)) { return; }
 		isaInterval_2D.add(    arity);
 		if (boundariesAtEnd) { boundariesAtEnd_2D.add(arity); }
 	}
@@ -559,14 +559,14 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public void setIsaInterval_3D(int arity, boolean boundariesAtEnd) {
 		if (isaInterval_3D     == null) { isaInterval_3D     = new HashSet<>(4); }
 		if (boundariesAtEnd_3D == null) { boundariesAtEnd_3D = new HashSet<>(4); }
-		if (isaInterval_3D(    arity)) { return; } // Already recorded.  TODO check if boundariesAtEnd has changed!
+		if (isaInterval_3D(    arity)) { return; }
 		isaInterval_3D.add(    arity);
 		if (boundariesAtEnd) { boundariesAtEnd_3D.add(arity); }
 	}
 
 	public void setDeterminateInfo(int arity, int position, Type type) throws IllegalStateException {
 		if (determinateSpec == null) {
-			determinateSpec = new HashMap<Integer,Map<Integer,Type>>(4);
+			determinateSpec = new HashMap<>(4);
 		}
 		Map<Integer, Type> firstLookUp = determinateSpec.computeIfAbsent(arity, k -> new HashMap<>(4));
 		Type secondLookUp = firstLookUp.get(position);

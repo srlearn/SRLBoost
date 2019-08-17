@@ -1,5 +1,7 @@
 package edu.wisc.cs.will.FOPC;
 
+import java.util.List;
+
 import edu.wisc.cs.will.FOPC.visitors.ElementAndPath;
 import edu.wisc.cs.will.FOPC.visitors.ElementFinder;
 import edu.wisc.cs.will.FOPC.visitors.ElementPath;
@@ -8,7 +10,6 @@ import edu.wisc.cs.will.ResThmProver.DefaultProof;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.Proof;
 import edu.wisc.cs.will.Utils.Filter;
-import java.util.List;
 
 /**
  * @author twalker
@@ -27,7 +28,6 @@ public class PruneDuplicatesIfTrueRule implements PruningRule {
             throw new IllegalArgumentException("Pruning rule for duplicates requires form:  prune(ExistingLiteral, AddedLiteral) :- body.");
         }
     }
-
 
     public Sentence pruneElement(HornClauseContext context, Sentence sentence, ElementPath pathToPrune, SentenceOrTerm element) {
 

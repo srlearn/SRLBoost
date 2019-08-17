@@ -8,7 +8,7 @@ import edu.wisc.cs.will.ResThmProver.HornClauseContext;
  */
 public interface PruningRule {
 
-    /** Prunes the inputSentence for a given internal element.
+    /* Prunes the inputSentence for a given internal element.
      *
      *    This is used during advice processing to rewrite existing
      *    advice sentences.  In this context, the whole piece of advice

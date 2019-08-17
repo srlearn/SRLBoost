@@ -15,30 +15,26 @@ import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClausebase;
 import edu.wisc.cs.will.Utils.Utils;
 
 public class InlineManager {
-	protected final static int debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
+
+	protected final static int debugLevel = 0;
 
 	private HandleFOPCstrings  stringHandler;
 	private HornClausebase     hornClauseKnowledgeBase;
 	
 	private PredicateName      notPname;
 	
-	public InlineManager(HandleFOPCstrings stringHandler, HornClausebase hornClauseKnowledgeBase) {
+	InlineManager(HandleFOPCstrings stringHandler, HornClausebase hornClauseKnowledgeBase) {
         this.stringHandler = stringHandler;
         this.hornClauseKnowledgeBase = hornClauseKnowledgeBase;
 
         this.notPname = stringHandler.standardPredicateNames.negationByFailure;
     }
 
-    public InlineManager(HornClauseContext context) {
-		this(context.getStringHandler(), context.getClausebase());
-	}
-
-	public void addInventedClause(Literal head, Clause c) {
+	void addInventedClause(Literal head) {
 		if (literalIsInlined(head)) { Utils.error("Already have inlined '" + head + "'."); }
 		head.predicateName.addInliner(head.numberArgs());
 	}
@@ -75,17 +71,11 @@ public class InlineManager {
         Utils.waitHere("getLiteralDefinition: this literal is not inlined: " + lit);
         return null;
     }
-	
-	public void addToFilterTheseOut(PredicateName pName) {
-		pName.addFilter();
-	}
-	
+
 	private Clause getUnifiedLiteralDefinition(int depth, Literal lit, BindingList overallBindings) {
 		if (lit == null)                 { Utils.error("Literal should be NULL here."); }
-		//Utils.println("   OLD: " + getLiteralDefinition(lit));
 		getStringHandler().resetAllVariables(); // Need fresh variables for the following copy.
 		Clause definer = getLiteralDefinition(lit);
-		//Utils.println("   NEW: " + definer);
 		if ( definer == null)            { Utils.error("Expected a definition of this literal: " + lit); }
 		else {
 			definer = definer.copy(true);  // We need a fresh copy in case the same head appears more than once in a clause.
@@ -110,11 +100,11 @@ public class InlineManager {
 		// Will this next line mess up in recursion?  Hopefully not.
 		overallBindings.addBindings(bl); // Delay this to here in case we figure out how to recover from that error.
 		if (debugLevel > 3) { indentAndPrintln(depth, " combined = " + bindingsToDetailedString(overallBindings)); }
-		List<Literal> litsToKeep = new ArrayList<Literal>(Utils.getSizeSafely(definer.negLiterals));
+		List<Literal> litsToKeep = new ArrayList<>(Utils.getSizeSafely(definer.negLiterals));
 		if (definer.negLiterals != null) for (Literal innerLit : definer.negLiterals) if (!innerLit.predicateName.filter()) {
 			litsToKeep.add(innerLit);
 		}
-		List<Literal> posLits = new ArrayList<Literal>(1);
+		List<Literal> posLits = new ArrayList<>(1);
 		posLits.add(head);
 		return getStringHandler().getClause(posLits, litsToKeep).applyTheta(overallBindings.theta);
 	}
@@ -143,12 +133,12 @@ public class InlineManager {
 		List<Clause> results = help_handleInlinerAndSupportingClauses(c, 0);
 		if (results == null) { Utils.waitHere("Got no results from in-lining: " + c); return null; }
 		VisitedClauses clausesVisited = new VisitedClauses(100000);  // Watch for duplicates in the Supporting Clauses.
-		List<Clause>   newResults     = new ArrayList<Clause>(results.size());
-		for (Clause c2 : results) {  //Utils.waitHere("C2: " + c2);
+		List<Clause>   newResults     = new ArrayList<>(results.size());
+		for (Clause c2 : results) {
 			if (debugLevel > 3) { Utils.println("\n% Refactored clause: "); getStringHandler().reportVarsInFOPC(c2); }
 			Clause newClause = (Clause) getStringHandler().renameAllVariables(c2);
 			if (clausesVisited.alreadyInClosedList(getStringHandler(),newClause) != null) {
-				 // Utils.waitHere("% Duplicate supporting clause: " + newClause); // Can turn this off later - but watch now for debugging purposes.
+
 			} else {
 				newResults.add(newClause);
 				clausesVisited.addClauseToClosed(getStringHandler(),newClause); // OK to add the 'main clause' here, since it would be odd to have the same clause as a main and supporting clause.
@@ -171,7 +161,7 @@ public class InlineManager {
 
         if (!c.isDefiniteClause()) { Utils.error("This code only handle definite clauses.  It was given: " + c); }
 		
-		List<Literal> newBodyLiterals = new ArrayList<Literal>(c.getLength());
+		List<Literal> newBodyLiterals = new ArrayList<>(c.getLength());
 		Set<Clause>   supporters      = null; // Remove duplicates when possible, but might not too look for variants via VisitedClauses instance.
 		BindingList   overallBindings = new BindingList(); // Need to keep track of all the bindings necessary to make the in-lines match up.
 		
@@ -200,13 +190,9 @@ public class InlineManager {
 				Utils.error("This code assumes a literal is not BOTH an in-liner and a 'supporting' literal: " + lit + "."); // TODO generalize
 			} else if (lit.predicateName == notPname) { // We want to leave these as is, but need to collecting any 'supporters' they need.
 				if (debugLevel > 3) { indentAndPrintln(depth, " NEGATION: " + lit); } 
-				//Utils.println(  "%   current supporters = " + supporters);
+
 				if (isaInliner || isaSupporter) { Utils.error("This code assumes the negation-by-failure predicate is not an in-liner nor a 'supporting' literal: " + lit + "."); } // TODO generalize
-//				if (lit.numberArgs() != 1)      { Utils.error("Should a negation-by-failure have more than one argument? " + lit); }
-//				Term arg = lit.getArgument(0);
-//				if (!(arg instanceof SentenceAsTerm)) {
-//                    Utils.error("Should a negation-by-failure's argument not be a SentenceAsTerm? " + arg);
-//                }
+
 
                 Clause clause = getStringHandler().getNegationByFailureContents(lit);
                 if ( clause == null ) {
@@ -251,7 +237,6 @@ public class InlineManager {
                         }
                     }
 				}
-				//Utils.waitHere("How does the negation-by-failure look?");
 				if (debugLevel > 3) { indentAndPrintln(depth, " NEGATION, add this to body: " + lit); }
 				newBodyLiterals.add(lit);
 			} else if (isaSupporter) {
@@ -263,28 +248,24 @@ public class InlineManager {
 					blToUse.theta.clear();
 					BindingList bl = literalMatchesDeterminateClause(lit, c2, blToUse);
 					if (bl == null) { continue; }
-					//stringHandler.reportVarsInFOPC(c2);
-					if (supporters == null) { supporters = new HashSet<Clause>(1); }
+					if (supporters == null) { supporters = new HashSet<>(1); }
 					List<Clause> recurResults = help_handleInlinerAndSupportingClauses(c2.applyTheta(bl.theta), depth + 1);
 					
 					if (Utils.getSizeSafely(recurResults) > 0) { supporters.addAll(recurResults); }
 				}
 			} else if (isaInliner) { // Need to replace this literal.
-				if (debugLevel > 3) { indentAndPrintln(depth, " INLINE this lit: " + lit); } 
-				if (overallBindings == null) { Utils.error("How did overallBindings = null"); }
+				if (debugLevel > 3) { indentAndPrintln(depth, " INLINE this lit: " + lit); }
 				Clause newDefn = getUnifiedLiteralDefinition(depth, lit, overallBindings); // This will change overallBindings.
 				if (debugLevel > 3) { indentAndPrintln(depth, " INLINE defn:   " + newDefn); }
-				// Utils.println("\nInlining newDefn: ");  stringHandler.reportVarsInFOPC(newDefn); Utils.println("");
 				
 				List<Clause> recurResults = help_handleInlinerAndSupportingClauses(newDefn, depth + 1);
 				if (Utils.getSizeSafely(recurResults) < 1) { Utils.error("recurResults = " + recurResults + " for newliner = " + lit + "\n newDefn = " + newDefn + "\n overall bindings =" + overallBindings); }
 				
-				if (supporters == null) { supporters = new HashSet<Clause>(1); }
+				if (supporters == null) { supporters = new HashSet<>(1); }
 				Clause        result       = recurResults.remove(0);
 				if (debugLevel > 3) { indentAndPrintln(depth, " INLINE result: " + result.toString(Integer.MAX_VALUE)); }
 				if (debugLevel > 3) { indentAndPrintln(depth, " Overall binds: " + bindingsToDetailedString(overallBindings)); }
 				List<Literal> litsToInsert = result.negLiterals;
-				// Utils.println("\n%"); for (int i = 0; i < depth; i++) { Utils.print("  "); } Utils.println("Inlining result: ");  stringHandler.reportVarsInFOPC(result);
 				if (litsToInsert != null) for (Literal litToInsert : litsToInsert) { 
 					if (debugLevel > 3) { indentAndPrintln(depth, " INLINE (add to body): " + litToInsert); }
 					if (debugLevel > 3) { indentAndPrintln(depth, " INLINE (theta'ed):    " + litToInsert.applyTheta(overallBindings.theta)); } 
@@ -297,7 +278,7 @@ public class InlineManager {
 			}			
 		}
 		Clause newClause = getStringHandler().getClause(c.posLiterals, newBodyLiterals, c.getExtraLabel());  // Note we are REUSING THE OLD HEAD.
-		List<Clause> newListOfClauses = new ArrayList<Clause>();
+		List<Clause> newListOfClauses = new ArrayList<>();
 		Clause newClauseBound = newClause.applyTheta(overallBindings.theta);
 		if (debugLevel > 3) {
 			indentAndPrintln(depth, "Final processing of clause:    " + c.toString(             Integer.MAX_VALUE));
@@ -305,7 +286,6 @@ public class InlineManager {
 			indentAndPrintln(depth, "                Overall binds: " + bindingsToDetailedString(overallBindings)); 
 			indentAndPrintln(depth, "         After applying theta: " + newClauseBound.toString(Integer.MAX_VALUE));
 		}
-		//stringHandler.reportVarsInFOPC(newClauseBound);
 		newListOfClauses.add(newClauseBound);
 		if (Utils.getSizeSafely(supporters) < 1) { return newListOfClauses; }
 		newListOfClauses.addAll(supporters); // These do not need to be unified since they are stand-alone.
@@ -328,13 +308,7 @@ public class InlineManager {
 		}
 		return result + "|";
 	}
-	
-	@SuppressWarnings("unused")
-	private void indentAndPrint(int depth, String str) {
-		Utils.print("% "); for (int i = 0; i < depth; i++) { Utils.print("  "); }
-		Utils.print(str);		
-	}
-	
+
 	private void indentAndPrintln(int depth, String str) {
 		Utils.print("% "); for (int i = 0; i < depth; i++) { Utils.print("  "); }
 		Utils.println(str);		
@@ -361,11 +335,4 @@ public class InlineManager {
         return hornClauseKnowledgeBase;
     }
 
-    /**
-     * @param hornClauseKnowledgeBase the hornClauseKnowledgeBase to set
-     */
-    public void setHornClauseKnowledgeBase(HornClausebase hornClauseKnowledgeBase) {
-        this.hornClauseKnowledgeBase = hornClauseKnowledgeBase;
-    }
-	
 }

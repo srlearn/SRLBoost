@@ -1,8 +1,13 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.Clause;
@@ -25,14 +30,6 @@ import edu.wisc.cs.will.stdAIsearch.ChildrenNodeGenerator;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
 
 /**
  * @author shavlik
@@ -138,8 +135,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		if (true || (LearnOneClause.debugLevel > 2 && thisTask.getNodesConsidered() % modForReportingExpansions == 0)) { 
 			Utils.println("\n% Consider expanding [#" + Utils.comma(thisTask.getNodesConsidered()) + " of " + thisTask.callerName + ", bodyLen=" + parentBodyLen + (parentBodyLen==parent.bodyLength() ?  "" : ":" + parent.bodyLength()) + "] '" + parent + "' score=" + parent.score);   // parent.reportTypesPresent(); parent.reportTypedVariablesPresent();  parent.reportBadList(); }
 		}
-        
-        // <editor-fold defaultstate="collapsed" desc="Length and Improvement Constraints">
+
         // TODO Some tests (eg, canImprove) for stopping we'll postpone until/if a node is popped from OPEN.  Also, some would require scoring early, though that is cached so no wasted cycles.
         //	if (true) { Utils.println("\n% Consider expanding [#" + Utils.comma(thisTask.nodesConsidered + 1) + " of " + thisTask.callerName + "]: '" + parent + "' score=" + parent.score);  } // parent.reportTypesPresent(); parent.reportTypedVariablesPresent();  parent.reportBadList(); }
         if (parentBodyLen >= thisTask.maxBodyLength) {
@@ -149,59 +145,20 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
         if (!collectAllConjuncts && !parent.canImprove(thisTask)) {
 			if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("%  It does not make sense to expand since this clause cannot be improved."); }
 			return null; // No need to continue if no negative examples are covered, for example (assuming the clause does not have other requirements, such as containing all the variables appearing in the head).
-       }// </editor-fold>
+       }
 
-		// <editor-fold defaultstate="collapsed" desc="RRR Setup">
         if (thisTask.performRRRsearch && thisTask.stillInRRRphase1) {
             // See if have completed the first phase of RRR.
             if (parentBodyLen >= thisTask.thisBodyLengthRRR) {
                 thisTask.stillInRRRphase1 = false;
                 thisTask.beamWidth = thisTask.savedBeamWidth; // When done with RRR's first phase, reset to the standard beam width.
             }
-        }// </editor-fold>
+        }
 		
 		existingTermsOfTypeMap.clear(); // This is a local cache that is only used for expanding the chosen node (since too much space to store for all of OPEN).
 		putParentClauseInFormForPruning(parent);
-		
-		// <editor-fold defaultstate="collapsed" desc="Disabled Code">
-        // TODO need to update all recorded information at each node when updating
-        // UNTIL THEN, THIS IS TURNED OFF
-        if (false && !(thisTask.performRRRsearch && thisTask.stillInRRRphase1)) { // Note: even if not doing RRR, can do moves that shorten the clause.
-            // See if we want to make an UPHILL move.  If so, randomly pick a literal to drop, then create a legal path of nodes.
-            // We do NOT want to return here - instead, we want to also add the normal "down hill" moves.
-            // No need to drop the LAST literal in the current clause, since that clause has already been considered
-            // (it might not have been fully considered if in phase1 of RRR, but that is OK).
-            if (parentBodyLen > 1 && Utils.random() <= thisTask.fractionOfTimesUphillMoveCreated) {
-                boolean foundOne = false;
-                int counter = 0;
 
-                while (!foundOne && counter++ < 3) { // Try a few times since might drop a literal that doesn't allow for the following literals to be kept, because they depend on an output var of the literal dropped.
-                    int literalToDrop = Utils.randomInInterval(1, parentBodyLen);
-                    // literalToDrop says how far up to climb (ie, literalToDrop = 1 indicates the parent of this node).
-                    SingleClauseNode ancestor = parent.goBackThisManyGenerations(literalToDrop + 1); // Want the PARENT of the literal being dropped.
-                    List<SingleClauseNode> remainingDescendants = parent.collectDescendantsOfThisAncestor(literalToDrop);
-                    // The above two collect all the literals down to the parent EXCEPT for the one dropped.
-                    if (LearnOneClause.debugLevel > 2) {
-                        List<Literal> literalsAdded = collectLiteralsAdded(remainingDescendants);
-                        Utils.println("%  Doing an uphill move from: '" + parent + "' [parentBodyLen=" + parentBodyLen + ", literalToDrop=" + literalToDrop + "]");
-                        Utils.println("%    ancestor:                 " + ancestor);
-                        Utils.println("%    remainingDescendants:    " + literalsAdded);
-                    }
-                    SingleClauseNode newNode = ancestor.buildNewAncestor(remainingDescendants);
-                    if (newNode != ancestor) { // If ancestor is returned, then could not extend it.
-                        if (newNode.acceptableCoverageOnSeeds()) {
-                        	newNode.computeCoverage(); // WE NOW (11/23/10) COMPUTE COVERAGE WHEN ADDED IN CASE THIS IS THE BEST NODE.
-                            children.add(newNode);  if (LearnOneClause.debugLevel > debugMult*3) { Utils.println("%    |children|=" + children.size()); }
-                            foundOne = true;
-							if  (LearnOneClause.debugLevel > 2) { Utils.println("%    new:                      " + newNode); }
-                        }
-						else if (LearnOneClause.debugLevel > 1) { Utils.println("%  Could not extend due to insufficient coverage on the seeds."); }
-					} else   if (LearnOneClause.debugLevel > 1) { Utils.println("%  Could not extend due to required modes.  So try again.");      }
-                }
-            }
-        }// </editor-fold>
-
-        Set<PredicateNameAndArity> eligibleBodyModes = applyModeContraints(bodyModes, parent);
+		Set<PredicateNameAndArity> eligibleBodyModes = applyModeContraints(bodyModes, parent);
 		
 		int  maxPossibleNewVars = thisTask.maxNumberOfNewVars - parent.numberOfNewVars;
 		int  counter = 0; int modToUse = Integer.MAX_VALUE; // SET THIS TO, SAY, '1' IN ORDER TO GET A SENSE OF WHAT IS HAPPENING IN THE ILP SEARCH.
@@ -219,11 +176,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				}
 				int              arity = Utils.getSizeSafely(specs.getSignature());				
 				if (LearnOneClause.debugLevel > debugMult*3) { Utils.println("  JWS: specs: " + specs + " arity = " + arity + " specs.getTypeSpecList() = " + specs.getTypeSpecList()); }
-				// Could use this as a filter if many modes for predicates that are unknown, but better to trap those for now as potential typos.
-				//  if (!thisTask.prover.checkForPossibleMatchingFact(predName, arity) && !thisTask.prover.checkForPossibleMatchingClause(predName, arity)) {
-				//	  if (LearnOneClause.debugLevel > 0) { Utils.println("%  Since no facts nor clauses match " + predName + "/" + arity + ", will skip this mode: " + specs); }
-				//	  continue;
-				//  }			
 				int countOfOccurrences = parent.countPredicateOccurrences(predName, arity);  // Note that this recorded also as a function of the arity (essentially p/1 and p/2, i.e., p(x) and p(x,y), are two different predicates).
 				Integer        predMax = predName.getMaxOccurrences(arity);
 				if (predMax == null) {
@@ -239,13 +191,12 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				Map<Term,Type>            typesOfNewTerms     = null;
 				Map<Term,Integer>         depthsOfTerms       = null;
 				Map<Variable,Type>        typesOfNewConstants = null;  // We may need some variables that will need to be replaced by constants before this method is exited.
-				
-                // <editor-fold defaultstate="collapsed" desc="Predicate Usage Reporting">
+
                 if (reportPredicateUsage) {
                     predName.incrementConsideredCounter();
                     predicatesMarked.add(predName);
                     callCounter++;
-                }// </editor-fold>
+                }
                 
 				if (specs.getTypeSpecList() != null) for (TypeSpec spec : specs.getTypeSpecList()) {               // Consider each argument in this mode.
 					List<Term> validTermsOfThisType = new ArrayList<Term>(4); // Collect all the terms that can legally be used for this argument.
@@ -780,14 +731,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		}
 		return result;
 	}
-	
-	private List<Literal> collectLiteralsAdded(List<SingleClauseNode> nodes) {
-		List<Literal> result = new ArrayList<Literal>(nodes.size());
-		
-		for (SingleClauseNode node : nodes) { result.add(node.literalAdded); }
-		return result;
-	}
-	
+
 	// Convert all these literals into terms.  This allows the literals to be arguments in a literal.  (Recall the arguments to a literal are terms.)
 	private List<Term> reify(List<Literal> literals) {
 		HandleFOPCstrings handler = ((LearnOneClause) task).stringHandler;
@@ -800,7 +744,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		return result;
 	}
 	
-	protected Map<Type,List<Term>>  collectNewTypesPresentInChildMap(List<Term> args, Map<Term,Type> typesOfNewTerms) {
+	private Map<Type,List<Term>>  collectNewTypesPresentInChildMap(List<Term> args, Map<Term, Type> typesOfNewTerms) {
 		if (typesOfNewTerms == null) { return null; }
 		newTypesPresentInChildMap = null;
 		newTypesPresentInChild    = null;
@@ -809,7 +753,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 	}
 	
 	// A "hack" to return two results w/o doing an extra "new."  Be careful when calling.
-	protected List<Type> collectNewTypesPresentInChild() {
+	private List<Type> collectNewTypesPresentInChild() {
 		 List<Type>  temp = newTypesPresentInChild;
 		 newTypesPresentInChild    = null;
 		 newTypesPresentInChildMap = null; // Clean this up as well.
@@ -848,15 +792,15 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 			
 			if (argType != null) { // This constant is a new one.  So need to add its type. todo: clean up this code so vars and constants treated the same - ie, too much duplication.
 				if (newTypesPresentInChildMap == null) {  // In no hash map, initialize.
-					newTypesPresentInChildMap = new HashMap<Type,List<Term>>(4);
-					newTypesPresentInChild    = new ArrayList<Type>(4);
+					newTypesPresentInChildMap = new HashMap<>(4);
+					newTypesPresentInChild    = new ArrayList<>(4);
 				}
 				List<Term> termsOfThisType = newTypesPresentInChildMap.get(argType); // See if any vars of this type in the hash map.
 				if (termsOfThisType != null) { // Is there already a list for terms of this type in the hash map?
 					termsOfThisType.add(argAsConst);
 				}
 				else { // Otherwise create one.
-					List<Term> termList = new ArrayList<Term>(1);
+					List<Term> termList = new ArrayList<>(1);
 					termList.add(argAsConst);
 					newTypesPresentInChildMap.put(argType, termList);
 					newTypesPresentInChild.add(argType);  // Also record that a new type encountered.
@@ -1015,7 +959,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		return false;
 	}
 
-	protected BindingList bindVarsToUniqueConstants(Literal numberedLiteral) {
+	BindingList bindVarsToUniqueConstants(Literal numberedLiteral) {
 		BindingList          blForParent = cachedBindingListForPruning;
 		BindingList          result      = new BindingList();
 		Collection<Variable> newVars     = numberedLiteral.collectFreeVariables(null);		
@@ -1052,7 +996,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
         Set<PredicateNameAndArity> modes = bodyModes;
         boolean mutable = false;
 
-        if (constraints.isEmpty() == false) {
+        if (!constraints.isEmpty()) {
             for (ModeConstraint modeConstraint : constraints) {
                 if (modes.isEmpty()) {
                     break;

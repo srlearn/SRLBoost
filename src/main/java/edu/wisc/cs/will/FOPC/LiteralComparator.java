@@ -21,6 +21,8 @@ public class LiteralComparator implements Comparator<Literal> {
 		if (lit0 == lit1) { return 0; }
 		if (lit0 == null || lit1 == null) { Utils.error("Should not call LiteralComparator.compare with a lit=null."); }
 
+		assert lit0 != null;
+		assert lit1 != null;
 		int int0 = lit0.predicateName.hashCode();
 		int int1 = lit1.predicateName.hashCode();
 		
@@ -43,9 +45,8 @@ public class LiteralComparator implements Comparator<Literal> {
 					String   s0 = v0.toString();
 					String   s1 = v1.toString();
 					if (s0.equals(s1)) {
-						if (v0.counter > v1.counter) { return  1; } // These are longs and we need an int, so cannot simply subtract.
-						if (v0.counter < v1.counter) { return -1; }
-						else                         { return  0; }
+						// These are longs and we need an int, so cannot simply subtract.
+						return Long.compare(v0.counter, v1.counter);
 					}
 					return s0.hashCode() - s1.hashCode();
 				}

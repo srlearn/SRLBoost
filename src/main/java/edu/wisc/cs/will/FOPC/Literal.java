@@ -1,9 +1,6 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,15 +9,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
-import edu.wisc.cs.will.FOPC.PredicateName.FunctionAsPredType;
+import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.Utils.Utils;
-import java.io.Serializable;
 
 /**
  * @author shavlik
- *
  */
 @SuppressWarnings("serial")
 public class Literal extends Sentence implements Serializable, DefiniteClause, LiteralOrFunction {
@@ -29,10 +25,10 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     private List<Term>   arguments;     // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
     private List<String> argumentNames; // (Optional) names of the arguments.
 
-    private int containsVariables = -1; // Only set to false if CHECKED.  (Key: -1 = unknown, 0 = false, 1 = true.)  TODO protect against changes to 'arguments'
+    private int containsVariables = -1; // Only set to false if CHECKED.  (Key: -1 = unknown, 0 = false, 1 = true.)
     private int cached_arity      = -1;
     
-    public static long instancesCreated = 0;  // PROBABLY SHOULD PUT THESE IN THESE IN THE STRING HANDLER. 
+    private static long instancesCreated = 0;  // PROBABLY SHOULD PUT THESE IN THESE IN THE STRING HANDLER.
 
 
     protected Literal() {
@@ -97,11 +93,11 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
         // Add the arguments to the this.arguments list.
         if (arguments != null) {
-            this.arguments = new ArrayList<Term>(arguments.length);
+            this.arguments = new ArrayList<>(arguments.length);
             this.arguments.addAll(Arrays.asList(arguments));
         }
         else {
-            this.arguments = null; // new ArrayList<Term>(0);  JWS: other code should handle arguments=null.
+            this.arguments = null; // JWS: other code should handle arguments=null.
         }
         this.argumentNames = null;
         this.stringHandler = stringHandler;
@@ -110,7 +106,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, Term argument) {
     	this();
         predicateName = pred;
-        List<Term> args = new ArrayList<Term>(1);
+        List<Term> args = new ArrayList<>(1);
         args.add(argument);
         this.stringHandler = stringHandler;
         this.arguments     = args;
@@ -128,30 +124,11 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         }
     }
 
-    // Access values by name if argument names have been stored.
-    public String getArgumentName(int index) {
-        if (argumentNames == null) {
-            return null;
-        } //Utils.error("Asked for arg #" + index + " but no argument names are stored."); }
-        if (index >= argumentNames.size()) {
-            Utils.error("Asked for arg #" + index + " but only have: " + argumentNames);
-        }
-        return argumentNames.get(index);
-    }
-
-    public Literal copyAndClearArgumentNames() {
-        return copy(true).clearArgumentNamesInPlace(); // Need to recur in case functions in the terms.
-    }
-
-    public Literal copyAndClearArgumentNames(boolean removeNameArg) {
-        return copy(true).clearArgumentNamesInPlace(true);
-    }
-
     public Literal clearArgumentNamesInPlace() {
         return clearArgumentNamesInPlace(true);
     }
 
-    public Literal clearArgumentNamesInPlace(boolean removeNameArg) {
+    private Literal clearArgumentNamesInPlace(boolean removeNameArg) {
         if (numberArgs() < 1) {
             return this;
         }
@@ -164,12 +141,10 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
                 }
             }
 
-            if (argOrdering == null) {
-            } // Utils.waitHere("No arg ordering for: " + this); }
-            else {
-                List<Term> newArgs = new ArrayList<Term>(numberArgs());
+            if (argOrdering != null) {
+                List<Term> newArgs = new ArrayList<>(numberArgs());
                 for (String argName : argOrdering) {
-                    newArgs.add(getArgumentByName(argName, true));
+                    newArgs.add(getArgumentByName(argName));
                 }
                 arguments = newArgs;
             }
@@ -186,22 +161,13 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return this;
     }
 
-    // Access a value by name, rather than by position.
-    public Term getArgumentByName(String name) {
-        return getArgumentByName(name, true);
-    }
-
-    public Term getArgumentByName(String name, boolean complainIfNotFound) {
+    private Term getArgumentByName(String name) {
         if (argumentNames == null) {
-            if (complainIfNotFound) {
-                Utils.error("Can not find '" + name + "' in " + argumentNames);
-            }
+            Utils.error("Can not find '" + name + "' in " + argumentNames);
             return null;
         }
         if (argumentNames.size() < 1) {
-            if (complainIfNotFound) {
-                Utils.error("Can not find '" + name + "' in " + argumentNames);
-            }
+            Utils.error("Can not find '" + name + "' in " + argumentNames);
             return null;
         }
         for (int i = 0; i < numberArgs(); i++) {
@@ -209,55 +175,8 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
                 return arguments.get(i);
             }
         }
-        if (complainIfNotFound) {
-            Utils.error("Can not find '" + name + "' in " + argumentNames);
-        }
+        Utils.error("Can not find '" + name + "' in " + argumentNames);
         return null;
-    }
-
-    // See if this literal is a determinate.  TODO FOR NOW, JUST CHECK THE PREDICATE NAME AND ARITY, BUT SHOULD REALLY CHECK IT MATCHES THE TYPE IN THE DETERMINATE SPEC. TODO
-    public boolean isaDeterminateLiteral() {
-        return predicateName.isDeterminatePredicate(arguments);
-    }
-
-    public boolean isaNumericFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaNumericFunctionAsPredLiteral(arguments);
-    }
-
-    public boolean isaBooleanFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaBooleanFunctionAsPredLiteral(arguments);
-    }
-
-    public boolean isaCategoricalFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaCategoricalFunctionAsPredLiteral(arguments);
-    }
-
-    public boolean isaStructuredFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaNumericFunctionAsPredLiteral(arguments);
-    }
-
-    public boolean isaAnythingFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaAnythingFunctionAsPredLiteral(arguments);
-    }
-
-    public boolean isaListOfNumericFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaListOfNumericFunctionAsPredLiteral(arguments);
-    }
-
-    public boolean isaListOfBooleanFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaListOfBooleanFunctionAsPredLiteral(arguments);
-    }
-
-    public boolean isaListOfCategoricalFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaListOfCategoricalFunctionAsPredLiteral(arguments);
-    }
-
-    public boolean isaListOfStructuredFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaListOfStructuredFunctionAsPredLiteral(arguments);
-    }
-
-    public boolean isaListOfAnythingFunctionAsPredLiteral() { // TODO need to check allCollector other vars are bound?
-        return predicateName.isaListOfAnythingFunctionAsPredLiteral(arguments);
     }
 
     public boolean isaBridgerLiteral() { // TODO need to check allCollector other vars are bound?
@@ -306,21 +225,16 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return newVersion;
     }
 
-    // Need for property copying (e.g., ConsCell reused applyTheta for Function).
-    public Literal getBareCopy() {  // Utils.waitHere("bare lit copy " + this);
-        return getBareCopy(arguments, argumentNames);
-    }
-
-    public Literal getBareCopy(List<Term> newArguments) {
+    private Literal getBareCopy(List<Term> newArguments) {
         return getBareCopy(newArguments, argumentNames);
     }
 
-    public Literal getBareCopy(List<Term> newArguments, List<String> newNames) {
+    private Literal getBareCopy(List<Term> newArguments, List<String> newNames) {
         return (Literal) stringHandler.getLiteral(predicateName, newArguments, newNames).setWeightOnSentence(wgtSentence);
     }
 
     // A ('reverse') variant of contains().
-    public boolean member(Collection<Literal> otherLists, boolean useStrictEquality) {  // TODO - add flag 'useVariantAsComparator'
+    public boolean member(Collection<Literal> otherLists, boolean useStrictEquality) {
         if (Utils.getSizeSafely(otherLists) < 1) {
             return false;
         }
@@ -339,18 +253,17 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         boolean needNewLiteral = false; // See if there is a chance this might need to change (only do a one-level deep evaluation).
         if (arguments != null) {
             for (Term term : arguments) {
-                if (!((term instanceof Variable && theta.get((Variable)term) == null) || term instanceof Constant)) {
+                if (!((term instanceof Variable && theta.get(term) == null) || term instanceof Constant)) {
                     needNewLiteral = true;
                     break;
                 }
             }
         }
-        //Utils.println("literal.applyTheta: '" + this + "', needNewLiteral = " + needNewLiteral + ", theta = " + theta);
         if (!needNewLiteral) {
             return this;
         }
         int numbArgs = numberArgs();
-        List<Term> newArguments = (numbArgs == 0 ? null : new ArrayList<Term>(numberArgs()));
+        List<Term> newArguments = (numbArgs == 0 ? null : new ArrayList<>(numberArgs()));
         if (numbArgs > 0) {
             for (Term arg : arguments) {
                 if (arg == null) {
@@ -374,15 +287,16 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     @Override
     public Literal copy(boolean recursiveCopy) { // recursiveCopy=true means that the copying recurs down to the leaves.   Also, variables will be created anew if requested.
-        List<Term>   newArguments = (arguments     != null ? new ArrayList<Term>(  numberArgs()) : null);
-        List<String> newArgNames  = (argumentNames != null ? new ArrayList<String>(numberArgs()) : null);
+        List<Term>   newArguments = (arguments     != null ? new ArrayList<>(  numberArgs()) : null);
+        List<String> newArgNames  = (argumentNames != null ? new ArrayList<>(numberArgs()) : null);
         if (argumentNames != null) {
             newArgNames.addAll(argumentNames);
         }
+        assert newArguments != null;
         if (recursiveCopy) {
             if (arguments != null) {
                 for (Term term : arguments) {
-                    newArguments.add(term == null ? null : term.copy(recursiveCopy));
+                    newArguments.add(term == null ? null : term.copy(true));
                 }
             }
             return getBareCopy(newArguments, newArgNames);
@@ -395,11 +309,12 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     @Override
     public Literal copy2(boolean recursiveCopy, BindingList bindingList) { // recursiveCopy=true means that the copying recurs down to the leaves.   Also, variables will be created anew if requested.
-        List<Term> newArguments = (arguments != null ? new ArrayList<Term>(numberArgs()) : null);
-        List<String> newArgNames = (argumentNames != null ? new ArrayList<String>(numberArgs()) : null);
+        List<Term> newArguments = (arguments != null ? new ArrayList<>(numberArgs()) : null);
+        List<String> newArgNames = (argumentNames != null ? new ArrayList<>(numberArgs()) : null);
         if (argumentNames != null) {
             newArgNames.addAll(argumentNames);
         }
+        assert newArguments != null;
         if (recursiveCopy) {
             if (arguments != null) {
                 for (Term term : arguments) {
@@ -434,7 +349,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
                 if (temp != null) {
                     if (result == null) {
-                        result = new ArrayList<Variable>(4);
+                        result = new ArrayList<>(4);
                     }
                     for (Variable var : temp) {
                         if (!result.contains(var)) {
@@ -448,7 +363,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
     private String restOfToString(BindingList bindingList) {
-        String result = "(";
+        StringBuilder result = new StringBuilder("(");
         boolean firstOne = true;
         boolean hasArgNames = (argumentNames != null);
         int numberOfArgNames = Utils.getSizeSafely(argumentNames);
@@ -461,14 +376,14 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
                     firstOne = false;
                 }
                 else {
-                    result += ", ";
-                    if (stringHandler.numberOfTermsPerRowInPrintouts == 1 || stringHandler.numberOfTermsPerRowInPrintoutsForLiterals == 1) { result += "\n        "; } // TODO -  write to properly handle stringHandler.numberOfLiteralsPerRowInPrintouts > 1
+                    result.append(", ");
+                    if (stringHandler.numberOfTermsPerRowInPrintouts == 1 || stringHandler.numberOfTermsPerRowInPrintoutsForLiterals == 1) { result.append("\n        "); } // TODO -  write to properly handle stringHandler.numberOfLiteralsPerRowInPrintouts > 1
                 }
                 if (arg == null) {
-                    result += "null";
+                    result.append("null");
                 }
                 else {
-                    result += (hasArgNames ? (i >= numberOfArgNames ? "noNameForMe" : argumentNames.get(i)) + "=" : "") + arg.toString(Integer.MAX_VALUE, bindingList);
+                    result.append(hasArgNames ? (i >= numberOfArgNames ? "noNameForMe" : argumentNames.get(i)) + "=" : "").append(arg.toString(Integer.MAX_VALUE, bindingList));
                 } // No need for extra parentheses in an argument list.
             }
         }
@@ -511,35 +426,28 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         }
     }
 
-
     public boolean equals(Object obj, boolean considerUseStrictEqualsForLiterals) {
         if ( this == obj) {
             return true;
         }
-
         if (considerUseStrictEqualsForLiterals && stringHandler.usingStrictEqualsForLiterals()) {
             return false;
         }
-
         if (obj == null) {
             return false;
         }
-        if (obj instanceof Literal == false) {
+        if (!(obj instanceof Literal)) {
             return false;
         }
         final Literal other = (Literal) obj;
 
-
-        if (this.predicateName != other.predicateName && (this.predicateName == null || !this.predicateName.equals(other.predicateName))) {
+        if (!Objects.equals(this.predicateName, other.predicateName)) {
             return false;
         }
-        if (this.arguments != other.arguments && (this.arguments == null || !this.arguments.equals(other.arguments))) {
+        if (!Objects.equals(this.arguments, other.arguments)) {
             return false;
         }
-        if (this.argumentNames != other.argumentNames && (this.argumentNames == null || !this.argumentNames.equals(other.argumentNames))) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.argumentNames, other.argumentNames);
     }
 
     @Override
@@ -557,80 +465,15 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         }
     }
 
-//    @Override
-//    public int hashCode() {
-//        if (stringHandler.useFastHashCodeForLiterals) {
-//            return super.hashCode();
-//        }
-//        final int prime = 59; // http://primes.utm.edu/lists/small/10000.txt
-//        int result = 1;
-//        result = prime * result + ((predicateName == null) ? 23 : predicateName.hashCode());
-//        result = prime * result + ((arguments == null) ? 439 : arguments.hashCode());
-//        return result;
-//    }
-    // Are these two literals identical even if not the same instance?  Can be overridden by stringHandler.useStrictEqualsForLiterals
-
     @Override
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object other) {
         return equals(other, true);
     }
 
-//    public boolean equals(Object other, boolean considerUseStrictEqualsForLiterals) {
-//        if (this == other) {
-//            return true;
-//        }
-//        if (considerUseStrictEqualsForLiterals && stringHandler.usingStrictEqualsForLiterals()) {
-//            return false;
-//        }
-//        if (!(other instanceof Literal)) {
-//            return false;
-//        }
-//        Literal otherAsLiteral = (Literal) other;
-//        if (this == otherAsLiteral) {
-//            return true;
-//        }
-//        if (predicateName != otherAsLiteral.predicateName) {
-//            return false;
-//        }
-//        int thisNumberOfArgs = numberArgs();
-//        int otherNumberOfArgs = otherAsLiteral.numberArgs();
-//        if (thisNumberOfArgs != otherNumberOfArgs) {
-//            return false;
-//        }
-//        for (int i = 0; i < thisNumberOfArgs; i++) {
-//            Term thisTerm = arguments.get(i);
-//            Term otherTerm = otherAsLiteral.arguments.get(i);
-//            if (thisTerm == null) {
-//                if (otherTerm != null) {
-//                    return false;
-//                }
-//            }
-//            else if (!thisTerm.equals(otherTerm)) {
-//                return false;
-//            } // Seems this short version of the test above suffices.
-//        }
-//        if (argumentNames == null && otherAsLiteral.argumentNames == null) {
-//            return true;
-//        }
-//        if (argumentNames == null || otherAsLiteral.argumentNames == null) {
-//            return false;
-//        }
-//        for (int i = 0; i < thisNumberOfArgs; i++) { // Should do a double walk of the two lists, but I don't recall the syntax (TODO).
-//            if (!argumentNames.get(i).equalsIgnoreCase(otherAsLiteral.argumentNames.get(i))) {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-
-
-
-
-
     // Are these two equivalent POSSIBLY AFTER SOME VARIABLE RENAMING?
     public BindingList variants(Literal other, BindingList bindings) {
-        //if (this == other) { return bindings; }		// Need to collect the matched variables (so they don't get matched to another variable elsewhere).
+        // Need to collect the matched variables (so they don't get matched to another variable elsewhere).
         if (predicateName != other.predicateName) {
             return null;
         }
@@ -651,33 +494,28 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
                 return null;
             }
 
-            // Utils.print("  term1=" + term1 + " term2=" + term2 + " bindings=" + bindings);
             bindings = term1.variants(term2, bindings);
-            // Utils.println(" |  new bindings=" + bindings);
             if (bindings == null) {
-                //Utils.println("fail!");
                 return null;
             }
         }
         if (argumentNames == null && other.argumentNames == null) {
             return bindings;
         }
-        if (argumentNames == null || other.argumentNames == null) { /* Utils.println("argNames fail!"); */ return null;
+        if (argumentNames == null || other.argumentNames == null) {
+            return null;
         }
-        for (int i = 0; i < numbArgs; i++) { // Should do a double walk of the two lists, but I don't recall the syntax (TODO).
+        for (int i = 0; i < numbArgs; i++) { // Should do a double walk of the two lists, but I don't recall the syntax
             if (!argumentNames.get(i).equalsIgnoreCase(other.argumentNames.get(i))) {
-                //Utils.println(      "argumentNames.get(i)=" +       argumentNames.get(i));
-                //Utils.println("other.argumentNames.get(i)=" + other.argumentNames.get(i));
                 return null;
             }
         }
         return bindings;
     }
 
-
     @Override
     public BindingList isEquivalentUptoVariableRenaming(Sentence that, BindingList bindings) {
-        if (that instanceof Literal == false) return null;
+        if (!(that instanceof Literal)) return null;
 
         Literal thatLiteral = (Literal) that;
 
@@ -693,12 +531,9 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return bindings;
     }
 
-
-
-
     @Override
     public BindingList variants(Sentence other, BindingList bindings) {
-        // if (this == other) { return bindings; } // Need to collect the matched variables (so they don't get matched to another variable elsewhere).
+        // Need to collect the matched variables (so they don't get matched to another variable elsewhere).
         if (!(other instanceof Literal)) {
             return null;
         }
@@ -750,7 +585,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
                     containsVariables = 1;
                     return true;
                 }
-                if ((term instanceof Function) && ((Function) term).containsVariables()) {
+                if ((term instanceof Function) && term.containsVariables()) {
                     containsVariables = 1;
                     return true;
                 }
@@ -763,8 +598,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
     /** Would any variables in this clause remain UNBOUND if this binding list were to be applied?
-     * @param theta
-     * @return
      */
     @Override
     public boolean containsFreeVariablesAfterSubstitution(BindingList theta) {
@@ -774,7 +607,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         if (theta == null || arguments == null) {
             return false;
         }
-        // Utils.println(" LITERAL: freeVariablesAfterSubstitution: " + theta + "  " + this);
         for (Term term : arguments) {
             if (term.freeVariablesAfterSubstitution(theta)) {
                 return true;
@@ -826,7 +658,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     @Override
     protected List<Clause> convertToListOfClauses() {
-        List<Clause> result = new ArrayList<Clause>(1);
+        List<Clause> result = new ArrayList<>(1);
         result.add(convertToClause(true)); // Convert allCollector of these to unnegated literals.
         return result;
     }
@@ -836,7 +668,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return convertToClause(true);
     }
 
-    protected Clause convertToClause(boolean isaPositiveLiteral) {
+    Clause convertToClause(boolean isaPositiveLiteral) {
         double literalWgt = wgtSentence;
         wgtSentence = Sentence.maxWeight; // Move the literal's weight out to the clause that "wraps" it.
         return (Clause) stringHandler.getClause(this, isaPositiveLiteral).setWeightOnSentence(literalWgt);
@@ -844,42 +676,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     public Function convertToFunction(HandleFOPCstrings stringHandler) {
         FunctionName functionName = stringHandler.getFunctionName(predicateName.name);
-        Function result = stringHandler.getFunction(functionName, arguments, argumentNames, null);
-        //	result.printUsingInFixNotation = printUsingInFixNotation;
-        return result;
-    }
-
-    // Convert a list of literals into a conjunct.
-    public static ConnectedSentence convertListOfLiteralsToConjunct(HandleFOPCstrings stringHandler, List<Literal> literals) {
-        if (literals == null || literals.size() < 2) {
-            Utils.error("Should not have an empty nor singleton list here.");
-        }
-        int length = literals.size();
-        if (length == 2) {
-            return stringHandler.getConnectedSentence(literals.get(0), stringHandler.getConnectiveName("AND"), literals.get(1));
-        }
-        ConnectedSentence tail = convertListOfLiteralsToConjunct(stringHandler, literals.subList(1, length));
-        return stringHandler.getConnectedSentence(literals.get(0), stringHandler.getConnectiveName("AND"), tail);
-    }
-
-    // Get the index where a "function value" is stored in this literal. Return -1 if this literal does not store such a value.
-    public int getValueIndex() {
-        if (predicateName.isDeterminatePredicate(arguments)) {
-            return predicateName.getDeterminateArgumentIndex(numberArgs()) - 1; // Convert to ZERO-BASED accounting.
-        }
-        else if (predicateName.isaNumericFunctionAsPredLiteral(arguments)) {
-            return predicateName.returnFunctionAsPredPosition(FunctionAsPredType.numeric, numberArgs()) - 1;
-        }
-        return -1;
-    }
-
-    // See if this literal is holding a value, and if so return that value.  Otherwise return the constant that represents 'true.'
-    public Term getValueOfLiteral() {
-        int pos = getValueIndex();
-        if (pos >= 0) {
-            return arguments.get(pos);
-        }
-        return stringHandler.trueIndicator;
+        return stringHandler.getFunction(functionName, arguments, argumentNames, null);
     }
 
     @Override
@@ -912,36 +709,11 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 			return result + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + pNameString + " " + (hasArgNames ? argumentNames.get(1) + "=" : "") + arguments.get(1).toString(precedence, bindingList) + " else " + (hasArgNames ? argumentNames.get(2) + "=" : "") + arguments.get(2).toString(precedence, bindingList);
         }
 
-//        if ( predicateName == stringHandler.standardPredicateNames.implicit_call && numberArgs() == 1 ) {
-//            return getArgument(0).toString(precedenceOfCaller);
-//        }
-
         result += pNameString;
         if (arguments == null) {
             return result;
         }
         return result + restOfToString(bindingList);
-
-    }
-
-    public String toModeString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(predicateName.name);
-        if ( getArity() > 0 ) {
-            stringBuilder.append("(");
-
-            for (int i = 0; i < getArity(); i++) {
-                TypeSpec ts = getArgument(i).getTypeSpec();
-                if ( i > 0 ) {
-                    stringBuilder.append(", ");
-                }
-                stringBuilder.append(ts);
-            }
-
-            stringBuilder.append(")");
-        }
-
-        return stringBuilder.toString();
     }
 
     @Override
@@ -979,36 +751,8 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return Collections.EMPTY_LIST;
     }
 
-    @Override
-    public boolean isDefiniteClauseVariant(DefiniteClause otherClause) {
-        if (otherClause.isDefiniteClauseFact() == false) {
-            return false;
-        }
-
-        Literal otherHead = otherClause.getDefiniteClauseFactAsLiteral();
-
-        if (predicateName != otherHead.predicateName) {
-            return false;
-        }
-
-        if (numberArgs() != otherHead.numberArgs()) {
-            return false;
-        }
-
-        for (int i = 0; i < numberArgs(); i++) {
-            Term thisTerm = getArgument(i);
-            Term thatTerm = otherHead.getArgument(i);
-
-            if (thisTerm.isVariant(thatTerm) == false) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     public BindingList unifyDefiniteClause(DefiniteClause otherClause, BindingList bindingList) {
-        if (otherClause.isDefiniteClauseFact() == false) {
+        if (!otherClause.isDefiniteClauseFact()) {
             return null;
         }
 
@@ -1027,12 +771,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         }
 
         return Unifier.UNIFIER.unify(this, otherHead, bindingList);
-    }
-
-    public Type getType(int argument) {
-        TypeSpec type = getArgument(argument).getTypeSpec();
-
-        return type != null ? type.isaType : null;
     }
 
     public List<Term> getArguments() {
@@ -1057,35 +795,12 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return argumentNames;
     }
 
-    public void setArgumentNames(List<String> argumentNames) {
-        this.argumentNames = argumentNames;
-        sortArgumentsByName();
-    }
-    
-    // Necessary for RuleSetVisualizer, cth
-    public void setArgumentNamesNoSort(List<String> argumentNames) {
-        this.argumentNames = argumentNames;
-    }
-
-    public void setArgumentName(int i, String newValue) {
-        argumentNames.set(i, newValue);
-        sortArgumentsByName();
-    }
-
-    public void addArgument(int position, Term term) {
-        if (argumentNames != null) {
-            Utils.error("Current arguments are named, so you need to pass in term and name for '" + this + "'.");
-        }
-        arguments.add(position, term);
-        setNumberArgs();
-    }
-
     public void addArgument(Term term) {
         if (argumentNames != null) {
             Utils.error("Current arguments are named, so you need to pass in term and name for '" + this + "'.");
         }
         if (arguments == null) {
-        	arguments = new ArrayList<Term>(1);
+        	arguments = new ArrayList<>(1);
         }
         arguments.add(term);
         setNumberArgs();
@@ -1108,15 +823,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         setNumberArgs();
     }
 
-    public void removeArgument(String name, boolean complainIfNotFound) {
-        Term term = getArgumentByName(name, complainIfNotFound);
-        if (term == null) {
-            return;
-        }
-        removeArgument(term, name);
-    }
-
-    public void removeArgument(Term term, String name) {
+    private void removeArgument(Term term, String name) {
         if (!arguments.remove(term)) {
             Utils.error("Could not remove '" + term + "' from '" + this + "'.");
         }
@@ -1139,8 +846,8 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         if (numbArgs < 2) {
             return;
         }
-        List<NamedTerm> namedTerms = new ArrayList<NamedTerm>(numbArgs);
-        Set<String> namesSeen = new HashSet<String>(4);
+        List<NamedTerm> namedTerms = new ArrayList<>(numbArgs);
+        Set<String> namesSeen = new HashSet<>(4);
         for (int i = 0; i < numbArgs; i++) {
             String argName = argumentNames.get(i);
             if (namesSeen.contains(argName)) {
@@ -1149,7 +856,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
             if ( argName != null ) namesSeen.add(argName);
             namedTerms.add(new NamedTerm(arguments.get(i), argName));
         }
-        Collections.sort(namedTerms, NamedTerm.comparator);
+        namedTerms.sort(NamedTerm.comparator);
         arguments.clear();
         argumentNames.clear();
         for (NamedTerm nt : namedTerms) {
@@ -1161,11 +868,10 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     /** Returns all possible TypeSpecs for this literal.
      *
      * If typeSpec variable is set, only that type
-     * @return
      */
     public List<TypeSpec> getTypeSpecs() {
 
-        List<TypeSpec> result = null;
+        List<TypeSpec> result;
 
         List<PredicateSpec> predTypeSpec = predicateName.getTypeList();
 
@@ -1174,27 +880,13 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
             result = ps.getTypeSpecList();
         }
         else {
-            result = new ArrayList<TypeSpec>();
+            result = new ArrayList<>();
             for (Term term : getArguments()) {
                 result.add(term.getTypeSpec());
             }
         }
         
         return result;
-    }
-
-    /** Looks up the set type spec on the literal.
-     *
-     * In many cases, the literal won't actually
-     * have the type spec directly attached.  In those cases,
-     * getTypeSpecs() can be used to lookup the list of all
-     * possible type specs for the literal.
-     * 
-     * @param index
-     * @return
-     */
-    public TypeSpec getArgumentTypeSpec(int index) {
-        return arguments.get(index).getTypeSpec();
     }
 
     public PredicateNameAndArity getPredicateNameAndArity() {
@@ -1209,7 +901,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     @Override
     public Clause getNegatedQueryClause() throws IllegalArgumentException {
 
-        Clause result = null;
+        Clause result;
 
         result = stringHandler.getClause(null, Collections.singletonList(this));
 

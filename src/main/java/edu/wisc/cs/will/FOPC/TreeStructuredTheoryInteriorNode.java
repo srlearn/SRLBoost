@@ -2,7 +2,6 @@ package edu.wisc.cs.will.FOPC;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -13,17 +12,20 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 
 	// Note: the fullNodeTest is the complete path to the root and the nodeTest is the local piece (null means 'true').  For simplicity the local piece
 	//       also is a clause rather than a List<Literal>.  Do the order this code was generated, initially there was no fullNodeTest and so some methods could be simplified now that there is. 
-	protected Clause                   fullNodeTest; // TODO - could allow a disjunction of clauses here (i.e., a theory), but we'll leave as is for now.
-	protected Clause                   nodeTest;
-	protected SingleClauseNode         searchNodeThatLearnedTheClause; // This is the search node that produced this tree-structured node (i.e., learned the node test).	
-	protected TreeStructuredTheoryNode treeForTrue;
-	protected TreeStructuredTheoryNode treeForFalse;
+	private Clause                   fullNodeTest;
+	private Clause                   nodeTest;
+	private SingleClauseNode         searchNodeThatLearnedTheClause; // This is the search node that produced this tree-structured node (i.e., learned the node test).
+	private TreeStructuredTheoryNode treeForTrue;
+	private TreeStructuredTheoryNode treeForFalse;
+
 	// 8/8/11 : TVK set this to true. RDN-Boost code will take care of dropping the false nodes whereas the MLN code needs the false tests.
-	protected boolean                  collectTestForFalseNodes = false; // Not needed due to semantics of Prolog and our use of CUTs.
-	protected boolean				   createInventedFalseTestClause = false; // If collectTestForFalseNodes is true, create invented supporting predicates ?
+	// TODO(@hayesall): This should have no knowledge of boosting, refactor.
+
+	private boolean                  collectTestForFalseNodes = false; // Not needed due to semantics of Prolog and our use of CUTs.
+	private boolean				   createInventedFalseTestClause = false; // If collectTestForFalseNodes is true, create invented supporting predicates ?
 	private double				       regressionValueIfLeaf= 0;    // Since we reset the examples while trying to expand a node, this value is lost. Rather than re-computing it, we cache it here.
 	private double[]                   regressionVectorIfLeaf;
-	private List<Boolean>			   treePath = new ArrayList<Boolean>();
+	private List<Boolean>			   treePath = new ArrayList<>();
 	
 	public TreeStructuredTheoryInteriorNode(double weightedCountOfPositiveExamples, double weightedCountOfNegativeExamples, Clause learnedClause, Clause localClause, SingleClauseNode searchNodeThatLearnedTheClause) {
 		super();
@@ -34,7 +36,7 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 		this.weightedCountOfNegativeExamples = weightedCountOfNegativeExamples;
 		this.searchNodeThatLearnedTheClause  = searchNodeThatLearnedTheClause;
 	}		
-	public TreeStructuredTheoryInteriorNode(double weightedCountOfPositiveExamples, double weightedCountOfNegativeExamples, Clause learnedClause, Clause localClause, SingleClauseNode searchNodeThatLearnedTheClause, TreeStructuredTheoryNode treeForTrue, TreeStructuredTheoryNode treeForFalse) {
+	private TreeStructuredTheoryInteriorNode(double weightedCountOfPositiveExamples, double weightedCountOfNegativeExamples, Clause learnedClause, Clause localClause, SingleClauseNode searchNodeThatLearnedTheClause, TreeStructuredTheoryNode treeForTrue, TreeStructuredTheoryNode treeForFalse) {
 		this(weightedCountOfPositiveExamples, weightedCountOfNegativeExamples, learnedClause, localClause, searchNodeThatLearnedTheClause);
 		this.treeForTrue  = treeForTrue;
 		this.treeForFalse = treeForFalse;
@@ -77,18 +79,11 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 
 	public void setSearchNodeThatLearnedTheClause(SingleClauseNode searchNodeThatLearnedTheClause) {
 		this.searchNodeThatLearnedTheClause = searchNodeThatLearnedTheClause;
-	} 
-	public TreeStructuredTheoryNode getTreeForTrue() {
-		return treeForTrue;
 	}
 
 	public void setTreeForTrue(TreeStructuredTheoryNode treeForTrue) {
 		this.treeForTrue = treeForTrue;
 		treeForTrue.setLevel(getLevel() + 1);
-	}
-
-	public TreeStructuredTheoryNode getTreeForFalse() {
-		return treeForFalse;
 	}
 
 	public void setTreeForFalse(TreeStructuredTheoryNode treeForFalse) {
@@ -97,9 +92,9 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 	}
 	
 	private String createThisManySpaces(int depth) {
-		String result = "";
-		for (int i = 0; i < depth; i++) { result += "| "; }
-		return result;
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i < depth; i++) { result.append("| "); }
+		return result.toString();
 	}
 	
 	@Override
@@ -119,24 +114,26 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 		return treePath;
 	}
 	public void setBoolPath(List<Boolean> path) {
-		treePath = new ArrayList<Boolean>(path);
+		treePath = new ArrayList<>(path);
 	}
 	private String writeClauseBody(BindingList bl) {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		boolean firstTime = true;
 		
 		Collection<Literal> negLits = (nodeTest == null ? null : nodeTest.negLiterals);
 		if (Utils.getSizeSafely(negLits) < 1) { return "true"; }
+
+		assert negLits != null;
 		for (Literal lit : negLits) {
-			if (firstTime) { firstTime = false; } else { result += ", "; }
-			result += lit.toString(bl);
+			if (firstTime) { firstTime = false; } else { result.append(", "); }
+			result.append(lit.toString(bl));
 		}
-		return result;
+		return result.toString();
 	}
 
 	@Override
 	public String printRelationalTree(String newLineStarter, int precedenceOfCaller, int depth, BindingList bindingList) {
-		if (depth > 10) { return " ... <tree too deep>"; } // TODO - report size of tree below this one.
+		if (depth > 10) { return " ... <tree too deep>"; }
 		BindingList blCopy = new BindingList(bindingList.theta);
 		return "if ( " + writeClauseBody(blCopy) + " )\n"
 				+ newLineStarter + createThisManySpaces(depth) + "then " + ( treeForTrue == null ? "???" :  treeForTrue.printRelationalTree(newLineStarter, precedenceOfCaller, depth + 1, blCopy)) + "\n"
@@ -160,19 +157,20 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 		
 		int           numbNewLits = Utils.getSizeSafely(newLits);
 		PredicateName newPredName = (numbNewLits > 1 || clausesFalse != null ? treeTheory.getInventedPredName() : null);
+
+		assert newLits != null;
 		Literal           newHead = newLits.get(0);
 		if (collectTestForFalseNodes && numbNewLits > 1) { // If the test is more than a single literal, create a new clause for it.  And reset newHead.
 			Collection<Variable> vars = nodeTest.collectFreeVariables(null, true, false); // Only collect variables that are in the BODY.
-			List<Term>      arguments = (vars == null ? null : new ArrayList<Term>(vars));
+			List<Term>      arguments = (vars == null ? null : new ArrayList<>(vars));
 			                  newHead = treeTheory.stringHandler.getLiteral(newPredName, arguments);
-			List<Literal>     posLits = new ArrayList<Literal>(1); posLits.add(newHead);
+			List<Literal>     posLits = new ArrayList<>(1); posLits.add(newHead);
 			Clause          newClause = treeTheory.stringHandler.getClause(posLits, newLits);
 			treeTheory.addSupportingClause(newClause);
 			// Mark invented predicate as inline.
-			//newPredName.addInliner(arguments.size());
 		}
 		
-		List<Clause> results = new ArrayList<Clause>(Utils.getSizeSafely(clausesTrue));
+		List<Clause> results = new ArrayList<>(Utils.getSizeSafely(clausesTrue));
 		if (clausesTrue != null) for (Clause c : clausesTrue) {
 			Clause cCopy = c.copy(false);
 			if (collectTestForFalseNodes || numbNewLits < 2) {
@@ -189,7 +187,7 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 				// Need to create a negation-by-failure (nbf) clause.
 				PredicateName nbfPname  = treeTheory.stringHandler.getPredicateName("not_" + newPredName.name);
 				Collection<Variable> vars = newHead.collectAllVariables();
-				List<Term>      arguments = (vars == null ? null : new ArrayList<Term>(vars));
+				List<Term>      arguments = (vars == null ? null : new ArrayList<>(vars));
 				                nbfHead   = treeTheory.stringHandler.getLiteral(nbfPname, arguments);
 				                nbfBody   = treeTheory.stringHandler.wrapInNot(newHead);
 				if (createInventedFalseTestClause) {
@@ -265,19 +263,7 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 		}
 		return result;
 	}
-	/**
-	 * @return the fullNodeTest
-	 */
-	public Clause getFullNodeTest() {
-		return fullNodeTest;
-	}
-	/**
-	 * @param fullNodeTest the fullNodeTest to set
-	 */
-	public void setFullNodeTest(Clause fullNodeTest) {
-		this.fullNodeTest = fullNodeTest;
-	}
-	
+
 	@Override
 	public int countVarOccurrencesInFOPC(Variable v) {
 		return (nodeTest == null ? 0 : nodeTest.countVarOccurrencesInFOPC(v));
@@ -289,15 +275,11 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 	public void setRegressionValueIfLeaf(double regressionValueIfLeaf) {
 		this.regressionValueIfLeaf = regressionValueIfLeaf;
 	}
-	/**
-	 * @return the regressionVectorIfLeaf
-	 */
+
 	public double[] getRegressionVectorIfLeaf() {
 		return regressionVectorIfLeaf;
 	}
-	/**
-	 * @param regressionVectorIfLeaf the regressionVectorIfLeaf to set
-	 */
+
 	public void setRegressionVectorIfLeaf(double[] regressionVectorIfLeaf) {
 		this.regressionVectorIfLeaf = regressionVectorIfLeaf;
 	}

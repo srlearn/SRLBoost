@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.io.IOException;
@@ -43,9 +40,6 @@ public class Type extends AllOfFOPC implements Serializable {
     }
 
    /** Substitutes the Type with a SerializableType while Serializing.
-    *
-    * @return
-    * @throws java.io.ObjectStreamException
     */
    private Object writeReplace() throws ObjectStreamException {
        return new SerializableType(typeName);
@@ -65,18 +59,14 @@ public class Type extends AllOfFOPC implements Serializable {
         String typeName;
         transient public HandleFOPCstrings stringHandler;
 
-        public SerializableType(String type) {
+        SerializableType(String type) {
             this.typeName = type;
         }
 
         /** Methods for reading a Object cached to disk.
-         *
-         * @param in
-         * @throws java.io.IOException
-         * @throws java.lang.ClassNotFoundException
          */
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-            if (in instanceof FOPCInputStream == false) {
+            if (!(in instanceof FOPCInputStream)) {
                 throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject input stream must support FOPCObjectInputStream interface");
             }
 

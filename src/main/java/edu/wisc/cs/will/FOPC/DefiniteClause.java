@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC;
 
 import java.util.List;
@@ -34,13 +29,13 @@ public interface DefiniteClause {
      *
      * @return True if this is a rule (definite clause with no body).
      */
-    public boolean isDefiniteClauseFact();
+    boolean isDefiniteClauseFact();
 
     /** Indicates that this is a definite clause with a body.
      *
      * @return True if this is a rule (definite clause with a body).
      */
-    public boolean isDefiniteClauseRule();
+    boolean isDefiniteClauseRule();
 
     /** Returns the head to this definite clause.
      *
@@ -50,13 +45,13 @@ public interface DefiniteClause {
      * @return Literal representing the head to this definite clause.
      * @throws IllegalStateException Indicates that the original object was not a definite clause.
      */
-    public Literal getDefiniteClauseHead() throws IllegalStateException;
+    Literal getDefiniteClauseHead() throws IllegalStateException;
 
     /** Returns the body of this definite clause, possibly null.
      *
      * @return Literals in the body of the definite clause, possibly null.
      */
-    public List<Literal> getDefiniteClauseBody();
+    List<Literal> getDefiniteClauseBody();
 
     /** Returns the DefiniteClause fact as a Literal.
      *
@@ -67,7 +62,7 @@ public interface DefiniteClause {
      * @return Literal representing fact.
      * @throws IllegalStateException Indicates that the original object was not a fact.
      */
-    public Literal getDefiniteClauseFactAsLiteral() throws IllegalStateException;
+    Literal getDefiniteClauseFactAsLiteral() throws IllegalStateException;
 
     /** Returns the DefiniteClause as a Clause.
      *
@@ -77,44 +72,27 @@ public interface DefiniteClause {
      * If the DefiniteClause isn't a definite clause (as indicated by isDefiniteClause())
      * then a IllegalStateException will be thrown.
      *
-     * @param stringHandler String handler used to lookup the canonicalized clause.
      * @return Clause representing fact.
      * @throws IllegalStateException Indicates that the original object was not a definite clause.
      */
-    public abstract Clause getDefiniteClauseAsClause() throws IllegalStateException;
+    Clause getDefiniteClauseAsClause() throws IllegalStateException;
 
     /** Indicates that free variables exist after substitution of the binding list.
      *
      * @param theta BindingList.
      * @return True if free variables still exist after substitution.
      */
-    public boolean containsFreeVariablesAfterSubstitution(BindingList theta);
-
-    /** Returns whether the otherClause is a variant of this clause.
-     * 
-     * @param otherClause
-     * @return
-     */
-    public boolean isDefiniteClauseVariant(DefiniteClause otherClause);
+    boolean containsFreeVariablesAfterSubstitution(BindingList theta);
 
     /** Attempts to unify this clause with otherClause.
      *
-     * @param otherClause
      * @param bindingList If non-null, the binding list to populate.
      * @return If the two clauses unify, returns a unifying BindingList; otherwise returns null.
      */
-    public BindingList unifyDefiniteClause(DefiniteClause otherClause, BindingList bindingList);
+    BindingList unifyDefiniteClause(DefiniteClause otherClause, BindingList bindingList);
 
     /** Returns the arity of the head of the clause.
-     *
-     * @return
      */
-    public int getArity();
+    int getArity();
 
-    /** Returns the type of the nth argument of the head of the clause.
-     * 
-     * @param argument
-     * @return
-     */
-    public Type getType(int argument);
 }

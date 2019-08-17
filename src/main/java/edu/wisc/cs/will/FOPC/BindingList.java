@@ -1,18 +1,14 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * @author shavlik
@@ -22,9 +18,7 @@ import java.util.Collections;
  */
 public class BindingList extends AllOfFOPC {
 	public HashMap<Variable,Term> theta;
-	/**
-	 * 
-	 */
+
 	public BindingList() {
 		theta = createMap(0);
 	}
@@ -43,10 +37,11 @@ public class BindingList extends AllOfFOPC {
         }
 	}
 	
-	public void addBindings(List<Binding> bindings) {
+	private void addBindings(List<Binding> bindings) {
 		if (bindings != null) for (Binding bind : bindings) { 
 			Term existingBinding = lookup(bind.var);
-			if (existingBinding == null) { theta.put(bind.var, bind.term); continue; }
+			if (existingBinding == null) { theta.put(bind.var, bind.term);
+			}
 			else if (existingBinding != bind.term) {
 				if (bind.term instanceof Variable && existingBinding == lookup((Variable) bind.term)) { continue; } // Both bound to same thing, which is fine.
 				Utils.error("Asking to bind '" + bind.var + "' to '" + bind.term + "', but it is already bound to '" + existingBinding + "'.");
@@ -58,7 +53,6 @@ public class BindingList extends AllOfFOPC {
 		addBindings(bl.collectBindingsInList());
 	}
 
-	@SuppressWarnings("unchecked")
 	public BindingList copy() {
 		if (theta.isEmpty()) { return new BindingList(); }
 
@@ -79,7 +73,7 @@ public class BindingList extends AllOfFOPC {
 
         int realSize = Math.max(16, (int)Math.ceil(size * 0.75f)+1);
 
-        return new HashMap<Variable,Term>(realSize);
+        return new HashMap<>(realSize);
     }
 
     public Map<Variable, Term> getTheta() {
@@ -115,56 +109,12 @@ public class BindingList extends AllOfFOPC {
 		return result;
 	}
 
-	public Clause reverseSubst(Clause c) {
-		List<Literal> pLits = new ArrayList<Literal>(c.getPosLiteralCount());
-		List<Literal> nLits = new ArrayList<Literal>(c.getNegLiteralCount());
-		
-		if (c.posLiterals != null) for (Literal pLit : c.posLiterals) { pLits.add(reverseSubst(pLit)); }
-		if (c.negLiterals != null) for (Literal nLit : c.negLiterals) { nLits.add(reverseSubst(nLit)); }
-		
-		return (Clause) c.stringHandler.getClause(pLits, nLits).setWeightOnSentence(c.getWeightOnSentence());
-	}
-	
-	public Literal reverseSubst(Literal lit) {
-		if (lit.numberArgs() < 1) { return lit; }
-		Literal newLit = lit.stringHandler.getLiteral(lit.predicateName);
-		List<Term> args = new ArrayList<Term>(newLit.numberArgs());
-		for (Term arg : lit.getArguments()) {
-			//Term newTerm = reverseSubst(arg);
-			args.add(reverseSubst(arg));
-		}
-	//	Utils.println("old = " + lit + " new args = " + args);
-		newLit.setArguments(args);
-		return newLit;
-	}
-
-	public Term reverseSubst(Term term) {
-		Variable revVar = reverseLookup(term);
-		if (revVar != null) { return revVar; } // Should this recur, in case there is a chain of bindings?
-		if (term instanceof Function) {
-			Function f    = (Function) term;
-			if (f.numberArgs() < 1) { return f; }
-			Function newF = (Function.isaConsCell(term) ? term.stringHandler.getConsCell(f.functionName, null) : term.stringHandler.getFunction(f.functionName));
-			List<Term> args = new ArrayList<Term>(f.numberArgs());
-			for (Term arg : f.getArguments()) {
-				//Term newTerm = reverseSubst(arg);
-				args.add(reverseSubst(arg));
-			}
-			newF.setArguments(args);
-			return newF;
-		}
-		return term;
-	}
-
-    /** Returns the current mapping of variable to term, recursively.
+	/* Returns the current mapping of variable to term, recursively.
      *
      * This does a lookup of the variable recursively.  @see getMapping(Variable)
      * for non-recursive lookups.  Only variables are looked up
      * recursively.  Terms containing variables are not and will require
      * an applyTheta call to resolve completely.
-     *
-     * @param var
-     * @return
      */
 	public Term lookup(Variable var) { // Could save this method call.
 		Term result = theta.get(var);
@@ -177,67 +127,16 @@ public class BindingList extends AllOfFOPC {
 		return result;
 	}
 
-    /** Returns the current mapping of variable to term, non-recursively.
+    /* Returns the current mapping of variable to term, non-recursively.
      *
      * This does a lookup of the variable non-recursively.  @see lookup(Variable)
      * for recursive lookups.
-     *
-     * @param var
-     * @return
      */
     public Term getMapping(Variable var) {
-		Term result = theta.get(var);
-
-		return result;
+		return theta.get(var);
 	}
 
-    /** Returns the mapped term for the variable of name variableName.
-     *
-     * All variable in the map are compared to variableName.
-     *
-     * If no matching variables are found, this method returns null.
-     * If one is found, the mapping is resolve via getMapping(Variable) and returned.
-     * If multiple mappings are found, this method throws a AmbiguousVariableLookup
-     * exception.
-     *
-     * In order to guarantee that only a single match exist, the complete set of
-     * mapping must be examined, making this a linear time lookup, instead of a
-     * constant time lookup if the actual variable is used.
-     *
-     * @param variableName Variable name to look for.
-     * @return If one match is found, returns the resolved mapping, otherwise null.
-     */
-    public Term getMapping(String variableName) throws AmbiguousVariableLookup {
-
-        Term result = null;
-
-        if ( theta != null ) {
-            Variable foundVariable = null;
-            for (Variable variable : theta.keySet()) {
-                boolean oldValue = variable.getStringHandler().printVariableCounters;
-
-                try {
-                    variable.getStringHandler().printVariableCounters = false;
-                    if ( variable.getName().equals(variableName)) {
-                        if ( foundVariable == null ) foundVariable = variable;
-                        else throw new AmbiguousVariableLookup("Variable name " + variableName + " was ambiguous during BindingList lookup.");
-                    }
-                }
-                finally {
-                    variable.getStringHandler().printVariableCounters = oldValue;
-                }
-
-            }
-
-            if ( foundVariable != null ) {
-                result = getMapping(foundVariable);
-            }
-        }
-
-        return result;
-    }
-
-    public int size() {
+	public int size() {
         return theta.size();
     }
 
@@ -249,12 +148,11 @@ public class BindingList extends AllOfFOPC {
 		return theta.keySet();
     }
 
-	public Variable reverseLookup(Term term) { // Could save this method call.
+	Variable reverseLookup(Term term) { // Could save this method call.
 		boolean hold = term.stringHandler.usingStrictEqualsForFunctions();
 		term.stringHandler.setUseStrictEqualsForFunctions(false);
 		if (theta == null || !theta.containsValue(term)) {
 			term.stringHandler.setUseStrictEqualsForFunctions(hold);
-		//	Utils.println("reverseLookup: no match to " + term);
 			return null; // Saves time?
 		}
 		
@@ -263,16 +161,9 @@ public class BindingList extends AllOfFOPC {
 			
 			if (term.equals(trm)) { 
 				term.stringHandler.setUseStrictEqualsForFunctions(hold);
-			//	Utils.println("reverseLookup:  match to " + term + " so return " + var);
 				return var; 
 			}
 		}
-		/* Replaced this by the above JWS 9/4/10.
-		Set<Entry<Variable,Term>> entrySet = theta.entrySet();
-		for(Entry<Variable,Term> entry : entrySet) {
-			if (term == entry.getValue()) { return entry.getKey(); }
-		}
-		*/
 		Utils.error("ContainsValue found " + term + " in " + theta + ", but this code could not.");
 		term.stringHandler.setUseStrictEqualsForFunctions(hold);
 		return null;
@@ -287,7 +178,7 @@ public class BindingList extends AllOfFOPC {
 		return null;
 	}
 
-	public boolean addBindingFailSoftly(Variable var, Term term) {
+	boolean addBindingFailSoftly(Variable var, Term term) {
 		if (help_addBinding(var, term, false)) { return true; }
 		if (term instanceof Variable) { return help_addBinding((Variable) term, var, false); } // This is probably already checked below, but try again nevertheless.
 		return false;
@@ -316,7 +207,6 @@ public class BindingList extends AllOfFOPC {
 		}
 		if (Function.isaConsCell(term)) {
 			ConsCell consCell =  ConsCell.ensureIsaConsCell(term.stringHandler, term);
-		//	Utils.println("add binding: " + var + " -> " + term);
 			if (consCell.memberViaEq(var)) { 
 				if (errorIfProblem) { Utils.error("This would be circular: " + var + " -> " + term); }
 				return false;
@@ -324,16 +214,6 @@ public class BindingList extends AllOfFOPC {
 		}
 		theta.put(var, term);	
 		return true;
-	}
-    
-    public void addBindingWithoutOccursCheck(Variable var, Term term) {
-		if ( theta == null ) theta = new HashMap<Variable, Term>();
-        theta.put(var, term);
-	}
-	
-	public void removeBinding(Variable var) {
-		if (theta.containsKey(var)) { theta.remove(var); }
-		else { Utils.error("Cannot find " + var + " in " + theta); }
 	}
 
 	// Collect all the bindings in the HashMap.
@@ -356,18 +236,9 @@ public class BindingList extends AllOfFOPC {
 		for (Variable var : theta.keySet()) {
 			Term trm = theta.get(var);
 			
-			if ( first == false ) { stringBuilder.append(", "); } else { first = false; }
+			if (!first) { stringBuilder.append(", "); } else { first = false; }
             stringBuilder.append(var.toString(bindingList)).append("=").append(trm.toString(bindingList));
 		}
-        /* Replaced by the above JWS 9/4/10.
-        for (Entry<Variable, Term> entry : theta.entrySet()) {
-            if ( first == false ) stringBuilder.append(", ");
-
-            stringBuilder.append(entry.getKey().toString(bindingList)).append("=").append(entry.getValue().toString(bindingList));
-
-            first = false;
-        }
-        */
         stringBuilder.append("}");
 
         return stringBuilder.toString();
@@ -383,12 +254,12 @@ public class BindingList extends AllOfFOPC {
 		return this;
 	}
 
-    /** Applies the Theta bindings to all of the terms of this bindingList.
+    /*
+	 * Applies the Theta bindings to all of the terms of this bindingList.
      *
      * This method is used to apply the bindings in the provided map to the
      * terms in this map.
-     * 
-     * @param bindings
+     *
      */
     public void applyThetaInPlace(Map<Variable, Term> bindings) {
 
@@ -406,29 +277,4 @@ public class BindingList extends AllOfFOPC {
         return theta == null || theta.isEmpty();
     }
 
-    public BindingList getBindings(Collection<Variable> variables) {
-        BindingList bl = new BindingList();
-
-        for (Variable variable : variables) {
-            bl.addBinding(variable, getMapping(variable));
-        }
-
-        return bl;
-    }
-
-    public static class AmbiguousVariableLookup extends RuntimeException {
-
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		public AmbiguousVariableLookup(String message) {
-            super(message);
-        }
-
-        public AmbiguousVariableLookup() {
-        }
-        
-    }
 }

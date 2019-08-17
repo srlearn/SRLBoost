@@ -1,9 +1,5 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.ILP.LearnOneClause;
 import java.util.List;
 
 import edu.wisc.cs.will.FOPC.BindingList;
@@ -18,30 +14,20 @@ import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author shavlik
- *
  */
 public class ILPprocedurallyDefinedPredicateHandler extends	ProcedurallyDefinedPredicateHandler {
     private LearnOneClause task;
-	/**
-	 * 
-     *
-     * @param task
-     */
-	public ILPprocedurallyDefinedPredicateHandler(LearnOneClause task) {
 
+	ILPprocedurallyDefinedPredicateHandler(LearnOneClause task) {
 		this.task = task;
-
 	}
 
     @Override
     public boolean canHandle(PredicateName predicateName, int arity) {
         if ( predicateName == task.procDefinedEnoughDiffMatches )                return true;
         if ( predicateName == task.procDefinedForConstants )                     return true;
-        if ( predicateName == task.procDefinedNeedForNewVariables && arity >= 2) return true;
-        return false;
-    }
-
-
+		return predicateName == task.procDefinedNeedForNewVariables && arity >= 2;
+	}
 
 	public BindingList handle(HornClauseContext context,Literal literal, Unifier unifier, BindingList bindingList) {
 		PredicateName pred = literal.predicateName;

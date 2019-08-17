@@ -25,9 +25,6 @@ public class RecordReference extends Constant {
 	 * These should not be created directly.  The RecordReferenceMap
 	 * should be used to obtain canonical references to the appropriate
 	 * RecordReference.
-     *
-     * @param key
-     * @param recordEntry
      */
 	RecordReference(String key, RecordEntry recordEntry) {
 		this.key = key;

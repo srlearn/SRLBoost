@@ -1,12 +1,7 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import edu.wisc.cs.will.FOPC.Literal;
 
 /**
  * @author shavlik
@@ -16,20 +11,18 @@ import edu.wisc.cs.will.FOPC.Literal;
 public class ConstructedLiteral extends Literal {
 
 	public List<AllOfFOPC> definition;
-	/**
-	 * 
-	 */
-	public ConstructedLiteral(HandleFOPCstrings stringHandler, PredicateName pName, AllOfFOPC constructor) {
+
+	ConstructedLiteral(HandleFOPCstrings stringHandler, PredicateName pName, AllOfFOPC constructor) {
 		super(stringHandler, pName);
 		createDefinition(constructor);
 	}
-	public ConstructedLiteral(HandleFOPCstrings stringHandler, PredicateName pName, List<Term> arguments, AllOfFOPC constructor) {
+	ConstructedLiteral(HandleFOPCstrings stringHandler, PredicateName pName, List<Term> arguments, AllOfFOPC constructor) {
 		super(stringHandler, pName, arguments);
 		createDefinition(constructor);
 	}
-	public ConstructedLiteral(HandleFOPCstrings stringHandler,PredicateName pName, Term argument, AllOfFOPC constructor) {
+	ConstructedLiteral(HandleFOPCstrings stringHandler, PredicateName pName, Term argument, AllOfFOPC constructor) {
 		super(stringHandler, pName);
-		List<Term> arguments2 = new ArrayList<Term>(1);
+		List<Term> arguments2 = new ArrayList<>(1);
 		arguments2.add(argument);
 		setArguments(arguments2);
 		createDefinition(constructor);
@@ -46,5 +39,4 @@ public class ConstructedLiteral extends Literal {
 		
 		return basic + " % " + definition.size() + " constructors: " + definition;
 	}
-
 }

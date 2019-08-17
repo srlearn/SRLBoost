@@ -90,10 +90,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 		this.wgtSentence = Math.max(minWeight, Math.min(maxWeight, weight)); // Keep in range.
 		return this; // Returning this makes it convenient to append '.setWeight' to new's.
 	}
-	public void deltaWeightOnSentence(double delta) {
-		setWeightOnSentence(wgtSentence + delta);
-	}
-	
+
 	// In the original MLN paper in MLj, if one clause becomes N, divide the weights equally.  However, if at maxWeight, keep as is.
 	// NOTE: this does not preserve the semantics of MLNs (e.g., 'weight [p(x) and q(x)]' not same as 'weight/2 p(x) and weight/2 q(x)', but we live with this so we can represent in clausal form.
 	Sentence divideWeightByN(double weight, int n) {
@@ -251,7 +248,6 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	public abstract Sentence             applyTheta(Map<Variable,Term> bindings);
     public abstract Sentence             applyTheta(BindingList bindingList);
 
- //	public abstract int                  hashCode();
     @Override
 	public abstract boolean              equals(Object other);
 	public abstract boolean              containsVariables();
@@ -302,7 +298,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
         return clauses.get(0);
     }
 
-	protected String returnWeightString() {
+	String returnWeightString() {
 		if (wgtSentence < maxWeight) {
 			if (AllOfFOPC.printUsingAlchemyNotation) { return Utils.truncate(wgtSentence, 4) + " "; } 
 			return                                 "wgt = " + Utils.truncate(wgtSentence, 4) + " "; }

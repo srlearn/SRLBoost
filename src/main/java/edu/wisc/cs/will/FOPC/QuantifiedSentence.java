@@ -14,11 +14,8 @@ public abstract class QuantifiedSentence extends Sentence {
 	public  Sentence             body;
 
 	protected QuantifiedSentence() {}
-	protected QuantifiedSentence(HandleFOPCstrings stringHandler) {
-		this.stringHandler = stringHandler;
-	}
 
-    @Override
+	@Override
 	public boolean containsTermAsSentence() {
 		return body.containsTermAsSentence();
 	}	

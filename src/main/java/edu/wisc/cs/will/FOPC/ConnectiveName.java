@@ -1,10 +1,11 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.Utils.Utils;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Map;
+
+import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author shavlik
@@ -16,17 +17,15 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 	
     private final static String ANDalt0        = "AND";
 	private final static String ANDalt1        = "^";
-	private final static String ANDalt2        = "&"; // TODO - also allow && and ||?
+	private final static String ANDalt2        = "&";
 	private final static String ANDalt3        = ",";
 	private final static String ORalt0         = "OR";
 	private final static String ORalt1         = "v";
 	private final static String ORalt2         = "|";
-//	private final static String ORalt2         = ";"; // No longer used since this is also accepted as an end-of-sentence indicator.
 	private final static String ORalt3         = "ELSE";
 	private final static String NOTalt0        = "NOT";
 	private final static String NOTalt1        = "~";
 	private final static String NOTalt2        = "\\+";
-//	private final static String NOTalt3        = "!"; // Reserve this as Prolog's 'cut' symbol.
 	private final static String IMPLIESalt0    = "=>";
 	private final static String IMPLIESalt1    = "->";
 	private final static String IMPLIESalt2    = "IMPLIES";
@@ -46,30 +45,13 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
     public final static ConnectiveName OR      = new ConnectiveName(ORalt0);
     public final static ConnectiveName NOT     = new ConnectiveName(NOTalt0);
     public final static ConnectiveName IMPLIES = new ConnectiveName(IMPLIESalt0);
-    public final static ConnectiveName EQUIVALENT = new ConnectiveName(EQUIVALENTalt0);
-	
+
 	public String name;
-	
-	/**
-	 * 
-	 */
+
 	protected ConnectiveName(String name) { // This is protected because getConnectiveName(String name) should be used instead.
 		this.name = name;
 	}
-	/**
-    *
-    * @param str
-    * @return
-    * @deprecated 
-    */
-	public static String standardizeConnective(String str) { // No longer used.
-		if (isaAND(str)) { return "AND"; }
-		if (isaOR( str)) { return "OR";  }
-		if (isaNOT(str)) { return "NOT"; }
-		if (isaIMPLIES(   str)) { return  "->"; }
-		if (isaEQUIVALENT(str)) { return "<->"; }
-		return str;
-	}
+
 	public static boolean isaAND(String str) {
 		return (   str.equalsIgnoreCase(ConnectiveName.ANDalt0) || str.equalsIgnoreCase(ConnectiveName.ANDalt1) || str.equalsIgnoreCase(ConnectiveName.ANDalt2) || str.equalsIgnoreCase(ConnectiveName.ANDalt3) || str.equalsIgnoreCase(ConnectiveName.LogicalAND));
 	}
@@ -79,21 +61,21 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 	public static boolean isaNOT(String str) {
 		return (   str.equalsIgnoreCase(ConnectiveName.NOTalt0) || str.equalsIgnoreCase(ConnectiveName.NOTalt1) || str.equalsIgnoreCase(ConnectiveName.NOTalt2) || str.equalsIgnoreCase(ConnectiveName.LogicalNOT));
 	}
-	public static boolean isaIMPLIES(String str) {
+	static boolean isaIMPLIES(String str) {
 		return (   str.equalsIgnoreCase(ConnectiveName.IMPLIESalt0)    || str.equalsIgnoreCase(ConnectiveName.IMPLIESalt1)    || str.equalsIgnoreCase(ConnectiveName.IMPLIESalt2)
 				|| str.equalsIgnoreCase(ConnectiveName.IMPLIESalt3)|| str.equalsIgnoreCase(ConnectiveName.IMPLIESalt4)    || str.equalsIgnoreCase(ConnectiveName.IMPLIESalt5));
 	}
-	public static boolean isaBackwardsIMPLIES(String str) {
+	static boolean isaBackwardsIMPLIES(String str) {
 		return (   str.equalsIgnoreCase(":-") || str.equalsIgnoreCase("if") || str.equalsIgnoreCase(":="));
 	}
-	public static boolean isaEQUIVALENT(String str) {
+	static boolean isaEQUIVALENT(String str) {
 		return (   str.equalsIgnoreCase(ConnectiveName.EQUIVALENTalt0) || str.equalsIgnoreCase(ConnectiveName.EQUIVALENTalt1) || str.equalsIgnoreCase(ConnectiveName.EQUIVALENTalt2));
 	}
-	public static boolean isaSPECIAL(String str) {
+	private static boolean isaSPECIAL(String str) {
 		return (   str.equalsIgnoreCase(ConnectiveName.SPECIAL) );
 	}
 	
-	public static boolean sameConnective(ConnectiveName a, ConnectiveName b) {
+	private static boolean sameConnective(ConnectiveName a, ConnectiveName b) {
         if ( a.name.equals(b.name) ) return true;
 		if (isaAND(       a.name)) { return isaAND(       b.name); }
 		if (isaOR(        a.name)) { return isaOR(        b.name); }
@@ -105,7 +87,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 		return false;
 	}
 
-    public boolean isSameConnective(ConnectiveName that) {
+    boolean isSameConnective(ConnectiveName that) {
         return sameConnective(this, that);
     }
 	
@@ -121,9 +103,6 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 	}
 
     /** Substitutes the ConnectiveName with a SerializableConnectiveName while Serializing.
-     *
-     * @return
-     * @throws java.io.ObjectStreamException
      */
     private Object writeReplace() throws ObjectStreamException {
         return new SerializableConnectiveName(name);
@@ -134,7 +113,6 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
     		   "if".equalsIgnoreCase(str) ||
     		   "or".equalsIgnoreCase(str) ||
     		  "and".equalsIgnoreCase(str) ||
-   		    //"not".equalsIgnoreCase(str) ||
    		     "else".equalsIgnoreCase(str) ||
    		     "then".equalsIgnoreCase(str) ||
    		  "implies".equalsIgnoreCase(str) ||
@@ -156,18 +134,14 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 
         transient public HandleFOPCstrings stringHandler;
 
-        public SerializableConnectiveName(String name) {
+        SerializableConnectiveName(String name) {
             this.name = name;
         }
 
-        /** Methods for reading a Object cached to disk.
-         *
-         * @param in
-         * @throws java.io.IOException
-         * @throws java.lang.ClassNotFoundException
+        /* Methods for reading a Object cached to disk.
          */
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-            if (in instanceof FOPCInputStream == false) {
+            if (!(in instanceof FOPCInputStream)) {
                 throw new IllegalArgumentException(ConnectiveName.class.getName() + ".readObject input stream must support FOPCObjectInputStream interface");
             }
 

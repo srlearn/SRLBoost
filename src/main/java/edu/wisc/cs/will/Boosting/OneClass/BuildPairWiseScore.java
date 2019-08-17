@@ -1,51 +1,40 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.OneClass;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
-import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author tkhot
  *
  */
-public class BuildPairWiseScore {
+class BuildPairWiseScore {
 
 	private PropositionalizationModel model;
 	
-	public BuildPairWiseScore(PropositionalizationModel currModel) {
+	BuildPairWiseScore(PropositionalizationModel currModel) {
 		model = currModel;
 	}
 
-	public PairWiseExampleScore buildScore(List<RegressionRDNExample> all_exs) {
-		// Map<String, FeatureVector> currFeatures = new HashMap<String, FeatureVector>();
-		List<FeatureVector> features = new ArrayList<FeatureVector>();
+	PairWiseExampleScore buildScore(List<RegressionRDNExample> all_exs) {
+		List<FeatureVector> features = new ArrayList<>();
 		// Get features for each example
-//		for (RegressionRDNExample rex : all_exs) {
-//			String key = ((Example)rex).toString();
-//			if (!currFeatures.containsKey(key)) {
-//				FeatureVector vec = model.getFeatureVector(rex);
-//				currFeatures.put(key, vec);
-//			}
-//		}
 		PairWiseExampleScore score = new PairWiseExampleScore();
 		score.currCount = model.treeList.size();
 		int numLabelled = 0;
-		for (int i = 0; i < all_exs.size(); i++) {
-			RegressionRDNExample rex = all_exs.get(i);
+		for (RegressionRDNExample rex : all_exs) {
 			FeatureVector vec = model.getFeatureVector(rex);
 			features.add(vec);
 			int cat = rex.getOriginalValue();
 			// If not multiclass, ignore negative examples
 			if (!rex.isHasRegressionVector()) {
-				if (cat == 0) { cat = -1; } else { numLabelled++;} 
+				if (cat == 0) {
+					cat = -1;
+				} else {
+					numLabelled++;
+				}
 			} else {
 				Utils.error("Can't handle multiclass examples in OCC");
 			}
@@ -73,9 +62,7 @@ public class BuildPairWiseScore {
 		
 	}
 	
-	public double getDistanceBetween(FeatureVector v1, FeatureVector v2) {
+	private double getDistanceBetween(FeatureVector v1, FeatureVector v2) {
 		return v1.getDistance(v2);
 	}
-	
-
 }

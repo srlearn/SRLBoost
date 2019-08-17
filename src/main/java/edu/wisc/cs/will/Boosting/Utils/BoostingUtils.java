@@ -166,32 +166,6 @@ public class BoostingUtils {
 	public static double sigmoid(double numRegExp, double denoRegExp) {
 		return 1/ (Math.exp(denoRegExp - numRegExp) + 1);
 	}
-	
-	public static void loadAdvice(WILLSetup setup, JointRDNModel fullModel, String file, boolean isMLN) {
-		if (!Utils.fileExists(file)) {
-			Utils.println("File: " + file + " doesnt exist.Hence no advice loaded");
-			return;
-		}
-		List<Sentence> advices = new ArrayList<>();
-		AdviceReader advReader = new AdviceReader(setup.getInnerLooper().getParser(), setup.getContext(), setup.getHandler());
-		advReader.readAdviceFromFile(file, advices);
-		for (String pred : fullModel.keySet()) {
-			for (Sentence advice : advices) {
-				Clause cl = advice.asClause(); 
-				if (cl.getDefiniteClauseHead().predicateName.name.equals(pred)) {
-					if (fullModel.get(pred).getPrior_advice() == null) {
-						if (isMLN) {
-							fullModel.get(pred).setPrior_advice(new RegressionMLNModel(setup));
-						} else {
-							fullModel.get(pred).setPrior_advice(new RegressionTree(setup));
-						}
-					}
-					fullModel.get(pred).getPrior_advice().addClause(cl);
-				}
-			}
-		}
-	}
-
 
 	public static String getCheckPointFile(String saveModelName) {
 		return saveModelName + ".ckpt";

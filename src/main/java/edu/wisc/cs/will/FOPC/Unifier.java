@@ -2,17 +2,15 @@ package edu.wisc.cs.will.FOPC;
 
 import java.util.List;
 import java.util.Map;
+import java.io.Serializable;
 
 import edu.wisc.cs.will.Utils.Utils;
-import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class Unifier extends AllOfFOPC implements Serializable {
 	protected static final int debugLevel = 0;  // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-    protected static long unificationCount = 0;
-
-    public final static Unifier UNIFIER = new Unifier();
+	public final static Unifier UNIFIER = new Unifier();
     
 	// Could use statics to perform unification since no "state" involved, but use an instance for safety.  
 	// Notice that the binding list is changed (rather than copied).
@@ -57,11 +55,6 @@ public class Unifier extends AllOfFOPC implements Serializable {
         return SentenceUnifier.unify(s1, s2, null);
     }
 
-
-	// Provide 'internal' access, but require use of 'self documenting' name.
-	public BindingList unifyAssumingSameNumberOfArgs(List<Term> args1, List<Term> args2, BindingList bindingList) {
-		return unify(args1, args2, bindingList);
-	}
 	private BindingList unify(List<Term> args1, List<Term> args2, BindingList bindingList) {
 		// The calling code checks arguments sizes, so no need to do that here.
 		// TAW: I normally wouldn't trust an external check...the check should probably be skipped
@@ -185,13 +178,8 @@ public class Unifier extends AllOfFOPC implements Serializable {
 		return "<this is an instance of the Unifier class>";
 	}
 
-    public static long getUnificationCount() {
-        return unificationCount;
-    }
-
-    public static void increaseUnificationCount() {
-        unificationCount++;
-    }
+	public static void increaseUnificationCount() {
+	}
     
 	@Override
 	public Unifier applyTheta(Map<Variable, Term> bindings) {

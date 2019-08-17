@@ -91,17 +91,6 @@ public class ConsCell extends Function implements Iterable<Term> {
     }
 
     @Override
-    public Function getBareCopy(FunctionName functionName, List<Term> newArguments, TypeSpec typeSpec) {
-        if (this == stringHandler.getNil()) {
-            return this;
-        }
-
-        Function f = stringHandler.getConsCell(functionName, typeSpec);
-        f.setArguments(newArguments);
-        return f;
-    }
-
-    @Override
     public Function copy(boolean recursiveCopy) {
         if (this == stringHandler.getNil()) {
             return this;

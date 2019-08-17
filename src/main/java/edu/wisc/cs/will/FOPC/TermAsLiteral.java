@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.Collection;
@@ -14,14 +11,12 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 @SuppressWarnings("serial")
 public class TermAsLiteral extends Literal {
-	/**
-	 * 
-	 */
+
 	public Term term;
 	/**
 	 * This is a dummy class.  It is used, during parsing, to hold a term inside something of type Literal.
 	 */
-	protected TermAsLiteral(HandleFOPCstrings stringHandler, Term term) {
+	TermAsLiteral(HandleFOPCstrings stringHandler, Term term) {
 		this.term          = term;
 		this.stringHandler = stringHandler;
 		if (term == null) { Utils.error("Cannot have term=null here."); }
@@ -37,12 +32,8 @@ public class TermAsLiteral extends Literal {
 	public TermAsLiteral copy(boolean recursiveCopy) {
 		return new TermAsLiteral(this.stringHandler, term.copy(recursiveCopy));
 	}
-	
-	public boolean containsTermAsLiteral() {
-		return true;
-	}
 
-    @Override
+	@Override
 	public boolean containsFreeVariablesAfterSubstitution(BindingList theta) {
 		if (term == null || theta == null) { return false; }
 		return term.freeVariablesAfterSubstitution(theta);

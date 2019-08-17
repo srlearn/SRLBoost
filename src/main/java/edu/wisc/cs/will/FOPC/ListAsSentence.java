@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.Collection;
@@ -24,15 +21,12 @@ public class ListAsSentence extends Sentence {
      * This is a way to wrap a list of anything.
      * CURRENTLY ALL THE SUPPORTING METHODS RETURN SOMETHING REASONABLE, BUT IF processItemsInList=true THIS NEEDS TO BE REWRITTEN.
      * See ListAsTerm for guidance if new code is needed.
-     *
-     * @param stringHandler
-     * @param objects 
      */
-    protected ListAsSentence(HandleFOPCstrings stringHandler, List<Sentence> objects) {
+    ListAsSentence(HandleFOPCstrings stringHandler, List<Sentence> objects) {
         this(stringHandler, objects, false);
     }
 
-    protected ListAsSentence(HandleFOPCstrings stringHandler, List<Sentence> objects, boolean processItemsInList) {
+    ListAsSentence(HandleFOPCstrings stringHandler, List<Sentence> objects, boolean processItemsInList) {
         this.stringHandler = stringHandler;
         this.objects = objects;
         this.processItemsInList = processItemsInList;

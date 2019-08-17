@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.Boosting.OneClass;
 
 import java.io.File;
@@ -21,7 +18,6 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 /**
  * @author tkhot
- *
  */
 public class LearnOCCModel {
 
@@ -29,37 +25,31 @@ public class LearnOCCModel {
 
 	protected final static int debugLevel = 1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-	
 	private WILLSetup setup;
-	
-	
+
 	private CommandLineArguments cmdArgs;
 	
 	private int maxTrees;
-	
-	// private PropositionalizationModel currModel;
-	
+
 	private PairWiseExampleScore egScores;
 	
-	public LearnOCCModel(CommandLineArguments cmdArgs, WILLSetup setup) {
+	LearnOCCModel(CommandLineArguments cmdArgs, WILLSetup setup) {
 		this.cmdArgs = cmdArgs;
 		this.setup   = setup;
-		
 		maxTrees = cmdArgs.getMaxTreesVal();
 	}
 
-	public void setTargetPredicate(String pred) {
+	void setTargetPredicate(String pred) {
 		targetPredicate = pred;	
 	}
 
-	public void loadCheckPointModel(
+	void loadCheckPointModel(
 			PropositionalizationModel propositionalizationModel) {
 		String saveModelName = BoostingUtils.getModelFile(cmdArgs, targetPredicate, true);
 		String chkPointFile = BoostingUtils.getCheckPointFile(saveModelName);
 		File willFile = getWILLsummaryFile();
 		File chkFile = new File(chkPointFile);
 		if (chkFile.exists() && chkFile.length() > 0) {
-//		if (Utils.fileExists(chkPointFile)) {
 			Utils.println("Loading checkpoint model from " + chkPointFile);
 			propositionalizationModel.loadModel(chkPointFile, setup, -1);
 			Utils.println("Found " + propositionalizationModel.getNumTrees() + " trees in checkpoint");
@@ -67,12 +57,11 @@ public class LearnOCCModel {
 							  ".\n//// Number of trees loaded:" + propositionalizationModel.getNumTrees() ;
 			Utils.appendString(willFile, addString);
 		}
-			
 	}
 
-	public void learnNextModel(RunOneClassModel runOneClassModel,
-			PropositionalizationModel propModel,
-			int moreTrees) {
+	void learnNextModel(RunOneClassModel runOneClassModel,
+						PropositionalizationModel propModel,
+						int moreTrees) {
 
 		Utils.println("\n% Learn model for: " + targetPredicate);
 		long start = System.currentTimeMillis();
@@ -98,10 +87,8 @@ public class LearnOCCModel {
 			propModel.setTargetPredicate(pred);
 			propModel.setTreePrefix(pred + (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()));
 		}
-		
 
-		List<RegressionRDNExample> old_eg_set = null;
-		long start = System.currentTimeMillis();
+		System.currentTimeMillis();
 		if (cmdArgs.isDisabledBoosting()) {
 			maxTrees=1;
 			// Increase the depth and number of clauses
@@ -116,7 +103,7 @@ public class LearnOCCModel {
 
 		
 		// Learn maxTrees models.
-		int i = 0;
+		int i;
 		if (propModel.getNumTrees() == 0 && cmdArgs.useCheckPointing()) {
 			loadCheckPointModel(propModel);
 		}
@@ -133,25 +120,19 @@ public class LearnOCCModel {
 			dumpTheoryToFiles(null, -1);  // Print something initially in case a run dies (i.e., be sure to erase any old results right away).
 		}
 		for (; i < maxTreesForThisRun; i++) {
-	
-			
-	
+
 			// Do we need this here? It is called before executeOuterLoop and in dumpTheoryToFiles.
 			setup.getOuterLooper().resetAll();
 
+			// Build data set for this model in this iteration.
+			long bddstart = System.currentTimeMillis();
+			List<RegressionRDNExample> newDataSet = buildDataSet(propModel);
+			long bbend = System.currentTimeMillis();
+			Utils.println("Time to build dataset: " + Utils.convertMillisecondsToTimeSpan(bbend-bddstart));
+			FeatureTree	tree = getFeatureTree(newDataSet, i);
 
-				// Build data set for this model in this iteration.
-				long bddstart = System.currentTimeMillis();						
-				List<RegressionRDNExample> newDataSet = buildDataSet(targetPredicate, propModel);
-				long bbend = System.currentTimeMillis();
-				Utils.println("Time to build dataset: " + Utils.convertMillisecondsToTimeSpan(bbend-bddstart));
-				FeatureTree	tree = getFeatureTree(newDataSet, i);
-				
-				
-				
-				propModel.addTree(tree);  // This code assume modelNumber=0 is learned first.
-				old_eg_set = newDataSet;
-		
+			propModel.addTree(tree);  // This code assume modelNumber=0 is learned first.
+
 			if (cmdArgs.useCheckPointing()) {
 				createCheckPointForModel(propModel, saveModelName);
 			}
@@ -167,27 +148,18 @@ public class LearnOCCModel {
 				propModel.saveModel(saveModelName);
 			} // Every now and then save the model so we can see how it is doing.
 		}
-
-		
-		
 	}
 	
-	private List<RegressionRDNExample> buildDataSet(String pred, PropositionalizationModel currModel) {
-		List<RegressionRDNExample> all_exs = new ArrayList<RegressionRDNExample>();
-
+	private List<RegressionRDNExample> buildDataSet(PropositionalizationModel currModel) {
+		List<RegressionRDNExample> all_exs = new ArrayList<>();
 		getSampledPosNegEx(all_exs);
-		
-
 		BuildPairWiseScore scorer = new BuildPairWiseScore(currModel);
 		egScores = scorer.buildScore(all_exs);
-		
-		  
-		// TODO Auto-generated method stub
 		return all_exs;
 	}
 	
 	private FeatureTree getFeatureTree(List<RegressionRDNExample> newDataSet, int i) {
-		TreeStructuredTheory th = null;
+		TreeStructuredTheory th;
 		Theory thry = null;
 		try {
 			// WILL somehow loses all the examples after every run.  TODO - JWS: Guess there is some final cleanup. 
@@ -216,9 +188,8 @@ public class LearnOCCModel {
 		tree.parseTheory(thry);
 		return tree;
 	}
-	
-	
-	public void getSampledPosNegEx(List<RegressionRDNExample> all_exs) {
+
+	private void getSampledPosNegEx(List<RegressionRDNExample> all_exs) {
 		setup.prepareExamplesForTarget(targetPredicate);
 		all_exs.addAll(BoostingUtils.castToListOfRegressionRDNExamples(setup.getOuterLooper().getPosExamples()));
 		Utils.println("% Dataset size: " + Utils.comma(all_exs));
@@ -228,15 +199,11 @@ public class LearnOCCModel {
 	 * LOGGING
 	 **************/
 
-	
-	
-	
 	private File getWILLsummaryFile() {  // Always recompute in case 'targetPredicate' changes.
-	//	return new CondorFile(getWILLFile(setup.getOuterLooper().getWorkingDirectory() + "/" +  cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
 		return Utils.ensureDirExists(getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
 	}
 	
-	public static final String getWILLFile(String dir, String postfix, String predicate) {
+	private static String getWILLFile(String dir, String postfix, String predicate) {
 		String filename = dir + "/WILLtheories/" + predicate + "_learnedFeatureTrees" + BoostingUtils.getLabelForCurrentModel();
 		if (postfix != null) {
 			filename += "_" + postfix;
@@ -272,7 +239,6 @@ public class LearnOCCModel {
 			stringToPrint +=   "% testNegPosRatio                     = " + Utils.truncate(cmdArgs.getTestNegsToPosRatioVal(),  3)                       + "\n";
 			stringToPrint +=   "% # of pos examples                   = " + Utils.comma(setup.getOuterLooper().getNumberOfPosExamples())                 + "\n";
 			stringToPrint +=   "% # of neg examples                   = " + Utils.comma(setup.getOuterLooper().getNumberOfNegExamples())                 + "\n";
-			// Utils.waitHere("dumpTheoryToFiles: \n" + stringToPrint);
 			Utils.writeStringToFile(stringToPrint + "\n", file); 
 		}
 		if (i >= 0) {
@@ -290,26 +256,5 @@ public class LearnOCCModel {
 	private void createCheckPointForModel(PropositionalizationModel model, String saveModelName) {
 		String chkptFile = BoostingUtils.getCheckPointFile(saveModelName);
 		model.saveModel(chkptFile);
-	// No saving example for now
-//		// Save the examples if not re-sampling e.g.s
-//		if (!resampleExamples) {
-//			String chkptEgFile = BoostingUtils.getCheckPointExamplesFile(saveModelName);
-//			// Need to write examples only during first iteration
-//			if (Utils.fileExists(chkptEgFile)) {
-//				try {
-//
-//					ObjectOutputStream oos = new ObjectOutputStream(new CondorFileOutputStream(chkptEgFile));
-//					for (RegressionRDNExample eg : egs) {
-//						oos.writeObject(eg);
-//					}
-//					oos.close();
-//				} 
-//				catch(Exception e) {
-//					Utils.reportStackTrace(e);
-//					Utils.error("Problem in writing examples in createCheckPointForModel.");
-//				}
-//			}
-//		}
-		
 	}
 }

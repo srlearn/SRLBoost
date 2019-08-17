@@ -2,14 +2,7 @@ package edu.wisc.cs.will.FOPC;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.ChildrenClausesGenerator;
@@ -17,7 +10,7 @@ import edu.wisc.cs.will.ILP.InlineManager;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
-import java.io.File;
+
 /**
  * @author shavlik
  *
@@ -28,12 +21,10 @@ import java.io.File;
 public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence> {
 	private static final int debugLevel = 0;
 
-	public  boolean reportUnsimplifiedClauses = true;
+	private boolean reportUnsimplifiedClauses = true;
 	
 	private InlineManager              inlineHandler       = null;
-	public InlineManager getInlineHandler() {
-		return inlineHandler;
-	}
+
 	public void setInlineHandler(InlineManager inlineHandler) {
 		this.inlineHandler = inlineHandler;
 	}
@@ -91,7 +82,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     public Theory(HandleFOPCstrings stringHandler, List<Clause> clauses, boolean negated) { // This boolean mainly added so this constructor is different than the one below.
 		this.stringHandler = stringHandler;
         sentences    = null;
-	//	this.clauses = clauses;
 		addAllMainClauses(clauses, null);
 		this.negated = negated;
 		collectNeededNames();
@@ -103,18 +93,15 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     public Theory(HandleFOPCstrings stringHandler, List<Theory> theories) { // TODO - need to merge stringHandlers ...
         this.stringHandler = stringHandler;
     	if (theories == null) { Utils.waitHere("Should not call with an empty list."); return; }
-//        for (Theory theory : theories) {
-//            if ( theory.stringHandler != this.stringHandler) throw new IllegalArgumentException("All theories combined into a single theory must use the same string handler.");
-//        }
+
 		collectNeededNames();
-    	sentences                  = new ArrayList<Sentence>(4);
-    	clauses                    = new ArrayList<Clause>(4);
-    	supportClauses             = new ArrayList<Clause>(4);
-    	originalClauses            = new ArrayList<Clause>(4);
-    	unsimplifiedClauses        = new ArrayList<Clause>(4);
-    	unsimplifiedSupportClauses = new ArrayList<Clause>(4); 	
-    	stringHandler              = theories.get(0).stringHandler;
-    	negated                    = false; // Don't allow combined theories to be negated (what if ALL are negated?  Still ok unless some cannot be negated ...).
+    	sentences                  = new ArrayList<>(4);
+    	clauses                    = new ArrayList<>(4);
+    	supportClauses             = new ArrayList<>(4);
+    	originalClauses            = new ArrayList<>(4);
+    	unsimplifiedClauses        = new ArrayList<>(4);
+    	unsimplifiedSupportClauses = new ArrayList<>(4);
+		negated                    = false; // Don't allow combined theories to be negated (what if ALL are negated?  Still ok unless some cannot be negated ...).
     	reportUnsimplifiedClauses  = theories.get(0).reportUnsimplifiedClauses;
     	somethingSimplified        = theories.get(0).isSomethingSimplified();
     	theoryFlipFlopped          = false;
@@ -131,8 +118,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     		if (t.originalClauses            != null) { originalClauses.addAll(           reparseClauses(  t.originalClauses)); }
     		if (t.unsimplifiedClauses        != null) { unsimplifiedClauses.addAll(       reparseClauses(  t.unsimplifiedClauses));        }
     		if (t.unsimplifiedSupportClauses != null) { unsimplifiedSupportClauses.addAll(reparseClauses(  t.unsimplifiedSupportClauses)); }
-    	//	if (stringHandler             != t.stringHandler) {
-    	//		Utils.waitHere("merge theories: mismatching string handlers.");
+
     	//	} // NOTE: if it matters, reparse each theory with the original or a completely new stringHandler.
     		if (t.negated && !t.theoryFlipFlopped) {
         		t.rewriteFlipFloppedTheory();
@@ -161,46 +147,16 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	notFname             = stringHandler.standardPredicateNames.negationByFailureAsFunction;
     }
 
-    // Fix this code if/when needed ...  TODO
+    // Fix this code if/when needed
     private Collection<Sentence> reparseSentences(Collection<Sentence> sentences) {
-    	if (sentences == null) { return null; }
-    	return sentences;
-    	/*
-    	FileParser parser = stringHandler.get();
-    	List<Sentence> results = new ArrayList<Sentence>(sentences.size());
-    	for (Sentence s : clsentencesauses) {
-    		results.addAll(parser.xxx(s.toString()));
-    	}
-    	return results;
-    	*/
-    }    
-    // Does the parser work for Clauses?
-    private List<Clause> reparseClauses(List<Clause> clauses) {
-    	if (clauses == null) { return null; }
-    	return clauses;
-    	/*
-    	FileParser parser = stringHandler.get();
-    	List<Clause> results = new ArrayList<Clause>(clauses.size());
-    	for (Clause c : clauses) {
-    		results.addAll(parser.xxx(c.toString())
-    	}
-    	return results;
-    	*/
-    }    
-    private Set<Clause> reparseClauses(Set<Clause> clauses) {
-    	if (clauses == null) { return null; }
-    	return clauses;
-    	/*
-    	FileParser parser = stringHandler.get();
-    	Set<Clause> results = new HashSet<Clause>(clauses.size());
-    	for (Clause c : clauses) {
-    		results.addAll(parser..xxx(c.toString())
-    	}
-    	return results;
-    	*/
+		return sentences;
     }
-    
-    public boolean isEmpty() {
+
+    private List<Clause> reparseClauses(List<Clause> clauses) {
+		return clauses;
+    }
+
+	public boolean isEmpty() {
     	return Utils.getSizeSafely(clauses) < 1;
     }
     
@@ -218,7 +174,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	private List<Variable> newNegListVars = null;
     private List<Clause> simplify(List<Clause> theseClauses) {
     	if (theseClauses == null) { return null; }
-    	List<Clause> results = new ArrayList<Clause>(4);
+    	List<Clause> results = new ArrayList<>(4);
     	somethingSimplified  = false;
     	newNegListVars       = null; // I am not sure why this is outside the clause FOR loop, but that is the way it was when simplifyListOfLiterals's code was pulled out (to allow recursion), and so I left it that way (7/30/10).
     	for (Clause cRaw : theseClauses) {
@@ -230,15 +186,14 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			Clause newC = stringHandler.getClause(c.posLiterals, newNegLits, c.getExtraLabel());
     		results.add(newC);
     	}
-    //	Utils.waitHere();
     	return results;
     }
     
     // It is possible some in-liners are still in a theory (eg, due to some bug).
     // So if a theory is to 'stand alone' in a new task, we need to keep the definitions of these in-liners.
     private boolean haveCollectedRemainingInLiners = false;
-    private Set<Clause> collectedSupporters = new HashSet<Clause>(4);
-    public void collectAnyRemainingInliners() {
+    private Set<Clause> collectedSupporters = new HashSet<>(4);
+    private void collectAnyRemainingInliners() {
     	if (haveCollectedRemainingInLiners) { return; }
     	collectedSupporters.clear();
     	help_collectAnyRemainingInliners(clauses,        1);
@@ -254,8 +209,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	if (theseClauses == null) { return; }
     	if (depth > 20) { for (Clause cRaw : theseClauses) { Utils.println("help_collectAnyRemainingInliners: " + cRaw); } Utils.error("depth = " + depth); }
     	for (Clause cRaw : theseClauses) {
-    	//	Utils.println("%  help_collectAnyRemainingInliners(clause): " + cRaw);
-    		if (cRaw.negLiterals != null) for (Literal lit : cRaw.negLiterals) { help_collectAnyRemainingInliners(lit, depth + 1); }
+			if (cRaw.negLiterals != null) for (Literal lit : cRaw.negLiterals) { help_collectAnyRemainingInliners(lit, depth + 1); }
     	}
     }
     
@@ -269,8 +223,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		PredicateName pName = lit.predicateName;
 		if (depth > 20) {  Utils.error("help_collectAnyRemainingInliners: lit = '" + lit + "' depth = " + depth); }
 
-	//	Utils.println("%  help_collectAnyRemainingInliners(lit): " + lit);    	
-
 		if (pName.isaInlined(lit.getArity()) && inlineHandler == null)  { 
 			Utils.warning("An in-line handler should have been associated with this theory ...  Needed for: " + lit);
 		}  
@@ -279,12 +231,12 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			  				
 			Iterable<Clause> definingClauses = inlineHandler.getHornClauseKnowledgeBase().getPossibleMatchingBackgroundKnowledge(lit, new BindingList());
 			
-			// ACTUALLY I THINK IT IS OK TO HAVE ANY NUMBER, SINCE WE'RE KEEPING THEM ALL:	if (Utils.getSizeSafely(definingClauses) != 1) { Utils.error("Expected ONE definition of: " + lit + ",\nbut got " + Utils.getSizeSafely(definingClauses) + "\n  " + definingClauses); }
+			// ACTUALLY I THINK IT IS OK TO HAVE ANY NUMBER, SINCE WE'RE KEEPING THEM ALL:
 			if (definingClauses != null) for (Clause inlinedDefn : definingClauses) { 
 			
-				List<Clause> inlinedDefnInList = new ArrayList<Clause>(1);
+				List<Clause> inlinedDefnInList = new ArrayList<>(1);
 				inlinedDefnInList.add(inlinedDefn);
-				// TODO this recursive step needs to be cleaned up.  Eg, here might not need to make a support clause but could inline the body.
+				// TODO(?): this recursive step needs to be cleaned up.  Eg, here might not need to make a support clause but could inline the body.
 				help_collectAnyRemainingInliners(inlinedDefnInList, depth + 1); // Need to make sure the inliner's body contains nothing that needs to be in-lined.
 				Utils.println("%  Theory.help_collectAnyRemainingInliners(lit): add this clause" + inlinedDefn); 
 				collectedSupporters.add(inlinedDefn);
@@ -295,8 +247,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     
     private void help_collectAnyRemainingInliners(Term term, int depth) {
 		if (depth > 20) {  Utils.error("help_collectAnyRemainingInliners: term = '" + term + "' depth = " + depth); }
-		
-	//	Utils.println("%  help_collectAnyRemainingInliners(term): " + term);
+
     	if (term instanceof LiteralAsTerm) {
     		LiteralAsTerm lat = (LiteralAsTerm) term;
     		help_collectAnyRemainingInliners(lat.itemBeingWrapped, depth + 1);    		
@@ -320,21 +271,16 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     
     private List<Literal> simplifyListOfLiterals(List<Literal> inputList) {
     	if (inputList == null) { return null; }
-		List<Literal> newNegLits     = new ArrayList<Literal>(inputList.size());
+		List<Literal> newNegLits     = new ArrayList<>(inputList.size());
     	List<Literal> newNegLitsHold = null;
 		for (Literal nLit : inputList) {
 			boolean saveIt = true;
 
-			//if (debugLevel > 1) { Utils.println("\n% CONSIDER: " + nLit); }			
-			//Utils.println("    nLit.predicateName=" + nLit.predicateName + " notPname=" + notPname + "  nLit.numberArgs()=" + nLit.numberArgs());
-			
 			if (nLit.predicateName == notPname && nLit.numberArgs() == 1) { // See if we have not(not(something)) and convert to 'something'.
 				Term arg = nLit.getArgument(0);
-				
-			//	Utils.waitHere("  have an arg to a negation-by-failure: " + arg);				
+
 				if (arg instanceof Function) {
 					Function f = (Function) arg;
-			//		Utils.waitHere("  have a function in a negation-by-failure: " + f);
 					if (f.functionName == notFname) {
 						if (f.numberArgs() != 1) { Utils.writeMe("Have a double negation: '" + f + "'  but with more than one argument.");  }
 						Term argNotNot = f.getArgument(0);
@@ -364,24 +310,23 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			
 			if (canPrune(nLit, newNegLits)) {
 				if (debugLevel > 1) { Utils.println("% CAN PRUNE: " + nLit); }
-				saveIt = false; continue; // Don't really need to set saveIt, but do so in case we later drop the 'break'.
+				continue;
 			}
 			
 			if (nLit.predicateName == numberPname && nLit.numberArgs() == 1 && nLit.getArgument(0) instanceof NumericConstant) {
 				if (debugLevel > 1) { Utils.println("% DISCARD number(#): " + nLit); }
-				saveIt = false; continue; // Don't really need to set saveIt, but do so in case we later drop the 'break'.
+				continue;
 			}
 			
 			// These are only used at learning time to introduce some constants into the hypothesis space.
 			if (nLit.numberArgs() == 1 && (nLit.predicateName == interNumbPname || nLit.predicateName == interSymPname || nLit.predicateName == interListPname || nLit.predicateName == interCompoPname)) {
 				if (debugLevel > 1) { Utils.println("% DISCARD isaInteresting(#): " + nLit); }
-				saveIt = false; continue; // Don't really need to set saveIt, but do so in case we later drop the 'break'.
+				continue;
 			}
 			
 			// For the binary case, we need to use a sameAs/2.  We don't want to replace, at least for numbers, since we want to support partial matches.
 			if (nLit.numberArgs() == 2 && (nLit.predicateName == interNumbPname || nLit.predicateName == interSymPname || nLit.predicateName == interListPname || nLit.predicateName == interCompoPname)) {
 				if (debugLevel > 1) { Utils.println("% Rename this isaInteresting/2 to use sameAs: " + nLit); }
-				saveIt = false;
 				Literal nLitSameAs = nLit.copy(false);
 				nLitSameAs.predicateName = (nLit.predicateName == interCompoPname ? sameAsPnameIL : sameAsPname);
 				newNegLits.add(nLitSameAs);
@@ -391,14 +336,13 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			// Different's need to be treated in a more complicated manner, since we cannot bind a variable with them (whereas in sameAs/2 we can).
 			if (nLit.numberArgs() == 2 && (nLit.predicateName == diff_interNumbPname || nLit.predicateName == diff_interSymPname || nLit.predicateName == diff_interListPname || nLit.predicateName == diff_interCompoPname)) {
 				if (debugLevel > 1) { Utils.println("% Rename this isaDifferentInteresting/2 to use different: " + nLit); }
-				saveIt = false;
 				Literal nLitDifferent = nLit.copy(false);
 				nLitDifferent.predicateName = (nLit.predicateName == diff_interCompoPname ? differentPnameIL : differentPname);
-				Term arg2 = nLit.getArgument(1); // NOTE: this code assumes the creators of these put the variable in the second argument.  TODO make more robust.
+				Term arg2 = nLit.getArgument(1); // NOTE: this code assumes the creators of these put the variable in the second argument.
 				if (arg2 instanceof Variable) {
 					if (newNegLitsHold == null) {
-						newNegLitsHold = new ArrayList<Literal>( 1); 
-						newNegListVars = new ArrayList<Variable>(1);
+						newNegLitsHold = new ArrayList<>( 1);
+						newNegListVars = new ArrayList<>(1);
 					}
 					newNegLitsHold.add(nLitDifferent);
 					newNegListVars.add((Variable) arg2); // The clause has to FIRST bind this variable before different/2 can be called.
@@ -417,7 +361,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		}
 
 		if (newNegLitsHold != null) {
-			newNegLits.addAll(newNegLitsHold); // Could put these in the 'right' spot, but for now just stick on at the end.  TODO 
+			newNegLits.addAll(newNegLitsHold); // Could put these in the 'right' spot, but for now just stick on at the end.
 		}
 		if (newNegLits.size() < 1) { newNegLits.add(stringHandler.trueLiteral); } // Could propagate this 'true' but it is an unlikely case and so don't bother.
 		return newNegLits;
@@ -425,17 +369,13 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     
     private Clause useDeterminateLiteralsToUnifyVariables(Clause c) {
     	if (c == null || Utils.getSizeSafely(c.negLiterals) < 1) { return c; }
-    	Map<PredicateName,List<Literal>> samePredicates = new HashMap<PredicateName,List<Literal>>(4);
+    	Map<PredicateName,List<Literal>> samePredicates = new HashMap<>(4);
     	// First group literals by predicateName
     	for (Literal nLit : c.negLiterals) {
     		PredicateName pName = nLit.predicateName;
     		if (!pName.isFunctionAsPredicate(null, nLit.getArguments())) { continue; }
-    		List<Literal> lookup = samePredicates.get(pName);
-    		if (lookup == null) {
-    			lookup = new ArrayList<Literal>(1);
-    			samePredicates.put(pName, lookup);
-    		}
-    		if (!nLit.member(lookup, false)) { lookup.add(nLit); } // Set's weren't working (even when using setUseStrictEqualsForLiterals(false)), so handle explicitly.
+			List<Literal> lookup = samePredicates.computeIfAbsent(pName, k -> new ArrayList<>(1));
+			if (!nLit.member(lookup, false)) { lookup.add(nLit); } // Set's weren't working (even when using setUseStrictEqualsForLiterals(false)), so handle explicitly.
     	}
     	if (samePredicates.size() < 1) { return c; }
     	BindingList bl = new BindingList();
@@ -446,9 +386,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     		processThisSetOfCandidatesMatchingDeterminates(candidates, bl);
     	}
     	if (bl.theta.size() < 1) { return c; }
-    //	Utils.waitHere("567, bl = " + bl);
-    	List<Literal> newPlits = new ArrayList<Literal>(c.posLiterals.size());
-    	List<Literal> newNlits = new ArrayList<Literal>(c.negLiterals.size());
+    	List<Literal> newPlits = new ArrayList<>(c.posLiterals.size());
+    	List<Literal> newNlits = new ArrayList<>(c.negLiterals.size());
     	for (Literal pLit : c.posLiterals) { newPlits.add(pLit.applyTheta(bl.theta)); }
     	for (Literal nLit : c.negLiterals) { newNlits.add(nLit.applyTheta(bl.theta)); }
     	return stringHandler.getClause(newPlits, newNlits, c.getExtraLabel());
@@ -456,9 +395,9 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     
     private void processThisSetOfCandidatesMatchingDeterminates(List<Literal> candidates, BindingList bl) {
     	if (Utils.getSizeSafely(candidates) < 2) { return; }
-    	List<Literal> copyOfSet = new ArrayList<Literal>(candidates.size());
+    	List<Literal> copyOfSet = new ArrayList<>(candidates.size());
     	copyOfSet.addAll(candidates);
-    	// There might be some order-dependent aspects of this calculation, but we'll live with order we get.  TODO - think this out more.
+    	// There might be some order-dependent aspects of this calculation, but we'll live with order we get.
     	while (!copyOfSet.isEmpty()) {
         	Literal litToConsider = copyOfSet.remove(0).applyTheta(bl.theta);
         	int numbArgs = litToConsider.numberArgs();
@@ -491,6 +430,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     }
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// TODO(@hayesall): Deleting this `unifier` object raises a warning that there may be side effects elsewhere.
     private Unifier          unifier        = new Unifier();
     private StringConstant[] constantsToUse = null; // These are used to replace variables when matching for pruning.
     private BindingList      cachedBindingListForPruning; // Used if any pruning is being considered.
@@ -533,8 +474,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     		}
     		
     	}
-    	if (lit == null) { return false; }
-    	MapOfLists<PredicateNameAndArity,Pruner> allPruners = lit.predicateName.getPruners(lit.getArity());
+		MapOfLists<PredicateNameAndArity,Pruner> allPruners = lit.predicateName.getPruners(lit.getArity());
     	if (allPruners == null) { return false; }
     	
     	putPartialBodyInFormForPruning(lit, body);
@@ -546,7 +486,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	}
     	Literal     initNumberedLit = (cachedBindingListForPruning == null ? lit             : lit.applyTheta(cachedBindingListForPruning.theta));
 		BindingList newBL           = bindVarsToUniqueConstants(initNumberedLit);
-		Literal     fixedLit        = (newBL                       == null ? initNumberedLit : initNumberedLit.applyTheta(newBL.theta));
+		Literal     fixedLit        = initNumberedLit.applyTheta(newBL.theta);
 
 		// See if NULL is one of the pruners (NULL means nothing in the body needs to match).
 		List<Pruner>  prunersMatchingNULL = allPruners.getValues(null);
@@ -567,8 +507,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		int parentBodyLength = numberedClauseBody.size();
 		for (int bodyCounter = 0; bodyCounter < parentBodyLength; bodyCounter++) {
 			Literal       numberedBodyLit = numberedClauseBody.get(bodyCounter);
-			PredicateName parent_pName    = numberedBodyLit.predicateName;
-		    List<Pruner>  matchingPruners = allPruners.getValues(numberedBodyLit.getPredicateNameAndArity());
+			List<Pruner>  matchingPruners = allPruners.getValues(numberedBodyLit.getPredicateNameAndArity());
 			if (matchingPruners != null) for (Pruner p : matchingPruners) {
 				if (p.truthValue != 0 && p.isaMatch(fixedLit, numberedBodyLit)) { 
 					if (p.truthValue < 0) { Utils.warning("% Have a literal in clause that is said to evaluate to FALSE!\n lit = " + lit + "\n%   pruner: " + p + "\n%   clause body: " + body); continue; }
@@ -581,10 +520,9 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     }
 
     private void putPartialBodyInFormForPruning(Literal lit, List<Literal> body) {
-		List<Literal>  pos = new ArrayList<Literal>(1); pos.add(lit);
+		List<Literal>  pos = new ArrayList<>(1); pos.add(lit);
 		Clause      clause = stringHandler.getClause(pos, body);
-		//Collection<Variable> collectedFreeVariables = 
-			clause.collectFreeVariables(null);  // Utils.println("%  collectedFreeVariables = " + collectedFreeVariables);
+		clause.collectFreeVariables(null);
 		BindingList     bl = clause.copyAndReplaceVariablesWithNumbers(constantsToUse);
 		cachedBindingListForPruning = bl;
 		numberedBodyForPruning      = (bl == null ? clause : clause.applyTheta(bl.theta));
@@ -601,10 +539,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		}
 		return result;
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-//	private final String cannotNegateString = "\n// This theory should be negated by code that uses it. \n";
-	public boolean cannotNegateEasily() {
+
+	private boolean cannotNegateEasily() {
 		return cannotNegateEasily;
 	}
 	
@@ -629,8 +565,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 				if (clauses.size() < 2) {
 					body = pLit.getArguments();
 				} else {
-					body = new ArrayList<Term>(arity);
-					body.addAll(stringHandler.getThisManyVars(arity, true));
+					body = new ArrayList<>(arity);
+					body.addAll(Objects.requireNonNull(stringHandler.getThisManyVars(arity, true)));
 				}
 			} else if (pName != pLit.predicateName) { 
 				Utils.warning("Cannot negate a theory with different head clauses: " + pName + " vs. " + pLit.predicateName); 
@@ -643,21 +579,20 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			}
 		}
 		cannotNegateEasily = false;
-		List<Literal> pLits = new ArrayList<Literal>(4);
-		List<Literal> nLits = new ArrayList<Literal>(4);
+		List<Literal> pLits = new ArrayList<>(4);
+		List<Literal> nLits = new ArrayList<>(4);
 		Literal       head  = stringHandler.getLiteral(pName, body);
 		pLits.add(head);
+		assert pName != null;
 		Function   not_head  = stringHandler.getFunction(stringHandler.getFunctionName(FileParser.will_notPred_prefix + pName.name), body, null);
 		nLits.add(stringHandler.wrapInNot(not_head));
 		return stringHandler.getClause(pLits, nLits);
 	}
-	public void addTheseSentences(Collection<? extends Sentence> standardSentences) {
-		addTheseSentences(standardSentences, inlineHandler);
-	}
-	public final void addTheseSentences(Collection<? extends Sentence> standardSentences, InlineManager checkForInlinersAndSupportingClauses) {
+
+	private void addTheseSentences(Collection<? extends Sentence> standardSentences, InlineManager checkForInlinersAndSupportingClauses) {
 		if (standardSentences == null) { return; }
-		if (clauses   == null) { clauses   = new ArrayList<Clause>(standardSentences.size()); }
-		if (sentences == null) { sentences = new ArrayList<Sentence>(standardSentences);      }
+		if (clauses   == null) { clauses   = new ArrayList<>(standardSentences.size()); }
+		if (sentences == null) { sentences = new ArrayList<>(standardSentences);      }
 		else                   { sentences.addAll(standardSentences); }
 		for (Sentence s : standardSentences) {
 			Boolean hold = stringHandler.prettyPrintClauses;
@@ -676,12 +611,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		}
 	}
 
-	// Order matters in Prolog, so don't allow arbitrary Collections.
-	public void addAllMainClauses(List<? extends Clause> clausesToAdd) {
-		addAllMainClauses(clausesToAdd, inlineHandler);
-	}
-	public final void addAllMainClauses(List<? extends Clause> clausesToAdd, InlineManager checkForInlinersAndSupportingClauses) {
-	//	if (checkForInlinersAndSupportingClauses == null) { Utils.waitHere("Are you sure you don't have an checkForInlinersAndSupportingClauses?"); }
+	final void addAllMainClauses(List<? extends Clause> clausesToAdd, InlineManager checkForInlinersAndSupportingClauses) {
 		for (Clause c : clausesToAdd) {
 			addMainClause(c, checkForInlinersAndSupportingClauses);
 		}	
@@ -690,10 +620,9 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
         addMainClause(clause, inlineHandler);
     }
 	public void addMainClause(Clause clause, InlineManager checkForInlinersAndSupportingClauses) {
-	//	if (checkForInlinersAndSupportingClauses == null) { Utils.waitHere("Are you sure you dont have an checkForInlinersAndSupportingClauses?"); }
 		if (clause == null) { return; }
-		if (clauses         == null) { clauses         = new ArrayList<Clause>(4); }
-		if (originalClauses == null) { originalClauses = new ArrayList<Clause>(4); }
+		if (clauses         == null) { clauses         = new ArrayList<>(4); }
+		if (originalClauses == null) { originalClauses = new ArrayList<>(4); }
 		originalClauses.add(clause);
 		
 		if (debugLevel > 2) { 
@@ -701,8 +630,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		}
 		if (checkForInlinersAndSupportingClauses != null) {
 			List<Clause> doubleResults = checkForInlinersAndSupportingClauses.handleInlinerAndSupportingClauses(clause);
-		//	Utils.println("doubleResults=" + doubleResults);			
-			if (doubleResults == null) { Utils.error("Should not get a NULL here using: " + clause); }			
+			if (doubleResults == null) { Utils.error("Should not get a NULL here using: " + clause); }
+			assert doubleResults != null;
 			clauses.add(doubleResults.remove(0));
 			for (Clause sc : doubleResults) { addSupportingClause(sc, null); }
 		} else {
@@ -718,9 +647,9 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     public void addSupportingClause(Clause clause) {
         addSupportingClause(clause, inlineHandler);
     }
-	public void addSupportingClause(Clause clause, InlineManager checkForInlinersAndSupportingClauses) { 
+	private void addSupportingClause(Clause clause, InlineManager checkForInlinersAndSupportingClauses) {
 		if (clause == null) { return; }
-		if (supportClauses == null) { supportClauses = new ArrayList<Clause>(4); }
+		if (supportClauses == null) { supportClauses = new ArrayList<>(4); }
 		
         boolean found = false;
         
@@ -731,65 +660,10 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
             }
         }
 
-        if ( found == false ) supportClauses.add(clause);
-	}
-	
-	public boolean isaDefiniteClauseTheory(boolean throwErrorIfNot) {	
-		if (clauses == null) { return false; }
-		for (Clause clause : clauses) {			
-			if (!clause.isDefiniteClause()) { // A bit sloppy to mention 'The Horn-Clause Theorem Prover' here, but not that mortal of a sin.
-				if (throwErrorIfNot) { Utils.error("The Horn-Clause Theorem Prover requires all background knowledge to be definite clauses (i.e., of the form 'p and q => r'):\nThis one isn't: " + clause); }
-				return false;
-			}
-		}
-		return true;
-	}
-	public String getTargetPredicateNameString(boolean throwErrorIfNotDefinite) {
-		PredicateName result = getTargetPredicateName(throwErrorIfNotDefinite);
-		if (result == null) { Utils.error("Could not find the name of the target predicate."); return null; }
-		return result.name;
-	}
-	public PredicateName getTargetPredicateName(boolean throwErrorIfNotDefinite) {
-		PredicateName pName = null;
-		
-		if (!isaDefiniteClauseTheory(throwErrorIfNotDefinite)) { return null; }
-		
-		for (Clause clause : clauses) {
-			PredicateName headPname = clause.posLiterals.get(0).predicateName;
-			
-			if (pName == null) { pName = headPname; }
-			else if (pName != headPname) { // Keep looking to see if there are more clauses with different names.  Shouldn't happen.
-				if (throwErrorIfNotDefinite) { Utils.error("Have more than one target predicate: '" + pName + "' and '" + headPname + "' (might be more)."); }
-				return pName;
-			}
-		}		
-		return pName;		
-	}
-	
-	/**
-         * Count the number of definite clauses in this theory whose head
-         * matches the provided literal.
-         * 
-         * @param head
-         * @param unifier
-         * @return The count of matching clauses.
-         */
-	public int countMatchingDefiniteClauses(Literal head, Unifier unifier) {
-		return countMatchingDefiniteClauses(head, unifier, false);
-	}
-	public int countMatchingDefiniteClauses(Literal head, Unifier unifier, boolean reportMatches) {
-		if (clauses == null) { return 0; }
-		int counter = 0;
-		for (Clause clause : clauses) if (clause.isDefiniteClause()) {
-			if (unifier.unify(clause.posLiterals.get(0), head) != null) {
-				if (reportMatches) { Utils.println("% matcher:\n% " + clause.toPrettyString("%  ")); } 
-				counter++; }
-		}
-		return counter;
-		
+        if (!found) supportClauses.add(clause);
 	}
 
-    /**
+	/**
      * @return the clauses
      */
     public List<Clause> getClauses() {
@@ -803,7 +677,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	}
 	
 	private boolean theoryFlipFlopped = false; // Only want to flip-flop once.	
-	public final void rewriteFlipFloppedTheory() {
+	private void rewriteFlipFloppedTheory() {
 		rewriteFlipFloppedTheory(true);
 	}
 		public void rewriteFlipFloppedTheory(boolean complainIfAlreadyFlipper) {
@@ -820,7 +694,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			PredicateName pNameNew = stringHandler.getPredicateName(FileParser.will_notPred_prefix + pName);
 			pNameNew.addTemporary(head.numberArgs()); // We might need to later further rename this.
 			head.predicateName = pNameNew;
-			if (supportClauses == null) { supportClauses = new ArrayList<Clause>(4); }
+			if (supportClauses == null) { supportClauses = new ArrayList<>(4); }
 			supportClauses.add(newClause);
 		}
 		clauses.clear();
@@ -830,7 +704,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	public List<Clause> getSupportClauses() {
 		return supportClauses;
 	}
-	public void setSupportClauses(List<Clause> supportClauses) {
+	void setSupportClauses(List<Clause> supportClauses) {
 		this.supportClauses = supportClauses;
 	}
 	public Collection<Sentence> getSentences() {
@@ -856,7 +730,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		return toPrettyString("", Integer.MIN_VALUE, bl);
 	}
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
-		String str = newLineStarter; // No weights on theories - instead they are on sentences.
+		StringBuilder str = new StringBuilder(newLineStarter); // No weights on theories - instead they are on sentences.
 		if (Utils.getSizeSafely(clauses) < 1) {
 			if (Utils.getSizeSafely(supportClauses) > 0) { Utils.error("There are SUPPORTING clauses, but no regular clauses!  Supporters: " + supportClauses); }
 			return "% There are no clauses in this theory.";
@@ -865,33 +739,33 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		boolean firstTime = true;
 		int counter = 1;
 		for (Clause clause : clauses) {	
-			if (firstTime) { firstTime = false; str += "\n% " + newLineStarter + "Clauses:\n\n"; }
-			str += newLineStarter + printClause(clause, newLineStarter, bl) + " // Clause #" + counter++ + ".\n\n";
+			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Clauses:\n\n"); }
+			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Clause #").append(counter++).append(".\n\n");
 		}
 		firstTime = true;
 		counter   = 1;
 		if (Utils.getSizeSafely(supportClauses) > 0) for (Clause clause : supportClauses) {	
-			if (firstTime) { firstTime = false; str += "\n% " + newLineStarter + "Supporting Clauses:\n\n"; }
-			str += newLineStarter + printClause(clause, newLineStarter, bl) + " // Supporting Clause #" + counter++ + ".\n\n";
+			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Supporting Clauses:\n\n"); }
+			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
-		if (!reportUnsimplifiedClauses) { return str; }
+		if (!reportUnsimplifiedClauses) { return str.toString(); }
 		firstTime = true;
 		counter   = 1;
 		boolean haveSimplified = somethingSimplified && (Utils.getSizeSafely(unsimplifiedClauses) +  Utils.getSizeSafely(unsimplifiedSupportClauses) > 0);
-		if (haveSimplified) { str += "\n/* Before Simplification:\n"; }
-		else { return str; }
+		if (haveSimplified) { str.append("\n/* Before Simplification:\n"); }
+		else { return str.toString(); }
 		if (Utils.getSizeSafely(unsimplifiedClauses) > 0) for (Clause clause : unsimplifiedClauses) {
-			if (firstTime) { firstTime = false; str += "\n% " + newLineStarter + "Unsimplified Clauses:\n\n"; }
-			str += newLineStarter + printClause(clause, newLineStarter, bl) + " // Clause #" + counter++ + ".\n\n";
+			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Unsimplified Clauses:\n\n"); }
+			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Clause #").append(counter++).append(".\n\n");
 		}	
 		firstTime = true;
 		counter   = 1;	
 		if (Utils.getSizeSafely(unsimplifiedSupportClauses) > 0) for (Clause clause : unsimplifiedSupportClauses) {	
-			if (firstTime) { firstTime = false; str += "\n% " + newLineStarter + "Unsimplified Supporting Clauses:\n\n"; }	
-			str += newLineStarter + printClause(clause, newLineStarter, bl) + " // Supporting Clause #" + counter++ + ".\n\n";
+			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Unsimplified Supporting Clauses:\n\n"); }
+			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
-		str += "\n*/";
-		return str;
+		str.append("\n*/");
+		return str.toString();
 	}
 	public String toString(int precedenceOfCaller, BindingList bindingList) {
 		return toPrettyString("", precedenceOfCaller, bindingList);
@@ -899,8 +773,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 
 
     private String printClause(Clause clause, String newLineStarter, BindingList bl) {
-        //return clause.toPrettyString(newLineStarter + "   ", Integer.MAX_VALUE) +".";
-
         return PrettyPrinter.print(clause, "", newLineStarter, getPrettyPrinterOptions(), bl);
 
     }
@@ -919,47 +791,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
         return prettyPrinterOptions;
     }
 
-
-	// Print a theory w/o any comments, for ease of processing elsewhere.
-	public String toPlainString() {
-		String str = ""; // No weights on theories - instead they are on sentences.
-		
-		if (Utils.getSizeSafely(clauses)        > 0) for (Clause clause : clauses) {
-			str += clause.toString(Integer.MAX_VALUE) + ".\n";
-		}		
-		if (Utils.getSizeSafely(supportClauses) > 0) for (Clause clause : supportClauses) {		
-			str += clause.toString(Integer.MAX_VALUE) + ".\n";
-		}
-		if (!reportUnsimplifiedClauses) { return str; }
-		boolean haveSimplified = somethingSimplified && (Utils.getSizeSafely(unsimplifiedClauses) +  Utils.getSizeSafely(unsimplifiedSupportClauses) > 0);
-		if (!haveSimplified) { return str; }
-		str += "\n/*\n";
-		if (Utils.getSizeSafely(unsimplifiedClauses) > 0) for (Clause clause : unsimplifiedClauses) {
-			str += clause.toString(Integer.MAX_VALUE) + ".\n";
-		}		
-		if (Utils.getSizeSafely(unsimplifiedSupportClauses) > 0) for (Clause clause : unsimplifiedSupportClauses) {		
-			str += clause.toString(Integer.MAX_VALUE) + ".\n";
-		}
-		str += "\n*/";
-		return str;
-	}
-	
-	public String printOriginalTheory() {
-		String result = "\n/*\n";
-		
-		if (sentences != null) {
-			result += "\nThe original sentences:\n";
-			for (Sentence s : sentences) { result += "   " + s + "\n"; }
-		}
-		
-		if (originalClauses != null) {
-			result += "\nThe original clauses:\n";
-			if (originalClauses != null) for (Clause c : originalClauses) {	result += "   " + c.toPrettyString("      ", Integer.MAX_VALUE) + "\n"; }
-		}		
-		return result + "\n*/\n";
-	}
-	
-	public void addPreAndPostfixToTemporaryNames(String prefixForSupportClause, String postfixForSupportClause) {		
+	public void addPreAndPostfixToTemporaryNames(String prefixForSupportClause, String postfixForSupportClause) {
 		if (clauses != null) for (Clause c : clauses) { // These are the main clauses.  Don't rename them (shouldn't happen since should not be in renameTheseSupportingPredicates), but check their bodies.
 			for (int i = 0; i < c.getLength(); i++) {
 				Literal lit = c.getIthLiteral(i);
@@ -989,22 +821,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
         for (Literal contentsLiteral : contents.getPositiveLiterals()) {
             renameLiteralIfTemporary(contentsLiteral, prefixForSupportClause, postfixForSupportClause);
         }
-
-//		Term arg = lit.getArgument(0);
-//		if (!(arg instanceof SentenceAsTerm)) { Utils.error("Should a negation-by-failure's argument not be a SentenceAsTerm? " + arg); }
-//		Sentence sentence = ((SentenceAsTerm) arg).sentence;
-//		if (sentence instanceof Literal) {
-//			Literal lit2 = (Literal) sentence;
-//			Utils.error("Should a literal be inside here? " + lit2 + " in " + lit);  // If so, wrap into a clause and use the code below ...
-//		} else if (sentence instanceof Clause) {
-//			Clause c = (Clause) sentence;
-//			if (Utils.getSizeSafely(c.posLiterals) > 0) { Utils.error("Should not have positive literals inside a negation-by-failure.");         }
-//			if (Utils.getSizeSafely(c.negLiterals) < 1) { Utils.error("Should have at least one negative literal inside a negation-by-failure."); }
-//
-//			for (Literal nLit : c.negLiterals) {
-//				renameLiteralIfTemporary(nLit, prefixForSupportClause, postfixForSupportClause);
-//			}
-//		}
 	}
 		
 	// This should all be done IN-PLACE.
@@ -1027,72 +843,12 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			}
 		}
 	}
-	
-	public boolean isEmptyTheory() {
-		return (clauses == null);
-	}
-	
-	public boolean isBodylessTheory() {
-		if (clauses == null) { return true; }
-		
-		for (Clause c : clauses) {
-			if (Utils.getSizeSafely(c.negLiterals) < 1) { continue; }
-			if (c.negLiterals.size() > 1) { return false; }
-			if (!c.negLiterals.get(0).predicateName.name.equalsIgnoreCase("true")) { return false; }
-		}
-		return true;
-	}
-	public void addToBodylessTheory(Literal litToAdd) {
-		addToBodylessTheory(litToAdd, inlineHandler);
-	}
-	public void addToBodylessTheory(Literal litToAdd, InlineManager checkForInlinersAndSupportingClauses) {
-		if (clauses == null) { 
-			Clause newClause = stringHandler.getClause(litToAdd, true);
-			Utils.println("% Added the literal '" + litToAdd + "' to produce this clause: " + newClause);
-			addMainClause(newClause, checkForInlinersAndSupportingClauses);
-		} else for (Clause c : clauses) {
-			if (c.negLiterals == null) { c.negLiterals = new ArrayList<Literal>(1); }
-			if (c.negLiterals.size() < 1) { 
-				c.negLiterals.add(litToAdd);
-				Utils.writeMe("Need to unify the clause head and the literal added to the body.\n " + c); // Figure this out if ever needed ...
-			}
-		}
-	}
-	
-	public boolean isSomethingSimplified() {
+
+	private boolean isSomethingSimplified() {
 		return somethingSimplified;
 	}
-	public void setSomethingSimplified(boolean somethingSimplified) {
-		this.somethingSimplified = somethingSimplified;
-	}
 
-    public static Theory readTheory(String file, HornClauseContext context) {
-
-        List<Sentence> sentences = context.getFileParser().readFOPCfile(file);
-        PredicateNameAndArity predicate = null;
-
-        Theory theory = new Theory(context);
-
-        for (Sentence sentence : sentences) {
-            List<Clause> clauses = sentence.convertToClausalForm();
-            for (Clause clause : clauses) {
-                if ( predicate == null ) {
-                    predicate = clause.getDefiniteClauseHead().getPredicateNameAndArity();
-                }
-
-                if ( clause.getDefiniteClauseHead().getPredicateNameAndArity().equals(predicate) ) {
-                    theory.addMainClause(clause);
-                }
-                else {
-                    theory.addSupportingClause(clause);
-                }
-            }
-        }
-
-        return theory;
-    }
-
-    @Override
+	@Override
     public Theory applyTheta(Map<Variable, Term> bindings) {
     	// TODO Auto-generated method stub
     	Utils.writeMe("Theory applyTheta");
@@ -1116,13 +872,9 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     }
 
    /** Methods for reading a Object cached to disk.
-    *
-    * @param in
-    * @throws java.io.IOException
-    * @throws java.lang.ClassNotFoundException
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        if ( in instanceof FOPCInputStream == false ) {
+        if (!(in instanceof FOPCInputStream)) {
             throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject input stream must support FOPCObjectInputStream interface");
         }
         in.defaultReadObject();

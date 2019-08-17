@@ -378,7 +378,7 @@ public class ThresholdManager {
 	   		if (debugLevel > -10) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%  New Background Rule:\n     " + newBKclause.toPrettyString("       ", Integer.MAX_VALUE) + "."); }
 	   		if (printStream != null) printStream.println(newBKclause.toPrettyString("       ", Integer.MAX_VALUE) + ".");
 	   		innerLoopForILP.addRule(newBKclause);
-	   		inlineManager.addInventedClause(headVariablized, newBKclause);
+	   		inlineManager.addInventedClause(headVariablized);
 	   		if (printStream != null) printStream.println("inline: " + headVariablized.predicateName + "/" + headVariablized.numberArgs() + ".");
 	   		
 	   		// Next create a NEGATED version of the interval TODO have a flag to override this.
@@ -394,7 +394,7 @@ public class ThresholdManager {
 	   		if (debugLevel > -10) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%  New Negation-by-Failure Background Rule:\n     " + newNegatedBKclause.toPrettyString("       ", Integer.MAX_VALUE) + "."); }
 	   		if (printStream != null) printStream.println(newNegatedBKclause.toPrettyString("       ", Integer.MAX_VALUE) + ". // Negation-by-failure version.");
 	   		innerLoopForILP.addRule(newNegatedBKclause);
-	   		inlineManager.addInventedClause(negatedHead, newNegatedBKclause);
+	   		inlineManager.addInventedClause(negatedHead);
 	   		if (printStream != null) printStream.println("inline: " + negatedHead.predicateName + "/" + negatedHead.numberArgs() + ".");	   
 	   		if (printStream != null) printStream.println("mode: not_" + extendedLit + ".");		
 	   		
