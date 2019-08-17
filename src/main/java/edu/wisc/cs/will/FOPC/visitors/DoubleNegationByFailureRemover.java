@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.Clause;
@@ -16,17 +12,12 @@ import edu.wisc.cs.will.FOPC.Term;
  */
 public class DoubleNegationByFailureRemover {
 
-    private static final int debugLevel = 0;
-
     private static final RemoveNegationByFailureVisitor REMOVE_NEGATION_BY_FAILURE_VISITOR = new RemoveNegationByFailureVisitor();
 
     public static Sentence removeDoubleNegationByFailure(Sentence sentence) {
 
-        Sentence result = sentence.accept(REMOVE_NEGATION_BY_FAILURE_VISITOR, null);
-
-        return result;
+        return sentence.accept(REMOVE_NEGATION_BY_FAILURE_VISITOR, null);
     }
-
 
     public static class RemoveNegationByFailureVisitor extends DefaultFOPCVisitor<Void> {
 
@@ -66,6 +57,5 @@ public class DoubleNegationByFailureRemover {
         }
     }
 
-    private DoubleNegationByFailureRemover() {
-    }
+    private DoubleNegationByFailureRemover() {}
 }

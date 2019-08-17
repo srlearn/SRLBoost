@@ -1,9 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC.visitors;
+
+import java.util.Objects;
 
 import edu.wisc.cs.will.FOPC.SentenceOrTerm;
 
@@ -12,10 +9,10 @@ import edu.wisc.cs.will.FOPC.SentenceOrTerm;
  * @author twalker
  */
 public class ElementAndPath {
-    SentenceOrTerm element;
-    ElementPath path;
+    private SentenceOrTerm element;
+    private ElementPath path;
 
-    public ElementAndPath(SentenceOrTerm element, ElementPath path) {
+    ElementAndPath(SentenceOrTerm element, ElementPath path) {
         this.element = element;
         this.path = path;
     }
@@ -45,13 +42,10 @@ public class ElementAndPath {
             return false;
         }
         final ElementAndPath other = (ElementAndPath) obj;
-        if (this.element != other.element && (this.element == null || !this.element.equals(other.element))) {
+        if (!Objects.equals(this.element, other.element)) {
             return false;
         }
-        if (this.path != other.path && (this.path == null || !this.path.equals(other.path))) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.path, other.path);
     }
 
     @Override
@@ -66,6 +60,4 @@ public class ElementAndPath {
     public String toString() {
         return "{" + "element=" + element + ", path=" + path + '}';
     }
-
-
 }

@@ -18,18 +18,14 @@ public class SentenceAsTerm extends Term {
 	public  Sentence sentence;
 	private String   wrapperPredicate = null;  // Record a note on who 'created' this SentenceAsTerm, since this code assumes they are only internally created.
 
-	/** FOPC sentences can be terms in some Prolog constructs, e.g. once( (p(x), q(x), r(x)) ).
-     *
-     * @param stringHandler
-     * @param s
-     * @param wrapperPredicate 
+	/**
+	 * FOPC sentences can be terms in some Prolog constructs, e.g. once( (p(x), q(x), r(x)) ).
      */  
 	protected SentenceAsTerm(HandleFOPCstrings stringHandler, Sentence s, String wrapperPredicate) {
 		sentence              = s;
 		this.wrapperPredicate = wrapperPredicate;
 		this.stringHandler    = stringHandler;
 		if (s == null) { Utils.error("Cannot have sentence=null."); }  // The code below checks for sentence=null in case this is requirement is later dropped.
-		//if (wrapperPredicate == null) { Utils.warning("Should not have wrapperPredicate=" + wrapperPredicate); }
 	}
 
 	public boolean freeVariablesAfterSubstitution(BindingList theta) {

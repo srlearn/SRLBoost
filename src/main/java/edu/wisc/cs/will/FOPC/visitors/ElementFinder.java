@@ -1,19 +1,13 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC.visitors;
 
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.SentenceOrTerm;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.Utils.Filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.wisc.cs.will.FOPC.Sentence;
+import edu.wisc.cs.will.FOPC.Term;
+import edu.wisc.cs.will.Utils.Filter;
+
 /**
- *
  * @author twalker
  */
 public class ElementFinder {
@@ -24,7 +18,7 @@ public class ElementFinder {
 
         ElementFinderData data = new ElementFinderData(filter);
 
-        ElementPositionVisitor<ElementFinderData> efd = new ElementPositionVisitor<ElementFinderData>(ELEMENT_FINDER_LISTENER);
+        ElementPositionVisitor<ElementFinderData> efd = new ElementPositionVisitor<>(ELEMENT_FINDER_LISTENER);
 
         sentence.accept(efd, data);
 
@@ -32,23 +26,11 @@ public class ElementFinder {
 
     }
 
-    public static List<ElementAndPath> findElements(Filter<ElementAndPath> filter, Term term) {
-
-        ElementFinderData data = new ElementFinderData(filter);
-
-        ElementPositionVisitor<ElementFinderData> efd = new ElementPositionVisitor<ElementFinderData>(ELEMENT_FINDER_LISTENER);
-
-        term.accept(efd, data);
-
-        return data.includedElements;
-
-    }
-
     private static class ElementFinderData extends ElementPositionVisitor.ElementPositionData {
         Filter<ElementAndPath> filter;
-        List<ElementAndPath> includedElements = new ArrayList<ElementAndPath>();
+        List<ElementAndPath> includedElements = new ArrayList<>();
 
-        public ElementFinderData(Filter<ElementAndPath> filter) {
+        ElementFinderData(Filter<ElementAndPath> filter) {
             this.filter = filter;
         }
 
@@ -78,6 +60,5 @@ public class ElementFinder {
 
     }
 
-    private ElementFinder() {
-    }
+    private ElementFinder() {}
 }

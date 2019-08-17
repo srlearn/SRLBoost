@@ -7,15 +7,6 @@ import java.util.Iterator;
 public class RecordBacktrackEntry {
 	Iterator<RecordEntry> recordIterator;
 	
-	public RecordBacktrackEntry() {
-		
-	}
-	
-	public Iterator<RecordEntry> getRecordIterator() {
-		return recordIterator;
-	}
-	
-	public void setRecordIterator(Iterator<RecordEntry> recordIterator) {
-		this.recordIterator = recordIterator;
-	}
+	public RecordBacktrackEntry() {}
+
 }

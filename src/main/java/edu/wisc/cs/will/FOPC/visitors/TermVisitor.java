@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.ConsCell;
@@ -17,18 +12,17 @@ import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Variable;
 
 /**
- *
  * @author twalker
  */
 public interface TermVisitor<Return, Data> {
-    public Return visitFunction(Function function, Data data);
-    public Return visitConsCell(ConsCell consCell, Data data);
-    public Return visitVariable(Variable variable, Data data);
-    public Return visitSentenceAsTerm(SentenceAsTerm sentenceAsTerm, Data data);
-    public Return visitLiteralAsTerm(LiteralAsTerm literalAsTerm, Data data);
-    public Return visitListAsTerm(ListAsTerm listAsTerm, Data data);
-    public Return visitNumericConstant(NumericConstant numericConstant, Data data);
-    public Return visitStringConstant(StringConstant stringConstant, Data data);
-    public Return visitOtherConstant(Constant constant, Data data);
-    public Return visitOtherTerm(Term term, Data data);
+    Return visitFunction(Function function, Data data);
+    Return visitConsCell(ConsCell consCell, Data data);
+    Return visitVariable(Variable variable, Data data);
+    Return visitSentenceAsTerm(SentenceAsTerm sentenceAsTerm, Data data);
+    Return visitLiteralAsTerm(LiteralAsTerm literalAsTerm, Data data);
+    Return visitListAsTerm(ListAsTerm listAsTerm, Data data);
+    Return visitNumericConstant(NumericConstant numericConstant, Data data);
+    Return visitStringConstant(StringConstant stringConstant, Data data);
+    Return visitOtherConstant(Constant constant, Data data);
+    Return visitOtherTerm(Term term, Data data);
 }

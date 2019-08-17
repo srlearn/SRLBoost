@@ -1,11 +1,6 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.List;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.PredicateName;
 
 /**
  * @author shavlik
@@ -28,13 +23,11 @@ public class LiteralToThreshold extends Literal {
 	public int     maxCuts     = -1;
 	public boolean createTiles = false;
 	public boolean firstArgIsExampleID = false;
-	
-	/**
-	 * 
-	 */
-	protected LiteralToThreshold(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, int positionToThreshold) {
+
+	protected LiteralToThreshold(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments) {
 		super(stringHandler, pred, arguments);
 	}
+
 	protected LiteralToThreshold(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, int positionToThreshold, int maxCuts, boolean createTiles, boolean firstArgIsExampleID) {
 		super(stringHandler, pred, arguments);
 		this.positionToThreshold = positionToThreshold;
@@ -43,5 +36,3 @@ public class LiteralToThreshold extends Literal {
 		this.firstArgIsExampleID = firstArgIsExampleID;
 	}
 }
-
-

@@ -28,7 +28,7 @@ public interface DefiniteClause {
      * @return True if this is a definite clause.
      *
      */
-    public boolean isDefiniteClause();
+    boolean isDefiniteClause();
 
     /** Indicates that this is a definite clause with no body.
      *

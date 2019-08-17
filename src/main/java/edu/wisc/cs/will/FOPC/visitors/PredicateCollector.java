@@ -1,25 +1,18 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC.visitors;
 
-import edu.wisc.cs.will.FOPC.Clause;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Function;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
- *
  * @author twalker
  */
 public class PredicateCollector {
@@ -37,11 +30,9 @@ public class PredicateCollector {
 
     private static class PredicateCollectorVisitor extends DefaultFOPCVisitor<PredicateCollectorData> {
 
-        public PredicateCollectorVisitor() {
+        PredicateCollectorVisitor() {
             super(false);
         }
-
-
 
         @Override
         public Term visitFunction(Function function, PredicateCollectorData data) {
@@ -77,7 +68,7 @@ public class PredicateCollector {
 
         private void processBackgroundRules(PredicateNameAndArity pnaa, PredicateCollectorData data) {
 
-            if ( data.context != null && data.closedList.contains(pnaa) == false) {
+            if ( data.context != null && !data.closedList.contains(pnaa)) {
                 data.closedList.add(pnaa);
 
                 List<DefiniteClause> clauses = data.context.getClausebase().getAssertions(pnaa);
@@ -97,19 +88,18 @@ public class PredicateCollector {
     }
 
     private static class PredicateCollectorData {
-        Set<PredicateNameAndArity> predicates = new HashSet<PredicateNameAndArity>();
+        Set<PredicateNameAndArity> predicates = new HashSet<>();
         HornClauseContext context;
         
         // Set of background knowledge predicates that have already been expanded.
-        Set<PredicateNameAndArity> closedList = new HashSet<PredicateNameAndArity>();
+        Set<PredicateNameAndArity> closedList = new HashSet<>();
 
-        public PredicateCollectorData(HornClauseContext context) {
+        PredicateCollectorData(HornClauseContext context) {
             this.context = context;
         }
 
 
     }
 
-    private PredicateCollector() {
-    }
+    private PredicateCollector() {}
 }

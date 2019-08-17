@@ -1,17 +1,10 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.Comparator;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author shavlik
- *
  */
 public class LiteralComparator implements Comparator<Literal> {
 

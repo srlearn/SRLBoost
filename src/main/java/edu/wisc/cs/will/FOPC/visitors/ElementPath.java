@@ -2,6 +2,7 @@ package edu.wisc.cs.will.FOPC.visitors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ElementPath implements Comparable<ElementPath>{
 
@@ -18,7 +19,7 @@ public class ElementPath implements Comparable<ElementPath>{
         this.index = index;
     }
 
-    public ElementPath(List<Integer> indices) {
+    private ElementPath(List<Integer> indices) {
         if (indices.size() > 1) {
             parent = new ElementPath(indices.subList(0, indices.size() - 1));
         }
@@ -46,8 +47,8 @@ public class ElementPath implements Comparable<ElementPath>{
         return new ElementPath(list.subList(1, list.size() - 1));
     }
 
-    public List<Integer> asList() {
-        List<Integer> list = new ArrayList<Integer>();
+    private List<Integer> asList() {
+        List<Integer> list = new ArrayList<>();
         ElementPath ep = this;
         while (ep != null) {
             list.add(0, ep.index);
@@ -81,13 +82,10 @@ public class ElementPath implements Comparable<ElementPath>{
             return false;
         }
         final ElementPath other = (ElementPath) obj;
-        if (this.parent != other.parent && (this.parent == null || !this.parent.equals(other.parent))) {
+        if (!Objects.equals(this.parent, other.parent)) {
             return false;
         }
-        if (this.index != other.index) {
-            return false;
-        }
-        return true;
+        return this.index == other.index;
     }
 
     @Override
@@ -116,6 +114,4 @@ public class ElementPath implements Comparable<ElementPath>{
         // If this is true, then the path that is shorter comes first.
         return thisList.size() - thatList.size();
     }
-
-
 }

@@ -1,17 +1,13 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC.visitors;
+
+import java.util.List;
 
 import edu.wisc.cs.will.FOPC.PruningRule;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import java.util.List;
 
 /**
- *
  * @author twalker
  */
 public class SentencePruner {
@@ -20,9 +16,9 @@ public class SentencePruner {
 
     public static Sentence pruneSentence(HornClauseContext context, Sentence sentence, List<? extends PruningRule> rules) {
 
-        ElementPositionVisitor<SentencePrunerData> v = new ElementPositionVisitor<SentencePrunerData>(SENTENCE_PRUNER_LISTENER);
+        ElementPositionVisitor<SentencePrunerData> v = new ElementPositionVisitor<>(SENTENCE_PRUNER_LISTENER);
 
-        Sentence newSentence = null;
+        Sentence newSentence;
 
         while (true) {
 
@@ -31,8 +27,7 @@ public class SentencePruner {
             try {
                 sentence.accept(v, data);
             }
-            catch (StopVisitingException e) {
-                
+            catch (StopVisitingException ignored) {
             }
 
             newSentence = data.sentence;
@@ -58,7 +53,7 @@ public class SentencePruner {
 
         Sentence sentence;
 
-        public SentencePrunerData(HornClauseContext context, List<? extends PruningRule> rules, Sentence sentence) {
+        SentencePrunerData(HornClauseContext context, List<? extends PruningRule> rules, Sentence sentence) {
             this.context = context;
             this.rules = rules;
             this.sentence = sentence;

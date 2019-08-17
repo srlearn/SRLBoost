@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
@@ -11,14 +6,13 @@ import java.util.Set;
 
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import java.util.HashSet;
 
-/** This handler manages built-in's like equals, different, <, >, <=, >=, etc.
- *
+/**
+ * This handler manages built-in's like equals, different, <, >, <=, >=, etc.
  * @author twalker
  */
 public abstract class ProcedurallyDefinedPredicateHandler {
-    protected Set<PredicateNameAndArity> hashOfSupportedPredicates;
+    Set<PredicateNameAndArity> hashOfSupportedPredicates;
 
     public ProcedurallyDefinedPredicateHandler() {
         
@@ -31,19 +25,12 @@ public abstract class ProcedurallyDefinedPredicateHandler {
     public boolean canHandle(PredicateNameAndArity predicateNameAndArity) {
         return hashOfSupportedPredicates != null && hashOfSupportedPredicates.contains(predicateNameAndArity);
     }
-    
-    public void addHandledPrediate(PredicateNameAndArity predicateNameAndArity) {
-        if ( hashOfSupportedPredicates == null ) hashOfSupportedPredicates = new HashSet<PredicateNameAndArity>();
-        hashOfSupportedPredicates.add(predicateNameAndArity);
-    }
 
     /** Handle evaluation of the literal.
      *
      * canHandle should be called previous to this to determine if this
      * ProcedurallyDefinedPredicateHandler can handle the predicate
      * defined by this literal.
-     * 
-     * @param context 
      * @param literal Literal to handle.
      * @param unifier Unifier to use.
      * @param bindingList Binding list, initially empty, that will contain the bindings generated during handling.

@@ -25,7 +25,6 @@ public enum RelevanceStrength {
 	public static RelevanceStrength getWeakestRelevanceStrength()         { return STRONGLY_IRRELEVANT; }
 	public static RelevanceStrength getMildestNegativeRelevanceStrength() { return WEAKLY_IRRELEVANT;   }
 	public static RelevanceStrength getMildestPositiveRelevanceStrength() { return WEAKLY_RELEVANT_NEG; }
-	public static RelevanceStrength getStrongestRelevanceStrength()       { return POSSIBLE_ANSWER;     }
 	public static RelevanceStrength getDefaultRelevanceStrength()         { return RELEVANT;            }
 	public static RelevanceStrength getNeutralRelevanceStrength()         { return NEUTRAL;             }
 	
@@ -75,14 +74,6 @@ public enum RelevanceStrength {
 		}
 		return null;
 	}
-	public RelevanceStrength getStronger() {
-		int me = ordinal();
-		for (RelevanceStrength rs : RelevanceStrength.values()) {
-			int other = rs.ordinal();
-			if (me == other - 1) { return rs; }
-		}
-		return null;
-	}
 
 	public RelevanceStrength getOneLowerStrengthAvoidingNegativeStrengths() { // Avoids NEGATIVE strengths.
 		RelevanceStrength result = getWeaker();
@@ -94,35 +85,7 @@ public enum RelevanceStrength {
 		return this.compareTo(NEUTRAL) < 0;
 	}
 
-	public boolean isLessThanOrEqualToNeutral() {
-		return this.compareTo(NEUTRAL) <= 0;
-	}
-
-    /** Returns the less relevant strength of rs1 and rs2.
-     *
-     * The more relevant strength is the strength with the lower ordinal value.
-     *
-     * @param rs1
-     * @param rs2
-     * @return
-     */
-    public static RelevanceStrength getLessRelevant(RelevanceStrength rs1, RelevanceStrength rs2) {
-        return rs1.ordinal() < rs2.ordinal() ? rs1 : rs2;
-    }
-
-    /** Returns the more relevant strength of rs1 and rs2.
-     *
-     * The more relevant strength is the strength with the highest ordinal value.
-     *
-     * @param rs1
-     * @param rs2
-     * @return
-     */
-    public static RelevanceStrength getMoreRelevant(RelevanceStrength rs1, RelevanceStrength rs2) {
-        return rs1.ordinal() > rs2.ordinal() ? rs1 : rs2;
-    }
-
-    public boolean isWeaker(RelevanceStrength that) {
+	public boolean isWeaker(RelevanceStrength that) {
         return this.ordinal() < that.ordinal();
     }
 

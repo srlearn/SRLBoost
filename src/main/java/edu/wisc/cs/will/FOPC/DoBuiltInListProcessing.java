@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.HashMap;
@@ -13,10 +10,9 @@ import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author shavlik
- *
  */
 public class DoBuiltInListProcessing extends AllOfFOPC {
-	protected DoBuiltInMath mathHandler = null;
+	DoBuiltInMath mathHandler = null;
 
 	private FunctionName conscell; // Should really have ConsCell instances, but check for this as a function name as well.
 	private FunctionName first;
@@ -28,10 +24,7 @@ public class DoBuiltInListProcessing extends AllOfFOPC {
 	private FunctionName length; // Do numeric-valued here.
 	private FunctionName position;
 	private FunctionName convertListToString;
-	
- //	private FunctionName member; // Don't do Booleans here.
- //	private FunctionName listsEquivalent;
-	
+
 	// Use 'fast' to indicate that we convert to lists and manipulate the lists; other than the initial call, no unification is done (ie, for union and intersection).
     // Ie, there are used like this:
     //                 ?X is append(?A, ?B)

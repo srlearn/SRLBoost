@@ -119,10 +119,8 @@ public class NumericConstant extends Constant implements Serializable {
         return getName();
     }
 
-    /** Replace with the cached version from stringHandler.
-     *
-     * @return
-     * @throws ObjectStreamException
+    /**
+     * Replace with the cached version from stringHandler.
      */
     private Object readResolve() throws ObjectStreamException {
         if (type == isaInteger) {

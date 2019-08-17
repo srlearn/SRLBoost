@@ -1,30 +1,19 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
+
+import java.io.IOException;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+import java.util.*;
 
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.MapOfSets;
 import edu.wisc.cs.will.Utils.MessageType;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.HashSet;
-import java.util.Set;
-
 import edu.wisc.cs.will.Utils.Utils;
-import java.io.IOException;
-import java.io.ObjectStreamException;
-import java.io.Serializable;
 
 /**
  * @author shavlik
  *
  *  All predicates with the same name map to the same instance.
- *   
  */
 @SuppressWarnings("serial")
 public class PredicateName extends AllOfFOPC implements Serializable {
@@ -32,9 +21,9 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   List<PredicateSpec>      typeSpecList = null; // Information about this Predicate, e.g. legal arguments to it.  A 'type' describes both the kind of arguments it takes (e.g., 'people' are 'books') and whether these arguments are "input" variables, "output" variables, or constants.
 	private   List<PredicateSpec>      typeOnlyList = null; // Similar to above, but the input/output markers are not included.
 	private   Set<Integer>             typeDeSpeced = null; // Modes that have been disabled - currently all modes of a given arity are disabled (TODO - handle '*').
-	protected Set<Integer> boundariesAtEnd_1D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
-	protected Set<Integer> boundariesAtEnd_2D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
-	protected Set<Integer> boundariesAtEnd_3D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
+	Set<Integer> boundariesAtEnd_1D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
+	private Set<Integer> boundariesAtEnd_2D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
+	private Set<Integer> boundariesAtEnd_3D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
 	private   Set<Integer> isaInterval_1D           = null; // When used in the form "predicateName(lower, value, upper)" this predicate represents an interval (or a "tile"), i.e., it is true if value is in the range [lower, upper).  Used when pruning search trees in ILP.
 	private   Set<Integer> isaInterval_2D           = null; // Similar, but now represents a 2D rectangle and is true if the "x-y" values are in it.  The expected format is predicateName(lowerX, X, upperX, lowerY, Y, upperY). 
 	private   Set<Integer> isaInterval_3D           = null; // Similar, but now represents a 3D hyper-rectangle and is true if the "x-y-z" values are in it.  The expected format is predicateName(lowerX, X, upperX, lowerY, Y, upperY, lowerX, Z, upperZ).
@@ -75,11 +64,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	
 	public    boolean printUsingInFixNotation = false;
 	public    Literal preThresholdedLiteral   = null; // If this predicate names was automatically created, store its 'parent' literal here.
-	transient private HandleFOPCstrings stringHandler = null;  // The stringHandler needed to de-serialize the Predicate.
-	
-	/**
-	 * 
-	 */
+	transient private HandleFOPCstrings stringHandler;  // The stringHandler needed to de-serialize the Predicate.
+
 	protected PredicateName(String name, HandleFOPCstrings stringHandler) { // This is protected because getPredicateName(String name) should be used instead.
 		this.name          = name;
 		this.stringHandler = stringHandler;
@@ -88,7 +74,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public List<PredicateSpec> getTypeList() {
 		if (typeDeSpeced == null || typeSpecList == null) { return typeSpecList; }
 		
-		List<PredicateSpec> results = new ArrayList<PredicateSpec>(1);
+		List<PredicateSpec> results = new ArrayList<>(1);
 		for (PredicateSpec pSpec : typeSpecList) {
 			int          arity = pSpec.getArity();
 			if (!typeDeSpeced.contains(arity)) { results.add(pSpec); }
@@ -98,15 +84,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	// Only return when the arity matches.
 	public List<PredicateSpec> getTypeListForThisArity(int numberArgs) {
 		if (typeSpecList == null) { return null; }
-	//	boolean allOK = true;
-	//	for (PredicateSpec pSpec : getTypeList()) {
-	//		if (pSpec.getArity() != numberArgs) {
-	//			allOK = false;
-	//			break;
-	//		}
-	//	}
-	//	if (allOK) { return typeSpecList; } // Save creating a new list.  SINCE WE NOW CHECK FOR DISABLED SPEC'S LET'S NOT BOTHER TRYTING TO SAVE A LITTLE.
-		List<PredicateSpec> results = new ArrayList<PredicateSpec>(1);
+		List<PredicateSpec> results = new ArrayList<>(1);
 		for (PredicateSpec pSpec : getTypeList()) {
 			if (pSpec.getArity() == numberArgs) {
 				results.add(pSpec);
@@ -128,7 +106,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			}
 		}
 		if (allOK) { return typeOnlyList; } // Save creating a new list.
-		List<PredicateSpec> results = new ArrayList<PredicateSpec>(1);
+		List<PredicateSpec> results = new ArrayList<>(1);
 		for (PredicateSpec pSpec : typeOnlyList) {
 			if (Utils.getSizeSafely(pSpec.getSignature()) == numberArgs) {
 				results.add(pSpec);
@@ -138,23 +116,23 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 
 	// See if this literal is a determinate.  FOR NOW, JUST CHECK THE PREDICATE NAME AND ARITY, BUT SHOULD REALLY CHECK IT MATCHES THE TYPE IN THE DETERMINATE SPEC. TODO
-	public boolean isDeterminatePredicate(List<Term> arguments) {
+	boolean isDeterminatePredicate(List<Term> arguments) {
 		return (determinateSpec != null && determinateSpec.get(Utils.getSizeSafely(arguments)) != null);
 	}
 
-    public boolean isDeterminatePredicate(int arity) {
+    boolean isDeterminatePredicate(int arity) {
 		return (determinateSpec != null && determinateSpec.get(arity) != null);
 	}
 
 	// See if this literal is a predicate that holds a numeric value. 
-	public boolean isFunctionAsPredicate(FunctionAsPredType type, List<Term> arguments) {
+	boolean isFunctionAsPredicate(FunctionAsPredType type, List<Term> arguments) {
 		if (functionAsPredSpec == null) { return false; }
 		Map<Integer,Integer> lookup1 = functionAsPredSpec.get(type);
 		if (lookup1 == null) { return false; }
 		return (lookup1.get(Utils.getSizeSafely(arguments)) != null);
 	}
 
-    public boolean isFunctionAsPredicate(int arity) {
+    boolean isFunctionAsPredicate(int arity) {
         if ( functionAsPredSpec != null ) {
             for (FunctionAsPredType type : FunctionAsPredType.values()) {
                 Map<Integer,Integer> lookup1 = functionAsPredSpec.get(type);
@@ -167,7 +145,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         return false;
     }
 
-    public int getFunctionAsPredicateOutputIndex(int arity) {
+    int getFunctionAsPredicateOutputIndex(int arity) {
         if ( functionAsPredSpec != null ) {
             for (FunctionAsPredType type : FunctionAsPredType.values()) {
                 Map<Integer, Integer> lookup1 = functionAsPredSpec.get(type);
@@ -202,16 +180,15 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public enum FunctionAsPredType {      numeric,       bool,          categorical,       structured,       anything,
 									listOfNumeric, listOfBoolean, listOfCategorical, listOfStructured, listOfAnything}
 	
-	public boolean isaNumericFunctionAsPredLiteral(    List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.numeric,     arguments); }
-	public boolean isaBooleanFunctionAsPredLiteral(    List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.bool,        arguments); }  // Add that a function would return a Boolean, but include in case 'reification' is occuring.
-	public boolean isaCategoricalFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.categorical, arguments); }
-	public boolean isaStructuredFunctionAsPredLiteral( List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.structured,  arguments); }
-	public boolean isaAnythingFunctionAsPredLiteral(   List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.anything,    arguments); }
-	public boolean isaListOfNumericFunctionAsPredLiteral(    List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfNumeric,     arguments); }
-	public boolean isaListOfBooleanFunctionAsPredLiteral(    List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfBoolean,     arguments); }
-	public boolean isaListOfCategoricalFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfCategorical, arguments); }
-	public boolean isaListOfStructuredFunctionAsPredLiteral( List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfStructured,  arguments); }
-	public boolean isaListOfAnythingFunctionAsPredLiteral(   List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfAnything,    arguments); }
+	boolean isaNumericFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.numeric,     arguments); }
+	boolean isaBooleanFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.bool,        arguments); }
+	boolean isaCategoricalFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.categorical, arguments); }
+	boolean isaAnythingFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.anything,    arguments); }
+	boolean isaListOfNumericFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfNumeric,     arguments); }
+	boolean isaListOfBooleanFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfBoolean,     arguments); }
+	boolean isaListOfCategoricalFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfCategorical, arguments); }
+	boolean isaListOfStructuredFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfStructured,  arguments); }
+	boolean isaListOfAnythingFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfAnything,    arguments); }
 			
 	// See if this predicate name is temporary for this run (if so, it might need to be renamed to avoid name conflicts across runs).
 	public boolean isaTemporaryName(int arity) {
@@ -221,34 +198,20 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 	
 	// See if this literal is a predicate that serves as a 'bridge' in ILP searches.
-	public boolean isaBridgerLiteral(List<Term> arguments) {
-		//Utils.print("   is " + this + "/" + Utils.getSizeSafely(arguments) + " a bridger?  " + bridgerSpec);
-		boolean result = (bridgerSpec != null && bridgerSpec.contains(Utils.getSizeSafely(arguments)));
-		//Utils.println("  " + result);
-		return result;
+	boolean isaBridgerLiteral(List<Term> arguments) {
+		return (bridgerSpec != null && bridgerSpec.contains(Utils.getSizeSafely(arguments)));
 	}
+
 	// See if this literal is a predicate whose body should be inlined after learning.
 	public boolean isaInlined(int arity) {
-		//Utils.waitHere("Is this an inlined predicate: " + name + "/" + arity + "   " +  (inlineSpec != null && inlineSpec.contains(arity)));
 		return (inlineSpec != null && inlineSpec.contains(arity));
 	}
 
-	// See if this literal is a predicate that serves as a 'bridge' in ILP searchers.
-	public boolean isaQueryLiteral(List<Term> arguments) {
-		return (queryPredSpec != null && queryPredSpec.contains(Utils.getSizeSafely(arguments)));
-	}
-	// See if this literal is a predicate that serves as a 'bridge' in ILP searchers.
-	public boolean isaHiddenLiteral(List<Term> arguments) {
-		return (hiddenPredSpec != null && hiddenPredSpec.contains(Utils.getSizeSafely(arguments)));
-	}
-
-    public boolean isNonOperational(int arity) {
+	boolean isNonOperational(int arity) {
         return operationalExpansion != null && operationalExpansion.containsKey(arity);
     }
 
     /** Returns the set of operational expansions of the predicate/arity.
-     *
-     * @param arity
      * @return Returns null if no operational expansions exist.
      */
     public Set<PredicateNameAndArity> getOperationalExpansions(int arity) {
@@ -264,12 +227,10 @@ public class PredicateName extends AllOfFOPC implements Serializable {
      * Operational expansions are keyed on the predicate name and the arity.
      * A PredicateNameAndArity is used to provide both the name and arity of
      * the operational expansion.
-     *
-     * @param operationalPredicateNameAndArity
      */
-    public void addOperationalExpansion(PredicateNameAndArity operationalPredicateNameAndArity) {
+	private void addOperationalExpansion(PredicateNameAndArity operationalPredicateNameAndArity) {
         if ( operationalExpansion == null ) {
-            operationalExpansion = new MapOfSets<Integer, PredicateNameAndArity>();
+            operationalExpansion = new MapOfSets<>();
         }
 
         operationalExpansion.put(operationalPredicateNameAndArity.getArity(), operationalPredicateNameAndArity);
@@ -280,21 +241,9 @@ public class PredicateName extends AllOfFOPC implements Serializable {
      * Operational expansions are keyed on the predicate name and the arity.
      * A PredicateNameAndArity is used to provide both the name and arity of
      * the operational expansion.
-     *
-     * @param predicateNameAndArity
      */
     public void addOperationalExpansion(PredicateName operationalPredicateName, int arity) {
         addOperationalExpansion(new PredicateNameAndArity(operationalPredicateName, arity));
-    }
-
-    /** Removes the operational expansion of the predicate.
-     * 
-     * @param predicateNameAndArity
-     */
-    public void removeOperationalExpansion(PredicateNameAndArity predicateNameAndArity) {
-        if ( operationalExpansion != null ) {
-            operationalExpansion.removeValue(predicateNameAndArity.getArity(), predicateNameAndArity);
-        }
     }
 
 	public void recordVariants(Literal lit1, Literal lit2, HandleFOPCstrings stringHandler) {
@@ -302,15 +251,11 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			Utils.error("Should not pass in null's.");
 		}
 		if (variantHashMap == null) {
-			variantHashMap = new HashMap<Integer,List<ConnectedSentence>>(4);
+			variantHashMap = new HashMap<>(4);
 		}
 		int arity = lit1.numberArgs();
-		List<ConnectedSentence> lookup = variantHashMap.get(arity);
-		
-		if (lookup == null) {
-			lookup = new ArrayList<ConnectedSentence>(1);
-			variantHashMap.put(arity, lookup);
-		} 
+		List<ConnectedSentence> lookup = variantHashMap.computeIfAbsent(arity, k -> new ArrayList<>(1));
+
 		// Rather than create a new class, use an existing one to hold two literals.
 		lookup.add(stringHandler.getConnectedSentence(lit1, stringHandler.getConnectiveName("AND"), lit2));		
 	}
@@ -324,51 +269,32 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	 * Can prune 'prunableLiteral' if 'ifPresentLiteral' is present (and both unify consistently with the current literal being considered for adding to the current clause during ILP search).
 	 * However, if 'ifPresentLiteral' has 'warnIfPresentLiteralCount' ways to be proven, warn the user (i.e., prune is based on the assumption that fewer than this number of clauses for this literal/arity exist).
 	 * Note: this code does not check for duplicate entries (which would need to use 'variant' since variables are present).
-	 * 
-	 * @param prunableLiteral
-	 * @param ifPresentLiteral
-	 * @param warnIfPresentLiteralCount
 	 */
 	public void recordPrune(Literal prunableLiteral, Literal ifPresentLiteral, int warnIfPresentLiteralCount, int truthValue) { // TruthValue: -1 means 'prune because false', 1 means because true, and 0 means unknown.
 		if (prunableLiteral  == null) {
 			Utils.error("Should not pass in null's.");
 		}
 		// Might NOT want to do this filtering, since this requires MODE's to precede PRUNE's in files.  Plus, not a lot of harm in storing these (the "ifPresent's" can waste some cycles).
-		/*
-		if (prunableLiteral.predicateName.typeList  == null) { 
-			Utils.println("% Because '" + prunableLiteral.predicateName + "' does not have a mode, ignoring request to prune '" + prunableLiteral.predicateName 
-						   + "' when '" + ifPresentLiteral.predicateName + "' is present in a clause.");
-			return;
-		}
-		if (ifPresentLiteral.predicateName.typeList == null) { 
-			Utils.println("% Because '" + ifPresentLiteral.predicateName + "' does not have a mode, ignoring request to prune '" + prunableLiteral.predicateName 
-						   + "' when '" + ifPresentLiteral.predicateName + "' is present in a clause.");
-			return;
-		}
-		*/
 		
 		if (pruneHashMap == null) {
-			pruneHashMap = new HashMap<Integer, MapOfLists<PredicateNameAndArity, Pruner>>();
+			pruneHashMap = new HashMap<>();
 		}
 
         int arity = prunableLiteral.getArity();
 		MapOfLists<PredicateNameAndArity, Pruner> prunes = getPruners(arity);
 		if (prunes == null) {
-			prunes = new MapOfLists<PredicateNameAndArity, Pruner>();
+			prunes = new MapOfLists<>();
 			pruneHashMap.put(arity, prunes);
 		}
 
         PredicateNameAndArity pnaa = ifPresentLiteral == null ? null : ifPresentLiteral.getPredicateNameAndArity();
 
 		prunes.add(pnaa, new Pruner(prunableLiteral, ifPresentLiteral, warnIfPresentLiteralCount, truthValue));
-		if (false) { Utils.println("  pruneHashMap for '" + this + "' is: '" + pruneHashMap + "' after 'prune: " + prunableLiteral + ", " + ifPresentLiteral + ", warnIf(" + warnIfPresentLiteralCount + ")'."); }
 	}
 	
 	/**
 	 * Get the list of pruning rules for this literal (whose head should be that of this PredicateName instance, but we also need the specific arity).
 	 * Note that this method does not check for those pruners that unify with prunableLiteral.  That is the job of the caller.
-	 * 
-	 * @param prunableLiteral
 	 * @return TODO what does this return?
 	 */
 	   public MapOfLists<PredicateNameAndArity, Pruner> getPruners(int arityOfPrunableLiteral) {
@@ -376,25 +302,11 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return pruneHashMap.get(arityOfPrunableLiteral);
 	}
 
-       public List<Pruner> getPruners(int arityOfPrunableLiteral, PredicateNameAndArity ifPresentLiteral) {
-           List<Pruner> result = null;
-           MapOfLists<PredicateNameAndArity, Pruner> lookup = getPruners(arityOfPrunableLiteral);
-           if ( lookup != null ) {
-               result = lookup.getValues(ifPresentLiteral);
-           }
-           return result;
-       }
-
-	
 	public void addConstrainsArgumentType(int arity, int position, Type type, boolean pruneIfNoEffect) throws IllegalStateException {
 		if (constrainsType == null) {
-			constrainsType = new HashMap<Integer,Map<Integer,List<Object>>>(4);
+			constrainsType = new HashMap<>(4);
 		}
-		Map<Integer,List<Object>> firstLookUp = constrainsType.get(arity);
-		if (firstLookUp == null) {
-			firstLookUp = new HashMap<Integer,List<Object>>(4);
-			constrainsType.put(arity, firstLookUp);
-		}
+		Map<Integer, List<Object>> firstLookUp = constrainsType.computeIfAbsent(arity, k -> new HashMap<>(4));
 		List<Object> secondLookUp = firstLookUp.get(position);
 		if (secondLookUp == null) { // Not currently specified.
 			List<Object> newList = new ArrayList<Object>(2); // Not worth creating a new class for this.
@@ -402,7 +314,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			newList.add(pruneIfNoEffect);
 			firstLookUp.put(position, newList);
 		}
-		else if (((Type) secondLookUp.get(0)) != type || ((Boolean) secondLookUp.get(1)) != pruneIfNoEffect) {
+		else if (secondLookUp.get(0) != type || ((Boolean) secondLookUp.get(1)) != pruneIfNoEffect) {
 			throw new IllegalStateException("Cannot set constrains type of '" + name + "/" + arity + "' for position " + position + " to '" + type + "' (with prune=" + pruneIfNoEffect + ") because it is currently = '" + secondLookUp + "'.");
 		}
 		setCost(arity, 0.001, false);  // These should be cheap, but only do this by default if pruneIfNoEffect = true (since those should not be doing anything other than constraining).
@@ -413,7 +325,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return constrainsType.get(arity);
 	}
 	
-	public void recordMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars, boolean okIfDup) {
+	void recordMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars, boolean okIfDup) {
         if (Utils.getSizeSafely(signature) != Utils.getSizeSafely(typeSpecs)) {
             Utils.waitHere(this + " sig = " + signature + " specs = " + typeSpecs);
         }
@@ -433,7 +345,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         }
 	}
 	
-	public void disableMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars, boolean okIfDup) {
+	void disableMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars) {
         if (Utils.getSizeSafely(signature) != Utils.getSizeSafely(typeSpecs)) {
             Utils.waitHere(this + " sig = " + signature + " specs = " + typeSpecs);
         }
@@ -456,7 +368,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			}
 		}
 
-		if (typeSpecList == null) { typeSpecList  = new ArrayList<PredicateSpec>(1); }
+		if (typeSpecList == null) { typeSpecList  = new ArrayList<>(1); }
 		for (PredicateSpec oldPspec : typeSpecList) if (oldPspec.equals(pSpec)) {
 			if (warnIfDup && checkForWarnings) { // Add a way to override?  TODO
 				Utils.warning("% Duplicate type specification found for '" + this + "':\n%   '" + pSpec + "'/new vs.\n%   '" + oldPspec + "'/old."); 
@@ -468,14 +380,14 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}	
 	
 	private void addToTypeListForMLN(PredicateSpec pSpec) {
-		if (typeOnlyList == null) { typeOnlyList  = new ArrayList<PredicateSpec>(1); }
+		if (typeOnlyList == null) { typeOnlyList  = new ArrayList<>(1); }
 		PredicateSpec pSpecStripped = pSpec.strip();
 		if (typeOnlyList.contains(pSpecStripped)) { return; } // OK here if duplicates, so no need to warn (since ILP +/-/# markers might be different).
 		typeOnlyList.add(pSpecStripped);
 	}
 	
 	private void addToDeSpecTypeList(int arity) {
-		if (typeDeSpeced == null) { typeDeSpeced = new HashSet<Integer>(4); }
+		if (typeDeSpeced == null) { typeDeSpeced = new HashSet<>(4); }
 		typeDeSpeced.add(arity);
 	}
 	
@@ -483,73 +395,52 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		Utils.println(reportPossibleInstantiationsAsString());
 	}
 	public String reportPossibleInstantiationsAsString() {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		if (typeSpecList == null) {
-			result += "  There are no possible instantiations of predicate '" + name + "'.\n";
-			return result;
+			result.append("  There are no possible instantiations of predicate '").append(name).append("'.\n");
+			return result.toString();
 		}
-		result += "%  Possible instantiations of predicate '" + name + "':\n";
+		result.append("%  Possible instantiations of predicate '").append(name).append("':\n");
 		for (PredicateSpec args : getTypeList()) {
-			result += "%    " + name + " sig=" + args.getSignature() + " types=" + args.getTypeSpecList() + "\n";
-			result += "%    " + name + "(";
-			result += help_reportPossibleInstantiationsAsString(args.getSignature(), 0, args.getTypeSpecList());
-			result += ")\n";
+			result.append("%    ").append(name).append(" sig=").append(args.getSignature()).append(" types=").append(args.getTypeSpecList()).append("\n");
+			result.append("%    ").append(name).append("(");
+			result.append(help_reportPossibleInstantiationsAsString(args.getSignature(), 0, args.getTypeSpecList()));
+			result.append(")\n");
 		}
-		return result;
-	}	
+		return result.toString();
+	}
+
 	private String help_reportPossibleInstantiationsAsString(List<Term> arguments, int counter, List<TypeSpec> typeInfoList) {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		boolean firstTime = true;
 		if(arguments != null) for (Term term : arguments) {
-			if (firstTime) { firstTime = false; } else {result += ", "; }
+			if (firstTime) { firstTime = false; } else {
+				result.append(", "); }
 			if (term instanceof Constant) {
-				result += typeInfoList.get(counter).toString();
+				result.append(typeInfoList.get(counter).toString());
 				counter++;
 			} else if (Function.isaConsCell(term)) { // Probably won't have lists inside modes, but in case there ever is, handle them properly.
-				result += term.toString();
+				result.append(term.toString());
 				counter++;
 			} else if (term instanceof Function) {
 				Function f = (Function) term;
-				result += f.functionName + "(";
-				result += help_reportPossibleInstantiationsAsString(f.getArguments(), counter, typeInfoList);
-				result += ")";
+				result.append(f.functionName).append("(");
+				result.append(help_reportPossibleInstantiationsAsString(f.getArguments(), counter, typeInfoList));
+				result.append(")");
 				counter += f.countLeaves();
 			} else { Utils.error("Can only handle constants and functions here: typeInfoList = " + typeInfoList + " and term = " + term + " in signature = " + arguments); }
 		}
-		return result;
+		return result.toString();
 	}
-	
-	public boolean discardMode(int arity) {
-		if (typeSpecList == null) {
-			Utils.println("  There are no possible instantiations of predicate '" + name + "' to discard.");
-			return false;
-		}
-		boolean result = false;
-		for (ListIterator<PredicateSpec> tlIterator = typeSpecList.listIterator(); tlIterator.hasNext(); ) {
-			PredicateSpec args = tlIterator.next();
-			if (Utils.getSizeSafely(args.getSignature()) == arity) {
-			 Utils.println("%  Discard mode: " + name + "/" + arity + "  " + args);
-			 tlIterator.remove();
-			 result = true;
-			}
-		}
-		if (!result) { Utils.warning("discardMode: Did not find " + name + "/" + arity); }
-		return result;
-	}
-	
+
 	/**
 	 * This is used to say that this predicate/arity should appear at most max times in a learned rule.
-	 * 
-	 * @param arity
-	 * @param max
-	 * @throws Exception
 	 */
 	private void setMaxOccurrences(int arity, int max) {		
 		if (maxOccurrencesPerArity == null) {
-			maxOccurrencesPerArity = new HashMap<Integer,Integer>(4);
+			maxOccurrencesPerArity = new HashMap<>(4);
 		}
 		Integer current = maxOccurrencesPerArity.get(arity);
-		// Utils.println("setMaxOccurrences: current = " + current + " max = " + max);
 		if (current == null) {
 			maxOccurrencesPerArity.put(arity, max);
 		}
@@ -565,11 +456,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	/**
 	 * This is used to say that this predicate/arity should appear at most max times in a learned rule
 	 * FOR a given binding to the "input" arguments in the typeSpecs.
-	 * 
-	 * @param arity
-	 * @param typeSpecs
-	 * @param max
-	 * @throws Exception
 	 */
 	private void setMaxOccurrencesPerInputVars(int arity, PredicateSpec typeSpecs, int max) {		
 		if (arity < 2) { 
@@ -579,25 +465,18 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			return;
 		}
 		if (maxOccurrencesPerInputVars == null) {
-			maxOccurrencesPerInputVars = new HashMap<Integer,Map<List<Type>,Integer>>(4);
+			maxOccurrencesPerInputVars = new HashMap<>(4);
 		}
-		Map<List<Type>,Integer> firstLookUp = maxOccurrencesPerInputVars.get(arity);
-		// Utils.println("setMaxOccurrencesPerInputVars: firstLookUp = " + firstLookUp + " max = " + max);
-		if (firstLookUp == null) {
-			firstLookUp = new HashMap<List<Type>,Integer>(4);
-			maxOccurrencesPerInputVars.put(arity, firstLookUp);
-		}
+		Map<List<Type>, Integer> firstLookUp = maxOccurrencesPerInputVars.computeIfAbsent(arity, k -> new HashMap<>(4));
 		List<Type> inputArgumentTypes = TypeSpec.getListOfInputArgumentTypes(typeSpecs);
-		if (inputArgumentTypes == null || inputArgumentTypes.size() < 1) {
+		if (inputArgumentTypes.size() < 1) {
 			Utils.error("It does not make sense to setMaxOccurrencesPerInputVars for a mode where there are NO input variables: " + typeSpecs); 
 		}
 		Integer secondLookUp = firstLookUp.get(inputArgumentTypes);
-		// Utils.println("setMaxOccurrencesPerInputVars: secondLookUp = " + secondLookUp);
 		if (secondLookUp == null) { // Not currently specified.
 			firstLookUp.put(inputArgumentTypes, max);
 		}
 		else if (secondLookUp > max) { // Maybe use the MIN of all specifications?
-			//Utils.error("Cannot set max occurrences of '" + name + "/" + arity + "' for input arguments " + inputArgumentTypes + " to " + max + " because it is currently = " + secondLookUp);
 			firstLookUp.put(inputArgumentTypes, max);
 		}		
 	}
@@ -608,16 +487,14 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return firstLookUp.get(inputArgumentTypes);
 	}
 	public boolean haveMaxOccurrencesPerInputVarsForThisArity(int arity) { // Allow a quick look to see if worth computing the input arguments.
-		if (maxOccurrencesPerInputVars == null || maxOccurrencesPerInputVars.get(arity) == null) { return false; }
-		return true;
+		return maxOccurrencesPerInputVars != null && maxOccurrencesPerInputVars.get(arity) != null;
 	}
 	
 	/**
-         * Does this literal match some mode? That is, is there some mode for the predicate name of the same arity as this literal?
-         * 
-         * @param lit
-         * @return Whether the given literal has a matching mode.
-         */
+	 * Does this literal match some mode? That is, is there some mode for the predicate name of the same arity as this literal?
+	 *
+	 * @return Whether the given literal has a matching mode.
+	 */
 	public boolean hasMatchingMode(Literal lit) {
 		if (typeSpecList == null) { return false; }
 		int arity = lit.numberArgs();
@@ -628,25 +505,23 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 	
 	public boolean canBeAbsent(int arity) {
-		if (canBeAbsentAnyArity) { return true; }		
-		if (canBeAbsentThisArity != null && canBeAbsentThisArity.contains(new Integer(arity))) { return true; }
-		return false;
+		if (canBeAbsentAnyArity) { return true; }
+		return canBeAbsentThisArity != null && canBeAbsentThisArity.contains(arity);
 	}	
 	public void setCanBeAbsent(int arity) {
 		if (arity < 0) { canBeAbsentAnyArity = true; }
-		if (canBeAbsentThisArity == null) { canBeAbsentThisArity = new HashSet<Integer>(4); }
+		if (canBeAbsentThisArity == null) { canBeAbsentThisArity = new HashSet<>(4); }
 		if (canBeAbsentThisArity.contains(arity)) { return; } // No need to add again.
 		canBeAbsentThisArity.add(arity);
 	}
 		
 	public boolean dontComplainAboutMultipleTypes(int arity) {
 		if (dontComplainAboutMultipleTypesAnyArity) { return true; }
-		if (dontComplainAboutMultipleTypesThisArity != null && dontComplainAboutMultipleTypesThisArity.contains(new Integer(arity))) { return true; }
-		return false;
+		return dontComplainAboutMultipleTypesThisArity != null && dontComplainAboutMultipleTypesThisArity.contains(arity);
 	}	
 	public void setDontComplainAboutMultipleTypes(int arity) {
 		if (arity < 0) { dontComplainAboutMultipleTypesAnyArity = true; }
-		if (dontComplainAboutMultipleTypesThisArity == null) { dontComplainAboutMultipleTypesThisArity = new HashSet<Integer>(4); }
+		if (dontComplainAboutMultipleTypesThisArity == null) { dontComplainAboutMultipleTypesThisArity = new HashSet<>(4); }
 		if (dontComplainAboutMultipleTypesThisArity.contains(arity)) { return; } // No need to add again.
 		dontComplainAboutMultipleTypesThisArity.add(arity);
 	}	
@@ -657,8 +532,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return isaInterval_1D.contains(arity);
 	}
 	public void setIsaInterval_1D(int arity, boolean boundariesAtEnd) {
-		if (isaInterval_1D     == null) { isaInterval_1D     = new HashSet<Integer>(4); }
-		if (boundariesAtEnd_1D == null) { boundariesAtEnd_1D = new HashSet<Integer>(4); }
+		if (isaInterval_1D     == null) { isaInterval_1D     = new HashSet<>(4); }
+		if (boundariesAtEnd_1D == null) { boundariesAtEnd_1D = new HashSet<>(4); }
 		if (isaInterval_1D(    arity)) { return; } // Already recorded.  TODO check if boundariesAtEnd has changed!
 		isaInterval_1D.add(    arity);
 		// if (boundariesAtEnd_1D.get(arity)) { return; } // Already recorded.  TODO check if boundariesAtEnd has changed!
@@ -670,8 +545,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return isaInterval_2D.contains(arity);
 	}
 	public void setIsaInterval_2D(int arity, boolean boundariesAtEnd) {
-		if (isaInterval_2D     == null) { isaInterval_2D     = new HashSet<Integer>(4); }
-		if (boundariesAtEnd_2D == null) { boundariesAtEnd_2D = new HashSet<Integer>(4); }
+		if (isaInterval_2D     == null) { isaInterval_2D     = new HashSet<>(4); }
+		if (boundariesAtEnd_2D == null) { boundariesAtEnd_2D = new HashSet<>(4); }
 		if (isaInterval_2D(    arity)) { return; } // Already recorded.  TODO check if boundariesAtEnd has changed!
 		isaInterval_2D.add(    arity);
 		if (boundariesAtEnd) { boundariesAtEnd_2D.add(arity); }
@@ -682,8 +557,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return isaInterval_3D.contains(arity);
 	}
 	public void setIsaInterval_3D(int arity, boolean boundariesAtEnd) {
-		if (isaInterval_3D     == null) { isaInterval_3D     = new HashSet<Integer>(4); }
-		if (boundariesAtEnd_3D == null) { boundariesAtEnd_3D = new HashSet<Integer>(4); }
+		if (isaInterval_3D     == null) { isaInterval_3D     = new HashSet<>(4); }
+		if (boundariesAtEnd_3D == null) { boundariesAtEnd_3D = new HashSet<>(4); }
 		if (isaInterval_3D(    arity)) { return; } // Already recorded.  TODO check if boundariesAtEnd has changed!
 		isaInterval_3D.add(    arity);
 		if (boundariesAtEnd) { boundariesAtEnd_3D.add(arity); }
@@ -693,11 +568,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		if (determinateSpec == null) {
 			determinateSpec = new HashMap<Integer,Map<Integer,Type>>(4);
 		}
-		Map<Integer,Type> firstLookUp = determinateSpec.get(arity);
-		if (firstLookUp == null) {
-			firstLookUp = new HashMap<Integer,Type>(4);
-			determinateSpec.put(arity, firstLookUp);
-		}
+		Map<Integer, Type> firstLookUp = determinateSpec.computeIfAbsent(arity, k -> new HashMap<>(4));
 		Type secondLookUp = firstLookUp.get(position);
 		if (secondLookUp == null) { // Not currently specified.
 			firstLookUp.put(position, type);
@@ -709,13 +580,9 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 
 	public void addFunctionAsPred(FunctionAsPredType type, int arity, int position) throws IllegalStateException {
 		if (functionAsPredSpec == null) { 
-			functionAsPredSpec = new HashMap<FunctionAsPredType,Map<Integer,Integer>>();
+			functionAsPredSpec = new HashMap<>();
 		}
-		Map<Integer,Integer> lookup1 = functionAsPredSpec.get(type);
-		if (lookup1 == null) { // Not currently specified.
-			lookup1 = new HashMap<Integer,Integer>(4);
-			functionAsPredSpec.put(type, lookup1);			
-		}
+		Map<Integer, Integer> lookup1 = functionAsPredSpec.computeIfAbsent(type, k -> new HashMap<>(4));
 		Integer lookup2 = lookup1.get(arity);
 		if (lookup2 == null) { // Not currently specified for this arity.
 			lookup1.put(arity, position);
@@ -727,11 +594,10 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 	
 	public void addBridger(int arity) {
-		// Utils.println("Create BRIDGER: " + name + "/" + arity + "."); 
 		if (bridgerSpec == null) {
-			bridgerSpec = new HashSet<Integer>(4);
+			bridgerSpec = new HashSet<>(4);
 		}
-		Boolean firstLookUp = bridgerSpec.contains(arity);
+		boolean firstLookUp = bridgerSpec.contains(arity);
 		if (!firstLookUp) { // Not currently specified.
 			bridgerSpec.add(arity);
 		}
@@ -739,39 +605,26 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 	
 	public void addTemporary(int arity) { // -1 means 'any parity.'
-		// Utils.println("Create TEMPORARY: " + name + "/" + arity + "."); 
 		if (temporary == null) {
-			temporary = new HashSet<Integer>(4);
+			temporary = new HashSet<>(4);
 		}
-		Boolean firstLookUp = temporary.contains(arity);
+		boolean firstLookUp = temporary.contains(arity);
 		if (!firstLookUp) { // Not currently specified.
 			temporary.add(arity);
 		}
 		else if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate temporary of " + name + "/" + arity + ".  Will ignore."); }		
 	}
-	
-	public void addNamedArgOrdering(List<String> order) {
-		int arity = Utils.getSizeSafely(order);
-		if (namedArgumentOrdering == null) {
-			namedArgumentOrdering = new HashMap<Integer,List<String>>(4);
-		}
-		List<String> lookup = namedArgumentOrdering.get(arity);
-		if (lookup == null) { // Not currently specified.
-			namedArgumentOrdering.put(arity, order);
-		}
-		else if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) +  ": Duplicate addNamedrgOrdering of '" + name + "/" + arity + "'.  Already have: " + lookup + ".  Will ignore: " + order); }		
-	}
-	public List<String> getNamedArgOrdering(int arity) {
+
+	List<String> getNamedArgOrdering(int arity) {
 		if (namedArgumentOrdering == null) { return null; }
 		return namedArgumentOrdering.get(arity);
 	}
 	
-	public void addInliner(int arity)  {
-		//Utils.waitHere("Create INLINE: " + name + "/" + arity + "."); 
+	public void addInliner(int arity) {
 		if (inlineSpec == null) {
-			inlineSpec = new HashSet<Integer>(4);
+			inlineSpec = new HashSet<>(4);
 		}
-		Boolean firstLookUp = inlineSpec.contains(arity);
+		boolean firstLookUp = inlineSpec.contains(arity);
 		if (!firstLookUp) { // Not currently specified.
 			inlineSpec.add(arity);
 		}
@@ -781,18 +634,16 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public void addFilter() {
 		filter = true;
 	}
-	public void addFilter(boolean value) {
-		filter = value;
-	}
+
 	public boolean filter() {
 		return filter;
 	}
 	
 	public void addHiddenPred(int arity) { 
 		if (hiddenPredSpec == null) {
-			hiddenPredSpec = new HashSet<Integer>(4);
+			hiddenPredSpec = new HashSet<>(4);
 		}
-		Boolean firstLookUp = hiddenPredSpec.contains(arity);
+		boolean firstLookUp = hiddenPredSpec.contains(arity);
 		if (!firstLookUp) { // Not currently specified.
 			hiddenPredSpec.add(arity);
 		}
@@ -801,9 +652,9 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	
 	public void addQueryPred(int arity) { 
 		if (queryPredSpec == null) {
-			queryPredSpec = new HashSet<Integer>(4);
+			queryPredSpec = new HashSet<>(4);
 		}
-		Boolean firstLookUp = queryPredSpec.contains(arity);
+		boolean firstLookUp = queryPredSpec.contains(arity);
 		if (!firstLookUp) { // Not currently specified.
 			queryPredSpec.add(arity);
 		}
@@ -816,9 +667,9 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			return; // Just return silently
 		}
 		if (cost == null) {
-			cost = new HashMap<Integer,Double>(4);
+			cost = new HashMap<>(4);
 		}
-		Boolean firstLookUp = cost.containsKey(arity);
+		boolean firstLookUp = cost.containsKey(arity);
 		if (firstLookUp) { 
 			if (isFinal) {
 				cost.put(arity, predicateCost);
@@ -831,38 +682,34 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		stringHandler.setPredicatesHaveCosts(true);
 		if (isFinal) { costIsFinal = true; }
 	}
-	public boolean hasCost(int arity) {
-		return cost.containsKey(arity);
-	}
+
 	public double getCost(int arity) {
 		if (cost == null) { return 1.0; }  // The default cost.
-		Boolean firstLookUp = cost.containsKey(arity);
+		boolean firstLookUp = cost.containsKey(arity);
 		if (firstLookUp) { return cost.get(arity); }
 		return 1.0; // The default cost.
 	}
 	
 	public void markAsSupportingPredicate(int arity, boolean okIfDup) {
-		//Utils.waitHere("Create SUPPORTER: " + name + "/" + arity + "."); 
 		if (supportingLiteral == null) {
-			supportingLiteral = new HashSet<Integer>(4);
+			supportingLiteral = new HashSet<>(4);
 		}
-		Boolean firstLookUp = supportingLiteral.contains(arity);
+		boolean firstLookUp = supportingLiteral.contains(arity);
 		if (!firstLookUp) { // Not currently specified.
 			supportingLiteral.add(arity);
 		}
 		else if (!okIfDup && stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate 'supporter' of '" + name + "/" + arity + "'.  Will ignore."); }		
 	}
 	public boolean isaSupportingPredicate(int arity) {
-		//Utils.waitHere("Is this a supported predicate: " + name + "/" + arity + "   " + (supportingLiteral != null && supportingLiteral.contains(arity)));
 		return supportingLiteral != null && supportingLiteral.contains(arity);
 	}
 	
 	// On these, the later override the earlier (allows code to change these).
 	public void setRelevance(int arity, RelevanceStrength strength) {
 		if (relevance == null) {
-			relevance = new HashMap<Integer,RelevanceStrength>(4);
+			relevance = new HashMap<>(4);
 		}
-		Boolean firstLookUp = relevance.containsKey(arity);
+		boolean firstLookUp = relevance.containsKey(arity);
 		if (firstLookUp) { 
 			if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings && relevance.get(arity) != strength) {
 				if (strength.compareTo(relevance.get(arity)) < 0) { // Turn off these warnings and just print for now.
@@ -877,37 +724,36 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		double aCost = stringHandler.convertRelevanceStrengthToCost(strength);
 		setCost(arity, aCost, false);
 	}
-	public boolean hasRelevance(int arity) {
-		return relevance.containsKey(arity);
-	}
+
 	public RelevanceStrength getRelevance(int arity) {
 		if (relevance == null) { return null; }
-		Boolean firstLookUp = relevance.containsKey(arity);
+		boolean firstLookUp = relevance.containsKey(arity);
 		if (firstLookUp) { return relevance.get(arity); }
 		return null;
 	}
 
-	
-	public int getDeterminateArgumentIndex(int arity) {
+	int getDeterminateArgumentIndex(int arity) {
 		return getDeterminateArgumentIndex(arity, null);
 	}
-	public int getDeterminateArgumentIndex(int arity, String requiredType) {
+	private int getDeterminateArgumentIndex(int arity, String requiredType) {
 		if (determinateSpec == null) { return -1; }
 		Map<Integer,Type> firstLookUp = determinateSpec.get(arity);
 		
 		if (firstLookUp == null) { return -1; } // This means "not found."
-		Iterator<Integer> keySet = firstLookUp.keySet().iterator();
-		while (keySet.hasNext()) {
-			Integer key  = keySet.next();
-			Type    type = firstLookUp.get(key);
-			
-			if (requiredType == null) { return key; }
+		for (Integer key : firstLookUp.keySet()) {
+			Type type = firstLookUp.get(key);
+
+			if (requiredType == null) {
+				return key;
+			}
 			if (requiredType.equalsIgnoreCase("numeric")) {
 				if (type.toString().equalsIgnoreCase("integer") ||
-				    type.toString().equalsIgnoreCase("float")   ||
-				    type.toString().equalsIgnoreCase("double")  ||
-				    type.toString().equalsIgnoreCase("number")  ||
-				    type.toString().equalsIgnoreCase("Boolean")) { return key; }  // If we did NOT find what we sought, keep looking.
+						type.toString().equalsIgnoreCase("float") ||
+						type.toString().equalsIgnoreCase("double") ||
+						type.toString().equalsIgnoreCase("number") ||
+						type.toString().equalsIgnoreCase("Boolean")) {
+					return key;
+				}  // If we did NOT find what we sought, keep looking.
 			}
 			Utils.error("This type is not numeric: '" + type + "'.");
 		}
@@ -930,14 +776,11 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return name;
 	}
 
-   /** Methods for reading a Object cached to disk.
-    *
-    * @param in
-    * @throws java.io.IOException
-    * @throws java.lang.ClassNotFoundException
+   /**
+	* Methods for reading a Object cached to disk.
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        if ( in instanceof FOPCInputStream == false ) {
+        if (!(in instanceof FOPCInputStream)) {
             throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject() input stream must support FOPCObjectInputStream interface");
         }
 
@@ -998,11 +841,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
             return false;
         }
         final PredicateName other = (PredicateName) obj;
-        if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
-            return false;
-        }
-        return true;
-    }
+		return Objects.equals(this.name, other.name);
+	}
 
     @Override
     public int hashCode() {
@@ -1011,9 +851,9 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         return hash;
     }
 
-    public void setContainsCallable(int arity) {
+    void setContainsCallable(int arity) {
         if ( containsCallable == null ) {
-            containsCallable = new HashSet<Integer>();
+            containsCallable = new HashSet<>();
         }
         containsCallable.add(arity);
     }

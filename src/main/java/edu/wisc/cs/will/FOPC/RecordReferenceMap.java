@@ -6,14 +6,14 @@ import java.util.WeakHashMap;
 
 // Written by Trevor Walker.
 
-public class RecordReferenceMap {
+class RecordReferenceMap {
 	
 	private Map<RRKey,WeakReference<RecordReference>> map = new WeakHashMap<RRKey, WeakReference<RecordReference>>();
 	
-	protected RecordReferenceMap() {
+	RecordReferenceMap() {
 	}
 
-	public RecordReference getReference(String dbKey, RecordEntry recordEntry) {
+	RecordReference getReference(String dbKey, RecordEntry recordEntry) {
 		
 		RecordReference canonicalReference = null;
 		
@@ -37,7 +37,7 @@ public class RecordReferenceMap {
 		String key;
 		RecordEntry recordEntry;
 		
-		public RRKey(String key, RecordEntry recordEntry) {
+		RRKey(String key, RecordEntry recordEntry) {
 			this.key = key;
 			this.recordEntry = recordEntry;
 		}

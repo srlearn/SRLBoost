@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
@@ -28,7 +25,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	protected final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	
 	public    final static double maxWeight     = 300.0; // Since weights are used in exp^weight, want something that avoids overflow.	
-	public    final static double minWeight     = -maxWeight;	 // Also want to avoid underflow (note: code does not yet use this).
+	final static double minWeight     = -maxWeight;	 // Also want to avoid underflow (note: code does not yet use this).
     public    final static double defaultWeight = maxWeight + 1.0; // The default weight is 'infinity.'  (Note: the Example class has a weight as well; since these two weights have different semantics, we use two long names.) 
 	protected              double wgtSentence   = defaultWeight;
 	transient protected   HandleFOPCstrings stringHandler; // Add another field to everything so it can access this, and hence access things like lowercaseMeansVariable.
@@ -71,7 +68,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
     public abstract Sentence copy2(boolean recursiveCopy, BindingList bindingList);
 
 	public Sentence wrapFreeVariables() {
-		Collection<Variable> boundVariables = new ArrayList<Variable>(1);
+		Collection<Variable> boundVariables = new ArrayList<>(1);
 		Collection<Variable> freeVariables  = collectFreeVariables(boundVariables);
 		
 		if (freeVariables == null || freeVariables.size() <= 0) { return this; }
@@ -99,17 +96,12 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	
 	// In the original MLN paper in MLj, if one clause becomes N, divide the weights equally.  However, if at maxWeight, keep as is.
 	// NOTE: this does not preserve the semantics of MLNs (e.g., 'weight [p(x) and q(x)]' not same as 'weight/2 p(x) and weight/2 q(x)', but we live with this so we can represent in clausal form.
-	public Sentence divideWeightByN(double weight, int n) {
+	Sentence divideWeightByN(double weight, int n) {
 		if (weight > minWeight && weight < maxWeight) { this.wgtSentence = weight / n; }
 		return this; // Returning this makes it convenient to append '.setWeight' to new's.
 	}
-	
-	public Sentence negateWeight(double weight) {
-		this.wgtSentence = Math.max(minWeight, Math.min(maxWeight, -weight)); // Keep in range.
-		return this; // Returning this makes it convenient to append '.setWeight' to new's.
-	}
 
-    public Sentence getConjunctiveNormalForm() {
+	public Sentence getConjunctiveNormalForm() {
         Sentence sentence = this;
 
 		if (debugLevel > 1) { Utils.println("\nCalling convertToClausalForm.\nOriginal form:\n "     + this); }
@@ -204,16 +196,16 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
             return Collections.singletonList((Clause)sentence);
         }
         else if(sentence instanceof Literal) {
-			List<Clause> result = ((Literal) sentence).convertToListOfClauses();
+			List<Clause> result = sentence.convertToListOfClauses();
 			if (debugLevel > 0) { Utils.println("Clausal form:\n "  + result + "\n"); }
 			if (result != null) { for (Clause c : result) { c.checkForCut(); }} // This isolated literal could be the cut, though that is unlikely.
 			return result; // No need to rename variables since an isolated literal, and so will already have unique variables.
 		}
         else if(sentence instanceof ConnectedSentence) {
-			List<Clause> result = ((ConnectedSentence) sentence).convertToListOfClauses();
+			List<Clause> result = sentence.convertToListOfClauses();
 			if (debugLevel > 0) { Utils.println("Clausal form:\n "  + result + "\n"); }
 			if (result != null && result.size() > 1) { // Need to rename all of these.
-				List<Clause> renamedResult = new ArrayList<Clause>(result.size());
+				List<Clause> renamedResult = new ArrayList<>(result.size());
 				for (Clause c : result) {
 					Clause newClause = (Clause) c.copyAndRenameVariables().setWeightOnSentence(c.getWeightOnSentence());
 					if (debugLevel > 1) { Utils.println("Copied form:\n "  + newClause + " from " + c); }
@@ -310,40 +302,14 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
         return clauses.get(0);
     }
 
-//    protected Sentence standardizeVariableNames(Set<Variable> usedVariables, BindingList newToOldBindings) {
-//        return this;
-//    }
-	
-	public String returnWeightString() {
+	protected String returnWeightString() {
 		if (wgtSentence < maxWeight) {
 			if (AllOfFOPC.printUsingAlchemyNotation) { return Utils.truncate(wgtSentence, 4) + " "; } 
 			return                                 "wgt = " + Utils.truncate(wgtSentence, 4) + " "; }
 		return "";
 	}
 
-    public int appendWeightString(Appendable appendable) {
-
-        int length = 0;
-        
-		try {
-            if (wgtSentence < maxWeight) {
-                String truncatedWgt = Utils.truncate(wgtSentence, 3);
-                appendable.append("wgt = ").append(truncatedWgt).append(" ");
-                length += 6 + truncatedWgt.length() + 1;
-            }
-        } catch (IOException iOException) {
-        }
-
-		return length;
-	}
-
-	// This is used to create weights strings without an instance (i.e., it is a static method).
-	public static String returnWeightString(double wgt) {
-		if (wgt < maxWeight) { return "wgt = " + Utils.truncate(wgt, 3) + " "; }
-		return "";
-	}
-	
-    public Literal extractLiteral() {
+	public Literal extractLiteral() {
 		if (this instanceof Literal) { return (Literal) this; }
 		if (this instanceof UniversalSentence) {
 			UniversalSentence univ = (UniversalSentence) this;
@@ -362,7 +328,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 
     public Clause getNegatedQueryClause() throws IllegalArgumentException {
 
-        Clause result = null;
+        Clause result;
 
         List<Clause> clauses = convertToClausalForm();
         if ( clauses.size() == 0 ) {
@@ -382,18 +348,11 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
         return visitor.visitOtherSentence(this, data);
     }
 
-    public String toPrettyString2() {
-        return PrettyPrinter.print(this);
-    }
-
-       /** Methods for reading a Object cached to disk.
-    *
-    * @param in
-    * @throws java.io.IOException
-    * @throws java.lang.ClassNotFoundException
+	/**
+	 * Methods for reading a Object cached to disk.
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        if ( in instanceof FOPCInputStream == false ) {
+        if (!(in instanceof FOPCInputStream)) {
             throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject() input stream must support FOPCObjectInputStream interface");
         }
 

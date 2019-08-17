@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.Utils.Filter;
@@ -19,7 +14,7 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
 
     private Map<PredicateName, ArityFilter> nameToArityMap;
 
-    public PredicateNameAndArityFilter(HandleFOPCstrings stringHandler) {
+    PredicateNameAndArityFilter(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
     }
 
@@ -27,10 +22,6 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
         return includeElement(predicateNameAndArity.getPredicateName(), predicateNameAndArity.getArity());
     }
 
-    public boolean includeElement(String predicateName, int arity) {
-        return includeElement(stringHandler.getPredicateName(predicateName), arity);
-    }
-    
     public boolean includeElement(PredicateName predicateName, int arity) {
         boolean result = false;
 
@@ -49,7 +40,7 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
         addLiteral(stringHandler.getPredicateName(predicateName), arity);
     }
 
-    public void addLiteral(PredicateName predicateName, int arity) {
+    private void addLiteral(PredicateName predicateName, int arity) {
         addArityFilterEntry(predicateName, arity);
     }
 
@@ -57,32 +48,8 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
         addArityFilterEntry(predicateNameArity.getPredicateName(), predicateNameArity.getArity());
     }
 
-    public void addPredicate(String predicateName) {
-        addPredicate(stringHandler.getPredicateName(predicateName));
-    }
-
-    public void addPredicate(PredicateName predicateName) {
-        addArityFilterEntry(predicateName, -1);
-    }
-
-    public void removeLiteral(String predicateName, int arity) {
-        removeLiteral(stringHandler.getPredicateName(predicateName), arity);
-    }
-
-    public void removeLiteral(PredicateName predicateName, int arity) {
-        removeArityFilterEntry(predicateName, arity);
-    }
-
     public void removeLiteral(PredicateNameAndArity predicateNameArity) {
         removeArityFilterEntry(predicateNameArity.getPredicateName(), predicateNameArity.getArity());
-    }
-
-    public void removePredicate(String predicateName) {
-        removePredicate(stringHandler.getPredicateName(predicateName));
-    }
-
-    public void removePredicate(PredicateName predicateName) {
-        removeArityFilterEntry(predicateName, -1);
     }
 
     public void clear() {
@@ -126,45 +93,30 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
         }
     }
 
-
-
     @Override
     public String toString() {
 
         StringBuilder sb = new StringBuilder();
         sb.append("{");
 
-        boolean first = false;
         if ( nameToArityMap != null ) {
             for (Map.Entry<PredicateName, ArityFilter> entry : nameToArityMap.entrySet()) {
                 PredicateName name = entry.getKey();
                 ArityFilter arityFilter = entry.getValue();
-
                 if ( arityFilter.isIncludeAllArities() ) {
-                    if ( first == false ) {
-                        sb.append(", ");
-                    }
-
+                    sb.append(", ");
                     sb.append(name.name).append("/").append("*");
-
-                    first = false;
                 }
                 else {
                     for (Integer arity : arityFilter) {
-                        if ( first == false ) {
-                            sb.append(", ");
-                        }
-
+                        sb.append(", ");
                         sb.append(name.name).append("/").append(arity);
 
-                        first = false;
                     }
                 }
             }
         }
-
         sb.append("}");
-
         return sb.toString();
 
     }

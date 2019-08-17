@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.Clause;
@@ -46,14 +42,14 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
     }
 
     public Sentence visitOtherSentence(Sentence otherSentence, Data data) {
-        return buildSentence == false ? null : otherSentence;
+        return !buildSentence ? null : otherSentence;
     } 
 
     public Sentence visitConnectedSentence(ConnectedSentence sentence, Data data) {
         Sentence a = sentence.getSentenceA() == null ? null : sentence.getSentenceA().accept(this, data);
         Sentence b = sentence.getSentenceB() == null ? null : sentence.getSentenceB().accept(this, data);
 
-        return buildSentence == false ? null : getCombinedConnectedSentence(sentence, a, b);
+        return !buildSentence ? null : getCombinedConnectedSentence(sentence, a, b);
     }
 
     /** Performs some "smart" recombining of connected sentences.
@@ -61,13 +57,8 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
      * This method attempts to handle cases where the subsentence visits return null.  In many
      * cases, specially handling will be required to maintain the semantics of the returned
      * sentence, but this provided a simple why to handle null values.
-     *
-     * @param originalSentence
-     * @param newA
-     * @param newB
-     * @return
      */
-    public static Sentence getCombinedConnectedSentence(ConnectedSentence originalSentence, Sentence newA, Sentence newB) {
+    static Sentence getCombinedConnectedSentence(ConnectedSentence originalSentence, Sentence newA, Sentence newB) {
 
         Sentence result = null;
 
@@ -136,7 +127,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
             }
         }
 
-        return buildSentence == false ? null : clause.getStringHandler().getClause(positiveLits, negativeLits);
+        return !buildSentence ? null : clause.getStringHandler().getClause(positiveLits, negativeLits);
     }
 
     /** Visit the literal.
@@ -146,10 +137,6 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
      *
      * Children can return other sentence forms, but should be aware that
      * unexpected behavior will result.
-     *
-     * @param literal
-     * @param data
-     * @return
      */
     public Sentence visitLiteral(Literal literal, Data data) {
 
@@ -174,7 +161,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
             }
         }
 
-        return buildSentence == false ? null : result;
+        return !buildSentence ? null : result;
     }
 
     public Term visitFunction(Function function, Data data) {
@@ -199,7 +186,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
             }
         }
 
-        return buildSentence == false ? null : result;
+        return !buildSentence ? null : result;
 
     }
 
@@ -261,7 +248,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
             }
         }
 
-        return buildSentence == false ? null : result;
+        return !buildSentence ? null : result;
     }
 
     public Term visitVariable(Variable variable, Data data) {
@@ -279,7 +266,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
         }
 
 
-        return buildSentence == false ? null : result;
+        return !buildSentence ? null : result;
     }
 
     public Term visitLiteralAsTerm(LiteralAsTerm literalAsTerm, Data data) {
@@ -291,7 +278,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
             result = s.asTerm();
         }
 
-        return buildSentence == false ? null : result;
+        return !buildSentence ? null : result;
     }
 
     public Term visitListAsTerm(ListAsTerm listAsTerm, Data data) {
@@ -314,15 +301,15 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
             }
         }
 
-        return buildSentence == false ? null : result;
+        return !buildSentence ? null : result;
     }
 
     public Term visitNumericConstant(NumericConstant numericConstant, Data data) {
-        return buildSentence == false ? null : numericConstant;
+        return !buildSentence ? null : numericConstant;
     }
 
     public Term visitStringConstant(StringConstant stringConstant, Data data) {
-        return buildSentence == false ? null : stringConstant;
+        return !buildSentence ? null : stringConstant;
     }
 
     public Term visitOtherConstant(Constant constant, Data data) {

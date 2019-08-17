@@ -1,16 +1,11 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * @author shavlik
- *
  */
 @SuppressWarnings("serial")
 public abstract class Constant extends Term {
@@ -55,7 +50,6 @@ public abstract class Constant extends Term {
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		return super.hashCode();
 	}
-	// Are these two constants equal?  Must be the same object. (Should this be equal within epsilon for numbers?  The HandleFOPCstrings class deals with this.)
 	public boolean equals(Object other) {
 		return (this == other);
 	}
@@ -76,12 +70,5 @@ public abstract class Constant extends Term {
 	}
 	
 	public abstract String getName();
-	
-//	public void addGeneratorOfThisConstantsType(Literal generator) {
-//		if (generatorsOfThisConstantsTypes == null) { generatorsOfThisConstantsTypes = new HashSet<Literal>(4); }
-//		generatorsOfThisConstantsTypes.add(generator);
-//	}
-//	public Set<Literal> getGeneratorOfThisConstantsType() {
-//		return generatorsOfThisConstantsTypes;
-//	}
+
 }

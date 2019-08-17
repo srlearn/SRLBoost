@@ -3,10 +3,9 @@ package edu.wisc.cs.will.FOPC;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.io.Serializable;
 
 import edu.wisc.cs.will.Utils.Utils;
-import java.io.Serializable;
-import java.util.Collections;
 
 @SuppressWarnings("serial")
 public class PredicateSpec extends AllOfFOPC implements Serializable {
@@ -27,9 +26,9 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
 	}
 	
 	// Create a copy, but without all the type specifications.
-	public PredicateSpec strip() {
+	PredicateSpec strip() {
 		PredicateSpec newSpec = new PredicateSpec();
-		newSpec.typeSpecList = new ArrayList<TypeSpec>(this.typeSpecList.size());
+		newSpec.typeSpecList = new ArrayList<>(this.typeSpecList.size());
 		for (TypeSpec tspec : typeSpecList) {
 			newSpec.typeSpecList.add(new TypeSpec(tspec.isaType, tspec.stringHandler));
 		}
@@ -47,7 +46,7 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
 	private List<Term> help_applyArgsToSignature(HandleFOPCstrings stringHandler, List<Term> sig, int counter, List<Term> args) {
 		if (debugLevel > 2) { Utils.print("%  " + owner + ": applyArgs = " + args + " to signature = " + sig + " counter = " + counter); }
 		if (args == null || sig == null) { Utils.error("Should not have args=null nor sig=null here."); }
-		List<Term> result = new ArrayList<Term>(sig.size());
+		List<Term> result = new ArrayList<>(sig.size());
 		if (args.size() != sig.size()) { Utils.error("Have args = " + args + " but sig = " + sig); }
 		for (Term item : sig) {
 			if (item instanceof Constant) {
@@ -80,41 +79,15 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
         }
     }
 
-    public TypeModeAndSignature getTypeModeAndSignature(int argument) {
-        return new TypeModeAndSignature(typeSpecList.get(argument), signature.get(argument));
-    }
-
-    public List<TypeModeAndSignature> getTypeModeAndSignatureList() {
-        List<TypeModeAndSignature> list = new ArrayList<TypeModeAndSignature>();
-
-        for (int i = 0; i < signature.size(); i++) {
-            list.add(getTypeModeAndSignature(i));
-        }
-
-        return list;
-    }
-
-    public int getArity() {
+	public int getArity() {
         if (typeSpecList == null) {
             return 0;
         }
         return typeSpecList.size();
     }
 
-	public void setTypeSpecList(List<TypeSpec> typeSpecList) {
-		this.typeSpecList = typeSpecList;
-	}
-
 	public boolean isaILPmode() {
 		return isaILPmode;
-	}
-
-	public void setIsaILPmode(boolean isaILPmode) {
-		this.isaILPmode = isaILPmode;
-	}
-
-	public PredicateName getOwner() {
-		return owner;
 	}
 
 	@Override
@@ -158,7 +131,6 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
 		return "signature = " + signature + ", types = " + typeSpecList;
 	}
 
-    
 	@Override
 	public PredicateSpec applyTheta(Map<Variable, Term> bindings) {
 		return this;
@@ -168,50 +140,5 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
 	public int countVarOccurrencesInFOPC(Variable v) {
 		return 0;
 	}
-
-    public static class TypeModeAndSignature {
-        public TypeSpec typeAndMode;
-        public Term signature;
-
-        public TypeModeAndSignature(TypeSpec typeAndMode, Term signature) {
-            this.typeAndMode = typeAndMode;
-            this.signature = signature;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final TypeModeAndSignature other = (TypeModeAndSignature) obj;
-            if (this.typeAndMode != other.typeAndMode && (this.typeAndMode == null || !this.typeAndMode.equals(other.typeAndMode))) {
-                return false;
-            }
-            if (this.signature != other.signature && (this.signature == null || !this.signature.equals(other.signature))) {
-                return false;
-            }
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 7;
-            hash = 67 * hash + (this.typeAndMode != null ? this.typeAndMode.hashCode() : 0);
-            hash = 67 * hash + (this.signature != null ? this.signature.hashCode() : 0);
-            return hash;
-        }
-
-        @Override
-        public String toString() {
-            return typeAndMode + ":" + signature ;
-        }
-
-        
-
-        
-    }
 
 }

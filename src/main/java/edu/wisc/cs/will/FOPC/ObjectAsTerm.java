@@ -19,7 +19,7 @@ public class ObjectAsTerm extends Term {
 	/**
 	 * Wrap an arbitrary item in a Term.  Don't operate on it.
 	 */
-	protected ObjectAsTerm(HandleFOPCstrings stringHandler, Object item, boolean warnIfWrappingTerm) {
+	ObjectAsTerm(HandleFOPCstrings stringHandler, Object item, boolean warnIfWrappingTerm) {
 		this.stringHandler = stringHandler;
 		if (warnIfWrappingTerm && item instanceof Term) { Utils.error("The ObjectAsTerm class is unneccesary when asked to wrap terms: " + item); }
 		this.item = item;

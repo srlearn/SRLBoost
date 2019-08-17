@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.Clause;
@@ -11,33 +6,24 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.QuantifiedSentence;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
-import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * @author twalker
  */
 public class DefaultSentenceVisitor<Data> implements SentenceVisitor<Sentence, Data>{
 
     private TermVisitor<Term, Data> termVisitor;
 
-    public DefaultSentenceVisitor(TermVisitor<Term, Data> termVisitor) {
-        this.termVisitor = termVisitor;
-    }
+    protected DefaultSentenceVisitor() {}
 
-    public DefaultSentenceVisitor() {
-    }
-
-    
-
-    public TermVisitor<Term, Data> getTermVisitor() {
+    protected TermVisitor<Term, Data> getTermVisitor() {
         return termVisitor;
     }
 
-    public void setTermVisitor(TermVisitor<Term, Data> termVisitor) {
+    protected void setTermVisitor(TermVisitor<Term, Data> termVisitor) {
         this.termVisitor = termVisitor;
     }
 
@@ -62,7 +48,7 @@ public class DefaultSentenceVisitor<Data> implements SentenceVisitor<Sentence, D
         List<Literal> negativeLits = null;
 
         if ( clause.getPosLiteralCount() > 0 ) {
-            positiveLits = new ArrayList<Literal>();
+            positiveLits = new ArrayList<>();
             for (Literal literal : clause.getPositiveLiterals()) {
                 Literal newLit = (Literal) literal.accept(this, data);
                 positiveLits.add(newLit);
@@ -70,7 +56,7 @@ public class DefaultSentenceVisitor<Data> implements SentenceVisitor<Sentence, D
         }
 
         if ( clause.getNegLiteralCount() > 0 ) {
-            negativeLits = new ArrayList<Literal>();
+            negativeLits = new ArrayList<>();
             for (Literal literal : clause.getNegativeLiterals()) {
                 Literal newLit = (Literal) literal.accept(this, data);
                 negativeLits.add(newLit);
@@ -88,7 +74,7 @@ public class DefaultSentenceVisitor<Data> implements SentenceVisitor<Sentence, D
             List<Term> newTerms = null;
 
             if ( literal.getArity() != 0 ) {
-                newTerms = new ArrayList<Term>();
+                newTerms = new ArrayList<>();
                 for (Term term : literal.getArguments()) {
                     Term newTerm = term.accept(termVisitor, data);
                     newTerms.add(newTerm);

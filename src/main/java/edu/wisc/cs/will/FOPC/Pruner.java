@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.Utils.Utils;
@@ -13,15 +10,12 @@ import edu.wisc.cs.will.Utils.Utils;
  *
  */
 public class Pruner {
-	public Literal prunableLiteral;  // No need to add this literal to a clause that contains 'ifPresentLiteral.'
-	public Literal ifPresentLiteral;
+	private Literal prunableLiteral;  // No need to add this literal to a clause that contains 'ifPresentLiteral.'
+	private Literal ifPresentLiteral;
 	public int     warnIfPresentLiteralCount; // If 'ifPresentLiteral' is the head of this many or more clauses, throw an error.  A negative value means "ignore this test."
 	public int     truthValue = 0;            // TruthValue: -1 means 'prune because false', 1 means because true, and 0 means unknown.
-	
-	/**
-	 * 
-	 */
-	public Pruner(Literal prunableLiteral, Literal ifPresentLiteral, int warnIfPresentLiteralCount, int truthValue) {
+
+	Pruner(Literal prunableLiteral, Literal ifPresentLiteral, int warnIfPresentLiteralCount, int truthValue) {
 		this.prunableLiteral           = prunableLiteral;
 		this.ifPresentLiteral          = ifPresentLiteral;
 		this.warnIfPresentLiteralCount = warnIfPresentLiteralCount;
@@ -32,11 +26,8 @@ public class Pruner {
 	}
 	
 	/**
-         * @param thisPrunableLiteral
-         * @param thisIfPresentLiteral
-         * @param unifier
-         * @return Whether the given literals match this pruner.
-         */
+	 * @return Whether the given literals match this pruner.
+	 */
 	public boolean isaMatch(Literal thisPrunableLiteral, Literal thisIfPresentLiteral) {
 		BindingList bindings = Unifier.UNIFIER.unify(thisPrunableLiteral, prunableLiteral);
 		
@@ -44,14 +35,6 @@ public class Pruner {
 		if (thisIfPresentLiteral != null) { // NULL in this case means nothing needs to be present in the body.
 			bindings = Unifier.UNIFIER.unify(thisIfPresentLiteral, ifPresentLiteral, bindings);
 		}
-		if (false && bindings != null) {
-			Utils.println("Matched pruner: ");
-			Utils.println("  candidate: " + thisPrunableLiteral);
-			Utils.println("             " + prunableLiteral);
-			Utils.println("    present: " + (thisIfPresentLiteral == null ? null : thisIfPresentLiteral));
-			Utils.println("             " + ifPresentLiteral);
-			Utils.println("   bindings: " + bindings);
-		} 
 		return (bindings != null);
 	}
 

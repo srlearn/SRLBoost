@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.ConsCell;
@@ -16,18 +11,15 @@ import edu.wisc.cs.will.FOPC.SentenceAsTerm;
 import edu.wisc.cs.will.FOPC.StringConstant;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
-import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * @author twalker
  */
 public class DefaultTermVisitor<Data> implements TermVisitor<Term, Data> {
 
-    SentenceVisitor<Sentence, Data> sentenceVisitor;
+    private SentenceVisitor<Sentence, Data> sentenceVisitor;
 
     public DefaultTermVisitor() {
     }
@@ -36,30 +28,18 @@ public class DefaultTermVisitor<Data> implements TermVisitor<Term, Data> {
         this.sentenceVisitor = sentenceVisitor;
     }
 
-    
-
-    public SentenceVisitor<Sentence, Data> getSentenceVisitor() {
-        return sentenceVisitor;
-    }
-
-    public void setSentenceVisitor(SentenceVisitor<Sentence, Data> sentenceVisitor) {
-        this.sentenceVisitor = sentenceVisitor;
-    }
-    
     public Term visitFunction(Function function, Data data) {
 
         List<Term> newTerms = null;
 
         if ( function.getArity() != 0 ) {
-            newTerms = new ArrayList<Term>();
+            newTerms = new ArrayList<>();
             for (Term term : function.getArguments()) {
                 Term newTerm = term.accept(this, data);
                 newTerms.add(newTerm);
             }
         }
-
         return function.getStringHandler().getFunction(function, newTerms);
-
     }
 
     public Term visitConsCell(ConsCell consCell, Data data) {
@@ -96,7 +76,7 @@ public class DefaultTermVisitor<Data> implements TermVisitor<Term, Data> {
         Term result = listAsTerm;
 
         if ( sentenceVisitor != null && listAsTerm.getObjects() != null) {
-            List<Term> objects = new ArrayList<Term>();
+            List<Term> objects = new ArrayList<>();
             for (Term term : listAsTerm.getObjects()) {
                 objects.add(term.accept(this, data));
             }

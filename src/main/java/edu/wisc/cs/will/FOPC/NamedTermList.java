@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import java.util.List;
@@ -13,8 +10,8 @@ import java.util.List;
  *
  */
 public class NamedTermList {
-	List<Term>   terms;
-	List<String> names;
+	private List<Term>   terms;
+	private List<String> names;
 	
 	public NamedTermList(List<Term> terms, List<String> names) {
 		this.terms = terms;
@@ -38,7 +35,6 @@ public class NamedTermList {
     @Override
     public String toString() {
 
-
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("[");
 
@@ -55,6 +51,4 @@ public class NamedTermList {
 
         return stringBuilder.toString();
     }
-
-
 }

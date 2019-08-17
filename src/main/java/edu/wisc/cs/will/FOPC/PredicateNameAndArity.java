@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import edu.wisc.cs.will.Utils.Utils;
-import java.util.Set;
-
 public class PredicateNameAndArity {
 
     private PredicateName predicateName;
@@ -22,9 +19,9 @@ public class PredicateNameAndArity {
     
     public PredicateNameAndArity(HandleFOPCstrings stringHandler, String pNameAndAritySpec) {
 		PredicateName pName = stringHandler.getPredicateName(pNameAndAritySpec.substring(0, pNameAndAritySpec.indexOf('/')));
-		int           arity = Integer.parseInt(pNameAndAritySpec.substring(pNameAndAritySpec.indexOf('/') + 1));
-		this.predicateName  = pName;
-        this.arity          = arity;
+		int arity = Integer.parseInt(pNameAndAritySpec.substring(pNameAndAritySpec.indexOf('/') + 1));
+		this.predicateName = pName;
+        this.arity = arity;
     }
 
     public PredicateNameAndArity(DefiniteClause definiteClause) {
@@ -43,13 +40,10 @@ public class PredicateNameAndArity {
             return false;
         }
         final PredicateNameAndArity other = (PredicateNameAndArity) obj;
-        if (this.predicateName != other.predicateName) { // JWS: any reason for the following????  && (this.predicateName == null || !this.predicateName.equals(other.predicateName))) {
+        if (this.predicateName != other.predicateName) {
             return false;
         }
-        if (this.arity != other.arity) {
-            return false;
-        }
-        return true;
+        return this.arity == other.arity;
     }
 
     @Override
@@ -87,36 +81,11 @@ public class PredicateNameAndArity {
      * @return List of types, one for each argument.
      */
     public List<Type> getTypes() {
-        List<Type> types = new ArrayList<Type>(arity);
+        List<Type> types = new ArrayList<>(arity);
         for (int i = 0; i < arity; i++) {
             types.add(getType(i));
         }
         return types;
-    }
-
-    /** Return the first typeSpec for the given argument.
-     *
-     * @param argumentIndex
-     * @return
-     */
-    public List<TypeSpec> getTypeSpecs(int argumentIndex) {
-        List<PredicateSpec> ps = predicateName.getTypeListForThisArity(arity);
-
-        if (ps != null && ps.size() > 0) {
-
-            List<TypeSpec> list = new ArrayList<TypeSpec>(ps.size());
-
-            for (int i = 0; i < ps.size(); i++) {
-                PredicateSpec predicateSpec = ps.get(i);
-
-                list.add(predicateSpec.getTypeSpec(argumentIndex));
-            }
-
-            return list;
-        }
-        else {
-            return Collections.EMPTY_LIST;
-        }
     }
 
     /** Returns all of the Predicate specification attached to the predicate/arity.
@@ -131,53 +100,23 @@ public class PredicateNameAndArity {
     }
 
     public void markAsSupportingPredicate(boolean okIfDup) {
-    	//Utils.println("% markAsSupportingPredicate: " + this );
         predicateName.markAsSupportingPredicate(arity, okIfDup);
-    }
-
-    public void markAsInlinedPredicate() {
-    	Utils.println("% markAsInlinedPredicate: " + this );    	
-        predicateName.addInliner(arity);
     }
 
     public boolean isInlined() {
         return predicateName.isaInlined(arity);
     }
 
-    public boolean isSupportingPrediate() {
-        return predicateName.isaSupportingPredicate(arity);
-    }
-
     public boolean isNonOperational() {
         return predicateName.isNonOperational(arity);
-    }
-
-    public Set<PredicateNameAndArity> getOperationalExpansions() {
-        return predicateName.getOperationalExpansions(arity);
     }
 
     public void setCost(double cost) {
         getPredicateName().setCost(arity, cost, false);
     }
 
-    public boolean isDeterminatePredicate() {
-        return getPredicateName().isDeterminatePredicate(arity);
-    }
-
-    public int getDeterminateArgumentIndex() {
-        return predicateName.getDeterminateArgumentIndex(arity);
-    }
-
-    public boolean isFunctionAsPredicate() {
-        return predicateName.isFunctionAsPredicate(arity);
-    }
-
     public boolean isDeterminateOrFunctionAsPred() {
         return predicateName.isDeterminateOrFunctionAsPred(arity);
-    }
-
-    public int getFunctionAsPredicateOutputIndex() {
-        return predicateName.getFunctionAsPredicateOutputIndex(arity);
     }
 
     public int getDeterminateOrFunctionAsPredOutputIndex() {
@@ -192,9 +131,6 @@ public class PredicateNameAndArity {
         return predicateName.isContainsCallable(arity);
     }
 
-
-
-    
     @Override
     public String toString() {
         return predicateName + "/" + arity;

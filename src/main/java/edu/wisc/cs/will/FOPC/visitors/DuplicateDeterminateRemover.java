@@ -1,28 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC.visitors;
 
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.ConnectedSentence;
-import edu.wisc.cs.will.FOPC.ConnectiveName;
-import edu.wisc.cs.will.FOPC.Constant;
-import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
-import edu.wisc.cs.will.FOPC.visitors.DuplicateDeterminateRemover.PassOneData;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.LiteralOrFunction;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.LinkedMapOfSets;
-import edu.wisc.cs.will.Utils.MapOfLists;
-import edu.wisc.cs.will.Utils.MapOfSets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,10 +7,26 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
+import edu.wisc.cs.will.FOPC.BindingList;
+import edu.wisc.cs.will.FOPC.Clause;
+import edu.wisc.cs.will.FOPC.ConnectedSentence;
+import edu.wisc.cs.will.FOPC.ConnectiveName;
+import edu.wisc.cs.will.FOPC.Constant;
+import edu.wisc.cs.will.FOPC.Function;
+import edu.wisc.cs.will.FOPC.Literal;
+import edu.wisc.cs.will.FOPC.LiteralOrFunction;
+import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
+import edu.wisc.cs.will.FOPC.Sentence;
+import edu.wisc.cs.will.FOPC.Term;
+import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.Utils.LinkedMapOfSets;
+import edu.wisc.cs.will.Utils.MapOfLists;
+import edu.wisc.cs.will.Utils.MapOfSets;
+
 /**
- *
  * @author twalker
  */
 public class DuplicateDeterminateRemover {
@@ -48,8 +41,7 @@ public class DuplicateDeterminateRemover {
 
     public static Sentence removeDuplicates(Sentence sentence) {
 
-        /** Root handler...
-         *
+        /*
          * This is tricky, tricky, tricky.
          *
          * To handle ORs properly, we have to split the sentence into it's constituent parts.
@@ -59,9 +51,9 @@ public class DuplicateDeterminateRemover {
          *
          * Once we have completed all the subtrees the visitor just does a normal
          * reassembly of the sentences.
-         *
          */
-        Sentence result = null;
+
+        Sentence result;
 
         if (sentence instanceof ConnectedSentence && ((ConnectedSentence) sentence).getConnective() == ConnectiveName.OR) {
             ConnectedSentence cs = (ConnectedSentence) sentence;
@@ -90,49 +82,13 @@ public class DuplicateDeterminateRemover {
         Sentence passTwoResult = s.accept(PASS_TWO_VISITOR, data2);
 
         PassThreeData data3 = new PassThreeData();
-        Sentence passThreeResult = passTwoResult.accept(PASS_THREE_VISITOR, data3);
 
-        return passThreeResult;
+        return passTwoResult.accept(PASS_THREE_VISITOR, data3);
     }
-
-//    public static class ConnectiveHandlerVisitor extends DefaultFOPCVisitor<Void> {
-//
-//        @Override
-//        public Sentence visitConnectedSentence(ConnectedSentence sentence, Void data) {
-//
-//
-//            if (sentence.getConnective() == ConnectiveName.OR) {
-//
-//                Sentence sa = sentence.getSentenceA();
-//                Sentence newSA = handle(sa);
-//
-//                Sentence sb = sentence.getSentenceB();
-//                Sentence newSB = handle(sb);
-//
-//                return getCombinedConnectedSentence(sentence, newSA, newSB);
-//            }
-//            else {
-//                return handle(sentence);
-//            }
-//        }
-//
-//        @Override
-//        public Sentence visitClause(Clause clause, Void data) {
-//            return handle(clause);
-//        }
-//
-//        @Override
-//        public Sentence visitLiteral(Literal literal, Void data) {
-//            return handle(literal);
-//        }
-//
-//
-//    }
 
     public static class PassOneVisitor extends DefaultFOPCVisitor<PassOneData> {
 
-        private PassOneVisitor() {
-        }
+        private PassOneVisitor() {}
 
         @Override
         public Sentence visitConnectedSentence(ConnectedSentence sentence, PassOneData data) {
@@ -140,13 +96,11 @@ public class DuplicateDeterminateRemover {
                 // During pass one, fail out of the processing when an OR is encountered.
                 super.visitConnectedSentence(sentence, data);
             }
-
             return null;
         }
 
         @Override
         public Sentence visitLiteral(Literal literal, PassOneData data) {
-
             if (literal.getStringHandler().isNegationByFailure(literal)) {
                 Clause contents = literal.getStringHandler().getNegationByFailureContents(literal);
                 Clause newContents = (Clause) contents.accept(this, data);
@@ -166,12 +120,6 @@ public class DuplicateDeterminateRemover {
 
         @Override
         public Term visitFunction(Function function, PassOneData data) {
-
-//            if (function.getFunctionName().equals(function.getStringHandler().standardPredicateNames.negationByFailureAsFunction)) {
-//                // Only recurse into negation-by-failures
-//                Clause contents = function.getStringHandler().getNegationByFailureContents(function);
-//                contents.accept(this, data);
-//            }
             if (function.getStringHandler().isNegationByFailure(function)) {
                 Clause contents = function.getStringHandler().getNegationByFailureContents(function);
                 Clause newContents = (Clause) contents.accept(this, data);
@@ -197,10 +145,8 @@ public class DuplicateDeterminateRemover {
         public Sentence visitConnectedSentence(ConnectedSentence sentence, PassTwoData data) {
 
             if (sentence.getConnective() == ConnectiveName.OR) {
-                // If we encounter an OR during pass two, process the tree as if it was independent
-                // tree by calling the original removeDuplicates
-                //return REMOVE_DUPLICATE_DETERMINATES_VISITOR.removeDuplicates(sentence);
-                return sentence;  // We have to return the sentence, otherwise we drop ors?
+                // We have to return the sentence, otherwise we drop ors?
+                return sentence;
             }
             else {
                 return super.visitConnectedSentence(sentence, data);
@@ -270,8 +216,6 @@ public class DuplicateDeterminateRemover {
         public Sentence visitConnectedSentence(ConnectedSentence sentence, PassThreeData data) {
 
             if (sentence.getConnective() == ConnectiveName.OR) {
-                // If we encounter an OR during pass three, process the tree as if it was independent
-                // tree by calling the original removeDuplicates
                 return removeDuplicates(sentence);
             }
             else {
@@ -297,7 +241,7 @@ public class DuplicateDeterminateRemover {
 
                 result = literal.getStringHandler().getNegationByFailure(newContents);
             }
-            else if (data.isSeenLiteral(literal) == false) {
+            else if (!data.isSeenLiteral(literal)) {
                 result = literal;
                 data.addSeenLiteral(literal);
             }
@@ -322,7 +266,7 @@ public class DuplicateDeterminateRemover {
 
                 result = function.getStringHandler().getNegationByFailure(newContents).asFunction();
             }
-            else if (data.isSeenLiteral(function) == false) {
+            else if (!data.isSeenLiteral(function)) {
                 result = function;
                 data.addSeenLiteral(function);
             }
@@ -330,53 +274,19 @@ public class DuplicateDeterminateRemover {
             return result;
         }
     }
-//    /** Determines if a literal/function is a duplicate of a previously seen determinate.
-//     *
-//     * @param literal
-//     * @return The previously equivalent variable or null if there is not equivalent.
-//     */
-//    private Variable isDuplicateDeterminate(LiteralOrFunction literal, Data data) {
-//
-//        PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-//
-//        if ( pnaa.isDeterminatePredicate() ) {
-//
-//            int determinateIndex = pnaa.getDeterminateArgumentIndex();
-//
-//            Set<Variable>[] equivalentVariableSets = (Set<Variable>[]) new Set[pnaa.getArity()];
-//
-//            for (int i = 0; i < pnaa.getArity(); i++) {
-//                if ( i != determinateIndex ) {
-//
-//                }
-//            }
-//
-//
-//
-//            List<Literal> possibleLiterals = data.canonicalLiterals.getValues(pnaa);
-//
-//            for (Literal possibleMatch : possibleLiterals) {
-//
-//            }
-//        }
-//
-//        Variable result = null;
-//
-//
-//    }
 
-    public static class PassOneData {
+    static class PassOneData {
 
-        private MapOfSets<Integer, Term> groupToVariableMap = new LinkedMapOfSets<Integer, Term>();
+        private MapOfSets<Integer, Term> groupToVariableMap = new LinkedMapOfSets<>();
 
         // Maps from predicates to canonical, unique,
-        private MapOfLists<PredicateNameAndArity, LitEntry> canonicalLiterals = new MapOfLists<PredicateNameAndArity, LitEntry>();
+        private MapOfLists<PredicateNameAndArity, LitEntry> canonicalLiterals = new MapOfLists<>();
 
         private int nextGroupIndex = 0;
 
-        private LinkedList<MergeEntry> mergeList = new LinkedList<MergeEntry>();
+        private LinkedList<MergeEntry> mergeList = new LinkedList<>();
 
-        public void addLiteral(LiteralOrFunction newLiteral) {
+        void addLiteral(LiteralOrFunction newLiteral) {
             LitEntry newInfo = createLitInfo(newLiteral);
 
             canonicalLiterals.add(newLiteral.getPredicateNameAndArity(), newInfo);
@@ -409,10 +319,7 @@ public class DuplicateDeterminateRemover {
         }
 
         private int createGroup() {
-            int groupIndex = nextGroupIndex++;
-
-            return groupIndex;
-
+            return nextGroupIndex++;
         }
 
         private int getGroupForTerm(Term term) {
@@ -434,7 +341,7 @@ public class DuplicateDeterminateRemover {
 
             while (!done) {
 
-                while (mergeList.isEmpty() == false) {
+                while (!mergeList.isEmpty()) {
                     MergeEntry me = mergeList.pop();
                     performMerger(me);
                 }
@@ -516,23 +423,23 @@ public class DuplicateDeterminateRemover {
 
         private PassOneData passOneData;
 
-        private Set<LitEntry> seenLiterals = new HashSet<LitEntry>();
+        private Set<LitEntry> seenLiterals = new HashSet<>();
 
         private Map<Integer, Term> groupBindings;
 
         private BindingList variableBindings;
 
-        public PassTwoData(PassOneData passOneData) {
+        PassTwoData(PassOneData passOneData) {
             this.passOneData = passOneData;
             createBindings();
         }
 
-        public PassTwoData(PassTwoData parent) {
+        PassTwoData(PassTwoData parent) {
             this.parent = parent;
         }
 
         private void createBindings() {
-            groupBindings = new HashMap<Integer, Term>();
+            groupBindings = new HashMap<>();
 
             for (Integer integer : getPassOneData().groupToVariableMap.keySet()) {
                 Term binding = getGroupBinding(integer);
@@ -550,7 +457,7 @@ public class DuplicateDeterminateRemover {
                     if (term instanceof Variable) {
                         Variable variable = (Variable) term;
 
-                        if (variable.equals(groupBinding) == false) {
+                        if (!variable.equals(groupBinding)) {
                             getVariableBindings().addBinding(variable, groupBinding);
                         }
 
@@ -582,7 +489,7 @@ public class DuplicateDeterminateRemover {
             return binding;
         }
 
-        public Literal isLiteralUnique(LiteralOrFunction literalOrFunction) {
+        Literal isLiteralUnique(LiteralOrFunction literalOrFunction) {
 
             Literal literal = literalOrFunction.asLiteral();
 
@@ -590,15 +497,13 @@ public class DuplicateDeterminateRemover {
 
             LitEntry entry = getPassOneData().createLitInfo(literal);
 
-            //PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-
             Term oldDeterminateTerm = literal.getArguments().get(entry.determinateIndex);
             Term newDeterminateTerm = getGroupBindings().get(entry.argumentSetIndices[entry.determinateIndex]);
 
-            if (newDeterminateTerm != null && oldDeterminateTerm instanceof Constant && newDeterminateTerm.equals(oldDeterminateTerm) == false) {
+            if (newDeterminateTerm != null && oldDeterminateTerm instanceof Constant && !newDeterminateTerm.equals(oldDeterminateTerm)) {
                 // Whoops...we have conflicting constant determinate terms.  This rule will never
                 // be true, but we will do our best to merge things, but will leave this constant alone.
-                List<Term> newArgs = new ArrayList<Term>();
+                List<Term> newArgs = new ArrayList<>();
 
                 for (int i = 0; i < entry.argumentSetIndices.length; i++) {
                     if (i != entry.determinateIndex) {
@@ -612,10 +517,10 @@ public class DuplicateDeterminateRemover {
 
                 result = literal.getStringHandler().getLiteral(literal.getPredicateName(), newArgs, literal.getArgumentNames());
             }
-            else if (isSeenLiteral(entry) == false) {
+            else if (!isSeenLiteral(entry)) {
 
                 // This is the first time we have seen this literal, so rebind it and return it.
-                List<Term> newArgs = new ArrayList<Term>();
+                List<Term> newArgs = new ArrayList<>();
 
                 for (int i = 0; i < entry.argumentSetIndices.length; i++) {
                     Term newBinding = getGroupBindings().get(entry.argumentSetIndices[i]);
@@ -631,21 +536,17 @@ public class DuplicateDeterminateRemover {
         }
 
         private boolean isSeenLiteral(LitEntry literalEntry) {
-            boolean result = false;
 
-            result = seenLiterals.contains(literalEntry);
+            boolean result = seenLiterals.contains(literalEntry);
 
-            if (result == false && parent != null) {
+            if (!result && parent != null) {
                 result = parent.isSeenLiteral(literalEntry);
             }
 
             return result;
         }
 
-        /**
-         * @return the passOneData
-         */
-        public PassOneData getPassOneData() {
+        PassOneData getPassOneData() {
             if (parent != null) {
                 return parent.getPassOneData();
             }
@@ -654,17 +555,7 @@ public class DuplicateDeterminateRemover {
             }
         }
 
-        /**
-         * @param passOneData the passOneData to set
-         */
-        public void setPassOneData(PassOneData passOneData) {
-            this.passOneData = passOneData;
-        }
-
-        /**
-         * @return the groupBindings
-         */
-        public Map<Integer, Term> getGroupBindings() {
+        Map<Integer, Term> getGroupBindings() {
             if (parent != null) {
                 return parent.getGroupBindings();
             }
@@ -673,10 +564,7 @@ public class DuplicateDeterminateRemover {
             }
         }
 
-        /**
-         * @return the variableBindings
-         */
-        public BindingList getVariableBindings() {
+        BindingList getVariableBindings() {
             if (parent != null) {
                 return parent.getVariableBindings();
             }
@@ -688,16 +576,15 @@ public class DuplicateDeterminateRemover {
 
     public static class PassThreeData {
 
-        private Set<Literal> seenLiterals = new HashSet<Literal>();
+        private Set<Literal> seenLiterals = new HashSet<>();
 
-        public PassThreeData() {
-        }
+        PassThreeData() {}
 
-        public void addSeenLiteral(LiteralOrFunction literal) {
+        void addSeenLiteral(LiteralOrFunction literal) {
             seenLiterals.add(literal.asLiteral());
         }
 
-        public boolean isSeenLiteral(LiteralOrFunction literal) {
+        boolean isSeenLiteral(LiteralOrFunction literal) {
             return seenLiterals.contains(literal.asLiteral());
         }
 
@@ -715,13 +602,13 @@ public class DuplicateDeterminateRemover {
 
         int determinateIndex;
 
-        public LitEntry(PredicateNameAndArity pnaa) {
+        LitEntry(PredicateNameAndArity pnaa) {
             this.pnaa = pnaa;
             argumentSetIndices = new int[pnaa.getArity()];
             determinateIndex = pnaa.getDeterminateOrFunctionAsPredOutputIndex() - 1; // Jude numbered the argument starting at 1 for some reason.
         }
 
-        public void setGroup(int argumentIndex, int groupIndex) {
+        void setGroup(int argumentIndex, int groupIndex) {
             argumentSetIndices[argumentIndex] = groupIndex;
         }
 
@@ -739,7 +626,7 @@ public class DuplicateDeterminateRemover {
                 return false;
             }
             final LitEntry that = (LitEntry) obj;
-            if (this.pnaa != that.pnaa && (this.pnaa == null || !this.pnaa.equals(that.pnaa))) {
+            if (!Objects.equals(this.pnaa, that.pnaa)) {
                 return false;
             }
 
@@ -755,10 +642,7 @@ public class DuplicateDeterminateRemover {
                 }
             }
 
-            if (this.determinateIndex != that.determinateIndex) {
-                return false;
-            }
-            return true;
+            return this.determinateIndex == that.determinateIndex;
         }
 
         @Override
@@ -794,7 +678,7 @@ public class DuplicateDeterminateRemover {
 
         int newGroup;
 
-        public MergeEntry(int oldGroup, int newGroup) {
+        MergeEntry(int oldGroup, int newGroup) {
             this.oldGroup = oldGroup;
             this.newGroup = newGroup;
         }

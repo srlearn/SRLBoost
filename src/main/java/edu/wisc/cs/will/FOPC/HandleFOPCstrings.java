@@ -693,8 +693,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return new ConstructedLiteral(this, pred, argument, constructor);
 	}
 
-	public LiteralToThreshold getLiteralToThreshold(PredicateName predicateName, List<Term> arguments, int position) {
-		return new LiteralToThreshold(this, predicateName, arguments, position);
+	public LiteralToThreshold getLiteralToThreshold(PredicateName predicateName, List<Term> arguments) {
+		return new LiteralToThreshold(this, predicateName, arguments);
 	}
 	public LiteralToThreshold getLiteralToThreshold(PredicateName predicateName, List<Term> arguments, int position, int maxCuts, boolean createTiles, boolean firstArgIsExampleID) {
 		return new LiteralToThreshold(this, predicateName, arguments, position, maxCuts, createTiles, firstArgIsExampleID);
@@ -1010,12 +1010,12 @@ public final class HandleFOPCstrings implements CallbackRegister {
         }
 	}
 	public void disableModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
-        if (typedLiteral != null ) disableModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
+        if (typedLiteral != null ) disableModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types, maxOccurrences, maxPerInputVars);
 	}
-	public void disableModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
+	public void disableModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars) {
         if ( predicate != null ) {
             recordPredicatesWithDisabledModes(predicate);
-            predicate.getPredicateName().disableMode(signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
+            predicate.getPredicateName().disableMode(signature, types, maxOccurrences, maxPerInputVars);
         }
 	}
 

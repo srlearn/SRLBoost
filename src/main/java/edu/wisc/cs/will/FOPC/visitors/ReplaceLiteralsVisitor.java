@@ -1,19 +1,12 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.Function;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
 import java.util.Map;
 
 /**
- *
  * @author twalker
  */
 public class ReplaceLiteralsVisitor extends DefaultFOPCVisitor<Map<Literal, Literal>> {

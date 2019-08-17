@@ -6,7 +6,7 @@ package edu.wisc.cs.will.FOPC;
 public class RecordReference extends Constant {
 
 	protected String key;
-	protected RecordEntry recordEntry;
+	RecordEntry recordEntry;
 	
 	/** Index to provide nice printing and debugging.
 	 * 
@@ -29,7 +29,7 @@ public class RecordReference extends Constant {
      * @param key
      * @param recordEntry
      */
-	protected RecordReference(String key, RecordEntry recordEntry) {
+	RecordReference(String key, RecordEntry recordEntry) {
 		this.key = key;
 		this.recordEntry = recordEntry;
 		this.index = nextDBIndex++;

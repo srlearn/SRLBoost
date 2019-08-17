@@ -1,15 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
-import edu.wisc.cs.will.FOPC.visitors.Inliner.InlineData;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.LiteralOrFunction;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
@@ -27,34 +21,20 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
  * @author twalker
  */
 public class Inliner {
 
     private static final InlinerVisitor INLINER_VISITOR = new InlinerVisitor();
 
-    public static Sentence getInlinedSentence(Sentence sentence, HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
-        return getInlinedSentence(sentence, context, null, supportClauses);
-    }
-
-    public static Sentence getInlinedSentence(Sentence sentence, Collection<? extends DefiniteClause> additionalInlinableClauses, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
-        return getInlinedSentence(sentence, null, additionalInlinableClauses, supportClauses);
-    }
-
     /** Returns the lined version of the sentence.
      *
      * If supportClauses is non-null, the support clauses encountered (including the
      * clauses mark as inlined but can't be inlined for some reason) will be placed into
      * the supportClauses map.
-     *
-     * @param context
-     * @param sentence
-     * @param supportClauses
-     * @return
      */
-    public static Sentence getInlinedSentence(Sentence sentence, HornClauseContext context, Collection<? extends DefiniteClause> additionalInlinableClauses, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
-        return sentence.accept(INLINER_VISITOR, new InlineData(context, additionalInlinableClauses, supportClauses));
+    public static Sentence getInlinedSentence(Sentence sentence, HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
+        return sentence.accept(INLINER_VISITOR, new InlineData(context, null, supportClauses));
     }
 
     private static class InlinerVisitor extends DefaultFOPCVisitor<InlineData> {
@@ -76,11 +56,11 @@ public class Inliner {
             // 4. A mix of positive literals and negative literals.
             //      Throw an Unsupport exception.
 
-            Clause result = clause;
+            Clause result;
 
             if (clause.getPosLiteralCount() > 0 && clause.getNegLiteralCount() == 0) {
 
-                List<Literal> expandedLiterals = new ArrayList<Literal>();
+                List<Literal> expandedLiterals = new ArrayList<>();
                 for (Literal literal : clause.getPositiveLiterals()) {
                     Clause expansion = (Clause) literal.accept(this, data);
                     expandedLiterals.addAll(expansion.getPositiveLiterals());
@@ -91,7 +71,7 @@ public class Inliner {
             else if ((clause.getPosLiteralCount() == 0 && clause.getNegLiteralCount() > 0) || clause.isDefiniteClauseRule()) {
                 // We can catch both case 2 & 3 here.  In the case of two, the head will just be null.
 
-                List<Literal> expandedLiterals = new ArrayList<Literal>();
+                List<Literal> expandedLiterals = new ArrayList<>();
                 for (Literal literal : clause.getNegativeLiterals()) {
                     Clause expansion = (Clause) literal.accept(this, data);
                     // Note: even though we are expanding negative literals,
@@ -116,22 +96,18 @@ public class Inliner {
          *
          * This clause will always contain the expanded literals
          * as positive literals, not negative literals.
-         *
-         * @param literal
-         * @param data
-         * @return
          */
         @Override
         public Clause visitLiteral(Literal literal, InlineData data) {
 
-            Clause result = null;
+            Clause result;
 
             if (literal.predicateName.equals(literal.getStringHandler().standardPredicateNames.negationByFailure)) {
                 result = literal.getStringHandler().getClause(handleNegationByFailure(literal, data).asLiteral(), null);
             }
             else {
                 if (literal.predicateName.isContainsCallable(literal.getArity())) {
-                    List<Term> newTerms = new ArrayList<Term>();
+                    List<Term> newTerms = new ArrayList<>();
                     for (Term term : literal.getArguments()) {
                         Term newTerm = term.accept(this, data);
                         newTerms.add(newTerm);
@@ -150,7 +126,7 @@ public class Inliner {
 
         @Override
         public Term visitFunction(Function function, InlineData data) {
-            Term result = function;
+            Term result;
 
             PredicateNameAndArity pnaa = function.getPredicateNameAndArity();
 
@@ -159,7 +135,7 @@ public class Inliner {
             }
             else {
                 if (function.getPredicateName().isContainsCallable(function.getArity())) {
-                    List<Term> newTerms = new ArrayList<Term>();
+                    List<Term> newTerms = new ArrayList<>();
                     for (Term term : function.getArguments()) {
                         Term newTerm = term.accept(this, data);
                         newTerms.add(newTerm);
@@ -181,7 +157,7 @@ public class Inliner {
             return result;
         }
 
-        public Function handleNegationByFailure(LiteralOrFunction function, InlineData data) {
+        Function handleNegationByFailure(LiteralOrFunction function, InlineData data) {
             // If the function is a negation-by-failure we can iterated into the arguments...
 
             // Because we are inconsistent as to how we treat negation-by-failure,
@@ -195,7 +171,7 @@ public class Inliner {
             return function.getStringHandler().getNegationByFailure(newContents).asFunction();
         }
 
-        public List<Literal> inlinePredicate(LiteralOrFunction literalToInline, InlineData data) {
+        List<Literal> inlinePredicate(LiteralOrFunction literalToInline, InlineData data) {
 
             PredicateNameAndArity pnaa = literalToInline.getPredicateNameAndArity();
 
@@ -222,7 +198,7 @@ public class Inliner {
 
                         BindingList bl = Unifier.UNIFIER.unify(head, literalToInline.asLiteral());
 
-                        result = new ArrayList<Literal>();
+                        result = new ArrayList<>();
 
                         for (Literal bodyLiteral : body) {
                             Clause inlinedBody = (Clause) bodyLiteral.accept(this, data);
@@ -233,13 +209,6 @@ public class Inliner {
                     }
                 }
             }
-            else if (pnaa.isInlined() || pnaa.isSupportingPrediate()) {
-                // If we can't inline the literal, sometime it is because the
-                // we are processing a literal with a recursive definition and we
-                // have already inlined the head.  In this case, we treat it as a
-                // support predicate and add it to the list of support predicates.
-            }
-
             return result;
         }
     }
@@ -252,18 +221,17 @@ public class Inliner {
 
         Collection<? extends DefiniteClause> additionalInlinableClauses;
 
-        //Set<PredicateNameAndArity> inlineSet;
         Set<PredicateNameAndArity> doNotInlineSet;
 
         MapOfLists<PredicateNameAndArity, Clause> supportClauses;
 
-        public InlineData(HornClauseContext context, Collection<? extends DefiniteClause> additionalInlinableClauses, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
+        InlineData(HornClauseContext context, Collection<? extends DefiniteClause> additionalInlinableClauses, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
             this.context = context;
             this.additionalInlinableClauses = additionalInlinableClauses;
             this.supportClauses = supportClauses;
         }
 
-        public InlineData(InlineData parent) {
+        InlineData(InlineData parent) {
             this.parent = parent;
         }
 
@@ -271,21 +239,18 @@ public class Inliner {
          *
          * Returns true if the predicate is in the inlineSet but is not in
          * the doNotInlineSet.
-         *
-         * @param aPredicate
-         * @return
          */
-        public boolean canInline(PredicateNameAndArity aPredicate) {
-            boolean result = aPredicate.isInlined() && doNotInline(aPredicate) == false;
+        boolean canInline(PredicateNameAndArity aPredicate) {
+            boolean result = aPredicate.isInlined() && !doNotInline(aPredicate);
 
-            if ( result == false ) {
+            if (!result) {
                 result = (findAdditionalInlinableClause(aPredicate) != null);
             }
 
             return result;
         }
 
-        public List<DefiniteClause> getClauseDefinitions(PredicateNameAndArity pnaa) {
+        List<DefiniteClause> getClauseDefinitions(PredicateNameAndArity pnaa) {
             List<DefiniteClause> result = null;
 
             HornClauseContext c = getContext();
@@ -305,9 +270,6 @@ public class Inliner {
          * Returns true if the predicate is in the doNotInlineSet.  Only
          * considers the doNotInlineSet, so a false return value does not
          * indicate the literal can be inlined.
-         *
-         * @param aPredicate
-         * @return
          */
         private boolean doNotInline(PredicateNameAndArity aPredicate) {
             boolean result = false;
@@ -320,28 +282,14 @@ public class Inliner {
             return result;
         }
 
-        public void addDoNotInlinePredicate(PredicateNameAndArity aPredicate) {
+        void addDoNotInlinePredicate(PredicateNameAndArity aPredicate) {
             if (doNotInlineSet == null) {
-                doNotInlineSet = new HashSet<PredicateNameAndArity>();
+                doNotInlineSet = new HashSet<>();
             }
             doNotInlineSet.add(aPredicate);
         }
 
-        public void addSupportClause(PredicateNameAndArity aPredicate) {
-            if (parent != null) {
-                parent.addSupportClause(aPredicate);
-            }
-            else if (supportClauses != null) {
-                if (supportClauses.containsKey(aPredicate) == false) {
-                    List<DefiniteClause> definitions = context.getClausebase().getAssertions(aPredicate);
-                    for (DefiniteClause definiteClause : definitions) {
-                        supportClauses.add(aPredicate, definiteClause.getDefiniteClauseAsClause());
-                    }
-                }
-            }
-        }
-
-        public List<DefiniteClause> findAdditionalInlinableClause(PredicateNameAndArity pnaa) {
+        List<DefiniteClause> findAdditionalInlinableClause(PredicateNameAndArity pnaa) {
 
             List<DefiniteClause> result = null;
 
@@ -349,7 +297,7 @@ public class Inliner {
                 for (DefiniteClause aClause : additionalInlinableClauses) {
                     if ( aClause.getDefiniteClauseHead().getPredicateNameAndArity().equals(pnaa) ) {
                         if ( result == null ) {
-                            result = new LinkedList<DefiniteClause>();
+                            result = new LinkedList<>();
                         }
                         result.add(aClause);
                     }
@@ -367,6 +315,5 @@ public class Inliner {
         }
     }
 
-    private Inliner() {
-    }
+    private Inliner() {}
 }

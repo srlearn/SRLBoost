@@ -1,8 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC.visitors;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.ConnectedSentence;
@@ -17,9 +17,6 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.QuantifiedSentence;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  *
@@ -39,7 +36,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
     public ConnectedSentence visitConnectedSentence(ConnectedSentence sentence, Data data) {
 
         if (listener != null) {
-            if (listener.visiting(sentence, data) == false) {
+            if (!listener.visiting(sentence, data)) {
                 return null;
             }
         }
@@ -65,7 +62,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
 
     public QuantifiedSentence visitQuantifiedSentence(QuantifiedSentence sentence, Data data) {
         if (listener != null) {
-            if (listener.visiting(sentence, data) == false) {
+            if (!listener.visiting(sentence, data)) {
                 return null;
             }
         }
@@ -84,7 +81,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
     @Override
     public Term visitFunction(Function function, Data data) {
         if (listener != null) {
-            if (listener.visiting(function, data) == false) {
+            if (!listener.visiting(function, data)) {
                 return null;
             }
         }
@@ -92,7 +89,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
         List<Term> newTerms = null;
 
         if (function.getArity() != 0) {
-            newTerms = new ArrayList<Term>();
+            newTerms = new ArrayList<>();
 
             for (int i = 0; i < function.getArity(); i++) {
                 data.pushPosition(i);
@@ -112,17 +109,16 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
 
     public Clause visitClause(Clause clause, Data data) {
         if (listener != null) {
-            if (listener.visiting(clause, data) == false) {
+            if (!listener.visiting(clause, data)) {
                 return null;
             }
         }
-
 
         List<Literal> positiveLits = Collections.EMPTY_LIST;
         List<Literal> negativeLits = Collections.EMPTY_LIST;
 
         if (clause.getPosLiteralCount() > 0) {
-            positiveLits = new ArrayList<Literal>();
+            positiveLits = new ArrayList<>();
             for (int i = 0; i < clause.getPosLiteralCount(); i++) {
                 Literal literal = clause.getPosLiteral(i);
                 data.pushPosition(i);
@@ -136,7 +132,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
         }
 
         if (clause.getNegLiteralCount() > 0) {
-            negativeLits = new ArrayList<Literal>();
+            negativeLits = new ArrayList<>();
             for (int i = 0; i < clause.getNegLiteralCount(); i++) {
                 Literal literal = clause.getNegLiteral(i);
                 data.pushPosition(i);
@@ -160,7 +156,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
     public Literal visitLiteral(Literal literal, Data data) {
 
         if (listener != null) {
-            if (listener.visiting(literal, data) == false) {
+            if (!listener.visiting(literal, data)) {
                 return null;
             }
         }
@@ -168,7 +164,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
         Literal result = literal;
 
         if (literal.getArity() != 0) {
-            List<Term> newTerms = new ArrayList<Term>();
+            List<Term> newTerms = new ArrayList<>();
             for (int i = 0; i < literal.getArity(); i++) {
                 Term term = literal.getArgument(i);
                 data.pushPosition(i);
@@ -188,7 +184,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
     public Term visitListAsTerm(ListAsTerm listAsTerm, Data data) {
 
         if (listener != null) {
-            if (listener.visiting(listAsTerm, data) == false) {
+            if (!listener.visiting(listAsTerm, data)) {
                 return null;
             }
         }
@@ -196,20 +192,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
         Term result = listAsTerm;
 
         if (listAsTerm.getObjects() != null) {
-            List<Term> objects = new ArrayList<Term>();
-            for (int i = 0; i < objects.size(); i++) {
-                data.pushPosition(i);
-                Term term = objects.get(i);
-                Term newTerm = term.accept(this, data);
-
-                data.popPosition();
-                if (newTerm == null) {
-                    return null;
-                }
-                else {
-                    objects.add(newTerm);
-                }
-            }
+            List<Term> objects = new ArrayList<>();
             result = listAsTerm.getStringHandler().getListAsTerm(objects);
         }
 
@@ -219,7 +202,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
     @Override
     public Term visitNumericConstant(NumericConstant numericConstant, Data data) {
         if (listener != null) {
-            if (listener.visiting(numericConstant, data) == false) {
+            if (!listener.visiting(numericConstant, data)) {
                 return null;
             }
         }
@@ -230,7 +213,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
     @Override
     public Term visitSentenceAsTerm(SentenceAsTerm sentenceAsTerm, Data data) {
         if (listener != null) {
-            if (listener.visiting(sentenceAsTerm, data) == false) {
+            if (!listener.visiting(sentenceAsTerm, data)) {
                 return null;
             }
         }
@@ -249,7 +232,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
     @Override
     public Term visitStringConstant(StringConstant stringConstant, Data data) {
         if (listener != null) {
-            if (listener.visiting(stringConstant, data) == false) {
+            if (!listener.visiting(stringConstant, data)) {
                 return null;
             }
         }
@@ -260,7 +243,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
     @Override
     public Term visitVariable(Variable variable, Data data) {
         if (listener != null) {
-            if (listener.visiting(variable, data) == false) {
+            if (!listener.visiting(variable, data)) {
                 return null;
             }
         }
@@ -272,20 +255,14 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
 
         protected ElementPath currentPosition = new ElementPath(0);
 
-        protected Object listenerData;
-
         public ElementPositionData() {
-        }
-
-        public ElementPositionData(Object listenerData) {
-            this.listenerData = listenerData;
         }
 
         public ElementPath getCurrentPosition() {
             return currentPosition;
         }
 
-        public void pushPosition(int position) {
+        void pushPosition(int position) {
             if (currentPosition == null) {
                 currentPosition = new ElementPath(position);
             }
@@ -294,7 +271,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
             }
         }
 
-        public void popPosition() {
+        void popPosition() {
             if (currentPosition != null) {
                 currentPosition = currentPosition.getParent();
             }

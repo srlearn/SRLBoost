@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.Clause;
@@ -19,7 +14,6 @@ import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Variable;
 
 /**
- *
  * @author twalker
  */
 public class ElementRemover {
@@ -32,16 +26,10 @@ public class ElementRemover {
         return sentence.accept(ELEMENT_REMOVER_VISITOR, data);
     }
 
-    public static Term removeElement(Term term, ElementPath path) {
-        ElementRemoverData data = new ElementRemoverData(path);
-
-        return term.accept(ELEMENT_REMOVER_VISITOR, data);
-    }
-
     private static class ElementRemoverData extends ElementPositionVisitor.ElementPositionData {
         ElementPath pathToRemove;
 
-        public ElementRemoverData(ElementPath pathToRemove) {
+        ElementRemoverData(ElementPath pathToRemove) {
             this.pathToRemove = pathToRemove;
         }
     }

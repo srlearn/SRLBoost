@@ -10,10 +10,10 @@ import java.util.Map;
 
 public class RecordHandler {
 
-	protected RecordReferenceMap     referenceMap;
-	protected Map<String,RecordList> recordMap = new HashMap<>();
+	private RecordReferenceMap referenceMap;
+	private Map<String,RecordList> recordMap = new HashMap<>();
 	
-	public RecordHandler() {
+	RecordHandler() {
 		this.referenceMap = new RecordReferenceMap();
 	}
 
@@ -33,25 +33,25 @@ public class RecordHandler {
 	}
 	
 	/**
-         * Performs a DB lookup of for the key, unifying Term with the first
-         * appropriate entry and updating bindingList. This version allows for
-         * backtracking if a non-null backtrackEntry is provided. Note,
-         * backtracking currently does not support concurrent modification. If
-         * the record db is modified, backtracking will fail.
-         * 
-         * @param key
-         *                DB Key to use
-         * @param Term
-         *                Term to unify against. Term will be modified with the
-         *                appropriate bindings.
-         * @param bindingList
-         *                BindingList to place unified bindings into
-         * @param u
-         *                Unifier to use.
-         * @param backtrackEntry
-         *                Entry to track backtracking...
-         * @return RecordReference to the record which was unified against.
-         */
+	 * Performs a DB lookup of for the key, unifying Term with the first
+	 * appropriate entry and updating bindingList. This version allows for
+	 * backtracking if a non-null backtrackEntry is provided. Note,
+	 * backtracking currently does not support concurrent modification. If
+	 * the record db is modified, backtracking will fail.
+	 *
+	 * @param key
+	 *                DB Key to use
+	 * @param Term
+	 *                Term to unify against. Term will be modified with the
+	 *                appropriate bindings.
+	 * @param bindingList
+	 *                BindingList to place unified bindings into
+	 * @param u
+	 *                Unifier to use.
+	 * @param backtrackEntry
+	 *                Entry to track backtracking...
+	 * @return RecordReference to the record which was unified against.
+	 */
 	public RecordReference recorded(String key, Term Term, BindingList bindingList, Unifier u, RecordBacktrackEntry backtrackEntry) {
 
 		RecordReference result = null;
@@ -86,11 +86,10 @@ public class RecordHandler {
 	}
 	
 	private class RecordList {
-		private List<RecordEntry> completeEntryList = new LinkedList<RecordEntry>();
+		private List<RecordEntry> completeEntryList = new LinkedList<>();
 		private Map<Pair<String,Integer>,List<RecordEntry>> predicateNameIndex;
 		
-		public RecordList() {
-		}
+		public RecordList() {}
 
 		public RecordReference recorded(String key, Term term, BindingList bindingList, Unifier u, RecordBacktrackEntry backtrackEntry) {
 			RecordReference result = null;
@@ -131,8 +130,8 @@ public class RecordHandler {
 					return null;
 				}
 				else {
-					LiteralAsTerm lat = LiteralAsTerm.class.cast(term);
-					Pair<String,Integer> key = new Pair<String,Integer>(lat.itemBeingWrapped.predicateName.name,lat.itemBeingWrapped.numberArgs());
+					LiteralAsTerm lat = (LiteralAsTerm) term;
+					Pair<String,Integer> key = new Pair<>(lat.itemBeingWrapped.predicateName.name,lat.itemBeingWrapped.numberArgs());
 					List<RecordEntry> records = predicateNameIndex.get(key);
 					if ( records == null ) {
 						// No records with that name, so return null
@@ -160,7 +159,6 @@ public class RecordHandler {
 			this.t = t;
 		}
 		
-		@SuppressWarnings("unchecked")
 		public boolean equals(Object that) {
 			return s == ((Pair)that).s && t == ((Pair)that).t;
 		}

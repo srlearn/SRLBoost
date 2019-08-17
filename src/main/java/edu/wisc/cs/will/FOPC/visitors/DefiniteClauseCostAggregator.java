@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC.visitors;
 
 import edu.wisc.cs.will.FOPC.Clause;
@@ -10,7 +6,6 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,23 +20,20 @@ public class DefiniteClauseCostAggregator {
     public static final DefiniteClauseCostAggregator PREDICATE_COST_AGGREGATOR = new DefiniteClauseCostAggregator();
 
     public enum AggregationMode {
-
         MINIMUM,
         MEAN,
         MAXIMUM
-
     }
 
-    private DefiniteClauseCostAggregator() {
-    }
+    private DefiniteClauseCostAggregator() {}
 
     public double getAggregateCost(AggregationMode mode, Clause clause) {
 
-        if (clause.isDefiniteClause() == false) {
+        if (!clause.isDefiniteClause()) {
             throw new IllegalArgumentException("Clause must be definite clause.  Got: " + clause + ".");
         }
 
-        List<PredicateNameAndArity> predicates = new ArrayList<PredicateNameAndArity>();
+        List<PredicateNameAndArity> predicates = new ArrayList<>();
 
         for (Literal literal : clause.getDefiniteClauseBody()) {
             literal.accept(PREDICATE_COLLECTOR_VISITOR, predicates);

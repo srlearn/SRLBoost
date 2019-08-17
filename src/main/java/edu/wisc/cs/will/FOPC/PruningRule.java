@@ -1,14 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.ElementPath;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 
 /**
- *
  * @author twalker
  */
 public interface PruningRule {
@@ -25,5 +20,5 @@ public interface PruningRule {
      * @param element The actual element to be pruned (located at pathToPrune).
      * @return The rewritten sentence, null if the branch should be pruned completely.
      */
-    public Sentence pruneElement(HornClauseContext context, Sentence sentence, ElementPath pathToPrune, SentenceOrTerm element);
+    Sentence pruneElement(HornClauseContext context, Sentence sentence, ElementPath pathToPrune, SentenceOrTerm element);
 }

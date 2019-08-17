@@ -1,9 +1,6 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.PredicateName;
+import java.util.Objects;
 
 /**
  * Allow the user to say that some predicate is relevant to the concept being learned.
@@ -11,8 +8,7 @@ import edu.wisc.cs.will.FOPC.PredicateName;
  * with higher relevance being lower cost.  However that is up to the code that uses this class.
  * 
  * There (currently) is no 'neutral' relevance - it is assumed that predicate/arity's not in a RelevantLiteral will implicitly have that value.
- * 
- * 
+ *
  * @author shavlik
  *
  */
@@ -26,35 +22,19 @@ public class RelevantLiteral {
 	/**
 	 * Constructors for RelevantLiteral instances.
 	 */
-	public RelevantLiteral(PredicateName pName) {
+	private RelevantLiteral(PredicateName pName) {
 		this.pName = pName;	
 	}
-	public RelevantLiteral(PredicateName pName, int arity) {
+	private RelevantLiteral(PredicateName pName, int arity) {
 		this(pName);
 		this.arity = arity;	
 	}
-	public RelevantLiteral(PredicateName pName, RelevanceStrength strength) {
-		this(pName);
-		this.strength = strength;		
-	}
-	public RelevantLiteral(PredicateName pName, int arity, RelevanceStrength strength) {
-		this(pName, arity);
-		this.strength = strength;		
-	}
-	public RelevantLiteral(PredicateName pName, int arity, int argument) {
-		this(pName, arity);
-		this.argument = argument;
-	}
-	public RelevantLiteral(PredicateName pName, int arity, int argument, RelevanceStrength strength) {
-		this(pName, arity, strength);
-		this.argument = argument;
-	}	
 
-	// See if this instance's relevance strength is  this strong.
-	public boolean isThisRelevant(RelevanceStrength strength) {
-		return this.strength == strength;
-	}	
-	
+	RelevantLiteral(PredicateName pName, int arity, RelevanceStrength strength) {
+		this(pName, arity);
+		this.strength = strength;		
+	}
+
 	// See if this instance's relevance strength is at least this strong.
 	public boolean atLeastThisRelevant(RelevanceStrength strength) {
 		return this.strength.compareTo(strength) >= 0;
@@ -73,9 +53,7 @@ public class RelevantLiteral {
 	public PredicateName getPName() {
 		return pName;
 	}
-	public void setPName(PredicateName name) {
-		pName = name;
-	}
+
 	public int getArity() {
 		return arity;
 	}
@@ -108,7 +86,7 @@ public class RelevantLiteral {
             return false;
         }
         final RelevantLiteral other = (RelevantLiteral) obj;
-        if (this.pName != other.pName && (this.pName == null || !this.pName.equals(other.pName))) {
+        if (!Objects.equals(this.pName, other.pName)) {
             return false;
         }
         if (this.arity != other.arity) {
@@ -117,11 +95,8 @@ public class RelevantLiteral {
         if (this.argument != other.argument) {
             return false;
         }
-        if (this.strength != other.strength) {
-            return false;
-        }
-        return true;
-    }
+		return this.strength == other.strength;
+	}
 
     @Override
     public int hashCode() {
@@ -132,7 +107,4 @@ public class RelevantLiteral {
         hash = 23 * hash + (this.strength != null ? this.strength.hashCode() : 0);
         return hash;
     }
-
-    
-
 }
