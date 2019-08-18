@@ -27,7 +27,7 @@ import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  */
 public class TypeManagement {

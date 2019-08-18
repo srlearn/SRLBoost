@@ -37,7 +37,7 @@ import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.VectorStatistics;
 
-/**
+/*
  * @author Tushar Khot
  *
  */
@@ -793,7 +793,7 @@ public class LearnBoostedRDN {
 		}
 	}
 
-	/**
+	/*
 	 * 
 	 * @param i The tree index(starts from 1)
 	 * @return Suffix that is used for filenames and rules.
@@ -886,16 +886,10 @@ public class LearnBoostedRDN {
 		this.targetPredicate = targetPredicate;
 	}
 
-	/**
-	 * @param yapSettingsFile the yapSettingsFile to set
-	 */
 	public void setYapSettingsFile(String yapSettingsFile) {
 		this.yapSettingsFile = yapSettingsFile;
 	}
 
-	/**
-	 * @return the yapSettingsFile
-	 */
 	private String getYapSettingsFile() {
 		return yapSettingsFile;
 	}

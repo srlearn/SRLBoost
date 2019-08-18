@@ -8,11 +8,10 @@ import java.util.Map;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  */
-@SuppressWarnings("serial")
 public class ExistentialSentence extends QuantifiedSentence {
 	
 	ExistentialSentence(HandleFOPCstrings stringHandler, Collection<Variable> variables, Sentence body) {

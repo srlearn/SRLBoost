@@ -123,8 +123,8 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 		return hiddenLiteral;
 	}
 
-	void setHiddenLiteral(boolean hiddenLiteral) {
-		this.hiddenLiteral = hiddenLiteral;
+	void setHiddenLiteral() {
+		this.hiddenLiteral = true;
 	}
 
 	public int getOriginalHiddenLiteralVal() {

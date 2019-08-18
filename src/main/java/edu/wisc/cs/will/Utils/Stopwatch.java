@@ -1,6 +1,6 @@
 package edu.wisc.cs.will.Utils;
 
-/**
+/*
  * Stopwatch.java
  * Created on September 5, 2007, 7:36 PM
  * @author twalker
@@ -10,14 +10,14 @@ public class Stopwatch {
     private long startTime = -1;
     private long totalTime = 0;
 
-    /**
+    /*
      * Creates a new instance of Stopwatch and starts the watch.
      */
     public Stopwatch() {
         this(true);
     }
 
-    /**
+    /*
      * Creates a new instance of Stopwatch.
      * @param start If true, the watch is started.
      */
@@ -27,7 +27,7 @@ public class Stopwatch {
         }
     }
 
-    /**
+    /*
      * Starts the watch. If the watch was already started, nothing is done.
      */
     public void start() {
@@ -36,7 +36,7 @@ public class Stopwatch {
         }
     }
 
-    /**
+    /*
      * Stops the watch, returning time accumulated so far.
      * @return Total time accumulated in milliseconds.
      */
@@ -48,7 +48,7 @@ public class Stopwatch {
         return totalTime;
     }
 
-    /**
+    /*
      * Stop watch, resets the accumulated time.
      *
      * If called while the stopwatch is running, this will start the watch again.
@@ -66,7 +66,7 @@ public class Stopwatch {
         return time;
     }
 
-    /**
+    /*
      * Returns the total time accumulated so far, in seconds.
      *
      * If called while the stopwatch is running, this will return the time without
@@ -77,7 +77,7 @@ public class Stopwatch {
         return getTotalTimeInMilliseconds() / 1000.0;
     }
 
-    /**
+    /*
      * Returns the total time accumulated so far, in milliseconds.
      *
      * If called while the stopwatch is running, this will return the time without

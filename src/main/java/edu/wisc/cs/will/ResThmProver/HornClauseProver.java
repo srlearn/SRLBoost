@@ -30,7 +30,7 @@ import edu.wisc.cs.will.stdAIsearch.SearchResult;
 import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
 import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
 
-/**
+/*
  * @author shavlik
  *
  * A SLD theorem prover.  "SLD" stands for "SL resolution with Definite clauses."
@@ -45,7 +45,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 
 	Set<PredicateName>                predefinedPredicateNamesUsedByChildCollector; // Those in those list are handled by collectChildrenActual.
 
-	/** Indicates level of output during proof.
+	/* Indicates level of output during proof.
      *
      * The traceLevel controls the amount of output generated
      * at each step in the proof.  This is similar to the
@@ -250,30 +250,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		return negLiterals;
 	}
 
-	public BindingList evaluateProcedurallyDefined(Literal lit) {
-		if (lit == null) { return null; }
-		return evaluateProcedurallyDefined(lit, new BindingList());
-	}
-
-	private BindingList evaluateProcedurallyDefined(Literal lit, BindingList bl) {
-		if (lit == null) { return null; }
-		BindingList result = null;
-		try {
-            ProcedurallyDefinedPredicateHandler handler;
-            if ( (handler = getClausebase().getBuiltinProcedurallyDefinedPredicateHandler()) != null && handler.canHandle(lit.predicateName, lit.numberArgs()) ) {
-                result = handler.handle(context,lit, unifier, bl);
-            }
-            else if ( (handler = getClausebase().getUserProcedurallyDefinedPredicateHandler()) != null && handler.canHandle(lit.predicateName, lit.numberArgs()) ) {
-                result = handler.handle(context,lit, unifier, bl);
-            }
-		} catch (SearchInterrupted e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Something when wrong with evaluateProcedurallyDefined(" + lit + ").");
-		}
-		return result;
-	}
-
-    public HornClausebase getClausebase() {
+	public HornClausebase getClausebase() {
         return context.getClausebase();
     }
 

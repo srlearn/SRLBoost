@@ -9,7 +9,6 @@ import java.util.Set;
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;
 import edu.wisc.cs.will.FOPC.Function;
 import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.PredicateSpec;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Type;
@@ -19,25 +18,21 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
 
-/**
+/*
  * @author shavlik
  */
-@SuppressWarnings("serial")
 public class SingleClauseRootNode extends SingleClauseNode {
 	protected Literal        target;          // For now, only work on one target (at a time? to do).
 	protected List<ArgSpec>  targetArgSpecs;  // The info about the target argument being used and the variable matched with the type.
-	List<Term>     variablesInTarget             = null;  // These should be typed.
+	List<Term>     variablesInTarget;
 	Set<Variable>  requiredBodyVariablesInTarget = null;
-	private PredicateName  targetPredicate               = null;
-	private int            targetPredicateArity          =   -1;
 
 	SingleClauseRootNode(StateBasedSearchTask task, Literal head, List<ArgSpec> argSpecs, List<Term> variables,
 						 PredicateSpec enabler, List<Type> typesPresentInHead, Map<Type, List<Term>> typesMapInHead) throws SearchInterrupted {
 		super(task);
 		target               = head;
-		targetArgSpecs       = argSpecs;  // Utils.println("% targetArgSpecs: " + targetArgSpecs);  // DOES THIS ONLY DO THE TOP-LEVEL OF TERMS?  OR ALL VARIABLES DEEPLY EMBEDDED?
-		targetPredicate      = head.predicateName;
-		targetPredicateArity = head.numberArgs();
+		targetArgSpecs       = argSpecs;
+		int targetPredicateArity = head.numberArgs();
 		variablesInTarget    = variables;
 		literalAdded = head; // The root has with the empty body (i.e., it is an implicit 'true').  So we'll store the head literal here.
 		depthOfArgs = new HashMap<>(head.numberArgs());
@@ -46,7 +41,7 @@ public class SingleClauseRootNode extends SingleClauseNode {
 		typesPresent = typesPresentInHead;
 		typesMap     = typesMapInHead;
 		if (argSpecs != null) {
-			for (ArgSpec argSpec : argSpecs) { //Utils.println("%   argSpec: " + argSpec);
+			for (ArgSpec argSpec : argSpecs) {
 				addTypeOfNewTerm(argSpec.arg, argSpec.typeSpec.isaType);
 			}
 		}
@@ -73,7 +68,7 @@ public class SingleClauseRootNode extends SingleClauseNode {
 
 	private void addRequiredBodyVariable(Variable var) {
 		if (requiredBodyVariablesInTarget == null) {
-			requiredBodyVariablesInTarget = new HashSet<Variable>(4);
+			requiredBodyVariablesInTarget = new HashSet<>(4);
 		}
 		requiredBodyVariablesInTarget.add(var);
 	}

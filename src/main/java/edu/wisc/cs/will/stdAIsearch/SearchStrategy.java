@@ -2,13 +2,13 @@ package edu.wisc.cs.will.stdAIsearch;
 
 import java.util.List;
 
-/**
+/*
  * A place-holder superclass for different types of searches.
  * 
  * @author shavlik
  */
 public abstract class SearchStrategy {
-    /**
+    /*
      * The specification for a state-based search task.
      */
     protected StateBasedSearchTask task;
@@ -19,7 +19,7 @@ public abstract class SearchStrategy {
         this.task = task;
     }
 
-    /**
+    /*
      * Adds more states to the open list of states.
      * 
      * @param open The open list of states waiting to be examined.

@@ -7,7 +7,7 @@ import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * This handler manages built-in's like equals, different, <, >, <=, >=, etc.
  * @author twalker
  */
@@ -20,11 +20,11 @@ public abstract class ProcedurallyDefinedPredicateHandler {
         return canHandle(new PredicateNameAndArity(predicateName, arity));
     }
     
-    public boolean canHandle(PredicateNameAndArity predicateNameAndArity) {
+    private boolean canHandle(PredicateNameAndArity predicateNameAndArity) {
         return hashOfSupportedPredicates != null && hashOfSupportedPredicates.contains(predicateNameAndArity);
     }
 
-    /** Handle evaluation of the literal.
+    /* Handle evaluation of the literal.
      *
      * canHandle should be called previous to this to determine if this
      * ProcedurallyDefinedPredicateHandler can handle the predicate

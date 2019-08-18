@@ -1,14 +1,14 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
-import edu.wisc.cs.will.Utils.Utils;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
-/**
+import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
+import edu.wisc.cs.will.Utils.Utils;
+
+/*
  * @author shavlik
  */
-@SuppressWarnings("serial")
 public class NumericConstant extends Constant implements Serializable {
 
     public Number value;
@@ -106,7 +106,7 @@ public class NumericConstant extends Constant implements Serializable {
         return getName();
     }
 
-    /**
+    /*
      * Replace with the cached version from stringHandler.
      */
     private Object readResolve() throws ObjectStreamException {

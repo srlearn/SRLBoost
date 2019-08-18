@@ -7,7 +7,7 @@ import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.Filter;
 
-/**
+/*
  * @author twalker
  */
 public class ElementFinder {

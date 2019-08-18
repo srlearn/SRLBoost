@@ -4,7 +4,7 @@ import edu.wisc.cs.will.Utils.Filter;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
+/*
  * @author twalker
  */
 public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity> {

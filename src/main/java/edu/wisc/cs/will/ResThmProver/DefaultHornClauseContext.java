@@ -14,7 +14,7 @@ import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.Utils.Utils;
 
-/** This is a self contained Horn clause prover.
+/* This is a self contained Horn clause prover.
  *
  * This provides an easily usable API for performing proofs.
  *
@@ -68,7 +68,7 @@ public class DefaultHornClauseContext implements HornClauseContext {
         }
     }
 
-    /** Asserts the definite clause in the fact base of the prover.
+    /* Asserts the definite clause in the fact base of the prover.
      *
      * @param definiteClause A definite clause to be asserted in the fact base.
      * @throws IllegalArgumentException Throws an illegal argument exceptions if
@@ -128,7 +128,7 @@ public class DefaultHornClauseContext implements HornClauseContext {
         }
     }
 
-    /** Attempts to prove the clause <code>goal</code>.
+    /* Attempts to prove the clause <code>goal</code>.
      *
      * The goal should a single line string containing the a conjunct of literals
      * to prove.

@@ -5,39 +5,26 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author vsc
- * 
  * This is a clause optimiser in the style of  [VSC,AS,HB et al, JMLR03].
  */
 public class ClauseOptimiser {
 
     private final static int debugLevel = -1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-    HandleFOPCstrings stringHandler;
+    private HandleFOPCstrings stringHandler;
 
     public ClauseOptimiser(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
     }
 
-    public Clause rewriteWithCuts(Clause clause) {
-        Literal head = clause.getDefiniteClauseHead();
-        List<Literal> body = componentsToLits(head, clause.getDefiniteClauseBody());
-
-        Clause newClause = stringHandler.getClause(clause.posLiterals, body);
-        newClause.setBodyContainsCut(true);
-
-        return newClause;
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<List<Literal>> bodyToBodies(Literal head, List<Literal> body) {
+    List<List<Literal>> bodyToBodies(Literal head, List<Literal> body) {
         if (body.size() == 0) {
             return (List<List<Literal>>) Collections.EMPTY_LIST;
         }
@@ -52,7 +39,7 @@ public class ClauseOptimiser {
     /**
      * Constructs a new optimised clause.
      */
-    protected int[] clauseToComponents(Literal head, List<Literal> body) {
+    private int[] clauseToComponents(Literal head, List<Literal> body) {
         Collection<Variable> headvars = head.collectAllVariables();
         if (debugLevel > 1) {
             Utils.println("clauseToComponents: head = " + head);
@@ -69,7 +56,7 @@ public class ClauseOptimiser {
         int[] components;
 
         components = new int[body.size()];
-        ArrayList<Collection<Variable>> lvarsets = new ArrayList<Collection<Variable>>(components.length);
+        ArrayList<Collection<Variable>> lvarsets = new ArrayList<>(components.length);
 
         int i = 0;
         // check independence
@@ -96,11 +83,9 @@ public class ClauseOptimiser {
             for (int j = 0; j < i; j++) {
                 // get the variables again
                 Collection<Variable> next = lvarsets.get(j);
-                if (litvars != null) {
-                    for (Variable v : litvars) {
-                        if (next.contains(v)) {
-                            component = component_merge(j, component, components);
-                        }
+                for (Variable v : litvars) {
+                    if (next.contains(v)) {
+                        component = component_merge(j, component, components);
                     }
                 }
             }
@@ -110,45 +95,8 @@ public class ClauseOptimiser {
         return components;
     }
 
-    protected List<Literal> componentsToLits(Literal head, List<Literal> body) {
-
-        if (body == null) {
-            return null;
-        }
-
-        int[] components = clauseToComponents(head, body);
-        int total_components = normalise_components(components);
-
-        if (total_components == 1) {
-            return body;
-        }
-
-        //	we need to add components-1 cuts.	
-        List<Literal> lits = new ArrayList<Literal>(body.size() + (total_components - 1));
-        int component_id = 0;
-
-        for (int i = 0; i < total_components; i++) {
-            if (i != 0) {
-                // add a cut
-                lits.add(stringHandler.cutLiteral);
-            }
-            while (component_id != components[component_id]) {
-                component_id++;
-            }
-            // add literals for this component.
-            for (int k = component_id; k < components.length; k++) {
-                if (components[k] == component_id) {
-                    lits.add(body.get(k));
-                }
-            }
-            component_id++;
-        }
-        // System.out.println("new clause = " + lits);
-        // System.out.println("new clause = " + newClause );
-        return lits;
-    }
-
-    protected List<List<Literal>> separateComponents(Literal head, List<Literal> body) {
+    // TODO(@hayesall): This function can likely be removed.
+    private List<List<Literal>> separateComponents(Literal head, List<Literal> body) {
 
         if (body == null) {
             return null;
@@ -172,9 +120,9 @@ public class ClauseOptimiser {
                 size[component]++;
             }
 
-            List<List<Literal>> listOfLits = new ArrayList<List<Literal>>(total_components);
+            List<List<Literal>> listOfLits = new ArrayList<>(total_components);
             for (int i = 0; i < total_components; i++) {
-                listOfLits.add(new ArrayList<Literal>(size[i]));
+                listOfLits.add(new ArrayList<>(size[i]));
             }
 
             for (int i = 0; i < body.size(); i++) {
@@ -202,13 +150,11 @@ public class ClauseOptimiser {
         int k = deref_component(j, components);
         if (k > component) {
             components[k] = component;
-            //	System.out.println(k + " -> " + component);
 
             return component;
         }
         else {
             components[component] = k;
-//            System.out.println(component + " -> " + k);
             return k;
         }
     }

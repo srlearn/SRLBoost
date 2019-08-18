@@ -24,7 +24,7 @@ import edu.wisc.cs.will.stdAIsearch.Initializer;
 import edu.wisc.cs.will.stdAIsearch.OpenList;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-/**
+/*
  * @author shavlik
  */
 public class InitializeILPsearchSpace extends Initializer {

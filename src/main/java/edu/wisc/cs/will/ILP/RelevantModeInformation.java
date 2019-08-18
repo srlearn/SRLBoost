@@ -1,5 +1,9 @@
 package edu.wisc.cs.will.ILP;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.Clause;
@@ -14,20 +18,17 @@ import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.MapOfLists;
-import java.util.ArrayList;
-import java.util.List;
 
-/**
+/*
  * @author twalker
  */
 public class RelevantModeInformation implements RelevantInformation, Cloneable {
 
-    Example example;
+    private Example example;
 
-    boolean relevanceFromPositiveExample;
+    private boolean relevanceFromPositiveExample;
 
-    Literal mode;
+    private Literal mode;
 
     private RelevanceStrength relevanceStrength;
 
@@ -81,18 +82,11 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
         return this;
     }
 
-    /**
+    /*
      * @return the relevanceStrength
      */
     public RelevanceStrength getRelevanceStrength() {
         return relevanceStrength;
-    }
-
-    /**
-     * @param relevanceStrength the relevanceStrength to set
-     */
-    public void setRelevanceStrength(RelevanceStrength relevanceStrength) {
-        this.relevanceStrength = relevanceStrength;
     }
 
     @Override
@@ -105,8 +99,8 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
     }
 
     List<Term> getSignature() {
-        List<Term> signature = new ArrayList<Term>();
-        for (int i = 0; i < mode.getArity(); i++) { // TREVOR: this is probably ok since we only have 'flat' Examples, but there is (possibly) more robust code.  See how I did it for the negation-by-failure stuff.  JWS  TODO
+        List<Term> signature = new ArrayList<>();
+        for (int i = 0; i < mode.getArity(); i++) { // TREVOR: this is probably ok since we only have 'flat' Examples, but there is (possibly) more robust code.  See how I did it for the negation-by-failure stuff.
             signature.add(mode.getStringHandler().getStringConstant("constant"));
         }
         return signature;
@@ -125,19 +119,16 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
             return false;
         }
         final RelevantModeInformation other = (RelevantModeInformation) obj;
-        if (this.example != other.example && (this.example == null || !this.example.equals(other.example))) {
+        if (!Objects.equals(this.example, other.example)) {
             return false;
         }
         if (this.relevanceFromPositiveExample != other.relevanceFromPositiveExample) {
             return false;
         }
-        if (this.mode != other.mode && (this.mode == null || !this.mode.equals(other.mode))) {
+        if (!Objects.equals(this.mode, other.mode)) {
             return false;
         }
-        if (this.relevanceStrength != other.relevanceStrength) {
-            return false;
-        }
-        return true;
+        return this.relevanceStrength == other.relevanceStrength;
     }
 
     @Override
@@ -160,20 +151,19 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
     }
 
     protected RelevantModeInformation clone() throws CloneNotSupportedException {
-        RelevantModeInformation newRCI = (RelevantModeInformation) super.clone();
-        return newRCI;
+        return (RelevantModeInformation) super.clone();
     }
 
     public boolean isValidAdvice(AdviceProcessor ap) {
         return true;
     }
 
-    public ConnectedSentence getSentence(HornClauseContext context) {
+    ConnectedSentence getSentence(HornClauseContext context) {
         List<DefiniteClause> clauses = context.getClausebase().getAssertions(getPredicateNameAndArity());
 
         ConnectedSentence result = null;
 
-        if ( clauses != null && clauses.isEmpty() == false) {
+        if ( clauses != null && !clauses.isEmpty()) {
             if ( clauses.size() == 1) {
                 Clause theClause = clauses.get(0).getDefiniteClauseAsClause();
                 result = theClause.asConnectedSentence();
@@ -209,10 +199,6 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
         }
 
         return result;
-    }
-
-    public RelevantModeInformation getSimplified(HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
-        return this;
     }
 
     public boolean subsumes(RelevantInformation that) {

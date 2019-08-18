@@ -37,6 +37,7 @@ public class RecordHandler {
 	}
 	
 	private static class RecordList {
+		// TODO(@hayesall): Might be possible to remove this.
 		private List<RecordEntry> completeEntryList = new LinkedList<>();
 		public RecordList() {}
 

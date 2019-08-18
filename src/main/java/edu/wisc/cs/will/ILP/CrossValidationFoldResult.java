@@ -1,18 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.FOPC.Theory;
 import java.io.Serializable;
 
-/**
- *
+/*
  * @author twalker
  */
-@SuppressWarnings("serial")
 public class CrossValidationFoldResult implements Serializable {
     private int     fold;
     private Theory  theory;
@@ -22,36 +15,24 @@ public class CrossValidationFoldResult implements Serializable {
     private CoverageScore evaluationCoverageScore  = null;
     private CoverageScore allExamplesCoverageScore = null;
 
-    public CrossValidationFoldResult(int fold, Theory theory, Gleaner gleaner) {
+    CrossValidationFoldResult(int fold, Theory theory, Gleaner gleaner) {
         this.fold = fold;
         this.theory = theory;
         this.gleaner = gleaner;
     }
 
-    /**
-     * @return the gleaner
-     */
     public Gleaner getGleaner() {
         return gleaner;
     }
 
-    /**
-     * @param gleaner the gleaner to set
-     */
     public void setGleaner(Gleaner gleaner) {
         this.gleaner = gleaner;
     }
 
-    /**
-     * @return the theory
-     */
     public Theory getTheory() {
         return theory;
     }
 
-    /**
-     * @param theory the theory to set
-     */
     public void setTheory(Theory theory) {
         if (this.theory != theory) {
 
@@ -61,65 +42,41 @@ public class CrossValidationFoldResult implements Serializable {
         }
     }
 
-    protected void invalidateCoverageScores() {
+    private void invalidateCoverageScores() {
         trainingCoverageScore = null;
         evaluationCoverageScore = null;
     }
 
-    /**
-     * @return the fold
-     */
     public int getFold() {
         return fold;
     }
 
-    /**
-     * @param fold the fold to set
-     */
     public void setFold(int fold) {
         this.fold = fold;
     }
 
-    /**
-     * @return the trainingCoverageScore
-     */
-    public CoverageScore getTrainingCoverageScore() {
+    CoverageScore getTrainingCoverageScore() {
 
         return trainingCoverageScore;
     }
 
-    /**
-     * @param trainingCoverageScore the trainingCoverageScore to set
-     */
-    public void setTrainingCoverageScore(CoverageScore trainingCoverageScore) {
+    void setTrainingCoverageScore(CoverageScore trainingCoverageScore) {
         this.trainingCoverageScore = trainingCoverageScore;
     }
 
-    /**
-     * @return the testingCoverageScore
-     */
-    public CoverageScore getEvaluationCoverageScore() {
+    CoverageScore getEvaluationCoverageScore() {
         return evaluationCoverageScore;
     }
-    
-    /**
-     * @param testingCoverageScore the testingCoverageScore to set
-     */
-    public void setEvaluationCoverageScore(CoverageScore evaluationCoverageScore) {
+
+    void setEvaluationCoverageScore(CoverageScore evaluationCoverageScore) {
         this.evaluationCoverageScore = evaluationCoverageScore;
     }
 
-    /**
-     * @return the allExamplesCoverageScore
-     */
-    public CoverageScore getAllExamplesCoverageScore() {
+    CoverageScore getAllExamplesCoverageScore() {
         return allExamplesCoverageScore;
     }
 
-    /**
-     * @param allExamplesCoverageScore the allExamplesCoverageScore to set
-     */
-    public void setAllExamplesCoverageScore(CoverageScore allExamplesCoverageScore) {
+    void setAllExamplesCoverageScore(CoverageScore allExamplesCoverageScore) {
         this.allExamplesCoverageScore = allExamplesCoverageScore;
     }
 
@@ -149,8 +106,5 @@ public class CrossValidationFoldResult implements Serializable {
 
         return sb.toString();
     }
-
-
-
 
 }

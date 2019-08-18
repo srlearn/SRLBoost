@@ -23,7 +23,7 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchResult;
 
-/**
+/*
  * @author tkhot
  */
 public class NumberGroundingsCalculator {
@@ -232,7 +232,7 @@ public class NumberGroundingsCalculator {
 		return countGroundingsForConjunction(posLiterals, negLiterals, null);
 	}
 
-	/**
+	/*
 	 * Count the groundings of conjunction over posLiterals and ~negLiterals. 
 	 * e.g. posLiterals=p(x),q(x) and negLiterals=r(x),s(x)
 	 * returns count of groundings of p(x)^q(x)^~r(x)^~s(x)
@@ -261,7 +261,7 @@ public class NumberGroundingsCalculator {
 	}
 	
 	
-	/**
+	/*
 	 * @return true if all filtered positive literals are in fact base and all negative literals are not.
 	 */
 	private boolean filterLiteralsWithNoVariables(List<Literal> posLiterals, List<Literal> negLiterals,
@@ -288,7 +288,7 @@ public class NumberGroundingsCalculator {
 		return true;
 	}
 	
-	/**
+	/*
 	 * Returns true if lit can be found in the factbase(ie it has no variables and doesn't have to be proved)
 	 */
 	public boolean canLookupLiteral(Literal lit) {
@@ -301,7 +301,7 @@ public class NumberGroundingsCalculator {
 		return (facts != null && facts.iterator().hasNext());
 	}
 
-	/**
+	/*
 	 * Count the groundings of conjunction over posLiterals and ~negLiterals.
 	 * e.g. posLiterals=p(x),q(x) and negLiterals=r(x),s(x)
 	 * returns count of groundings of p(x)^q(x)^~r(x)^~s(x)

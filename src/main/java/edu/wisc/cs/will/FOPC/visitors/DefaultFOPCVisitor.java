@@ -18,13 +18,12 @@ import edu.wisc.cs.will.FOPC.Variable;
 import java.util.ArrayList;
 import java.util.List;
  
-/**
- *
+/*
  * @author twalker
  */
 public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>, TermVisitor<Term, Data> {
 
-    /** Indicates that a sentence should be constructed as we visit the Sentence/Terms.
+    /* Indicates that a sentence should be constructed as we visit the Sentence/Terms.
      *
      * If false, all default visitor methods will return null and no Sentence/Terms will be constructed.
      *
@@ -51,7 +50,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
         return !buildSentence ? null : getCombinedConnectedSentence(sentence, a, b);
     }
 
-    /** Performs some "smart" recombining of connected sentences.
+    /* Performs some "smart" recombining of connected sentences.
      *
      * This method attempts to handle cases where the subsentence visits return null.  In many
      * cases, specially handling will be required to maintain the semantics of the returned
@@ -129,7 +128,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
         return !buildSentence ? null : clause.getStringHandler().getClause(positiveLits, negativeLits);
     }
 
-    /** Visit the literal.
+    /* Visit the literal.
      *
      * The DefaultFOPCVisitor assumes that the return value of visitLiteral
      * is either a Literal, a Clause with all positive literals, or null.

@@ -10,7 +10,7 @@ import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.Utils;
 
-/** This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground Nth arguments in the head.
+/* This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground Nth arguments in the head.
  *
  * @author twalker
  */
@@ -32,12 +32,11 @@ public class LazyGroundNthArgumentClauseIndex {
 
     private int minimumClauseLengthToIndex;
 
-    /** Index of clauses which might match a constant arg N.
-     *
+    /* Index of clauses which might match a constant arg N.
      */
     private Map<PredicateNameAndArity, Map<Term, DefiniteClauseList>> definiteClausesByArgNIndex = new HashMap<>();
 
-    /** Store clauses in which the Nth arg is not ground.
+    /* Store clauses in which the Nth arg is not ground.
      *
      * This is used to as a starting place for new definiteClause lists indexed by the
      * Nth args.  This is necessary to make sure unseen
@@ -168,7 +167,7 @@ public class LazyGroundNthArgumentClauseIndex {
         }
     }
 
-    /** Return a list of possible matches for <code>literalToLookup</code> based upon the Nth argument.
+    /* Return a list of possible matches for <code>literalToLookup</code> based upon the Nth argument.
      *
      * @param literalToLookup Literal to look for possible matches of.
      * @return List of all possible matches to <code>literalToLookup</code>'s nth argument currently in the fact base.
@@ -213,9 +212,6 @@ public class LazyGroundNthArgumentClauseIndex {
                 "  indicesRemoved    : " + indicesRemoved + ".\n";
     }
 
-    /**
-     * @param indexedArgument the indexedArgument to set
-     */
     private void setIndexedArgument(int indexedArgument) {
         this.indexedArgument = indexedArgument;
         this.minimumClauseLengthToIndex = Math.max(2, indexedArgument + 1);

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP.Regression;
 
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
@@ -12,9 +9,8 @@ import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-/**
+/*
  * @author tkhot
- *
  */
 public class RegressionInfoHolderForRDN extends RegressionInfoHolder {
 	
@@ -23,57 +19,36 @@ public class RegressionInfoHolderForRDN extends RegressionInfoHolder {
 		falseStats = new BranchStats();
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder#weightedVarianceAtSuccess()
-	 */
 	@Override
 	public double weightedVarianceAtSuccess() {		
 		return trueStats.getWeightedVariance();
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder#weightedVarianceAtFailure()
-	 */
 	@Override
 	public double weightedVarianceAtFailure() {
 		return falseStats.getWeightedVariance();
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder#totalExampleWeightAtSuccess()
-	 */
 	@Override
 	public double totalExampleWeightAtSuccess() {
 		return trueStats.getNumExamples();
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder#totalExampleWeightAtFailure()
-	 */
 	@Override
 	public double totalExampleWeightAtFailure() {
 		return falseStats.getNumExamples();
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder#meanAtSuccess()
-	 */
 	@Override
 	public double meanAtSuccess() {
 		return trueStats.getLambda();
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder#meanAtFailure()
-	 */
 	@Override
 	public double meanAtFailure() {
 		return falseStats.getLambda();
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder#addFailureStats(edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder)
-	 */
 	@Override
 	public RegressionInfoHolder addFailureStats(RegressionInfoHolder addThis) {
 		RegressionInfoHolderForRDN regHolder = new RegressionInfoHolderForRDN();
@@ -84,7 +59,6 @@ public class RegressionInfoHolderForRDN extends RegressionInfoHolder {
 		}
 		return regHolder;
 	}
-
 
 	@Override
 	public void addFailureExample(Example eg, long numGrndg, double weight) {
@@ -120,7 +94,5 @@ public class RegressionInfoHolderForRDN extends RegressionInfoHolder {
 		if (totalFalseStats != null) {
 			falseStats = falseStats.add(((RegressionInfoHolderForRDN)totalFalseStats).falseStats);
 		}
-		// Utils.println("Populated examples: " + trueStats.getNumExamples() + " task: " + caller.getClause());
 	}
-
 }

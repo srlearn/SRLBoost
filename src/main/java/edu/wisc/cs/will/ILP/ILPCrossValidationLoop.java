@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.StreamCorruptedException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -26,7 +25,7 @@ import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 
-/** Cross Validation.
+/* Cross Validation.
  *
  * <p><B>Set edu.wisc.cs.will.ILP.readmeCheckpointingAndCrossValidating.txt
  * for up to date usage information.</b></p>
@@ -98,7 +97,7 @@ public class ILPCrossValidationLoop {
 
     private CrossValidationResult crossValidationResult;
 
-    /** Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds.
+    /* Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds.
      *
      * This constructor will create a full cross-validation run.  When executeCrossValidation() is called,
      * all folds will be run.
@@ -113,7 +112,7 @@ public class ILPCrossValidationLoop {
         this(outerLoop, numberOfFolds, null, 0, numberOfFolds - 1);
     }
 
-    /** Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds and the specified ILPCrossValidationExamples.
+    /* Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds and the specified ILPCrossValidationExamples.
      *
      * This constructor will create a full cross-validation run.  When executeCrossValidation() is called,
      * all folds 0 to numberOfFolds-1 will be run.
@@ -131,7 +130,7 @@ public class ILPCrossValidationLoop {
         this(outerLoop, numberOfFolds, ilpCrossValidationExampleSets, 0, numberOfFolds - 1);
     }
 
-    /** Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds
+    /* Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds
      * and sets this loop to run fold <code>firstFoldToRun</code> through <code>lastFoldToRun</code>.
      *
      * This constructor will create a full cross-validation run.  When executeCrossValidation() is called, only
@@ -147,7 +146,7 @@ public class ILPCrossValidationLoop {
         this(outerLoop, numberOfFolds, null, firstFoldToRun, lastFoldToRun);
     }
 
-    /** Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds
+    /* Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds
      * and sets this loop to run fold <code>firstFoldToRun</code> through <code>lastFoldToRun</code>.
      *
      * This constructor will create a full cross-validation run.  When executeCrossValidation() is called, only
@@ -240,7 +239,7 @@ public class ILPCrossValidationLoop {
 
     }
 
-    /**
+    /*
      * Creates a CrossValidationFoldResult object and scores the training/testing sets.
      */
     private CrossValidationFoldResult createCVFoldResult(int fold, Theory theory, Gleaner gleaner) {
@@ -378,7 +377,7 @@ public class ILPCrossValidationLoop {
         }
     }
 
-    /** Consolidates all of the fold results.
+    /* Consolidates all of the fold results.
      *
      * This is normally called by the process that ran the first fold of the cross-validation,
      * but could be called separately if necessary.
@@ -409,7 +408,7 @@ public class ILPCrossValidationLoop {
         }
     }
 
-    /** Waits for all the Runs to Finish.
+    /* Waits for all the Runs to Finish.
      *
      * This just checks that runs are finished.  It does not actually
      * load the runs.
@@ -425,13 +424,7 @@ public class ILPCrossValidationLoop {
         }
 
         while (!unfinishedFolds.isEmpty()) {
-            for (Iterator<Integer> it = unfinishedFolds.iterator(); it.hasNext();) {
-                int fold = it.next();
-
-                if (isFoldCompleted(fold)) {
-                    it.remove();
-                }
-            }
+            unfinishedFolds.removeIf(this::isFoldCompleted);
 
             if (!unfinishedFolds.isEmpty()) {
                 if (!filesystemUseEnabled) {
@@ -447,7 +440,7 @@ public class ILPCrossValidationLoop {
         }
     }
 
-    /** Reads the results of all folds.
+    /* Reads the results of all folds.
      *
      * The results will be placed in the results array and can be accessed
      * via the getResults() method.
@@ -538,7 +531,7 @@ public class ILPCrossValidationLoop {
         }
     }
 
-    /**
+    /*
      * Indicates this run should consolidate everything.
      *
      * Theoretically, you could have a run whose only job was to consolidate
@@ -652,7 +645,7 @@ public class ILPCrossValidationLoop {
         return readState;
     }
 
-    /**
+    /*
      * Initialized the CVState.
      *
      * Previously, this actually created a new state based on the existing cvState that
@@ -673,7 +666,7 @@ public class ILPCrossValidationLoop {
         return cvState;
     }
 
-    /**
+    /*
      * Merges the saved CVState into our existing cvState.
      *
      * This merges the two CVStates.  In a perfect world, the two states should be exactly
@@ -736,9 +729,6 @@ public class ILPCrossValidationLoop {
         return new CondorFile(workingDirectory, extendedPrefix + ".cvState.gz");
     }
 
-    /**
-     * @return the outerLoop
-     */
     ILPouterLoop getOuterLoop() {
         return outerLoop;
     }
@@ -747,7 +737,7 @@ public class ILPCrossValidationLoop {
         return cvState.getNumberOfFolds();
     }
 
-    /**
+    /*
      * Reads a single result.
      */
     private CrossValidationFoldResult readResultsForFold(int fold) throws IOException {
@@ -820,9 +810,6 @@ public class ILPCrossValidationLoop {
         }
     }
 
-    /**
-     * Sets the CrossValidationResult for fold.
-     */
     private void setFoldResult(int fold, CrossValidationFoldResult result) throws IllegalStateException {
         if (crossValidationResult == null) {
             crossValidationResult = new CrossValidationResult(getNumberOfFolds());
@@ -831,7 +818,7 @@ public class ILPCrossValidationLoop {
         crossValidationResult.setFoldResult(fold, result);
     }
 
-    /**
+    /*
      * Returns the CrossValidationResult for fold, null if that fold is not currently stored.
      *
      * Only the run doing the consolidation of all the fold stores this information.  Other runs
@@ -845,7 +832,7 @@ public class ILPCrossValidationLoop {
         return crossValidationResult.getFoldResult(fold);
     }
 
-    /**
+    /*
      * Returns the Consolidated results for the Cross Validation.
      *
      * If the runs aren't finished or this isn't the consolidator of the
@@ -874,7 +861,7 @@ public class ILPCrossValidationLoop {
         return cvState.getEarlyStoppingCondition();
     }
 
-    /** Writes the final report.
+    /* Writes the final report.
      *
      * At this point, getResult() should return an CrossValidationResult for each
      * individual fold.  Just loop through the folds and build your report.
@@ -940,7 +927,7 @@ public class ILPCrossValidationLoop {
         }
     }
 
-    public ActiveAdvice getActiveAdvice(ILPouterLoop outerLooper) {
+    private ActiveAdvice getActiveAdvice(ILPouterLoop outerLooper) {
         return outerLooper.innerLoopTask.getActiveAdvice();
     }
 

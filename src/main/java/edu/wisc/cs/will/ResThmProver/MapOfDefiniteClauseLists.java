@@ -6,7 +6,7 @@ import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.Utils.MapOfLists;
 
-/**
+/*
  * @author twalker
  */
 public class MapOfDefiniteClauseLists extends MapOfLists<PredicateNameAndArity, DefiniteClause> implements Iterable<DefiniteClause> {

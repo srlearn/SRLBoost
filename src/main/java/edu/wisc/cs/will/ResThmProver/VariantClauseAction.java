@@ -1,6 +1,6 @@
 package edu.wisc.cs.will.ResThmProver;
 
-/**
+/*
  * @author twalker
  */
 public enum VariantClauseAction {

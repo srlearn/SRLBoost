@@ -14,7 +14,7 @@ import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author tkhot
  */
 public class RegressionMLNModel extends RegressionTree {

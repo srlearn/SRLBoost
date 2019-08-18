@@ -1,18 +1,18 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
-import edu.wisc.cs.will.ILP.SentenceCompressor;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
+import edu.wisc.cs.will.ILP.SentenceCompressor;
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.Collections;
 
-/**
+/*
  * @author shavlik
  *
  * This class represents a well-formed formula (wff) in FOPC.  One addition we're including is a WEIGHT on each sentence (since we're doing MLNs).
@@ -20,17 +20,16 @@ import java.util.Collections;
  * See http://en.wikipedia.org/wiki/First-order_logic or an AI textbook for more info.
  *
  */
-@SuppressWarnings("serial")
 public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQuery, SentenceOrTerm {
 	protected final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	
-	public    final static double maxWeight     = 300.0; // Since weights are used in exp^weight, want something that avoids overflow.	
+	final static double maxWeight     = 300.0; // Since weights are used in exp^weight, want something that avoids overflow.
 	final static double minWeight     = -maxWeight;	 // Also want to avoid underflow (note: code does not yet use this).
-    public    final static double defaultWeight = maxWeight + 1.0; // The default weight is 'infinity.'  (Note: the Example class has a weight as well; since these two weights have different semantics, we use two long names.) 
-	protected              double wgtSentence   = defaultWeight;
+    private final static double defaultWeight = maxWeight + 1.0; // The default weight is 'infinity.'  (Note: the Example class has a weight as well; since these two weights have different semantics, we use two long names.)
+	double wgtSentence   = defaultWeight;
 	transient protected   HandleFOPCstrings stringHandler; // Add another field to everything so it can access this, and hence access things like lowercaseMeansVariable.
 	
-	/**
+	/*
 	 * The Sentence class represents a well-formed formula (wff) in FOPC.
 	 */
 	protected Sentence() {}
@@ -279,7 +278,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
         return this;
     }
 
-    /** Attempts to convert a sentence into a single clause.
+    /* Attempts to convert a sentence into a single clause.
      *
      * Converts the sentence to clauses via the convertToClausalForm() method.
      * If the clausal form contains a single clause, that clause is returned.
@@ -344,7 +343,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
         return visitor.visitOtherSentence(this, data);
     }
 
-	/**
+	/*
 	 * Methods for reading a Object cached to disk.
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

@@ -3,14 +3,11 @@ package edu.wisc.cs.will.ILP.Regression;
 import edu.wisc.cs.will.Utils.Utils;
 
 public class BranchStats {
-	protected double sumOfOutputSquared = 0;
-	//private double sumOfOutput = 0;
-	//private double sumOfNumGrounding = 0;
-	//private double weightedProb = 0;
-	protected double sumOfNumGroundingSquared = 0;
-	protected double sumOfNumGroundingSquaredWithProb = 0;
-	protected double sumOfOutputAndNumGrounding = 0;
-	protected double numExamples 	=	0;
+	double sumOfOutputSquared = 0;
+	double sumOfNumGroundingSquared = 0;
+	double sumOfNumGroundingSquaredWithProb = 0;
+	private double sumOfOutputAndNumGrounding = 0;
+	double numExamples 	=	0;
 	
 	private double useFixedLambda = Double.NaN;
 	
@@ -20,14 +17,12 @@ public class BranchStats {
 	double numPositiveOutputs = 0;
 	
 	
-	public void addNumOutput(long num, double output, double weight,double prob) {
+	void addNumOutput(long num, double output, double weight, double prob) {
 		 double deno   = prob * (1-prob);
          if (deno < 0.1) {
          	deno = 0.1; 
          }
-      //  sumOfNumGrounding += num;
 		sumOfNumGroundingSquared += num*num*weight;
-      //  sumOfOutput += output;
         sumOfOutputAndNumGrounding += num*output*weight;
         sumOfOutputSquared += output * output*weight;
         if (output > 0 ) {
@@ -44,7 +39,7 @@ public class BranchStats {
 		return newStats;
 	}
 	
-	public void addTo(BranchStats other, BranchStats newStats) {
+	void addTo(BranchStats other, BranchStats newStats) {
 		//newStats.sumOfNumGrounding = this.sumOfNumGrounding + other.sumOfNumGrounding;
 		newStats.sumOfNumGroundingSquared = this.sumOfNumGroundingSquared + other.sumOfNumGroundingSquared;
 		newStats.sumOfOutputAndNumGrounding = this.sumOfOutputAndNumGrounding + other.sumOfOutputAndNumGrounding;
@@ -62,10 +57,10 @@ public class BranchStats {
 			}
 		}
 	}
-	public double getLambda() {
+	double getLambda() {
 		return getLambda(false);
 	}
-	public double getLambda(boolean useProbWeights) {
+	private double getLambda(boolean useProbWeights) {
 	
 		if (!Double.isNaN(useFixedLambda)) {
 			return useFixedLambda;
@@ -81,10 +76,7 @@ public class BranchStats {
 			//Utils.waitHere("Computations not correct for vector-based probabilities");
 			lambda = sumOfOutputAndNumGrounding / sumOfNumGroundingSquaredWithProb;
 		}
-		
-		//if (lambda == 0) {
-		//	Utils.println(this.toAttrString());
-		//}
+
 		return lambda;
 	}
 	
@@ -95,7 +87,7 @@ public class BranchStats {
 		return sumOfOutputSquared - (Math.pow(sumOfOutputAndNumGrounding, 2)/sumOfNumGroundingSquared); 
 	}
 	
-	public String toAttrString() {
+	private String toAttrString() {
 		return 	"% Sum of Output squared		=	" + sumOfOutputSquared + "\n" +
 		//"% Sum of Output 				=	" + sumOfOutput + "\n" +
 		"% Sum of #groundings squared	=	" + sumOfNumGroundingSquared + "\n" +
@@ -112,59 +104,21 @@ public class BranchStats {
 				"% Lambda						=	" + getLambda()+ "\n" + 
 				"% Prob Lambda					=	" + getLambda(true) ;
 	}
-	
-	public void setZeroLambda() {
-		useFixedLambda = 0;
-	}
-	/**
-	 * @return the sumOfOutputSquared
-	 */
-	public double getSumOfOutputSquared() {
-		return sumOfOutputSquared;
-	}
+
 	/**
 	 * @return the sumOfNumGroundingSquared
 	 */
 	public double getSumOfNumGroundingSquared() {
 		return sumOfNumGroundingSquared; 
 	}
-	/**
-	 * @return the sumOfNumGroundingSquaredWithProb
-	 */
-	public double getSumOfNumGroundingSquaredWithProb() {
-		return sumOfNumGroundingSquaredWithProb;
-	}
-	/**
-	 * @return the sumOfOutputAndNumGrounding
-	 */
-	public double getSumOfOutputAndNumGrounding() {
-		return sumOfOutputAndNumGrounding;
-	}
+
 	/**
 	 * @return the numExamples
 	 */
 	public double getNumExamples() {
 		return numExamples;
 	}
-	/**
-	 * @return the useFixedLambda
-	 */
-	public double getUseFixedLambda() {
-		return useFixedLambda;
-	}
-	/**
-	 * @return the numNegativeOutputs
-	 */
-	public double getNumNegativeOutputs() {
-		return numNegativeOutputs;
-	}
-	/**
-	 * @return the numPositiveOutputs
-	 */
-	public double getNumPositiveOutputs() {
-		return numPositiveOutputs;
-	}
-	
-	
+
+
 }
 

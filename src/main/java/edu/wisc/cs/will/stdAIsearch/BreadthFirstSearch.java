@@ -2,18 +2,18 @@ package edu.wisc.cs.will.stdAIsearch;
 
 import java.util.List;
 
-/**
+/*
  * Implements a breath-first search.
  * 
  * @author shavlik
  */
 public class BreadthFirstSearch extends SearchStrategy {
-    /**
+    /*
      * Default constructor. Does nothing.
      */
     BreadthFirstSearch() {}
 
-    /**
+    /*
      * Adds the given node to the end of the open list so that the nearest
      * (oldest) nodes are examined first.
      * 
@@ -26,7 +26,7 @@ public class BreadthFirstSearch extends SearchStrategy {
         }
     }
 
-    /**
+    /*
      * Returns "breadth-first search".
      * 
      * @see java.lang.Object#toString()

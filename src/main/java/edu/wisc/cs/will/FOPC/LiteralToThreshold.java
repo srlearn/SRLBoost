@@ -2,7 +2,7 @@ package edu.wisc.cs.will.FOPC;
 
 import java.util.List;
 
-/**
+/*
  * @author shavlik
  *
  * This extension to PredicateName is used when a numeric-valued function is represented as a literal,
@@ -17,18 +17,13 @@ import java.util.List;
  *  This needs to be in FOPC so that HandleFOPCstrings can access it (of course other code restructurings are possible).
  *
  */
-@SuppressWarnings("serial")
 public class LiteralToThreshold extends Literal {
 	public int     positionToThreshold;
-	public int     maxCuts     = -1;
-	public boolean createTiles = false;
-	public boolean firstArgIsExampleID = false;
+	public int     maxCuts;
+	public boolean createTiles;
+	public boolean firstArgIsExampleID;
 
-	protected LiteralToThreshold(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments) {
-		super(stringHandler, pred, arguments);
-	}
-
-	protected LiteralToThreshold(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, int positionToThreshold, int maxCuts, boolean createTiles, boolean firstArgIsExampleID) {
+	LiteralToThreshold(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, int positionToThreshold, int maxCuts, boolean createTiles, boolean firstArgIsExampleID) {
 		super(stringHandler, pred, arguments);
 		this.positionToThreshold = positionToThreshold;
 		this.maxCuts             = maxCuts;

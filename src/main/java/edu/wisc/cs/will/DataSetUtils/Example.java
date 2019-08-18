@@ -21,12 +21,12 @@ import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.Utils;
 
 
-/**
+/*
  * @author shavlik
  *
  */
 public class Example extends Literal implements Serializable {
-	/**
+	/*
 	 * TODO - should also handle NAMED arguments.
 	 */
 	private static final long serialVersionUID = 1L;
@@ -167,7 +167,7 @@ public class Example extends Literal implements Serializable {
 		this.weightOnExample = weightOnExample;
 	}
 
-    /**
+    /*
 	 * Returns the sum of the weights of all examples in <code>examples</code>.
      */
     public static double getWeightOfExamples(Collection<? extends Example> examples) {
@@ -180,10 +180,7 @@ public class Example extends Literal implements Serializable {
         }
         return weight;
     }
-    
-    public void setAnnotationTerm(Term annotationTerm) {
-		this.annotationTerm = annotationTerm;
-	}
+
 	public Term getAnnotationTerm() {
 		return annotationTerm;
 	}

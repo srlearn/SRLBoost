@@ -1,36 +1,24 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
+/*
  * @author shavlik
  */
 public abstract class AllOfFOPC {
 	protected final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	final static int defaultPrecedence = Integer.MIN_VALUE;  // This plays it safe and uses a lot of parentheses.
 	public          static boolean renameVariablesWhenPrinting = false;
-	public          static boolean truncateStrings             = true; // Prevent printing very long strings if true.
+	static boolean truncateStrings             = true; // Prevent printing very long strings if true.
 	public          static boolean printUsingAlchemyNotation   = false;
  
-    /**
+    /*
 	 * This class is a superclass of all FOPC constructs.
 	 */
 	public AllOfFOPC() {
 	}
-	
-	static List<AllOfFOPC> makeList(AllOfFOPC item) {
-		List<AllOfFOPC> result = new ArrayList<>(1);
-		result.add(item);
-		return result;
-	}	
-	static List<AllOfFOPC> makeList(AllOfFOPC item, List<AllOfFOPC> rest) {
-		List<AllOfFOPC> result = new ArrayList<>(1 + rest.size());
-		result.add(item);
-		result.addAll(rest); // Do this safely so no shared lists.
-		return result;
-	}
+
 	public abstract AllOfFOPC applyTheta(Map<Variable,Term> bindings);
 	public abstract int       countVarOccurrencesInFOPC(Variable v);
 

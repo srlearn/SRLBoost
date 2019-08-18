@@ -5,8 +5,7 @@ import edu.wisc.cs.will.FOPC.SLDQuery;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchResult;
 
-/**
- *
+/*
  * @author twalker
  */
 public class DefaultProof implements Proof {

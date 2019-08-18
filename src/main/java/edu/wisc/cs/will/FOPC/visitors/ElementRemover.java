@@ -13,7 +13,7 @@ import edu.wisc.cs.will.FOPC.StringConstant;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Variable;
 
-/**
+/*
  * @author twalker
  */
 public class ElementRemover {

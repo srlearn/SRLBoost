@@ -12,7 +12,7 @@ import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  */
 public class ILPprocedurallyDefinedPredicateHandler extends	ProcedurallyDefinedPredicateHandler {

@@ -1,21 +1,22 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.Utils.Utils;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+import edu.wisc.cs.will.DataSetUtils.Example;
+import edu.wisc.cs.will.Utils.Utils;
+
+/*
  * @author twalker
  */
 class SingleFoldPartialSplitExampleSet extends CrossValidationExampleSets {
 
 	private static final long serialVersionUID = 1L;
 
-    private  double firstTrainExample  = -1; // These are FRACTIONS of the full set.
-    private  double lastTrainExample   = -1;
-    private double firstEvalExample   = -1;
-    private double lastEvalExample    = -1;
+    private  double firstTrainExample; // These are FRACTIONS of the full set.
+    private  double lastTrainExample;
+    private double firstEvalExample;
+    private double lastEvalExample;
 
     SingleFoldPartialSplitExampleSet(List<Example> allPosExamples, List<Example> allNegExamples, double firstTrainExample, double lastTrainExample, double firstEvalExample, double lastEvalExample) {
         this(firstTrainExample, lastTrainExample, firstEvalExample, lastEvalExample);
@@ -34,7 +35,7 @@ class SingleFoldPartialSplitExampleSet extends CrossValidationExampleSets {
         this.lastEvalExample   = lastEvalExample;
     }
 
-    /** Creates the cross validation data sets.
+    /* Creates the cross validation data sets.
      *
      * ILPCrossValidationLoop could be subclasses to replace this method if you want a different
      * cross validation data set creation method.

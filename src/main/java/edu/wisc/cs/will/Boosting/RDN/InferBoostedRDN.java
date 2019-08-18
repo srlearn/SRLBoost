@@ -550,7 +550,7 @@ public class InferBoostedRDN {
 		Utils.writeObjectsToFile(fileToWrite, lits, ". // #COUNT", "// Results of '" + modelName + "' sorted by the predicted probability.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
 	}
 	
-	/**
+	/*
 	 * HashMap comparator. Needs the hash map as input since the comparator
 	 * only gets the key as the input for the comparison. ValueComparator
 	 * uses the input map to find the actual values for each key and sorts
@@ -575,7 +575,7 @@ public class InferBoostedRDN {
 		}
 	}
 	
-	/**
+	/*
 	 * Should be called only for single-class examples
 	 */
 	private void printTreeStats(List<RegressionRDNExample> examples, String target) {
@@ -783,7 +783,7 @@ public class InferBoostedRDN {
 		return result;
 	}
 
-	/**
+	/*
 	 * Should be called with only single-value examples.
 	 */
 	private String updateScore(List<RegressionRDNExample> examples, CoverageScore score, double threshold) {

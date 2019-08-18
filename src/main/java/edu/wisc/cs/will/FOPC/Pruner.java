@@ -2,7 +2,7 @@ package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  * Instances of this class hold information needed for a pruning a node from an ILP search.
@@ -24,10 +24,7 @@ public class Pruner {
 			Utils.error("Setting warnIfPresentLiteralCount=0 in a Pruner instance is invalid since it will always lead to a warning.\n  Use a negative number to mean 'do not check.'");
 		}
 	}
-	
-	/**
-	 * @return Whether the given literals match this pruner.
-	 */
+
 	public boolean isaMatch(Literal thisPrunableLiteral, Literal thisIfPresentLiteral) {
 		BindingList bindings = Unifier.UNIFIER.unify(thisPrunableLiteral, prunableLiteral);
 		

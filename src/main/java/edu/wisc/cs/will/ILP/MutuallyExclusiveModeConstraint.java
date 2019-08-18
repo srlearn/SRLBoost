@@ -8,7 +8,7 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author twalker
  */
 public class MutuallyExclusiveModeConstraint implements ModeConstraint {

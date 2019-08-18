@@ -11,7 +11,7 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Term;
 
-/** This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground heads.
+/* This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground heads.
  *
  * @param <T> Type of object to be indexed.
  *
@@ -21,7 +21,7 @@ public class GroundClauseIndex<T extends DefiniteClause> {
 
     private Map<PredicateNameAndArity, Map<List<Term>, List<T>>> definiteClausesAllArgsIndex = new HashMap<>();
 
-    /** Store clauses in which one or more of the args is not ground.
+    /* Store clauses in which one or more of the args is not ground.
      *
      * This is used to as a starting place for new definiteClause lists indexed by the
      * all args.  This is necessary to make sure unseen term combinations

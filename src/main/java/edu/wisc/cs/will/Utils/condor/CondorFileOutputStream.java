@@ -8,7 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
+/*
  * @author twalker
  */
 public class CondorFileOutputStream extends OutputStream {

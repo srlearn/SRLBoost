@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.ILP;
 
 import java.util.List;
-import java.util.Map;
 
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.Clause;
@@ -12,12 +11,11 @@ import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Pruner;
 import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Type;
 import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * This pruner handles cases of predicates that are isaInterval's. Extensions to
  * this class should also call this class (or some of its methods) if their
  * methods have not found a reason to prune a node. To uses this pruner a) make
@@ -27,17 +25,18 @@ import edu.wisc.cs.will.Utils.Utils;
  * @author shavlik
  */
 public class PruneILPsearchTree {
-	public  int      pruneReportInterval               = 10000; // Can set to Integer.MAX_VALUE to in effect turn off this reporting.
-	public  int      nodesPrunedDueToIntervalAnalysis  = 0; 
-	public  int  nodesPrunedDueToSingleClauseAnalysis  = 0; 
-	private LearnOneClause                      task  = null; // The ILP search algorithm for which this pruner "works."
+	int      nodesPrunedDueToIntervalAnalysis  = 0;
+	int  nodesPrunedDueToSingleClauseAnalysis  = 0;
+	private LearnOneClause                      task; // The ILP search algorithm for which this pruner "works."
 		
-	public PruneILPsearchTree(LearnOneClause task) {
+	PruneILPsearchTree(LearnOneClause task) {
 		this.task = task;	
 	}
 
-	public boolean prune(SingleClauseNode node, Map<Term,Type> typesOfNewTerms) {
+	public boolean prune(SingleClauseNode node) {
 
+		// Can set to Integer.MAX_VALUE to in effect turn off this reporting.
+		int pruneReportInterval = 10000;
 		if (pruneBasedOnIntervalAnalysis(node)) {
 			if (LearnOneClause.debugLevel > 2) { Utils.println("*** PRUNE " + node + " based on overlapping-interval analysis.");}
 			nodesPrunedDueToIntervalAnalysis++;
@@ -66,7 +65,7 @@ public class PruneILPsearchTree {
 		return false;
 	}
 	
-	/**
+	/*
 	 * See if this node's literal is in the BODY of some 'singleton' clause
 	 * whose head is already in the clause being built. I.e., if 'p(x) =>
 	 * q(x)' is the ONLY way to deduce q(x), and q(x) in the clause, no need
@@ -127,7 +126,7 @@ public class PruneILPsearchTree {
 		return false;
 	}
 	
-	protected boolean pruneBasedOnIntervalAnalysis(SingleClauseNode node) {
+	private boolean pruneBasedOnIntervalAnalysis(SingleClauseNode node) {
 		SingleClauseNode parent = node.getParentNode();
 		if (parent == null) { return false; } // No need to check anything here.
 		
@@ -154,7 +153,7 @@ public class PruneILPsearchTree {
 				//       iii) lower2 >= lower1 and upper2 <= upper1 // This interval is totally inside the old one, so it will always be true.
 				//
 				// Notice that we want to allow this to work for NUMERIC constants as well as string constants,
-				// where the user has defined "isLessThanOrEqualTo" and "isGreaterThanOrEqualTo." TODO
+				// where the user has defined "isLessThanOrEqualTo" and "isGreaterThanOrEqualTo."
 				boolean constantsAreNumeric = false;
 				double  lower1asDouble      = -1.0; // Need to set to something to avoid compiler error/warning.
 				double  upper1asDouble      = -1.0; // Ditto.
@@ -164,6 +163,7 @@ public class PruneILPsearchTree {
 					if (!(upper1 instanceof NumericConstant)) { Utils.error("In an interval, both lower and upper must be the same type of constants: " + literalBeingAdded); }
 					constantsAreNumeric = true;
 					lower1asDouble = ((NumericConstant) lower1).value.doubleValue();
+					assert upper1 instanceof NumericConstant;
 					upper1asDouble = ((NumericConstant) upper1).value.doubleValue();
 				} else {
 					Utils.error("In an interval, currently both lower and upper must be numeric constants: " + literalBeingAdded);					
@@ -180,7 +180,6 @@ public class PruneILPsearchTree {
 						Term       upper2     = literalBeingAddedHere.getUpperBoundary_1D();
 
 						Literal remainderOfParent  = literalBeingAddedHere.createLiteralWithMaskedBoundaries_1D();
-						// Utils.println("remainderOfLiteral=" + remainderOfLiteral + " and remainderOfParent=" + remainderOfParent); 
 						if (remainderOfLiteral.equals(remainderOfParent)) {
 							// If this node's arguments aren't numeric constants, simply skip over it.
 							if (constantsAreNumeric) { // This is currently checked above, but leave in for future expansion.

@@ -7,7 +7,6 @@ import java.io.Serializable;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-@SuppressWarnings("serial")
 public class PredicateSpec extends AllOfFOPC implements Serializable {
 	private List<Term>     signature;
 	private List<TypeSpec> typeSpecList;

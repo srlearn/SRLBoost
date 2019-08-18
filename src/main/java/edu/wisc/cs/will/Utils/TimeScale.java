@@ -1,6 +1,6 @@
 package edu.wisc.cs.will.Utils;
 
-/**
+/*
  * @author twalker
  */
 public enum TimeScale {
@@ -21,10 +21,6 @@ public enum TimeScale {
     TimeScale(double seconds, String unitSymbol) {
         this.seconds = seconds;
         this.unitSymbol = unitSymbol;
-    }
-
-    public double getSeconds() {
-        return seconds;
     }
 
     public String getUnitSymbol() {
@@ -74,7 +70,7 @@ public enum TimeScale {
         return getBestFormattedString(value, format, NANOSECOND, YEAR);
     }
 
-    /** Returns a format string representing the value in the optimal time scale.
+    /* Returns a format string representing the value in the optimal time scale.
      *
      * The format string controls the format of the output.  Three arguments will be passed
      * into the String.format method: the format provided, a double of the converted time

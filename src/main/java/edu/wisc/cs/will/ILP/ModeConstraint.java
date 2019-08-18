@@ -4,13 +4,13 @@ import java.util.Set;
 
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 
-/**
+/*
  *
  * @author twalker
  */
 public interface ModeConstraint {
 
-    /** Applies the mode constraint to the set of possible expansion modes.
+    /* Applies the mode constraint to the set of possible expansion modes.
      *
      * This method should remove modes that are currently ineligible for expansion
      * from the eligibleExpansionModes.  If the set changed, it should be returned,

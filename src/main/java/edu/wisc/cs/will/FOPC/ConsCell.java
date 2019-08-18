@@ -1,24 +1,28 @@
-/**
- *
- */
 package edu.wisc.cs.will.FOPC;
 
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Set;
+
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
-
-import java.util.*;
-
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  * This class is used to hold LISTS (since List is a standard Java construct, using the Lisp name of "cons[tructed] cell").
  * See http://en.wikipedia.org/wiki/Lisp_programming_language for more information.
  *
  */
-@SuppressWarnings("serial")
 public class ConsCell extends Function implements Iterable<Term> {
-//	private static final boolean prettyPrint = true; // Can set this to 'true' to see more of the true structure (for debugging), i.e. a bunch of consCell() functions.
 
     protected ConsCell(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
         super(stringHandler, functionName, typeSpec); // This will set this.stringHandler.
@@ -34,7 +38,7 @@ public class ConsCell extends Function implements Iterable<Term> {
     protected ConsCell(HandleFOPCstrings stringHandler, Term firstTerm, TypeSpec typeSpec) {
         super(stringHandler, stringHandler.getFunctionName("consCell"), typeSpec);
         ConsCell nil = stringHandler.getNil();
-        List<Term> arguments2 = new ArrayList<Term>(2);
+        List<Term> arguments2 = new ArrayList<>(2);
         arguments2.add(firstTerm);
         arguments2.add(nil);
         setArguments(arguments2);
@@ -43,7 +47,7 @@ public class ConsCell extends Function implements Iterable<Term> {
 
     protected ConsCell(HandleFOPCstrings stringHandler, Term firstTerm, Term restTerm, TypeSpec typeSpec) {
         super(stringHandler, stringHandler.getFunctionName("consCell"), typeSpec);
-        List<Term> arguments2 = new ArrayList<Term>(2);
+        List<Term> arguments2 = new ArrayList<>(2);
         arguments2.add(firstTerm);
         arguments2.add(restTerm);
         setArguments(arguments2);
@@ -105,13 +109,9 @@ public class ConsCell extends Function implements Iterable<Term> {
 
     public List<Term> convertConsCellToList() { // Only convert the "top-level" (i.e., no recursion on first).
 
-        List<Term> terms = new ArrayList<Term>();
         ConsCell c = this;
-        while (c != null && c.isNil() == false) {
+        while (c != null && !c.isNil()) {
             Term first = first();
-            if (first != null) {
-                terms.add(c);
-            }
 
             Term rest = c.rest();
             if (rest instanceof ConsCell) {
@@ -119,18 +119,15 @@ public class ConsCell extends Function implements Iterable<Term> {
             }
             else {
                 c = null;
-                if (rest != null) {
-                    terms.add(rest);
-                }
             }
         }
 
         if (numberArgs() == 0) {
-            return new ArrayList<Term>();
+            return new ArrayList<>();
         }
         Term first = getArgument(0);
         ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1)); // ConsCells should never have one argument.  This will crash on 'dotted pairs' (since 'rest' isn't a ConsCell) but we're not allowing them.
-        List<Term> result = new ArrayList<Term>(length());
+        List<Term> result = new ArrayList<>(length());
 
         while (true) {
             result.add(first);
@@ -151,11 +148,11 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
     }
 
-    public static <T extends Object> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items) {
+    static <T extends Object> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items) {
         return convertListToConsCell(stringHandler, items, null);
     }
 
-    public static <T extends Object> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items, TypeSpec typeSpec) {
+    private static <T extends Object> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items, TypeSpec typeSpec) {
         if (items == null) {
             return null;
         }
@@ -176,7 +173,7 @@ public class ConsCell extends Function implements Iterable<Term> {
     }
 
     // This is written iteratively instead of recursively to prevent stack overflows (which have happened).
-    public boolean memberViaEq(Term term) {
+    boolean memberViaEq(Term term) {
         for (Term element : this) {
             if (element == term) {
                 return true;
@@ -185,7 +182,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         return false;
     }
 
-    public boolean memberViaEquals(Term term) {
+    boolean memberViaEquals(Term term) {
         for (Term element : this) {
             if (element.equals(term)) {
                 return true;
@@ -222,11 +219,11 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
     }
 
-    public Term nth(int n) { // Return the nth item in this list.  Counting starts from 0. Return null if it doesn't exist.  Ignore matching in a possible 'dotted pair.'
+    Term nth(int n) { // Return the nth item in this list.  Counting starts from 0. Return null if it doesn't exist.  Ignore matching in a possible 'dotted pair.'
         return getListElement(n);
     }
 
-    public double addNumbers() { // Adds all the numbers in this list.  Error if a non-number appears.
+    double addNumbers() { // Adds all the numbers in this list.  Error if a non-number appears.
         if (numberArgs() == 0) {
             return 0;
         }
@@ -259,7 +256,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
     }
 
-    public double multiplyNumbers() { // Multiply all the numbers in this list.  Error if a non-number appears.
+    double multiplyNumbers() { // Multiply all the numbers in this list.  Error if a non-number appears.
         if (numberArgs() == 0) {
             return 1;
         }
@@ -315,33 +312,18 @@ public class ConsCell extends Function implements Iterable<Term> {
         return result;
     }
 
-    public ConsCell cons(Term term) {
-        return push(term);
-    }
-
     public ConsCell push(Term term) { // Note: we are ignoring typeSpec here.  If needed, it'll need to be passed on as well.
         return stringHandler.getConsCell(term, this, null);
     }
 
-    public void setCar(Term car) {
-        if (arguments == null) {
-            arguments = new ArrayList<Term>();
-            arguments.add(car);
-            arguments.add(getStringHandler().getNil());
-        }
-        else if (arguments.size() > 0) {
-            arguments.set(0, car);
-        }
-    }
-
     public void setCdr(Term cdr) {
         if (arguments == null) {
-            arguments = new ArrayList<Term>();
+            arguments = new ArrayList<>();
             arguments.add(null); // Car is null...probably bad.
             arguments.add(cdr); // Usually this would be another ConsCell, but it could be a variable too.
         }
         else if (arguments.size() == 1) {
-            arguments = new ArrayList<Term>();
+            arguments = new ArrayList<>();
             arguments.add(cdr);
         }
         else {
@@ -365,7 +347,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         return this == getStringHandler().getNil();
     }
 
-    /** Return the length of this list.
+    /* Return the length of this list.
      * This is written iteratively instead of recursively to prevent stack overflows (which have happened).
      */
     public int length() {
@@ -377,7 +359,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         // exception of the Nil ConsCell.  However, we
         // haven't been consistent so we need to do the
         // safety checks here...
-        while (aCell != null && aCell.getArity() != 0) {
+        while (aCell.getArity() != 0) {
 
             length++;
 
@@ -604,12 +586,9 @@ public class ConsCell extends Function implements Iterable<Term> {
         return hash;
     }
 
-    /** Returns the ith element if the consCell was treated as a list.
-     *
-     * @param index
-     * @return
+    /* Returns the ith element if the consCell was treated as a list.
      */
-    public Term getListElement(int index) {
+    private Term getListElement(int index) {
         Term currentTerm = this;
 
         int currentIndex = 0;
@@ -825,7 +804,6 @@ public class ConsCell extends Function implements Iterable<Term> {
                 if (!(rest instanceof ConsCell)) {
                     // rest should be a Variable here, but
                     // who knows.
-                    aCell = null;
                     cachedVariableCount = rest.containsVariables() ? 1 : 0;
                     break;
                 }
@@ -972,15 +950,11 @@ public class ConsCell extends Function implements Iterable<Term> {
                 term = consCell.cdr();
             }
             else {
-                if (!first) {
-                    sb.append("| ");
-                }
+                sb.append("| ");
                 sb.append(term.toString(precedenceOfCaller, bindingList));
                 term = null;
             }
         }
-
-
     }
 
     @Override
@@ -989,9 +963,9 @@ public class ConsCell extends Function implements Iterable<Term> {
     }
 
     private List<Variable> addToList(List<Variable> result, Collection<Variable> newFreeVariables) {
-        if (newFreeVariables != null && newFreeVariables.isEmpty() == false) {
+        if (newFreeVariables != null && !newFreeVariables.isEmpty()) {
             if (result == null) {
-                result = new ArrayList<Variable>(newFreeVariables);
+                result = new ArrayList<>(newFreeVariables);
             }
             else {
                 result.addAll(newFreeVariables);
@@ -1005,7 +979,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         return new ConsCellIterator(this);
     }
 
-    /** Implements a Iterator over the elements of a ConsCell.
+    /* Implements a Iterator over the elements of a ConsCell.
      *
      * This iterator returns all the elements of a ConsCell list.
      * However, [_,X] and [_|X] will both return the same sequence
@@ -1013,7 +987,7 @@ public class ConsCell extends Function implements Iterable<Term> {
      */
     private static class ConsCellIterator implements Iterator<Term> {
 
-        /** Pointer to the current head of the list.
+        /* Pointer to the current head of the list.
          *
          * Normally, this will be a consCell.  However, in cases
          * such as [a,b|X], the currentPosition may actually point to the X.

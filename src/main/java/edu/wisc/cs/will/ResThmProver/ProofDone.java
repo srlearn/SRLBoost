@@ -6,7 +6,7 @@ import edu.wisc.cs.will.stdAIsearch.EndTest;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 import edu.wisc.cs.will.FOPC.Binding;
 
-/**
+/*
  * @author shavlik
  */
 public class ProofDone extends EndTest {

@@ -4,17 +4,14 @@ import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import java.util.Collection;
 import java.util.Map;
 
-/**
+/*
  * @author shavlik
  *
  * This is a dummy class that allows a Literal to be put in a place where a Term is needed.  (Used for dealing with Prolog cuts.)
  */
-@SuppressWarnings("serial")
 public class LiteralAsTerm extends Term {
 	public Literal itemBeingWrapped;
-	/**
-	 * 
-	 */
+
 	protected LiteralAsTerm(HandleFOPCstrings stringHandler, Literal itemBeingWrapped) {
 		this.stringHandler    = stringHandler;
 		this.itemBeingWrapped = itemBeingWrapped;
@@ -90,7 +87,6 @@ public class LiteralAsTerm extends Term {
 
     @Override
 	public BindingList variants(Term term, BindingList bindings) {
-		// if (this == term) { return bindings; }// Need to collect the matched variables (so they don't get matched to another variable elsewhere).
 		if (!(term instanceof LiteralAsTerm)) { return null; }
 		LiteralAsTerm termAsLiteralAsTerm = (LiteralAsTerm) term;
 		return itemBeingWrapped.variants(termAsLiteralAsTerm.itemBeingWrapped, bindings);

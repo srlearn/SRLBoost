@@ -21,7 +21,7 @@ import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
-/**
+/*
  * MLN-Boost specific code for learning and inference
  * For e.g. RDN-Boost learns all the trees for one predicate at a time whereas MLN-Boost learns
  * one tree at a time for every predicate

@@ -1,6 +1,6 @@
 package edu.wisc.cs.will.stdAIsearch;
 
-/**
+/*
  * Keep track of nodes already visited.  Order doesn't matter (fast access does) so use a hash table.
  * @author shavlik
  */

@@ -15,7 +15,7 @@ public class CommandLineArguments {
 		super();
 	}
 
-	/**
+	/*
 	 * Steps to add new arguments
 	 * 1. Define a "static final" string for the flag
 	 * 2. Define a variable that is set by the flag
@@ -590,7 +590,7 @@ public class CommandLineArguments {
 		return true;
 	}
 
-	/**
+	/*
 	 * Returns true if there is an argument at "index" and it is not a flag. It uses startsWith("-") to determine
 	 * if the next argument is a flag. So make sure to use it only for checking if boolean flags have 
 	 * an argument that follows it as that would not begin with "-"

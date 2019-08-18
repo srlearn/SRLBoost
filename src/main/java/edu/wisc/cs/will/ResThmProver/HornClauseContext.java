@@ -8,7 +8,7 @@ import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 
-/**
+/*
  * @author twalker
  */
 public interface HornClauseContext {
@@ -18,7 +18,7 @@ public interface HornClauseContext {
     HornClausebase    getClausebase();
     Unifier           getUnifier();
 
-    /** Asserts the definite clause in the fact base of the prover.
+    /* Asserts the definite clause in the fact base of the prover.
      *
      * @param definiteClause A definite clause to be asserted in the fact base.
      * @throws IllegalArgumentException Throws an illegal argument exceptions if
@@ -26,7 +26,7 @@ public interface HornClauseContext {
      */
     void assertDefiniteClause(Clause definiteClause) throws IllegalArgumentException;
 
-    /** Asserts the definite clauses from the iterable into the clausebase.
+    /* Asserts the definite clauses from the iterable into the clausebase.
      *
      * The sentences must definite clauses.  If any of the sentences are not
      * definite clauses, this method will throw an IllegalArgumentException
@@ -38,7 +38,7 @@ public interface HornClauseContext {
      */
     void assertSentences(Iterable<? extends Sentence> sentences) throws IllegalArgumentException;
 
-    /**
+    /*
      * Attempts to prove the clause <code>goal</code>.
      *
      * The goal should a single line string containing the a conjunct of literals
@@ -58,7 +58,7 @@ public interface HornClauseContext {
      */
     BindingList prove(String goal) throws IllegalArgumentException;
 
-    /**
+    /*
      * Attempts to prove the SLDQuery <code>goal</code>.
      *
      * The SLDQuery should be a legal SLD query.  This includes sentences which evaluate

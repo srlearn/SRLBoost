@@ -9,27 +9,22 @@ import edu.wisc.cs.will.FOPC.TreeStructuredTheoryInteriorNode;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.VectorStatistics;
 
-/**
+/*
  * @author shavlik
- *
- *
  *  Holds a task for learning an interior node for a tree-structured theory.
- *
  */
 public class TreeStructuredLearningTask implements Serializable {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	
-	private List<Example>  posExamples = null;
-	private List<Example>  negExamples = null;
+	private List<Example>  posExamples;
+	private List<Example>  negExamples;
 	
 	private TreeStructuredTheoryInteriorNode node;
 	private SingleClauseNode          creatingNode;
 	private double                    score;
 
-	public TreeStructuredLearningTask(List<Example> posExamples, List<Example> negExamples, TreeStructuredTheoryInteriorNode node) {
+	TreeStructuredLearningTask(List<Example> posExamples, List<Example> negExamples, TreeStructuredTheoryInteriorNode node) {
 		this.posExamples = posExamples;
 		this.negExamples = negExamples;
 		this.node        = node;
@@ -39,16 +34,8 @@ public class TreeStructuredLearningTask implements Serializable {
 		return posExamples;
 	}
 
-	public void setPosExamples(List<Example> posExamples) {
-		this.posExamples = posExamples;
-	}
-
 	public List<Example> getNegExamples() {
 		return negExamples;
-	}
-
-	public void setNegExamples(List<Example> negExamples) {
-		this.negExamples = negExamples;
 	}
 
 	public TreeStructuredTheoryInteriorNode getNode() {
@@ -59,11 +46,11 @@ public class TreeStructuredLearningTask implements Serializable {
 		this.node = node;
 	}
 	
-	public SingleClauseNode getCreatingNode() {
+	SingleClauseNode getCreatingNode() {
 		return creatingNode;
 	}
 	
-	public void setCreatingNode(SingleClauseNode creatingNode) {
+	void setCreatingNode(SingleClauseNode creatingNode) {
 		this.creatingNode = creatingNode;
 	}
 
@@ -77,7 +64,7 @@ public class TreeStructuredLearningTask implements Serializable {
 	
 	// This should be called ONLY for root nodes as SingleClauseNode object is not 
 	// available(null) in that case. It assumes that the examples are regression examples 
-	public double getVariance() {
+	double getVariance() {
 		double sumOfOutputSquared = 0;
 		double sumOfOutput = 0;
 		double sumOfWeights = 0;
@@ -91,12 +78,11 @@ public class TreeStructuredLearningTask implements Serializable {
 			sumOfOutput += regEx.getOutputValue() * regEx.getWeightOnExample();
 			sumOfWeights += regEx.getWeightOnExample();
 		}
-		double variance = sumOfOutputSquared/sumOfWeights - (Math.pow(sumOfOutput/sumOfWeights, 2)); 
-		return variance;
+		return sumOfOutputSquared/sumOfWeights - (Math.pow(sumOfOutput/sumOfWeights, 2));
 	}
 	
 	
-	public double getVectorVariance() {
+	private double getVectorVariance() {
 		VectorStatistics vecStats = new VectorStatistics();
 		if (getPosExamples().size() == 0) {
 			Utils.error("No examples in the task!!");

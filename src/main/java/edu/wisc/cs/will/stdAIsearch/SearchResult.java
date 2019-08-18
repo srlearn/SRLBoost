@@ -2,7 +2,7 @@ package edu.wisc.cs.will.stdAIsearch;
 
 import java.io.Serializable;
 
-/**
+/*
  * Collects the information of interest from a search (e.g., best node found).
  * @author shavlik
  */

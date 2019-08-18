@@ -9,7 +9,7 @@ import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * MLN-Boost specific code for learning and inference
  * For e.g. RDN-Boost learns all the trees for one predicate at a time whereas MLN-Boost learns
  * one tree at a time for every predicate

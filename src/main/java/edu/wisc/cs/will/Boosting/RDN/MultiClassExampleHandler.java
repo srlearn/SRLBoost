@@ -17,12 +17,12 @@ import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.VectorStatistics;
 
-/**
+/*
  * @author tkhot
  */
 public class MultiClassExampleHandler {
 
-	/**
+	/*
 	 * Use a list for class arg index since more than one argument (combined) may be a class arg.
 	 * E.g. genderAndGenre(person, gender!, genre!).
 	 */
@@ -34,7 +34,7 @@ public class MultiClassExampleHandler {
 		constantsForPredicate = null;
 	}
 
-	/**
+	/*
 	 * Initialize the class argument location for every predicate
 	 */
 	void initArgumentLocation(WILLSetup setup) {

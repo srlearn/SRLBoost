@@ -33,7 +33,7 @@ import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author Tushar Khot
  *
  */

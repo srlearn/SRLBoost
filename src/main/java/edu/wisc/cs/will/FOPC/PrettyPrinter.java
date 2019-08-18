@@ -9,7 +9,7 @@ import java.util.Queue;
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 
-/**
+/*
  * @author twalker
  */
 public class PrettyPrinter {
@@ -60,7 +60,6 @@ public class PrettyPrinter {
 
         appendWithPrefix(stringBuilder, r.getResultString(), additionalLinesPrefix);
 
-        if (data.options.getSentenceTerminator() != null);
         stringBuilder.append(data.options.getSentenceTerminator());
 
 
@@ -91,7 +90,6 @@ public class PrettyPrinter {
 
         appendWithPrefix(stringBuilder, r.getResultString(), additionalLinesPrefix);
 
-        if (data.options.getSentenceTerminator() != null);
         stringBuilder.append(data.options.getSentenceTerminator());
 
 
@@ -118,7 +116,7 @@ public class PrettyPrinter {
         boolean first = true;
         for (Entry<Variable, Term> entry : bindingList.theta.entrySet()) {
 
-            if (first == false) {
+            if (!first) {
                 stringBuilder.append(",  ");
 
             }
@@ -140,7 +138,7 @@ public class PrettyPrinter {
 
     private static void appendWithPrefix(StringBuilder stringBuilder, String resultString, String prefix) {
 
-        if (prefix != null && prefix.isEmpty() == false && resultString.isEmpty() == false) {
+        if (prefix != null && !prefix.isEmpty() && !resultString.isEmpty()) {
 
             int index = -1;
             int lastIndex = 0;
@@ -148,7 +146,7 @@ public class PrettyPrinter {
             while ((index = resultString.indexOf("\n", index + 1)) != -1) {
                 String s = resultString.substring(lastIndex, index + 1);
 
-                if (s.isEmpty() == false) {
+                if (!s.isEmpty()) {
                     if (lastIndex != 0) {
                         stringBuilder.append(prefix);
                     }
@@ -161,7 +159,7 @@ public class PrettyPrinter {
             if (lastIndex != 0) {
                 stringBuilder.append(prefix);
             }
-            stringBuilder.append(resultString.substring(lastIndex, resultString.length()));
+            stringBuilder.append(resultString.substring(lastIndex));
 
         }
         else {
@@ -169,7 +167,7 @@ public class PrettyPrinter {
         }
     }
 
-    public static int getMaxLineLength(String s) {
+    private static int getMaxLineLength(String s) {
         int index = -1;
         int lastIndex = -1;
         int max = 0;
@@ -423,9 +421,7 @@ public class PrettyPrinter {
 
             Sentence s = sentenceAsTerm.sentence;
 
-            PPResult result = s.accept(this, data);
-
-            return result;
+            return s.accept(this, data);
         }
 
         public PPResult visitLiteralAsTerm(LiteralAsTerm literalAsTerm, FOPCPrettyPrinterData data) {
@@ -441,7 +437,6 @@ public class PrettyPrinter {
                 stringBuilder.append(r.resultString);
             }
             stringBuilder.append("]");
-
             return null;
         }
 
@@ -465,13 +460,12 @@ public class PrettyPrinter {
 
             if (literals.size() > 0) {
 
-                List<PPResult> list = new ArrayList<PPResult>(literals.size());
+                List<PPResult> list = new ArrayList<>(literals.size());
                 int maxLineWidth = 0;
 
                 int totalWidth = 0;
 
-                for (int i = 0; i < literals.size(); i++) {
-                    Literal literal = literals.get(i);
+                for (Literal literal : literals) {
                     PPResult tpp = literal.accept(this, data);
                     list.add(tpp);
 
@@ -540,7 +534,7 @@ public class PrettyPrinter {
 
             data.pushIndent(1);
 
-            List<PPResult> list = new ArrayList<PPResult>();
+            List<PPResult> list = new ArrayList<>();
             int maxLineWidth = 0;
 
             int totalWidth = 0;
@@ -553,7 +547,7 @@ public class PrettyPrinter {
 
             while (currentCell != null && currentCell != consCell.getStringHandler().getNil()) {
 
-                PPResult tpp = null;
+                PPResult tpp;
 
                 if (data.options.getMaximumConsCells() != -1 && cellCount >= data.options.getMaximumConsCells()) {
                     tpp = new PPResult("...", false, 1000);
@@ -659,7 +653,7 @@ public class PrettyPrinter {
 
             StringBuilder stringBuilder = new StringBuilder();
 
-            if (infix == false) {
+            if (!infix) {
                 stringBuilder.append(pred);
             }
 
@@ -676,16 +670,16 @@ public class PrettyPrinter {
 
             int precedence = infix ? HandleFOPCstrings.getOperatorPrecedence_static(pred) : 999;
 
-            if (terms != null && terms.isEmpty() == false) {
+            if (terms != null && !terms.isEmpty()) {
 
-                if (infix == false) {
+                if (!infix) {
                     stringBuilder.append("(");
 
                     data.pushIndent(pred.length() + 1);
                 }
 
 
-                List<PPResult> list = new ArrayList<PPResult>(terms.size());
+                List<PPResult> list = new ArrayList<>(terms.size());
                 int maxLineWidth = 0;
 
                 int totalWidth = 0;
@@ -704,7 +698,7 @@ public class PrettyPrinter {
 
                     PPResult tpp = term.accept(this, data);
                     //System.out.println(tpp);
-                    multiline = infix == false && (tpp.isMultiline() || multiline);
+                    multiline = !infix && (tpp.isMultiline() || multiline);
 
                     if (precedence < tpp.precedence) {
                         StringBuilder infixSB = new StringBuilder();
@@ -745,7 +739,7 @@ public class PrettyPrinter {
                 for (int i = 0; i < list.size(); i++) {
                     PPResult tpp = list.get(i);
                     if (i > 0) {
-                        if (infix == false) {
+                        if (!infix) {
                             stringBuilder.append(", ");
                         }
                         if (data.options.isMultilineOutputEnabled()) {
@@ -757,7 +751,7 @@ public class PrettyPrinter {
                                 multiline = true;
                             }
                             else {
-                                if (infix == false && (currentWidth + tpp.getMaximumWidth() >= maximumWidth || (maxTermsPerLine > 0 && termsOnLine >= maxTermsPerLine))) {
+                                if (!infix && (currentWidth + tpp.getMaximumWidth() >= maximumWidth || (maxTermsPerLine > 0 && termsOnLine >= maxTermsPerLine))) {
                                     stringBuilder.append("\n").append(prefix);
                                     currentWidth = 0;
                                     termsOnLine = 0;
@@ -779,7 +773,7 @@ public class PrettyPrinter {
                 }
 
 
-                if (infix == false) {
+                if (!infix) {
                     stringBuilder.append(")");
                     data.popIndent();
                 }
@@ -793,7 +787,7 @@ public class PrettyPrinter {
 
     public static class FOPCPrettyPrinterData {
 
-        Queue<PrecedenceInfo> precedenceInfo = new LinkedList<PrecedenceInfo>();
+        Queue<PrecedenceInfo> precedenceInfo = new LinkedList<>();
 
         PrettyPrinterOptions options = new PrettyPrinterOptions();
 
@@ -862,14 +856,7 @@ public class PrettyPrinter {
 
         String prefix;
 
-        int precedence;
-
         int currentIndentation;
-
-        public PrecedenceInfo(String prefix, int precedence) {
-            this.prefix = prefix;
-            this.precedence = precedence;
-        }
 
         PrecedenceInfo(String prefix) {
             this.prefix = prefix;

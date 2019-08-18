@@ -1,6 +1,6 @@
 package edu.wisc.cs.will.FOPC_MLN_ILP_Parser;
 
-/**
+/*
  * @author twalker
  */
 class ParsingException extends RuntimeException {

@@ -8,16 +8,12 @@ import java.util.Map;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  */
-@SuppressWarnings("serial")
 public class UniversalSentence extends QuantifiedSentence {
 
-	/**
-	 * 
-	 */
-	protected UniversalSentence(HandleFOPCstrings stringHandler, Collection<Variable> variables, Sentence body) {
+	UniversalSentence(HandleFOPCstrings stringHandler, Collection<Variable> variables, Sentence body) {
 		this.variables = variables;
 		this.body      = body;
 		this.stringHandler = stringHandler;

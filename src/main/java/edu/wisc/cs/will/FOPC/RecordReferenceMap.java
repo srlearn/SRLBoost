@@ -5,5 +5,6 @@ package edu.wisc.cs.will.FOPC;
 class RecordReferenceMap {
 
 	RecordReferenceMap() {
+		// TODO(@hayesall): Dead code, remove.
 	}
 }

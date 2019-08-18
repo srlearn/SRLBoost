@@ -13,7 +13,7 @@ import edu.wisc.cs.will.FOPC.Variable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
  * @author twalker
  */
 public class DefaultTermVisitor<Data> implements TermVisitor<Term, Data> {

@@ -6,7 +6,7 @@ import java.util.List;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author tkhot
  *
  */

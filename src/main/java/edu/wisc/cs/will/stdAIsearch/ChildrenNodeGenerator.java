@@ -2,7 +2,7 @@ package edu.wisc.cs.will.stdAIsearch;
 
 import java.util.List;
 
-/** Generate
+/* Generate
  * 
  * Given a node in a search space, generates the children of that node.
  * Implementations of this class should lookup the StateBasedSearchTask 

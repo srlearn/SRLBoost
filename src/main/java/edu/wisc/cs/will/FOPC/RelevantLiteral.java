@@ -2,7 +2,7 @@ package edu.wisc.cs.will.FOPC;
 
 import java.util.Objects;
 
-/**
+/*
  * Allow the user to say that some predicate is relevant to the concept being learned.
  * The anticipated use is that the relevance strength will be mapped to a cost on a literal in a clause,
  * with higher relevance being lower cost.  However that is up to the code that uses this class.
@@ -19,7 +19,7 @@ public class RelevantLiteral {
 	private int               argument = -1;  // If set, says which ARGUMENT is relevant (counts from 1).
 	private RelevanceStrength strength = RelevanceStrength.RELEVANT; // Default to saying something is relevant. 
 
-	/**
+	/*
 	 * Constructors for RelevantLiteral instances.
 	 */
 	private RelevantLiteral(PredicateName pName) {
@@ -66,13 +66,7 @@ public class RelevantLiteral {
 	public void setArgument(int argument) {
 		this.argument = argument;
 	}
-	public RelevanceStrength getStrength() {
-		return strength;
-	}
-	public void setStrength(RelevanceStrength strength) {
-		this.strength = strength;
-	}
-	
+
 	public String toString() {
 		return "Relevant: " + pName + "/" + arity + " strength=" + strength;
 	}

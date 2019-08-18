@@ -52,7 +52,7 @@ import edu.wisc.cs.will.stdAIsearch.BestFirstSearch;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
 
-/**
+/*
  *
  * @author shavlik
  * @author tushar
@@ -600,10 +600,10 @@ public final class WILLSetup {
 					RegressionRDNExample rex = new RegressionRDNExample(eg, false);
 					if (getMulticlassHandler().isMultiClassPredicate(predName)) {
 						RegressionRDNExample mcEx = getMulticlassHandler().morphExample(rex);
-						mcEx.setHiddenLiteral(true);
+						mcEx.setHiddenLiteral();
 						addToHiddenExamples(mcEx);
 					} else {
-						rex.setHiddenLiteral(true);
+						rex.setHiddenLiteral();
 						addToHiddenExamples(rex);
 					}
 					counter++;
@@ -623,7 +623,7 @@ public final class WILLSetup {
 			for (Example eg : backupNegExamples.get(predName)) {
 				if (Math.random() < hiddenNegLitProb) {
 					RegressionRDNExample rex = new RegressionRDNExample(eg, false);
-					rex.setHiddenLiteral(true);
+					rex.setHiddenLiteral();
 					addToHiddenExamples(rex);
 					counter++;
 				}
@@ -666,7 +666,7 @@ public final class WILLSetup {
 			} else {
 				rex = new RegressionRDNExample(lit, false, "hidden");	
 			}
-			rex.setHiddenLiteral(true);
+			rex.setHiddenLiteral();
 			addToHiddenExamples(rex);
 			counter++;
 			
@@ -1047,7 +1047,7 @@ public final class WILLSetup {
 					String hiddenExRep = hiddenEx.toPrettyString("");
 					if (hiddenExRep.equals(egRep)) {
 						RegressionRDNExample rex = (RegressionRDNExample)eg;
-						rex.setHiddenLiteral(true);
+						rex.setHiddenLiteral();
 						break;
 					}
 				}
@@ -1344,7 +1344,6 @@ public final class WILLSetup {
 			stringHandler.keepQuoteMarks                       = true;
 			stringHandler.useFastHashCodeForLiterals           = false;
 			stringHandler.dontComplainIfMoreThanOneTargetModes = true;
-			boolean                                     useRRR = false;
 			Utils.println("\n% Calling ILPouterLoop from createRegressionOuterLooper.");
 			setOuterLooper(new ILPouterLoop(directory, prefix, newArgList, strategy, scorer, new Gleaner(), context, false, isaRegressionTaskRightAway));
 			Utils.println("\n% The outer looper has been created.");

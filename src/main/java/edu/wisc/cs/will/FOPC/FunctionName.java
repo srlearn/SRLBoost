@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
+/*
  * @author shavlik
  *
  *  All functions with the same name map to the same instance. 
@@ -13,7 +13,7 @@ public class FunctionName extends AllOfFOPC {
 	public  String  name;
 	boolean isaSkolem = false;
 	private Map<List<Constant>,Constant> extensionalSemantics;
-	public  boolean printUsingInFixNotation = false;
+	boolean printUsingInFixNotation = false;
 	private Map<Integer,List<String>> namedArgumentOrdering = null;  // When getting rid of named arguments, this is the order argument should be placed (if null, then use alphabetic ordering).
 
 	protected FunctionName(String name) { // This is protected because getFunctionName(String name) should be used instead.

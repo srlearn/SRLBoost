@@ -12,7 +12,7 @@ import java.util.Set;
 
 // TODO(@hayesall): This class basically duplicates `MapOfLists`: types might be generalized.
 
-/** A Map that maps Keys to Set of values.
+/* A Map that maps Keys to Set of values.
  *
  * Each key can be mapped to a set of values.
  *
@@ -58,13 +58,6 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
 
     public void removeValues(Key key) {
         map.remove(key);
-    }
-
-    public void removeValue(Key key, Value value) {
-        Set<Value> set;
-        if (((set = map.remove(key)) != null)) {
-            set.remove(value);
-        }
     }
 
     public void putAll(Key key, Set<? extends Value> values) {
@@ -176,10 +169,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
             return false;
         }
         final MapOfSets<Key, Value> other = (MapOfSets<Key, Value>) obj;
-        if (!Objects.equals(this.map, other.map)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.map, other.map);
     }
 
     @Override

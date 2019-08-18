@@ -3,7 +3,7 @@ package edu.wisc.cs.will.Boosting.OneClass;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
  * @author tkhot
  */
 class KernelEstimator {

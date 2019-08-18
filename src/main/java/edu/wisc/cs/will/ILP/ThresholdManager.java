@@ -1,15 +1,9 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP;
 
 import java.io.FileNotFoundException;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
-
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -27,13 +21,15 @@ import edu.wisc.cs.will.FOPC.RelevanceStrength;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-/**
+// TODO(@hayesall): The `createThresholds` method needs desperate attention.
+
+/*
  * Note: ALL proofs are found of literals being thresholded, and this could produce a huge list.
  * 
  * @author shavlik
@@ -44,27 +40,20 @@ public class ThresholdManager {
 	
 	private LearnOneClause    innerLoopForILP; // Really only need this one, but get the others for convenience.
 	private HandleFOPCstrings stringHandler;
-	private Unifier           unifier;
 	private InlineManager     inlineManager;
 	
 	private int lowerCounter = 0; // Need unique variables for each use.
 	private int upperCounter = 0; // These three probably follow in lock-step, but down the road we might want them to do different things, so keep three counters.
 	private int varCounter   = 0; 
-	private int valueCounter = 0; 
-	
-	public boolean fullyTrustFirstArgs = true; // If this is true and firstArgIsExampleID is as well, then ignore values that do not connect to neither a positive nor a negative example. 
-	
-	/**
-	 * 
-	 */
-	public ThresholdManager(LearnOneClause innerLoopForILP, HandleFOPCstrings stringHandler, Unifier unifier, InlineManager inlineManager) {
+	private int valueCounter = 0;
+
+	ThresholdManager(LearnOneClause innerLoopForILP, HandleFOPCstrings stringHandler, InlineManager inlineManager) {
 		this.innerLoopForILP = innerLoopForILP;
 		this.stringHandler   = stringHandler;
-		this.unifier         = unifier;
 		this.inlineManager   = inlineManager;
 	}
 	
-	public void processThresholdRequests(String fileName, Collection<LiteralToThreshold> literalsToThreshold) throws SearchInterrupted {
+	void processThresholdRequests(String fileName, Collection<LiteralToThreshold> literalsToThreshold) throws SearchInterrupted {
 		try {
 			CondorFileOutputStream outStream = (fileName == null ? null : new CondorFileOutputStream(fileName));
 			PrintStream          printStream = (fileName == null ? null : new PrintStream(outStream, false)); // (Don't) Request auto-flush (can slow down code).
@@ -94,8 +83,8 @@ public class ThresholdManager {
 		}
 
 		int     maxCuts             = literalToThreshold.maxCuts;
-		Boolean createTiles         = literalToThreshold.createTiles;
-		Boolean firstArgIsExampleID = literalToThreshold.firstArgIsExampleID;
+		boolean createTiles         = literalToThreshold.createTiles;
+		boolean firstArgIsExampleID = literalToThreshold.firstArgIsExampleID;
 		
 		if (literalToThreshold.numberArgs() < 1) { return; }
 		
@@ -104,19 +93,19 @@ public class ThresholdManager {
 			Set<Term> posExIDs = null;
 			Set<Term> negExIDs = null;
 			
-			class1values = new ArrayList<Double>(8);
-			class2values = new ArrayList<Double>(8);
+			class1values = new ArrayList<>(8);
+			class2values = new ArrayList<>(8);
 			if (firstArgIsExampleID) {
 				List<Example> posExamples = innerLoopForILP.getPosExamples();
 				List<Example> negExamples = innerLoopForILP.getNegExamples();
 
-				posExIDs = new HashSet<Term>(4);
-				negExIDs = new HashSet<Term>(4);
+				posExIDs = new HashSet<>(4);
+				negExIDs = new HashSet<>(4);
 				for (Example pos : posExamples) { posExIDs.add(pos.getArgument(0)); }
 				for (Example neg : negExamples) { negExIDs.add(neg.getArgument(0)); }
 			}
 		
-			List<Term> argList = new ArrayList<Term>(literalToThreshold.numberArgs());
+			List<Term> argList = new ArrayList<>(literalToThreshold.numberArgs());
 			for (int i = 0; i < literalToThreshold.numberArgs(); i++) {
 				argList.add(stringHandler.getNewUnamedVariable());
 			}
@@ -156,6 +145,8 @@ public class ThresholdManager {
 					if (debugLevel > 1) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%   found: " + valueInFact + " in '" + fact + "'"); }
 					boolean inPos = (firstArgIsExampleID && posExIDs.contains(firstArg)) || (!firstArgIsExampleID && innerLoopForILP.whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample && innerLoopForILP.isWorldStateArgPairInAnPosExample(fact.getArgument(wArg), fact.getArgument(sArg)));
 					boolean inNeg = (firstArgIsExampleID && negExIDs.contains(firstArg)) || (!firstArgIsExampleID && innerLoopForILP.whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample && innerLoopForILP.isWorldStateArgPairInAnNegExample(fact.getArgument(wArg), fact.getArgument(sArg)));
+					// If this is true and firstArgIsExampleID is as well, then ignore values that do not connect to neither a positive nor a negative example.
+					boolean fullyTrustFirstArgs = true;
 					if (inPos && inNeg) {
 						class1values.add(valueInFact); // If ambiguous, play it safe.
 						class2values.add(valueInFact);
@@ -183,10 +174,14 @@ public class ThresholdManager {
 		}
 		
 		
-		List<Double> orgList1 = (class1values == null ? null : new ArrayList<Double>(class1values.size()));
-		List<Double> orgList2 = (class2values == null ? null : new ArrayList<Double>(class2values.size()));
-		if (class1values != null) { for (Double d : class1values) orgList1.add(d); }
-		if (class2values != null) { for (Double d : class2values) orgList2.add(d); }
+		List<Double> orgList1 = (class1values == null ? null : new ArrayList<>(class1values.size()));
+		List<Double> orgList2 = (class2values == null ? null : new ArrayList<>(class2values.size()));
+		if (class1values != null) {
+			orgList1.addAll(class1values);
+		}
+		if (class2values != null) {
+			orgList2.addAll(class2values);
+		}
 		
 		if (class1values != null) { Utils.sortListOfDoublesAndRemoveDuplicates(class1values); } // Sorting is done in place.
 		if (class2values != null) { Utils.sortListOfDoublesAndRemoveDuplicates(class2values); } // Sorting is done in place.
@@ -203,7 +198,7 @@ public class ThresholdManager {
 			class1values = class2values;
 			class2values = null;			
 		} else if (numbClass1values > 0 && numbClass2values > 0) { // If we have both class1 and class2 values, need to collect the boundaries.
-			List<Double> valuesToKeep = new ArrayList<Double>(8);
+			List<Double> valuesToKeep = new ArrayList<>(8);
 			Double old1 = null;
 			Double old2 = null;
 			int counter1 = 0;
@@ -284,7 +279,7 @@ public class ThresholdManager {
 			
 			if (Utils.getSizeSafely(class1values) > (createTiles ? 550 : 110000)) { // Will reduce to 500 (if creating tiles; 500^2 = 250000, but we only use roughly half since we need lower < upper), but don't bother if 'close'.
 				if (debugLevel > -10) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%  Will randomly reduce the number of class1 values to about 500."); }
-				List<Double> newClass1values = new ArrayList<Double>(500);
+				List<Double> newClass1values = new ArrayList<>(500);
 				double prob = (createTiles ? 500.0 : 100000.0) / Utils.getSizeSafely(class1values);
 				for (Double dbl : class1values) if (Utils.random() <= prob) { newClass1values.add(dbl); }
 				class1values = newClass1values;
@@ -304,7 +299,7 @@ public class ThresholdManager {
 		}
 		else if (Utils.getSizeSafely(class1values) +  Utils.getSizeSafely(class2values) > 1) {	// Need more than one value to make thresholds. 			
 			// Create a mode for the new predicate.
-	   		List<Term> extendedArguments = new ArrayList<Term>(literalToThreshold.numberArgs());
+	   		List<Term> extendedArguments = new ArrayList<>(literalToThreshold.numberArgs());
 	   		extendedArguments.addAll(literalToThreshold.getArguments()); // Need NEW list.
 	        
 	   		Term     termThresholded = literalToThreshold.getArguments().get(literalToThreshold.positionToThreshold - 1);
@@ -340,7 +335,7 @@ public class ThresholdManager {
 	   		//					:- f(X, Y, Value, Z),
 	   		//			   		   isa_f_inBetween(Lower, Upper),
 	   		//			           Lower <= Value, Value < Upper.
-	   		List<Term> variablizedArguments = new ArrayList<Term>(literalToThreshold.numberArgs());
+	   		List<Term> variablizedArguments = new ArrayList<>(literalToThreshold.numberArgs());
 	   		Variable   valueVar             = stringHandler.getGeneratedVariable(stringHandler.getVariablePrefix() + "Value" + (++valueCounter) + "_InThesh", true);
 	   		for (int i = 1; i <= literalToThreshold.numberArgs(); i++) {
 	   			if (i == literalToThreshold.positionToThreshold) { variablizedArguments.add(valueVar); }
@@ -348,7 +343,7 @@ public class ThresholdManager {
 	   		}
 	   		Variable lower = stringHandler.getGeneratedVariable(stringHandler.getVariablePrefix() + "Lower" + (++lowerCounter) + "_InThesh", true);
 	   		Variable upper = stringHandler.getGeneratedVariable(stringHandler.getVariablePrefix() + "Upper" + (++upperCounter) + "_InThesh", true);
-	   		List<Term> copyOfVariablizedArguments = new ArrayList<Term>(variablizedArguments.size());
+	   		List<Term> copyOfVariablizedArguments = new ArrayList<>(variablizedArguments.size());
 	   		copyOfVariablizedArguments.addAll(variablizedArguments); // Need to make a COPY so when adding to variablizedArguments, this arguments to 'literalVariablized' are not also changed. 
 	   		Literal literalVariablized = stringHandler.getLiteral(literalToThreshold.predicateName, copyOfVariablizedArguments);
 	   		variablizedArguments.add(lower);
@@ -357,20 +352,20 @@ public class ThresholdManager {
 	   		PredicateName  isaPname = stringHandler.getPredicateName("isa_" + newPname.name);
 	   		isaPname.addFilter();
 	   		if (printStream != null) printStream.println("filter: " + isaPname + ". // This predicate should be deleted from a learned rule.");
-	   		List<Term> args = new ArrayList<Term>(2);
+	   		List<Term> args = new ArrayList<>(2);
 	   		args.add(lower);
 	   		args.add(upper);
 	   		Literal isaInBetween    = stringHandler.getLiteral(isaPname, args);
-	   		args = new ArrayList<Term>(2);  // Need fresh copy.
+	   		args = new ArrayList<>(2);  // Need fresh copy.
 	   		args.add(lower);
 	   		args.add(valueVar);
 	   		Literal lte             = stringHandler.getLiteral(stringHandler.standardPredicateNames.lte, args);
-	   		args = new ArrayList<Term>(2);  // Need fresh copy.
+	   		args = new ArrayList<>(2);  // Need fresh copy.
 	   		args.add(valueVar);
 	   		args.add(upper);
 	   		Literal gt              = stringHandler.getLiteral(stringHandler.standardPredicateNames.lt,  args);
 	   		Clause newBKclause      = stringHandler.getClause(headVariablized, true);
-	   		newBKclause.negLiterals = new ArrayList<Literal>(4);
+	   		newBKclause.negLiterals = new ArrayList<>(4);
 	   		newBKclause.negLiterals.add(literalVariablized);
 	   		newBKclause.negLiterals.add(isaInBetween);
 	   		newBKclause.negLiterals.add(lte);
@@ -385,11 +380,11 @@ public class ThresholdManager {
 	   		Literal  negatedHead      = headVariablized.copy(false);
 	   		negatedHead.predicateName = stringHandler.getPredicateName("not_" + headVariablized.predicateName.name);
 			PredicateName nbf      = stringHandler.standardPredicateNames.negationByFailure; // Negation by failure.
-			List<Term>    nbf_args = new ArrayList<Term>(1);
+			List<Term>    nbf_args = new ArrayList<>(1);
 			nbf_args.add(headVariablized.convertToFunction(stringHandler));
 	   		Literal  negationByFailureOfHead = stringHandler.getLiteral(nbf, nbf_args);
 	   		Clause   newNegatedBKclause      = stringHandler.getClause(negatedHead, true);
-	   		newNegatedBKclause.negLiterals = new ArrayList<Literal>(1);
+	   		newNegatedBKclause.negLiterals = new ArrayList<>(1);
 	   		newNegatedBKclause.negLiterals.add(negationByFailureOfHead);
 	   		if (debugLevel > -10) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%  New Negation-by-Failure Background Rule:\n     " + newNegatedBKclause.toPrettyString("       ", Integer.MAX_VALUE) + "."); }
 	   		if (printStream != null) printStream.println(newNegatedBKclause.toPrettyString("       ", Integer.MAX_VALUE) + ". // Negation-by-failure version.");
@@ -407,7 +402,7 @@ public class ThresholdManager {
 	   		int numbValues = class1values.size();
 		   	if (debugLevel > -10) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%  New Background Facts:"); }
 		   	int bkCounter = 0;
-		   	List<Sentence> betweens = new ArrayList<Sentence>(4);  // Using Sentence here so addFacts() can be called at end.
+		   	List<Sentence> betweens = new ArrayList<>(4);  // Using Sentence here so addFacts() can be called at end.
 	   		if (createTiles) {
 	   			for (int i = 1; i <= numbValues; i++) { // Skip the first one, since no reason to have this be the upper bound, since no numbers less than it (recall that upper bounds are NOT in intervals).
 	   				for (int j = -1; j < i - 1; j++) if (j >= 0 || i < numbValues) { // Don't generate the case [-inf, +inf].
@@ -420,7 +415,7 @@ public class ThresholdManager {
 	   			   		NumericConstant splitL_asTerm = (j <  0          ? negInf : stringHandler.getNumericConstant(splitL));
 	   			   		NumericConstant splitU_asTerm = (i == numbValues ? posInf : stringHandler.getNumericConstant(splitU));
 	   			   	
-	   			   		args = new ArrayList<Term>(2); // Need a fresh copy.
+	   			   		args = new ArrayList<>(2); // Need a fresh copy.
 	   			   		args.add(splitL_asTerm);
 	   			   		args.add(splitU_asTerm);
 	   			   		Literal isaBetween = stringHandler.getLiteral(isaPname, args);
@@ -433,11 +428,11 @@ public class ThresholdManager {
 		   		double          split       =  (class1values.get(i - 1) + class1values.get(i)) / 2;
 		   		NumericConstant splitAsTerm = stringHandler.getNumericConstant(split);
 		   		
-		   		args = new ArrayList<Term>(2); // Need a fresh copy.
+		   		args = new ArrayList<>(2); // Need a fresh copy.
 			   	args.add(negInf);
 			   	args.add(splitAsTerm);
 		   		Literal isaBetween1 = stringHandler.getLiteral(isaPname, args);
-		   		args = new ArrayList<Term>(2); // Need a fresh copy.
+		   		args = new ArrayList<>(2); // Need a fresh copy.
 			   	args.add(splitAsTerm);
 			   	args.add(posInf);
 		   		Literal isaBetween2 = stringHandler.getLiteral(isaPname, args);
@@ -455,7 +450,7 @@ public class ThresholdManager {
 					if (debugLevel > -10) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%     Since we have two groups of values, will use information gain to score the candidate cuts."); }
 					// If a large number of possible cuts, reduce to 100x the number we want before computing info gain.
 					if (Utils.getSizeSafely(betweens) > 100 * maxCuts) { Utils.reduceToThisSizeByRandomlyDiscardingItemsInPlace(betweens, 100 * maxCuts); }
-					List<ScoredSentence> scores = new ArrayList<ScoredSentence>(betweens.size());
+					List<ScoredSentence> scores = new ArrayList<>(betweens.size());
 					for (Sentence tweener : betweens) {
 						Literal lit = (Literal) tweener;  // These will look like: 'isa_f_WILLinBetween(1.0, 3.0)'   Utils.println("lit = " + lit);
 						double lowerLit = ((NumericConstant) lit.getArgument(0)).value.doubleValue();
@@ -494,9 +489,9 @@ public class ThresholdManager {
 			                                                " "          + Utils.comma(numberClass2Covered) + " of " + Utils.comma(numberClass2Covered + numberClass2NotCovered) + " negative examples.  Info left = " + Utils.truncate(infoLeft, 3));
 						}
 					}
-					Collections.sort(scores, new ScoredSentenceComparator());
+					scores.sort(new ScoredSentenceComparator());
 					if (debugLevel > 1) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%      Sorted: " + scores); }
-					List<Sentence> newBetweens = new ArrayList<Sentence>(maxCuts);
+					List<Sentence> newBetweens = new ArrayList<>(maxCuts);
 					int counter = maxCuts / 2;  // Fill half with the BEST and the rest choose randomly (in case all the best cuts are near each other). TODO could use some clustering algorithm.
 					for (ScoredSentence s : scores) {
 						newBetweens.add(s.sentence);
@@ -545,7 +540,7 @@ class ScoredSentence {
 	Sentence sentence;
 	double   score;
 	
-	public ScoredSentence(Sentence sentence, double score) {
+	ScoredSentence(Sentence sentence, double score) {
 		super();
 		this.sentence = sentence;
 		this.score    = score;
@@ -560,9 +555,7 @@ class ScoredSentenceComparator implements Comparator<ScoredSentence> {
 	public int compare(ScoredSentence one, ScoredSentence two) {
 		double sOne = one.score;
 		double sTwo = two.score;
-		
-		if (sOne < sTwo) { return -1; }
-		if (sOne > sTwo) { return  1; }
-		return 0;
+
+		return Double.compare(sOne, sTwo);
 	}
 }

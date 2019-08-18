@@ -13,7 +13,7 @@ import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * This class computes the AUC(ROC/PR) using http://mark.goadrich.com/programs/AUC/
  * Since this jar requires filename input and output, this class writes and reads files for
  * computing AUC.
@@ -28,12 +28,12 @@ public class ComputeAUC {
 	// TODO use a better(more complete) regex for floats
 	private static final String  PRPattern   = ".*Area Under the Curve for Precision - Recall is ([\\d\\.eE-]+).*";
 	private static final String  ROCPattern  = ".*Area Under the Curve for ROC is ([\\d\\.eE-]+).*";
-	public  static       String  defaultAUCjarLocation = "auc.jar";
+	private static       String  defaultAUCjarLocation = "auc.jar";
 	private String jarLocation = defaultAUCjarLocation;  // USE command line argument aucJarPath to provide a different jarLocation.
 	
 	private double ROC = Double.NaN;
 	private double PR  = Double.NaN;
-	private double CLL = Double.NaN;
+	private double CLL;
 	private double minRecallForPR = 0;
 	private StringBuffer outputFromAUC;
 	private String       aucFile                       = null;

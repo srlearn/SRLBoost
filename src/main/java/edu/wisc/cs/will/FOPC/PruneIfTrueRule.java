@@ -6,7 +6,7 @@ import edu.wisc.cs.will.ResThmProver.DefaultProof;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.Proof;
 
-/**
+/*
  *
  * @author twalker
  */

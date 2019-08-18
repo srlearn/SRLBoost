@@ -17,7 +17,7 @@ import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.VectorStatistics;
 
-/**
+/*
  * 
  * Class to store sampled world states for the hidden literals along with probability of each world state
  * @author tkhot
@@ -81,14 +81,14 @@ public class HiddenLiteralSamples {
 		return probDistr;
 	}
 
-	/**
+	/*
 	 * @return the worldStates
 	 */
 	public List<HiddenLiteralState> getWorldStates() {
 		return worldStates;
 	}
 
-	/**
+	/*
 	 * If the number of probabilities == 0  or less than number of world state
 	 * then the counters were not updated to probabilities using the number of 
 	 * samples.
@@ -183,7 +183,7 @@ public class HiddenLiteralSamples {
 		}
 	}
 	
-	/**
+	/*
 	 * Will pick the top k states with the highest state pseudo probabilities
 	 */
 	public void pickMostLikelyStates(int maxStates) {

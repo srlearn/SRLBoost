@@ -26,7 +26,7 @@ import edu.wisc.cs.will.Utils.LinkedMapOfSets;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.MapOfSets;
 
-/**
+/*
  * @author twalker
  */
 public class DuplicateDeterminateRemover {

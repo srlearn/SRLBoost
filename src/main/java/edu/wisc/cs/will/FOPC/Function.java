@@ -11,11 +11,10 @@ import java.util.Set;
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  */
-@SuppressWarnings("serial")
 public class Function extends Term implements LiteralOrFunction {
 	public  FunctionName functionName;
 	protected List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
@@ -48,18 +47,13 @@ public class Function extends Term implements LiteralOrFunction {
 	}
 
 	void clearArgumentNamesInPlace() {
-		clearArgumentNamesInPlace(true);
-	}
-	private void clearArgumentNamesInPlace(boolean removeNameArg) {
 		if (numberArgs() < 1) { return; }
 		if (argumentNames != null) {
 			List<String> argOrdering = functionName.getNamedArgOrdering(numberArgs());
-			
-			if (removeNameArg) {
-				if (argumentNames.get(0).equalsIgnoreCase("name")) {
-					removeArgument(arguments.get(0), argumentNames.get(0));
-				}
-			}			
+
+			if (argumentNames.get(0).equalsIgnoreCase("name")) {
+				removeArgument(arguments.get(0), argumentNames.get(0));
+			}
 
 			if (!(argOrdering == null)) {
 				List<Term> newArgs = new ArrayList<>(numberArgs());
@@ -134,7 +128,7 @@ public class Function extends Term implements LiteralOrFunction {
         return bindings;
     }
 
-	/** Would any variables in this function remain UNBOUND if this binding list were to be applied?
+	/* Would any variables in this function remain UNBOUND if this binding list were to be applied?
 	 */
     @Override
 	public boolean freeVariablesAfterSubstitution(BindingList theta) {
@@ -496,7 +490,7 @@ public class Function extends Term implements LiteralOrFunction {
 		return total;
 	}
 
-    /** Returns the function name as predicate and arity.
+    /* Returns the function name as predicate and arity.
      *
      * Technically, a function doesn't have predicate name, but
      * we convert of the function to the a predicate of the same

@@ -10,7 +10,7 @@ import edu.wisc.cs.will.Utils.Utils;
 // TODO implement code for dealing with CLOSED (ie, how to do equals)
 // TODO implement iterativeDeepening that works with ANY search
 
-/**
+/*
  * The specification of a state-based search task.
  * 
  * @param <T> Class of the search nodes.
@@ -47,7 +47,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     public int maxNodesToConsider = -1;
 
-    public int maxNodesToCreate = -1;
+    private int maxNodesToCreate = -1;
 
     public int maxSearchDepth = java.lang.Integer.MAX_VALUE;
 
@@ -65,7 +65,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     private int maxNodesToConsiderPerIteration = -1;
 
-    /**
+    /*
      * Allow, per iterative-deepening cycle or in a random-sampling search that
      * does some local heuristic search, a max on the number of nodes CREATED
      * (non-pos values mean infinity). The default is -1.
@@ -110,7 +110,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
     public    int          nodesNotAddedToOPENsinceMaxScoreTooLow                = 0;
     public    int          nodesRemovedFromOPENsinceMaxScoreNowTooLow            = 0;
 	
-    /**
+    /*
      * Default constructor. Does nothing.
      */
     public StateBasedSearchTask() {
@@ -467,9 +467,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
             	if (verbosity > 2) { Utils.println("  task=" + taskName + ";  |open| = " + open.size() + ";  done=" + done + "; continueTheSearch=" + continueTheSearch + "."); } // "; node = " + lastNodeVisited); }
             } 
         }
-        SearchResult result = searchMonitor.getSearchResult(); // Return whatever was saved by the search monitor.
-
-        return result;
+        return searchMonitor.getSearchResult();
     }
 
     public void setMaximumClockTimePerIterationInMillisec(long maximumClockTimePerIterationInMilliseconds) {

@@ -7,7 +7,7 @@ import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 
-/**
+/*
  * @author twalker
  */
 public class SentencePruner {

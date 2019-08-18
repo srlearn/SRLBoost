@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 
-/** A Map that maps Keys to List of values.
+/* A Map that maps Keys to List of values.
  *
  * Each key can be mapped to a list of values.
  *
@@ -24,7 +24,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
     public MapOfLists() {
     }
 
-    /**
+    /*
      * Returns the number of Key entries in the map.
      */
     public int size() {

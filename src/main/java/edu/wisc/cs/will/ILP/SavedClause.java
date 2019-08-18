@@ -6,12 +6,11 @@ import java.util.Set;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  *  An entry in a Gleaner.
  */
-@SuppressWarnings("serial")
 public class SavedClause implements Serializable {
 	long nodeCountWhenSaved;
 	long acceptableNodeCountWhenSaved;

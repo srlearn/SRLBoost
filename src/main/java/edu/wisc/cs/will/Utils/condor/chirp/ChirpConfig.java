@@ -6,7 +6,7 @@ import java.util.StringTokenizer;
 
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 
-/**
+/*
 ChirpConfig represents the client configuration information needed
 for a Chirp connection.  The constructor parses a configuration
 file for a host, port, and cookie.  Inspector methods simply return
@@ -18,7 +18,7 @@ class ChirpConfig {
 	private String host, cookie;
 	private int port;
 
-	/**
+	/*
 	 * Load configuration data from a file.
 	 * @param filename The name of the file.
 	 */
@@ -32,21 +32,21 @@ class ChirpConfig {
 		cookie = st.nextToken();
 	}
 
-	/**
+	/*
 	 * @return The name of the server host.
 	 */
 	String getHost() {
 		return host;
 	}
 
-	/**
+	/*
 	 * @return The port on which the server is listening.
 	 */
 	int getPort() {
 		return port;
 	}
 
-	/**
+	/*
 	@return The cookie expected by the server.
 	*/
 	String getCookie() {

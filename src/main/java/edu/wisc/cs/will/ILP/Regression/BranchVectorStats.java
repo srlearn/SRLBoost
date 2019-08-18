@@ -1,36 +1,24 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP.Regression;
 
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.VectorStatistics;
 
-/**
+/*
  * @author tkhot
  *
  */
 public class BranchVectorStats extends BranchStats {
 
-	
-	protected double[] sumOfOutputAndNumGroundingVec = null;
-	
-	protected boolean useZeroVector = false;
-	/**
-	 * 
-	 */
-	public BranchVectorStats() {
-		// TODO Auto-generated constructor stub
+	private double[] sumOfOutputAndNumGroundingVec = null;
+
+	BranchVectorStats() {
 	}
 
-	
-	public void addNumVectorOutput(long num, double[] output, double weight,double prob) {
+	void addNumVectorOutput(long num, double[] output, double weight) {
 		
-		double deno   = prob * (1-prob);
-        if (deno < 0.1) {
-        	deno = 0.1; 
-        }
-        if (sumOfOutputAndNumGroundingVec == null) {
+		double deno;
+		deno = 0.1;
+		if (sumOfOutputAndNumGroundingVec == null) {
         	sumOfOutputAndNumGroundingVec = new double[output.length];
         	// the default value is zero, but don't want to miss it
         	// Faster than filling the array with 0's
@@ -76,11 +64,8 @@ public class BranchVectorStats extends BranchStats {
 		
 		return newVecStats;
 	}
-	public double[] getLambdaVector(boolean useProbWeights) {
-		
-		if (useZeroVector) {
-			return new double[sumOfOutputAndNumGroundingVec.length];
-		}
+	double[] getLambdaVector() {
+
 		if (sumOfNumGroundingSquared == 0) {
 			return new double[sumOfOutputAndNumGroundingVec.length];
 		}
@@ -90,20 +75,8 @@ public class BranchVectorStats extends BranchStats {
 		}
 		double[] lambda =  VectorStatistics.scalarProduct(sumOfOutputAndNumGroundingVec, 
 				1/sumOfNumGroundingSquared);
-		if (useProbWeights) {
-			lambda = VectorStatistics.scalarProduct(sumOfOutputAndNumGroundingVec,
-					1/sumOfNumGroundingSquaredWithProb);
-		}
-		
-		//if (lambda == 0) {
-		//	Utils.println(this.toAttrString());
-		//}
 		return lambda;
 	}
-	
-	public void setZeroLambda() {
-		useZeroVector = true;
-	}
-	
-	
+
+
 }

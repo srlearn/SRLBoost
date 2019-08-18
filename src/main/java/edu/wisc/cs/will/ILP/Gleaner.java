@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.ILP;
 
 import java.io.FileNotFoundException;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
@@ -23,10 +22,9 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
+import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 
-
-
-/**
+/*
  * Gleaner maintains the best clause (per 'marker') in each bin of recall ranges.
  * See M. Goadrich, L. Oliphant, & J. Shavlik (2006), 
  * Gleaner: Creating Ensembles of First-Order Clauses to Improve Recall-Precision Curves. 
@@ -35,35 +33,29 @@ import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
  * 
  * @author shavlik
  */
-@SuppressWarnings("serial")
-public class Gleaner extends SearchMonitor implements Serializable {    
-    private             String  standardExtension   = Utils.defaultFileExtension;
-    /**
+public class Gleaner extends SearchMonitor implements Serializable {
+	/*
      * File extension to add to files to be consumed by RuleSetVisualizer 
      * (See package edu.wisc.edu.rulesetvisualizer in MachineReading project.)
      */
-    public static final String  ruleSetVisualizerFileExtension = "viz";
-    private             String  structuredExtension = ruleSetVisualizerFileExtension;
-    private             boolean useStructuredOutput = false; // This flag, if true, causes the output to be structured rather than freeform human-readable text
+    private static final String  ruleSetVisualizerFileExtension = "viz";
+	private             boolean useStructuredOutput = false; // This flag, if true, causes the output to be structured rather than freeform human-readable text
     // Structured output is readable by RuleSetVisualizer (edu.wisc.cs.will.rulesetvisualizer pkg in MachineReading) - cth
     
-	public  SingleClauseNode bestNode  = null;  // Also keep track of the best node.  (Maybe this should be a subclass of MonitorILPsearch?  For now, let these evolve separately.
-	public  double           bestScore = Double.NEGATIVE_INFINITY;
-	public  SingleClauseNode bestNodeRegardless  = null;
-	public  double           bestScoreRegardless = Double.NEGATIVE_INFINITY;
+	SingleClauseNode bestNode  = null;  // Also keep track of the best node.  (Maybe this should be a subclass of MonitorILPsearch?  For now, let these evolve separately.
+	private double           bestScore = Double.NEGATIVE_INFINITY;
+	SingleClauseNode bestNodeRegardless  = null;
+	double           bestScoreRegardless = Double.NEGATIVE_INFINITY;
 	public  int       reportingPeriod;  // Report statistics every this many node expansions.
-	
-	public  boolean   addToGleanerEvenIfUnacceptableAsBestClause = false;	
-	public  boolean   markGleanersByAnnotationForCurrentRun      = true; // Set to false to reduce the number of gleaners.
-	
+
 	transient public  HandleFOPCstrings       stringHandler;
 	          private ILPouterLoop            ilpOuterLooper; // Trevor - I (JWS) didnt know if this should be transient.  TODO
     transient private GleanerFileNameProvider fileNameProvider;
     
-    public  int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
-    public  int    reportUptoThisManyFalsePositives = 5;
-    public  double reportFalseNegativesIfRecallAtLeastThisHigh    = 0.8;
-    public  double reportFalsePositivesIfPrecisionAtLeastThisHigh = 0.8;
+    int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
+    int    reportUptoThisManyFalsePositives = 5;
+	private  double reportFalseNegativesIfRecallAtLeastThisHigh    = 0.8;
+	private  double reportFalsePositivesIfPrecisionAtLeastThisHigh = 0.8;
     
 	
 	private final String defaultMarker = "allPossibleMarkers";
@@ -82,24 +74,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	private long     lastReported_addsToGlobalGleaner  = 0;
 	private long     lastReported_addsToCurrentGleaner = 0;
 
-   /*
-    *  RestoreGleaner(HandleFOPCstrings, Parser parser) method:
-    *  false if not cached,
-    * true if gleaner was cached...
-    *
-    *  For each sub-gleaners:
-    *        Save list of pos seeds and list of neg seeds
-    *
-    *  For Gleaner:
-    *
-    *
-    * Mechanism to mark with sub-gleaner.  Only record finish gleaners.
-    *
-    * Just record as text and use parse to parse...
-    */
-
-	
-	
 	public Gleaner() {
 		this(null, null, null, 5000);
 	}
@@ -125,7 +99,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		this.stringHandler = stringHandler;
 	}
 	
-	/**
+	/*
 	 * Save the state of an ILP run so it can later be restarted.
 	 * 
 	 * If running RRR, just need to save the contents of the Gleaner bins and the number of random restarts tried.
@@ -136,28 +110,17 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	 * Plus need to save the number of outer loop cycles completed and the positive and negative seeds used so far.
 	 * 
 	 */
-	public void checkpoint(String checkpointFileName) {
-		//boolean doingRRR = innerLoop.performRRRsearch;
-		
+	public void checkpoint() {
+		// TODO(@hayesall): `Gleaner.checkpoint()` should be removed.
 	}
-	public void checkpointRRR() {
-		
-	}
-	
-	/**
-	 *  Read the saved state, if it exists.
-	 */
-	public void readCheckpoint(String checkpointFileName, ILPouterLoop outerLoop, LearnOneClause innerLoop) {
-		
-	}
-	
+
+
 	public void clearAnySavedInformation(boolean withinInterativeDeepening) {
 		// Do NOT clear the Gleaner's when this is called, since we want them to persist across searches.
 		// Users can always create a new marker if they want a fresh Gleaner.
-		return;
 	}
 	
-	protected void clearBestNode() { // Might want to clear this, e.g., each ILP outer loop clears this so that the bestNode PER inner loop can be found.
+	void clearBestNode() { // Might want to clear this, e.g., each ILP outer loop clears this so that the bestNode PER inner loop can be found.
 		bestNode              = null;
 		bestScore             = Double.NEGATIVE_INFINITY;
 		bestScoreRegardless   = Double.NEGATIVE_INFINITY;
@@ -174,24 +137,19 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	// The general-purpose search code calls this when each node is scored.
 	// Return FALSE if this node should NOT be added to OPEN, otherwise return true.
 	public boolean recordNodeBeingScored(SearchNode nodeBeingCreated, double score) throws SearchInterrupted {
-		SingleClauseNode clause = (SingleClauseNode) nodeBeingCreated; // Utils.println("recordNodeBeingScored (score = " + Utils.truncate(score, 3) + "): " + clause);
+		SingleClauseNode clause = (SingleClauseNode) nodeBeingCreated;
 		LearnOneClause     task = (LearnOneClause)   getTaskBeingMonitored();
-		boolean      acceptable = true;		
-		
+
 		// Keep track of the best score, even if it isn't acceptable (e.g., we can then see the closest acceptable score ...).
 		if (score > bestScoreRegardless) {
 			bestScoreRegardless = score;
 			bestNodeRegardless  = clause;
 		}
-		
-		// if (nodeBeingCreated instanceof SingleClauseRootNode) { Utils.println("***** Gleaner: Scoring root note: " + nodeBeingCreated); }
-		// Utils.println("***** Gleaner: Scoring note: " + nodeBeingCreated);
-		
+
 		nodeCounterAll++;
 		if (LearnOneClause.debugLevel > 0 && nodeCounterAll % reportingPeriod == 0) { reportSearchStats(); }
 		
 		// Previously this was done when scoring a node timed out in computeCoverage(); we didn't want to report anything in such cases.
-		//if (!Utils.diffDoubles(0.0, clause.posCoverage) && !Utils.diffDoubles(0.0, clause.negCoverage)) { 
 		if (clause.timedOut) { // Incompletely scored nodes should be ignored.
 			if (LearnOneClause.debugLevel > 0) { Utils.println("% Ignored because an incompletely scored node due to a timeout: " + clause); }
 			return false;
@@ -199,56 +157,34 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		
 		if (clause.getPosCoverage() < 0 || clause.negCoverage < 0) { Utils.error("% Should not reach here with an unevaluated node: '" + nodeBeingCreated + "'."); }
 
-		if (acceptable && !clause.acceptableClauseExtraFilter(task)) {
-			acceptable = false;
-			if (!addToGleanerEvenIfUnacceptableAsBestClause) { 
-				if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to extra-filter test: " + clause); }
-				return false; // Unacceptable according to user-provided acceptability test.
-			}
+		if (!clause.acceptableClauseExtraFilter(task)) {
+			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to extra-filter test: " + clause); }
+			return false; // Unacceptable according to user-provided acceptability test.
 		}
-		if (acceptable && task.getMinPosCoverage() > 0 && clause.getPosCoverage() < task.getMinPosCoverage()) {
-			acceptable = false;  
-			if (!addToGleanerEvenIfUnacceptableAsBestClause) { 
-				if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to min pos coverage: " + Utils.truncate(clause.getPosCoverage(), 4) + " vs " + Utils.truncate(task.getMinPosCoverage(), 4) + "   " + clause); }
-				return false;  // Unacceptable recall.
-			}
+		if (task.getMinPosCoverage() > 0 && clause.getPosCoverage() < task.getMinPosCoverage()) {
+			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to min pos coverage: " + Utils.truncate(clause.getPosCoverage(), 4) + " vs " + Utils.truncate(task.getMinPosCoverage(), 4) + "   " + clause); }
+			return false;  // Unacceptable recall.
 		}
-		if (acceptable && task.getMaxNegCoverage() >= 0 && clause.negCoverage > task.getMaxNegCoverage()) {
-			acceptable = false;
-			if (!addToGleanerEvenIfUnacceptableAsBestClause) { 
-				if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to max neg coverage: " + Utils.truncate(clause.negCoverage, 4) + " vs " +  Utils.truncate(task.getMaxNegCoverage(),4) + "   " + clause); }
-				return false;  // Unacceptable coverage of negative examples (as a raw total).
-			}
+		if (task.getMaxNegCoverage() >= 0 && clause.negCoverage > task.getMaxNegCoverage()) {
+			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to max neg coverage: " + Utils.truncate(clause.negCoverage, 4) + " vs " +  Utils.truncate(task.getMaxNegCoverage(),4) + "   " + clause); }
+			return false;  // Unacceptable coverage of negative examples (as a raw total).
 		}
-		if (acceptable && task.getMinPrecision() > 0.0 && clause.precision() < task.getMinPrecision()) {
-			acceptable = false;
-			if (!addToGleanerEvenIfUnacceptableAsBestClause) { 
-				if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to minPrecision: " + Utils.truncate(clause.precision(), 4) + " vs " +  Utils.truncate(task.minPrecision, 4) + "   " + clause); }
-				return false;  // Unacceptable min precision.
-			}
+		if (task.getMinPrecision() > 0.0 && clause.precision() < task.getMinPrecision()) {
+			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to minPrecision: " + Utils.truncate(clause.precision(), 4) + " vs " +  Utils.truncate(task.minPrecision, 4) + "   " + clause); }
+			return false;  // Unacceptable min precision.
 		}
-		if (acceptable && task.maxRecall < 1.0 && clause.recall() > task.maxRecall) {
-			acceptable = false;
-			if (!addToGleanerEvenIfUnacceptableAsBestClause) { 	if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to maxPrecision: " + clause.precision() + " vs " +  task.maxRecall + "   " + clause); }
-				return false;  // Unacceptable max precision.
-			}
+		if (task.maxRecall < 1.0 && clause.recall() > task.maxRecall) {
+			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to maxPrecision: " + clause.precision() + " vs " +  task.maxRecall + "   " + clause); }
+			return false;  // Unacceptable max precision.
 		}
-		if (acceptable && task.regressionTask && clause == clause.getRootNode()) {
-			acceptable = false;
-			if (!addToGleanerEvenIfUnacceptableAsBestClause) { 
-				if (LearnOneClause.debugLevel > -1) { Utils.println("% Unacceptable due to being the root node."); }
-				return false;  // Unacceptable max precision.
-			}
+		if (task.regressionTask && clause == clause.getRootNode()) {
+			Utils.println("% Unacceptable due to being the root node.");
+			return false;  // Unacceptable max precision.
 		}
-		/*
-		Utils.println("For " + clause);
-		Utils.println("  posCoverage = " +  clause.posCoverage + ", minPosCov    = " + task.getMinPosCoverage());
-		Utils.println("  negCoverage = " +  clause.negCoverage + ", maxNegCov    = " + task.getMaxNegCoverage());
-		Utils.println("  precision   = " +  clause.precision() + ", minPrecision = " + task.minPrecision);
-		*/
+
 		// Add to current Gleaner and default Gleaner (if different), even if unacceptable (to do: separate thresholds for Gleaner and for the best overall?  Or too many parameters?).
 		SavedClause saver = new SavedClause(this, clause, nodeCounterAll, nodeCounterAcceptable, 
-											(ilpOuterLooper == null ? false : ilpOuterLooper.isFlipFlopPosAndNegExamples()), 
+											(ilpOuterLooper != null && ilpOuterLooper.isFlipFlopPosAndNegExamples()),
 											(ilpOuterLooper == null ? null  : ilpOuterLooper.getAnnotationForCurrentRun()),
 											currentMarker);
 		addToGleaner("default", defaultGleaner, saver, true);
@@ -257,24 +193,22 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		}
 		
 		// Keep track of the best clause overall, assuming it meets the acceptability criteria.
-		if (acceptable) {
-			if (LearnOneClause.debugLevel > 2) { Utils.println("% Acceptable (score = " + Utils.truncate(score, 4) + "): " + clause ); }
-			nodeCounterAcceptable++;
-			if (score > bestScore) {
-				bestScore = score;
-				bestNode  = clause;
-				changedAtThisNode = nodeCounterAll;
-				if (LearnOneClause.debugLevel > -1) { Utils.println("% Gleaner: New best node found (score = " + Utils.truncate(score, 6) + "): " + nodeBeingCreated); }
-			} else if (LearnOneClause.debugLevel > 1) {
-				Utils.println("Acceptable but did not beat the score of: " + Utils.truncate(bestScore, 4));
-			}
-			
+		if (LearnOneClause.debugLevel > 2) { Utils.println("% Acceptable (score = " + Utils.truncate(score, 4) + "): " + clause ); }
+		nodeCounterAcceptable++;
+		if (score > bestScore) {
+			bestScore = score;
+			bestNode  = clause;
+			changedAtThisNode = nodeCounterAll;
+			Utils.println("% Gleaner: New best node found (score = " + Utils.truncate(score, 6) + "): " + nodeBeingCreated);
+		} else if (LearnOneClause.debugLevel > 1) {
+			Utils.println("Acceptable but did not beat the score of: " + Utils.truncate(bestScore, 4));
 		}
-		return acceptable;
+
+		return true;
 	}
 	
 	private int countOfWarningsForInliners = 0; // Turn off reporting at the first 100.
-	protected Clause handleInlinersIfPossible(Clause cRaw) {
+	Clause handleInlinersIfPossible(Clause cRaw) {
 		if (cRaw == null) { return cRaw; }
 		Clause c = (Clause) stringHandler.renameAllVariables(cRaw);
 		if (ilpOuterLooper == null || ilpOuterLooper.innerLoopTask == null) { return c; }
@@ -286,7 +220,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		return c;
 	}
 
-	protected void reportSearchStats() {
+	private void reportSearchStats() {
 		Utils.print("% Gleaner has visited " + Utils.comma(nodeCounterAll) + " ILP clauses, of which " + Utils.comma(nodeCounterAcceptable) + " met the acceptability specs.");
 		if (addsToGlobalGleaner  > lastReported_addsToGlobalGleaner)  { 
 			Utils.print("\n%  Added " + addsToGlobalGleaner  + " clauses to the global gleaner." );
@@ -302,21 +236,19 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		}
 		else { Utils.println("  No change in best clause since last report."); }
 	}
-	
-	public Object getCurrentMarker() {
-		return currentMarker;
-	}	
-	public void setCurrentMarker(String markerRaw) {
-		String marker = markerRaw; 
-		
-		if (markGleanersByAnnotationForCurrentRun && markerRaw != defaultMarker && ilpOuterLooper != null) {	
-			if (marker == null) { marker = " "; } else if (!marker.trim().equals("")) { marker += ", "; }
+
+	void setCurrentMarker(String markerRaw) {
+		String marker = markerRaw;
+
+		// Set to false to reduce the number of gleaners.
+		if (!markerRaw.equals(defaultMarker) && ilpOuterLooper != null) {
+			if (!marker.trim().equals("")) { marker += ", "; }
 			marker += ilpOuterLooper.getAnnotationForCurrentRun();
 		}
 		currentGleaner = gleaners.get(marker);
 		
 		if (currentGleaner == null) { // See if we already have a gleaner of this type.  If not, create a new one.
-			currentGleaner = new HashMap<Integer,SavedClause>(8);
+			currentGleaner = new HashMap<>(8);
 			gleaners.put(marker, currentGleaner);
 			markerList.add(marker);
 			addsToCurrentGleaner              = 0;
@@ -325,11 +257,11 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		currentMarker = marker;
 	}
 	
-	protected final void resetAllMarkers() { // Be careful using this.  Might NOT want to clear between different "ILP outer loop" runs - instead, just use a new marker.
+	private void resetAllMarkers() { // Be careful using this.  Might NOT want to clear between different "ILP outer loop" runs - instead, just use a new marker.
 		currentGleaner = null;
 		defaultGleaner = null;
-		markerList     = new ArrayList<String>(8);
-		gleaners       = new HashMap<String,Map<Integer,SavedClause>>(8);
+		markerList     = new ArrayList<>(8);
+		gleaners       = new HashMap<>(8);
 		setCurrentMarker(defaultMarker); // Create the default Gleaner.
 		defaultGleaner = currentGleaner; // Hold on to the default - we keep the best of all clauses per bin in here.
 		addedAnItem    = false;
@@ -340,49 +272,9 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		addsToCurrentGleaner   =    0;
 		lastReported_addsToGlobalGleaner  = 0;
 		lastReported_addsToCurrentGleaner = 0;
-	}	
-	
-	public void reportStats() {
-		Utils.println("\n% Info on the Gleaner in use:"); 
-		Utils.println("%  |markerList|     = " + Utils.comma(markerList));
-		Utils.println("%  |gleaners|       = " + Utils.comma(gleaners));
-		long total = 0;
-		if (gleaners != null) for (String key : gleaners.keySet()) { total += Utils.getSizeSafely(gleaners.get(key)); }
-		Utils.println("%  |gleaners| total = " + Utils.comma(total));
-		Utils.println("%  |currentGleaner| = " + Utils.comma(currentGleaner));
-		Utils.println("%  |defaultGleaner| = " + Utils.comma(defaultGleaner));
 	}
-	
-	/* THESE NEED HASHMAPs, SO IF WANT TO USE, CHANGE FROM Map TO HashMap.
-	// Copy the entire gleaner data structure in case someone wants to use it directly,
-	@SuppressWarnings("unchecked")
-	protected Map<Object,Map<Integer,SingleClauseNode>> copyAllGleaners() {
-		if (gleaners == null) { return null; }
-		return (Map<Object,Map<Integer,SingleClauseNode>>) gleaners.clone();
-	}
-	
-	// Copy the current Gleaner.
-	@SuppressWarnings("unchecked")
-	protected  Map<Integer,SingleClauseNode> copyCurrentGleaner() {
-		if (gleaners == null) { return null; }
-		return (Map<Integer,SingleClauseNode>) currentGleaner.clone();
-	}
-	
-	// Copy the Gleaner that holds the best nodes over ALL markers.
-	@SuppressWarnings("unchecked")
-	protected Map<Integer,SingleClauseNode> copyOverallGleaner() {
-		if (gleaners == null) { return null; }
-		return (Map<Integer,SingleClauseNode>) defaultGleaner.clone();
-	}
-	*/
-	
-	// Allow the user to change the upper bounds.  E.g., no need for uniform width.
-	public void setRecallUpperBounds(double[] recallBinUpperBounds) {
-		if (!addedAnItem) { Utils.error("Cannot change the recall bin boundaries once Gleaner has started.  Consider calling resetAllMarkers()."); } // To do: attach the bounds to each Gleaner entry if this ability is needed. 
-		this.recallBinUpperBounds = recallBinUpperBounds;
-	}
-	
-	private void addToGleaner(String name, Map<Integer,SavedClause> gleaner, SavedClause saver, boolean theGlobalGleaner) throws SearchInterrupted {
+
+	private void addToGleaner(String name, Map<Integer,SavedClause> gleaner, SavedClause saver, boolean theGlobalGleaner) {
 		double  recall = saver.recall;
 		double  F1     = saver.F1; // Use the F1 score for defining best within a bin.
 		LearnOneClause  task = (LearnOneClause) getTaskBeingMonitored();
@@ -409,7 +301,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		if (!addedAnItem) { addedAnItem = true; }
 	}
 
-   public void dumpCurrentGleaner(LearnOneClause task) throws SearchInterrupted {
+   void dumpCurrentGleaner(LearnOneClause task) {
        // This is just my way of passing in the gleaner file name in a way that is
        // mutable when it changes on the outside...
        if ( fileNameProvider != null ) {
@@ -421,14 +313,15 @@ public class Gleaner extends SearchMonitor implements Serializable {
        }
    }
 	
-	public void dumpCurrentGleaner(String fileName, LearnOneClause task) throws SearchInterrupted {
+	void dumpCurrentGleaner(String fileName, LearnOneClause task) {
 		if (useStructuredOutput) {
 			// If structuredOutput is true, print a structured file format
 			// (not necessarily human-readable), to be read by RuleSetVisualizer.
-			dumpCurrentStructuredGleaner(fileName + "." + structuredExtension, task);
+			dumpCurrentStructuredGleaner(fileName + "." + ruleSetVisualizerFileExtension, task);
 		}
-		else if (true) { // TODO - if we want to allow this to be turned off, we can add a boolean instance variable.
+		else { // TODO - if we want to allow this to be turned off, we can add a boolean instance variable.
 			try {
+				String standardExtension = Utils.defaultFileExtension;
 				CondorFileOutputStream outStream = new CondorFileOutputStream(fileName + "." + standardExtension);
 				PrintStream            out       = new PrintStream(outStream); // No need for auto-flush.
 				
@@ -461,19 +354,19 @@ public class Gleaner extends SearchMonitor implements Serializable {
 					for (double upper : recallBinUpperBounds) {
 						SavedClause saved = thisGleaner.get(counter);
 						if (saved != null) { // Not all bins may have a clause.
-							String str2 = "// Best in (weighted) recall bin #" + counter + ", (" + lower + ", " + upper + "], from '" + saved.clauseCreator + "' and covering " 
-											+ Utils.truncate(saved.posCoverage) + " wgt'ed positive and "
-											+ Utils.truncate(saved.negCoverage) + " wgt'ed negative examples:\n"
-											+ "//    Wgt'ed recall = " + Utils.truncate(saved.recall, 3) + ", precision = " + Utils.truncate(saved.precision, 3) + ", and F1 = " + Utils.truncate(saved.F1, 3)
-											+ " - learned after " + Utils.comma(saved.nodeCountWhenSaved) + " total and " + Utils.comma(saved.acceptableNodeCountWhenSaved) + " acceptable nodes.  Node score = " + saved.score + "\n"
-											+ saved.ruleAsString
-											+ (saved.annotation != null  ? " // " + saved.annotation : "") + "\n"; // TODO - should call handleInlinersIfPossible when the instance is made, but the wasted time shouldn't matter too much.
+							StringBuilder str2 = new StringBuilder("// Best in (weighted) recall bin #" + counter + ", (" + lower + ", " + upper + "], from '" + saved.clauseCreator + "' and covering "
+									+ Utils.truncate(saved.posCoverage) + " wgt'ed positive and "
+									+ Utils.truncate(saved.negCoverage) + " wgt'ed negative examples:\n"
+									+ "//    Wgt'ed recall = " + Utils.truncate(saved.recall, 3) + ", precision = " + Utils.truncate(saved.precision, 3) + ", and F1 = " + Utils.truncate(saved.F1, 3)
+									+ " - learned after " + Utils.comma(saved.nodeCountWhenSaved) + " total and " + Utils.comma(saved.acceptableNodeCountWhenSaved) + " acceptable nodes.  Node score = " + saved.score + "\n"
+									+ saved.ruleAsString
+									+ (saved.annotation != null ? " // " + saved.annotation : "") + "\n"); // TODO - should call handleInlinersIfPossible when the instance is made, but the wasted time shouldn't matter too much.
 							if (reportUptoThisManyFalseNegatives > 0 &&  saved.recall >= reportFalseNegativesIfRecallAtLeastThisHigh) {
 								Set<Example> uncovered = saved.uncoveredPos;
 								if (uncovered != null) for (Example ex : uncovered) {
 									Term   annotationTerm = ex.getAnnotationTerm();
 									String annotationStr  = (annotationTerm == null ? ex.toPrettyString() : annotationTerm.toPrettyString());
-									str2 += "      /* FALSE NEG: " + annotationStr.replace("::", "\n                     ") + " */\n";
+									str2.append("      /* FALSE NEG: ").append(annotationStr.replace("::", "\n                     ")).append(" */\n");
 								}
 							}
 							if (reportUptoThisManyFalsePositives > 0 && saved.precision >= reportFalsePositivesIfPrecisionAtLeastThisHigh) {
@@ -481,11 +374,11 @@ public class Gleaner extends SearchMonitor implements Serializable {
 								if (covered != null) for (Example ex : covered) {
 									Term   annotationTerm = ex.getAnnotationTerm();
 									String annotationStr  = (annotationTerm == null ? ex.toPrettyString() : annotationTerm.toPrettyString());
-									str2 += "      /* FALSE POS: " + annotationStr.replace("::", "\n                     ") + " */\n";
+									str2.append("      /* FALSE POS: ").append(annotationStr.replace("::", "\n                     ")).append(" */\n");
 								}
 							}
 							out.println(str2);
-							if (LearnOneClause.debugLevel > 2) { Utils.println(str2); }
+							if (LearnOneClause.debugLevel > 2) { Utils.println(str2.toString()); }
 						}
 						counter ++;
 						lower = upper;
@@ -498,56 +391,13 @@ public class Gleaner extends SearchMonitor implements Serializable {
 				Utils.error("Unable to successfully open this file for writing: " + fileName + ".  Error message: " + e.getMessage());
 			}
 		}
-      // This is all done in the ILPOuterLoop now...
-//      // Attempt to dump the Gleaner checkpoint file also...
-//      fileName = fileName.replaceFirst("\\.[^\\.]*$", ""); // Remove current extension...
-//      fileName = fileName + ".chkpt";
-//
-//      ObjectOutputStream oos = null;
-//      try {
-//         oos = new ObjectOutputStream(new CondorFileOutputStream(fileName));
-//         oos.writeObject(this);
-//     } catch (IOException iOException) {
-//         iOException.printStackTrace();
-//			Utils.error("Unable to write Gleaner checkpoint file: " + fileName + ".  Error message: " + iOException.getClass().getCanonicalName() + ": " + iOException.getMessage());
-//     }
-//      finally {
-//          if ( oos != null ) try {
-//                oos.close();
-//            } catch (IOException ex) {
-//            }
-//      }
-//
-//      // Reread the gleaner cache here, just to make sure it is deserializable later...
-//      // This can be removed if you want, but it should be pretty quick.
-//      ILPObjectInputStream ois = null;
-//     try {
-//         // Try to read the gleaner back in...
-//         ois = new ILPObjectInputStream(new CondorFileInputStream(fileName), stringHandler, taskBeingMonitored);
-//         Gleaner g = (Gleaner) ois.readObject();
-//         Utils.println("Cached Gleaner Checkpoint re-read successfully.  You may want to remove this. (Gleaner.java:389)");
-//     } catch (IOException ex) {
-//         Utils.error("Unable to re-read Gleaner checkpoint file: " + fileName + ".  Error message: " + ex.getClass().getCanonicalName() + ": " + ex.getMessage());
-//     } catch (ClassNotFoundException ex) {
-//         Utils.error("Unable to re-read Gleaner checkpoint file: " + fileName + ".  Error message: " + ex.getClass().getCanonicalName() + ": " + ex.getMessage());
-//     }
-//      finally {
-//          if ( ois != null ) try {
-//                ois.close();
-//            } catch (IOException ex) {
-//            }
-//      }
-
 	}
 	
-	/**
-	 * dumps the current gleaner with a structured output, 
+	/*
+	 * dumps the current gleaner with a structured output,
 	 * not necessarily human readable, for use with RuleSetVisualizer
-	 * @param fileName output file name of structured gleaner file
-	 * @param task
-	 * @throws SearchInterrupted
 	 */
-	public void dumpCurrentStructuredGleaner(String fileName, LearnOneClause task) throws SearchInterrupted {
+	private void dumpCurrentStructuredGleaner(String fileName, LearnOneClause task) {
 		PrintStream      out ;
 		CondorFileOutputStream outStream ;
 		try {
@@ -645,17 +495,16 @@ public class Gleaner extends SearchMonitor implements Serializable {
 									
 									buffer.append("<falseNegative>\n<annotation>").append(annotationStr.replace("::", "\n")).append("</annotation>\n");
 									List<Term> arguments = ex.getArguments();
-									String fact = ex.predicateName.name + "(";
+									StringBuilder fact = new StringBuilder(ex.predicateName.name + "(");
 									if (arguments != null){
-										for (int i = 0; i < arguments.size(); i++) {
-											Term t = arguments.get(i);
+										for (Term t : arguments) {
 											if (t != null) {
 												buffer.append("<argument>").append(t.toString()).append("</argument>\n");
-												fact += t.toString() + ",";
+												fact.append(t.toString()).append(",");
 											}
 										}
 									}
-									buffer.append("<fact>").append(fact.toString().substring(0, fact.length() - 1)).append(")." + "</fact>\n");
+									buffer.append("<fact>").append(fact.substring(0, fact.length() - 1)).append(")." + "</fact>\n");
 									buffer.append("</falseNegative>\n");
 									
 								}
@@ -674,15 +523,14 @@ public class Gleaner extends SearchMonitor implements Serializable {
 								    buffer.append("<falsePositive>\n<annotation>").append(annotationStr.replace("::", "\n")).append("</annotation>\n");
 								    buffer.append("<predicateName>").append(ex.predicateName.name).append("</predicateName>\n");
 								List<Term> arguments = ex.getArguments();
-								String fact = ex.predicateName.name + "(";
+								StringBuilder fact = new StringBuilder(ex.predicateName.name + "(");
 								if (arguments != null){
-									for (int i = 0; i < arguments.size(); i++) {
-										Term t = arguments.get(i);
-											if (t != null) {
-												buffer.append("<argument>").append(t.toString()).append("</argument>\n");
-												fact += t.toString() + ",";
-											}
+									for (Term t : arguments) {
+										if (t != null) {
+											buffer.append("<argument>").append(t.toString()).append("</argument>\n");
+											fact.append(t.toString()).append(",");
 										}
+									}
 									}
 									buffer.append("<fact>").append(fact.toString().substring(0, fact.length() - 1)).append(")." + "</fact>\n");
 									buffer.append("</falsePositive>\n");
@@ -700,11 +548,11 @@ public class Gleaner extends SearchMonitor implements Serializable {
 					
 					counter ++;
 					lower = upper;
-				} // for (double upper : recallBinUpperBounds)
+				}
 				buffer.append("\n</gleaner>");
 				out.println(buffer.toString());
 				out.flush();
-			} // for (Object marker : markerList) 
+			}
 			out.println("\n</dataset>\n");
 		}
 		catch (FileNotFoundException e) {
@@ -723,14 +571,8 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		return counter; // If not found, return the last bin index plus 1.
 	}
 
-   /** Methods for reading a Object cached to disk.
-    *
-    * @param in
-    * @throws java.io.IOException
-    * @throws java.lang.ClassNotFoundException
-    */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        if ( in instanceof FOPCInputStream == false ) {
+        if (!(in instanceof FOPCInputStream)) {
             throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject input stream must support FOPCObjectInputStream interface");
         }
 
@@ -741,44 +583,20 @@ public class Gleaner extends SearchMonitor implements Serializable {
         this.setStringHandler(fOPCInputStream.getStringHandler());
     }
 
-    /**
-     * @return the fileNameProvider
-     */
-    public GleanerFileNameProvider getFileNameProvider() {
-        return fileNameProvider;
-    }
-
-    /**
-     * @param fileNameProvider the fileNameProvider to set
-     */
-    public void setFileNameProvider(GleanerFileNameProvider fileNameProvider) {
+	void setFileNameProvider(GleanerFileNameProvider fileNameProvider) {
         this.fileNameProvider = fileNameProvider;
     }
 
-	public ILPouterLoop getILPouterLooper() {
-		return ilpOuterLooper;
-	}
-
-	public void setILPouterLooper(ILPouterLoop ilpOuterLooper) {
-		// Utils.println("% Gleaner: setILPouterLooper for " + this + " to " + ilpOuterLooper);
+	void setILPouterLooper(ILPouterLoop ilpOuterLooper) {
 		this.ilpOuterLooper = ilpOuterLooper;
 	}
 
 
-	public void setUseStructuredOutput(boolean useStructuredOutput) {
+	void setUseStructuredOutput(boolean useStructuredOutput) {
 		this.useStructuredOutput = useStructuredOutput;
 	}
-	public boolean getUseStructuredOutput() {
+	boolean getUseStructuredOutput() {
 		return useStructuredOutput;
 	}
-/*
-	// Turn these on to add debugging.
-	public void recordNodeExpansion(SearchNode nodeBeingExpanded) {
-		Utils.println("%     recordNodeExpansion (#" + taskBeingMonitored.getNodesConsidered() + "): " + nodeBeingExpanded);
-	}
-	public void recordNodeCreation(SearchNode nodeBeingCreated) {
-		Utils.println("%     recordNodeCreation (#" + taskBeingMonitored.getNodesCreated()     + "): " + nodeBeingCreated);
-	}
-*/
 
 }

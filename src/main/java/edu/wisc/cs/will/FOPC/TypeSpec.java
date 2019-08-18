@@ -8,11 +8,10 @@ import edu.wisc.cs.will.Utils.Utils;
 import java.io.IOException;
 import java.io.Serializable;
 
-/**
+/*
  * @author shavlik
  * The material in this class is used in ILP and MLNs, though it can play a role in other logical-reasoning systems.
  */
-@SuppressWarnings("serial")
 public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // IMPORTANT NOTE: if adding more symbols here, also edit atTypeSpec() in the parser.
 
     private final static int unspecifiedMode = -1; // For use when modes aren't needed.
@@ -20,13 +19,13 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 	public final static int plusMode      = 1; // An 'input' argument (should be bound when the predicate or function containing this is called).
 	private final static int onceMode      = 2; // An 'input' argument that appears exactly ONCE in the clause SO FAR (can be reused later).
 	public final static int minusMode     = 3; // An 'output' argument - need not be bound.
-	public final static int novelMode     = 4; // An 'output' argument that is a NEW variable.
+	private final static int novelMode     = 4; // An 'output' argument that is a NEW variable.
 	private final static int constantMode  = 5; // An argument that should be a constant (i.e., not a variable).
 	private final static int thisValueMode = 6; // This SPECIFIC constant should fill this argument slot.
 	private final static int equalMode     = 7; // This variable must also appear in the body of a clause for that clause to be acceptable (otherwise, same as '+').
 	public final static int minusOrConstantMode =  8; // Means BOTH '-' and '#'.
 	private final static int plusOrConstantMode  =  9; // Means BOTH '+' and '#'.
-	public final static int novelOrConstantMode = 10; // Means BOTH '^' and '#' (currently this one has no single-character name
+	private final static int novelOrConstantMode = 10; // Means BOTH '^' and '#' (currently this one has no single-character name
 	private final static int starMode            = 11; // Look up the mode in the stringHandler.
 	private final static int notHeadVarMode  	= 12; // The variable shouldn't be in the head of the clause.
 
@@ -103,7 +102,7 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 		this.isaType = new Type(typeAsString, stringHandler);
 	}
 
-	/**
+	/*
          * Collect those type specifications that are for INPUT arguments. For
          * the other arguments, use 'null' (this way two different
          * specifications such as '(+human,-human,+dog)' and
@@ -308,13 +307,9 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 		return 0;
 	}
 
-	public TypeSpec copy(boolean recursiveCopy) {
+	public TypeSpec copy() {
 		return clone();
 	}
-
-    public TypeSpec copy() {
-        return clone();
-    }
 
     protected TypeSpec clone() {
         try {

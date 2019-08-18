@@ -1,8 +1,6 @@
 package edu.wisc.cs.will.ILP;
 
 import java.io.File;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -10,42 +8,38 @@ import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+import edu.wisc.cs.will.Utils.condor.CondorFile;
+import edu.wisc.cs.will.Utils.Utils;
 
-/**
- *
+/*
  * @author twalker
  */
 public final class ILPMain {
 
-    public ILPouterLoop outerLooper;
-
-    private LearnOneClause learnOneClause;
+    private ILPouterLoop outerLooper;
 
     public HornClauseContext context;
 
-    public int numberOfFolds = 1;
+    private int numberOfFolds = 1;
 
     public String directory;
 
     public String prefix = null;
 
-    public int firstFold = 0;
+    private int firstFold = 0;
 
-    public int lastFold = -1;
+    private int lastFold = -1;
 
-    public boolean checkpointEnabled = false;
+    private boolean checkpointEnabled = false;
 
-    public boolean useRRR = false;
+    private boolean useRRR = false;
 
-    public boolean flipFlopPosNeg = false;
+    private boolean flipFlopPosNeg = false;
 
-    public String fileExtension = Utils.defaultFileExtension;
+    private String fileExtension = Utils.defaultFileExtension;
 
-    boolean useOnion = true;
-
-    public Boolean relevanceEnabled = true;
+    private Boolean relevanceEnabled = true;
 
     private static final String testBedsPrefix = "../Testbeds/"; // But DO include the backslash here.
 
@@ -59,9 +53,10 @@ public final class ILPMain {
 
         processFlagArguments(args);
 
+        // TODO(@hayesall): Is the *same* random seed supposed to be used every time?
         Utils.seedRandom(12345);
 
-        if (Utils.isVerbositySet() == false) {
+        if (!Utils.isVerbositySet()) {
             Utils.setVerbosity(defaultVerbosity);
         }
 
@@ -86,10 +81,8 @@ public final class ILPMain {
         }
 
         Utils.createDribbleFile(directory + "/" + prefix + "_dribble" + (useRRR ? "_rrr" : "") + (flipFlopPosNeg ? "_flipFlopped" : "") + (partialRun ? "_fold" + firstFold + "to" + lastFold : "") + "." + fileExtension);
-        //	Utils.waitHere(directory + prefix + "_dribble" + (useRRR ? "_rrr" : "") + (flipFlopPosNeg ? "_flipFlopped" : "") + (partialRun ? "_fold" + firstFold + "to" + lastFold : "" ) + "." + fileExtension);
 
         try {
-            //	HandleFOPCstrings stringHandler = new HandleFOPCstrings(lowerCaseMeansVariable);
             if (context == null) {
                 context = new DefaultHornClauseContext();
             }
@@ -149,21 +142,14 @@ public final class ILPMain {
             }
             else if (args[arg].startsWith("-maxTime=")) {
                 int i = Integer.parseInt(args[arg].substring(args[arg].indexOf("=") + 1));
-                if (i <= 0) {
-                }
-                else {
-                }
             }
             else if (args[arg].startsWith("useOnion") || args[arg].equalsIgnoreCase("-useOnion")) {
-                useOnion = true;
             }
             else if (args[arg].startsWith("onion") || args[arg].equalsIgnoreCase("-onion")) {
-                useOnion = true;
             }
             else if (args[arg].startsWith("noonion") || args[arg].startsWith("noOnion") || args[arg].equalsIgnoreCase("-noOnion")) {
-                useOnion = false;
             }
-            else if (args[arg].startsWith("-") == false) {
+            else if (!args[arg].startsWith("-")) {
                 fileExtension = args[1];
             }
             else {
@@ -176,10 +162,10 @@ public final class ILPMain {
         // LearnOnClause performs the inner loop of ILP.
         directory = args[0];
         File dir = new CondorFile(directory);
-        if (dir.isDirectory() == false) {
+        if (!dir.isDirectory()) {
             dir = new CondorFile(testBedsPrefix + directory);
         }
-        if (dir.isDirectory() == false) {
+        if (!dir.isDirectory()) {
             throw new IllegalArgumentException("Unable to find problem directory '" + directory + "'.");
         }
         directory = dir.getPath();
@@ -194,8 +180,6 @@ public final class ILPMain {
     private void setupParameters() {
         Gleaner gleaner = (Gleaner) getLearnOneClause().searchMonitor;
         outerLooper.writeGleanerFilesToDisk = true;
-        //		if (args.length > 3) { getLearnOneClause().setMinPosCoverage(Double.parseDouble(args[3])); }
-        //		if (args.length > 4) { getLearnOneClause().setMinPrecision(  Double.parseDouble(args[4]));   }
         // Set some additional parameters for the inner-loop runs.
         getLearnOneClause().setMaxNodesToConsider(10000); // <-----------------------
         getLearnOneClause().setMaxNodesToCreate(100000);
@@ -217,7 +201,6 @@ public final class ILPMain {
         getLearnOneClause().setMEstimateNeg(0.01); // <-----------------------
         gleaner.reportingPeriod = 1000;
         outerLooper.setMinPrecisionOfAcceptableClause(0.5);// <-----------------------
-        //outerLooper.initialize(false); // We want to initialize this as late assert possible.
         outerLooper.setCheckpointEnabled(checkpointEnabled);
         getLearnOneClause().setDumpGleanerEveryNexpansions(1000);
     }
@@ -252,17 +235,15 @@ public final class ILPMain {
         return context;
     }
 
-    public boolean isRelevanceEnabled() {
+    private boolean isRelevanceEnabled() {
         return relevanceEnabled == null ? getRelevanceFile().exists() : relevanceEnabled;
     }
 
-    public File getRelevanceFile() {
-        File relevanceFile = new CondorFile(directory + "/" + prefix + "_bkRel." + fileExtension);
-
-        return relevanceFile;
+    private File getRelevanceFile() {
+        return new CondorFile(directory + "/" + prefix + "_bkRel." + fileExtension);
     }
 
-    public LearnOneClause getLearnOneClause() {
+    private LearnOneClause getLearnOneClause() {
         return outerLooper.innerLoopTask;
     }
 

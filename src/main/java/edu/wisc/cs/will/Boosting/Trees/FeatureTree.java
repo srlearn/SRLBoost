@@ -9,7 +9,7 @@ import edu.wisc.cs.will.FOPC.Theory;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author tkhot
  */
 public class FeatureTree extends ClauseBasedTree {

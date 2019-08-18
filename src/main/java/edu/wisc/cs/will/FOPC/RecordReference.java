@@ -2,25 +2,24 @@ package edu.wisc.cs.will.FOPC;
 
 //Written by Trevor Walker.
 
-@SuppressWarnings("serial")
 public class RecordReference extends Constant {
 
 	protected String key;
 	RecordEntry recordEntry;
 	
-	/** Index to provide nice printing and debugging.
+	/* Index to provide nice printing and debugging.
 	 * 
 	 * This index can be removed if memory becomes important.
 	 */
 	protected int index;
 	
-	/** Index counter to assign each Reference a unique index.
+	/* Index counter to assign each Reference a unique index.
 	 * 
 	 * Can be remove along with index if desired.
 	 */
 	private static int nextDBIndex = 0; 
 	
-	/** Creator for weak references.
+	/* Creator for weak references.
 	 * 
 	 * These should not be created directly.  The RecordReferenceMap
 	 * should be used to obtain canonical references to the appropriate

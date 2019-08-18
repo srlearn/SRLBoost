@@ -8,7 +8,7 @@ import java.util.Map;
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 
-/** This is an index of definite clauses (either Clauses or Literal or a mix of both) indexed on the predicateName and arity.
+/* This is an index of definite clauses (either Clauses or Literal or a mix of both) indexed on the predicateName and arity.
  *
  * @param <T> Type of object to be indexed.
  *

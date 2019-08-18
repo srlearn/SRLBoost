@@ -1,21 +1,16 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.Utils.Permute;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
+import edu.wisc.cs.will.DataSetUtils.Example;
+import edu.wisc.cs.will.Utils.Permute;
+
+/*
  * @author twalker
  */
-@SuppressWarnings("serial")
-public class CrossValidationExampleSets implements Serializable{
+class CrossValidationExampleSets implements Serializable{
 
     private int numberOfFolds = -1; // Initialize to illegal value so we know it has been set.
 
@@ -23,7 +18,7 @@ public class CrossValidationExampleSets implements Serializable{
 
     private List<Example> allNegativeExamples;
 
-    protected boolean foldsInitialized = false;
+    boolean foldsInitialized = false;
 
     // Arrays of lists holding the various examples indecies.
     // There is one List for each exampleType for each fold.
@@ -31,18 +26,18 @@ public class CrossValidationExampleSets implements Serializable{
     // the ones in the allPositiveExamples/allNegativeExamples lists.
     // I don't think bad things will happen if they aren't,
     // but we might get some odd behavior.
-    private List<Example> positiveTrainingExamplesForFolds[];
+    private List<Example>[] positiveTrainingExamplesForFolds;
 
-    private List<Example> negativeTrainingExamplesForFolds[];
+    private List<Example>[] negativeTrainingExamplesForFolds;
 
-    private List<Example> positiveTestingExamplesForFolds[];
+    private List<Example>[] positiveTestingExamplesForFolds;
 
-    private List<Example> negativeEvaluationExamplesForFolds[];
+    private List<Example>[] negativeEvaluationExamplesForFolds;
 
     private boolean flipFlopPositiveitiveAndNegativeativeExamples = false;
 
 
-    /** Creates an ILPExampleCollection for <code>numberOfFolds</code> folds.
+    /* Creates an ILPExampleCollection for <code>numberOfFolds</code> folds.
      *
      * This will create an example collection for numberOfFolds folds.  Since
      * no examples are provided, the fold data structures will not be populated
@@ -51,11 +46,11 @@ public class CrossValidationExampleSets implements Serializable{
      *
      * @param numberOfFolds Number of Folds in the collection.
      */
-    public CrossValidationExampleSets(int numberOfFolds) {
+    CrossValidationExampleSets(int numberOfFolds) {
         setNumberOfFolds(numberOfFolds);
     }
 
-    /** Creates an ILPExampleCollection for <code>numberOfFolds</code> folds with the provided examples.
+    /* Creates an ILPExampleCollection for <code>numberOfFolds</code> folds with the provided examples.
      *
      * This method will create copies of the provided example lists, randomly permute the examples
      * and then build all of the fold data structures.
@@ -64,7 +59,7 @@ public class CrossValidationExampleSets implements Serializable{
      * @param allPositiveExamples List of all positiveitive examples.  This list will be copied.
      * @param allNegativeExamples List of all negativeative examples.  This list will be copied.
      */
-    public CrossValidationExampleSets(int numberOfFolds, List<Example> allPositiveExamples, List<Example> allNegativeExamples) {
+    CrossValidationExampleSets(int numberOfFolds, List<Example> allPositiveExamples, List<Example> allNegativeExamples) {
         setNumberOfFolds(numberOfFolds);
         setAllPositiveExamples(allPositiveExamples);
         setAllNegativeExamples(allNegativeExamples);
@@ -76,7 +71,7 @@ public class CrossValidationExampleSets implements Serializable{
         createFoldData();
     }
 
-    /** Checks to make sure that the two state objects belong to the same search.
+    /* Checks to make sure that the two state objects belong to the same search.
      *
      * When loading checkpoint information, we need to make sure that the state
      * information saved to disk belongs to the same ILP run as the one currently
@@ -87,11 +82,8 @@ public class CrossValidationExampleSets implements Serializable{
      *
      * This code resembled equals code and performs approximately the same function.
      * However, I renamed it to make it explicit what it is doing.
-     *
-     * @param savedExampleSets
-     * @throws IncongruentSavedStateException
      */
-    protected void checkStateCongruency(CrossValidationExampleSets savedExampleSets) throws IncongruentSavedStateException {
+    void checkStateCongruency(CrossValidationExampleSets savedExampleSets) throws IncongruentSavedStateException {
 
         // It is okay for the other set to be null.  That just means it wasn't initialized,
         // so it can definitely be replaced by an initialized one.
@@ -103,11 +95,11 @@ public class CrossValidationExampleSets implements Serializable{
                     "Expected = " + numberOfFolds + ".  Found = " + savedExampleSets.numberOfFolds + ".");
         }
 
-        if ( allPositiveExamples != savedExampleSets.allPositiveExamples && ( allPositiveExamples == null || allPositiveExamples.equals(savedExampleSets.allPositiveExamples)) == false ) {
+        if ( allPositiveExamples != savedExampleSets.allPositiveExamples && !(allPositiveExamples == null || allPositiveExamples.equals(savedExampleSets.allPositiveExamples))) {
             throw new IncongruentSavedStateException("Saved ILPCrossValidationExampleSets positiveitive examples not equivalent.");
         }
 
-        if ( allNegativeExamples != savedExampleSets.allNegativeExamples && ( allNegativeExamples == null || allNegativeExamples.equals(savedExampleSets.allNegativeExamples)) == false ) {
+        if ( allNegativeExamples != savedExampleSets.allNegativeExamples && !(allNegativeExamples == null || allNegativeExamples.equals(savedExampleSets.allNegativeExamples))) {
             throw new IncongruentSavedStateException("Saved ILPCrossValidationExampleSets negativeative examples not equivalent.");
         }
 
@@ -119,40 +111,39 @@ public class CrossValidationExampleSets implements Serializable{
             list1 = getPositiveTrainingExamplesForFold(i);
             list2 = savedExampleSets.getPositiveTrainingExamplesForFold(i);
 
-            if ( list1 != list2 && ( list1 == null || list1.equals(list2)) == false ) {
+            if ( list1 != list2 && !(list1 == null || list1.equals(list2))) {
                 throw new IncongruentSavedStateException("Saved ILPCrossValidationExampleSets positiveitive training examples for fold " + i + " are not equivalent.");
             }
 
             list1 = getNegativeTrainingExamplesForFold(i);
             list2 = savedExampleSets.getNegativeTrainingExamplesForFold(i);
 
-            if ( list1 != list2 && ( list1 == null || list1.equals(list2)) == false ) {
+            if ( list1 != list2 && !(list1 == null || list1.equals(list2))) {
                 throw new IncongruentSavedStateException("Saved ILPCrossValidationExampleSets negativeative training examples for fold " + i + " are not equivalent.");
             }
 
             list1 = getPositiveEvaluationExamplesForFold(i);
             list2 = savedExampleSets.getPositiveEvaluationExamplesForFold(i);
 
-            if ( list1 != list2 && ( list1 == null || list1.equals(list2)) == false ) {
+            if ( list1 != list2 && !(list1 == null || list1.equals(list2))) {
                 throw new IncongruentSavedStateException("Saved ILPCrossValidationExampleSets positiveitive testing examples for fold " + i + " are not equivalent.");
             }
 
             list1 = getNegativeEvaluationExamplesForFold(i);
             list2 = savedExampleSets.getNegativeEvaluationExamplesForFold(i);
 
-            if ( list1 != list2 && ( list1 == null || list1.equals(list2)) == false ) {
+            if ( list1 != list2 && !(list1 == null || list1.equals(list2))) {
                 throw new IncongruentSavedStateException("Saved ILPCrossValidationExampleSets negativeative testing examples for fold " + i + " are not equivalent.");
             }
         }
 
     }
 
-    /** Permutes the positiveitive and negativeative examples.
-     * 
+    /* Permutes the positiveitive and negativeative examples.
      */
-    public final void permuteAllExamples() {
+    private void permuteAllExamples() {
 
-        if (foldsInitialized == true) {
+        if (foldsInitialized) {
             throw new IllegalStateException("The folds have already been created.  Examples can not be permuted afterwards.");
         }
 
@@ -165,26 +156,25 @@ public class CrossValidationExampleSets implements Serializable{
         }
     }
 
-    /** Creates the cross validation data sets.
+    /* Creates the cross validation data sets.
      *
      * ILPCrossValidationLoop could be subclasses to replace this method if you want a different
      * cross validation data set creation method.
-     *
      */
     private void createFoldData() {
 
-        if (foldsInitialized == true) {
+        if (foldsInitialized) {
             throw new IllegalStateException("The folds have already been created.  createFoldData should only be called once.");
         }
 
         foldsInitialized = true;
 
         for (int fold = 0; fold < getNumberOfFolds(); fold++) {
-            List<Example> foldPositiveitivesTrainingExamples = new ArrayList<Example>();
-            List<Example> foldPositiveitivesTestingExamples = new ArrayList<Example>();
+            List<Example> foldPositiveitivesTrainingExamples = new ArrayList<>();
+            List<Example> foldPositiveitivesTestingExamples = new ArrayList<>();
 
-            List<Example> foldNegativeativeTrainingExamples = new ArrayList<Example>();
-            List<Example> foldNegativeativeTestingExamples = new ArrayList<Example>();
+            List<Example> foldNegativeativeTrainingExamples = new ArrayList<>();
+            List<Example> foldNegativeativeTestingExamples = new ArrayList<>();
 
             if ( allPositiveExamples != null ) {
                 for (int i = 0; i < allPositiveExamples.size(); i++) {
@@ -215,17 +205,10 @@ public class CrossValidationExampleSets implements Serializable{
         }
     }
 
-    /**
-     * @return the numberOfFolds
-     */
-    public int getNumberOfFolds() {
+    int getNumberOfFolds() {
         return numberOfFolds;
     }
 
-    /**
-     * @param numberOfFolds the numberOfFolds to set
-     */
-    @SuppressWarnings("unchecked")
 	private void setNumberOfFolds(int numberOfFolds) {
 
         if (numberOfFolds <= 0) {
@@ -247,14 +230,11 @@ public class CrossValidationExampleSets implements Serializable{
         }
     }
 
-    /**
-     * @return the allPositiveExamples
-     */
-    public List<Example> getAllPositiveExamples() {
+    List<Example> getAllPositiveExamples() {
         return allPositiveExamples;
     }
 
-    /** Sets the List of all positiveitive examples.
+    /* Sets the List of all positiveitive examples.
      *
      * After the positiveitive and negativeative examples have been set,
      * the methods permuteAllExamples() can be used to
@@ -268,23 +248,20 @@ public class CrossValidationExampleSets implements Serializable{
      *
      * @param allPositiveExamples the allPositiveExamples to set
      */
-    public final void setAllPositiveExamples(List<Example> allPositiveExamples) {
+    final void setAllPositiveExamples(List<Example> allPositiveExamples) {
 
-        if (foldsInitialized == true) {
+        if (foldsInitialized) {
             throw new IllegalStateException("The folds have already been created.  Once created, the example sets should not be changed.");
         }
 
         this.allPositiveExamples = allPositiveExamples;
     }
 
-    /**
-     * @return the allNegativeExamples
-     */
-    public List<Example> getAllNegativeExamples() {
+    List<Example> getAllNegativeExamples() {
         return allNegativeExamples;
     }
 
-    /** Sets the List of all negativeative examples.
+    /* Sets the List of all negativeative examples.
      *
      * After the positiveitive and negativeative examples have been set,
      * the methods permuteAllExamples() can be used to
@@ -298,111 +275,91 @@ public class CrossValidationExampleSets implements Serializable{
      *
      * @param allNegativeExamples the allNegativeExamples to set
      */
-    public final void setAllNegativeExamples(List<Example> allNegativeExamples) {
+    final void setAllNegativeExamples(List<Example> allNegativeExamples) {
 
-        if (foldsInitialized == true) {
+        if (foldsInitialized) {
             throw new IllegalStateException("The folds have already been created.  Once created, the example sets should not be changed.");
         }
 
         this.allNegativeExamples = allNegativeExamples;
     }
 
-    /** Returns the NegativeTestingExamples for fold, positivesibly null if not set.
+    /* Returns the NegativeTestingExamples for fold, positivesibly null if not set.
      *
      * Note, that the list returned is the actual list, not a copy.
      * If you need to edit the list, please make a copy of it.
-     *
-     * @param fold
      * @return List of examples, null if examples are not set.
      */
-    public List<Example> getNegativeEvaluationExamplesForFold(int fold) {
+    List<Example> getNegativeEvaluationExamplesForFold(int fold) {
         return negativeEvaluationExamplesForFolds[fold];
     }
 
-    /** Sets the NegativeTestingExamples for fold, replacing the existing setting.
-     *
-     * @param fold
-     * @param negativeTestingExamplesForFolds
+    /* Sets the NegativeTestingExamples for fold, replacing the existing setting.
      */
-    public void setNegativeEvaluationExamplesForFold(int fold, List<Example> negativeTestingExamplesForFolds) {
+    void setNegativeEvaluationExamplesForFold(int fold, List<Example> negativeTestingExamplesForFolds) {
         foldsInitialized = true;
-        this.negativeEvaluationExamplesForFolds[fold] = new ArrayList<Example>(negativeTestingExamplesForFolds);
+        this.negativeEvaluationExamplesForFolds[fold] = new ArrayList<>(negativeTestingExamplesForFolds);
     }
 
-    /** Returns the NegativeTrainingExamples for fold, positivesibly null if not set.
+    /* Returns the NegativeTrainingExamples for fold, positivesibly null if not set.
      *
      * Note, that the list returned is the actual list, not a copy.
      * If you need to edit the list, please make a copy of it.
-     *
-     * @param fold
      * @return List of examples, null if examples are not set.
      */
-    public List<Example> getNegativeTrainingExamplesForFold(int fold) {
+    List<Example> getNegativeTrainingExamplesForFold(int fold) {
         return negativeTrainingExamplesForFolds[fold];
     }
 
-    /** Sets the NegativeTrainingExamples for Fold, replacing the existing setting.
-     *
-     * @param fold
-     * @param negativeTrainingExamplesForFolds
+    /* Sets the NegativeTrainingExamples for Fold, replacing the existing setting.
      */
-    public void setNegativeTrainingExamplesForFold(int fold, List<Example> negativeTrainingExamplesForFolds) {
+    void setNegativeTrainingExamplesForFold(int fold, List<Example> negativeTrainingExamplesForFolds) {
         foldsInitialized = true;
-        this.negativeTrainingExamplesForFolds[fold] = new ArrayList<Example>(negativeTrainingExamplesForFolds);
+        this.negativeTrainingExamplesForFolds[fold] = new ArrayList<>(negativeTrainingExamplesForFolds);
     }
 
-    /** Returns the PositiveTestingExamples for fold, positivesibly null if not set.
+    /* Returns the PositiveTestingExamples for fold, positivesibly null if not set.
      *
      * Note, that the list returned is the actual list, not a copy.
      * If you need to edit the list, please make a copy of it.
-     *
-     * @param fold
      * @return List of examples, null if examples are not set.
      */
-    public List<Example> getPositiveEvaluationExamplesForFold(int fold) {
+    List<Example> getPositiveEvaluationExamplesForFold(int fold) {
         return positiveTestingExamplesForFolds[fold];
     }
 
-    /** Sets the PositiveTestingExamples for Fold, replacing the existing setting.
-     *
-     * @param fold
-     * @param positiveTestingExamplesForFolds
+    /* Sets the PositiveTestingExamples for Fold, replacing the existing setting.
      */
-    public void setPositiveEvaluationExamplesForFold(int fold, List<Example> positiveTestingExamplesForFolds) {
+    void setPositiveEvaluationExamplesForFold(int fold, List<Example> positiveTestingExamplesForFolds) {
         foldsInitialized = true;
-        this.positiveTestingExamplesForFolds[fold] = new ArrayList<Example>(positiveTestingExamplesForFolds);
+        this.positiveTestingExamplesForFolds[fold] = new ArrayList<>(positiveTestingExamplesForFolds);
     }
 
-    /** Returns the PositiveTrainingExamples for fold, positivesibly null if not set.
+    /* Returns the PositiveTrainingExamples for fold, positivesibly null if not set.
      *
      * Note, that the list returned is the actual list, not a copy.
      * If you need to edit the list, please make a copy of it.
-     *
-     * @param fold
      * @return List of examples, null if examples are not set.
      */
-    public List<Example> getPositiveTrainingExamplesForFold(int fold) {
+    List<Example> getPositiveTrainingExamplesForFold(int fold) {
         return positiveTrainingExamplesForFolds[fold];
     }
 
-    /** Sets the PositiveTrainingExamples for Fold, replacing the existing setting.
-     *
-     * @param fold
-     * @param positiveTrainingExamplesForFolds
+    /* Sets the PositiveTrainingExamples for Fold, replacing the existing setting.
      */
-    public void setPositiveTrainingExamplesForFold(int fold, List<Example> positiveTrainingExamplesForFolds) {
+    void setPositiveTrainingExamplesForFold(int fold, List<Example> positiveTrainingExamplesForFolds) {
         foldsInitialized = true;
-        this.positiveTrainingExamplesForFolds[fold] = new ArrayList<Example>(positiveTrainingExamplesForFolds);
+        this.positiveTrainingExamplesForFolds[fold] = new ArrayList<>(positiveTrainingExamplesForFolds);
     }
 
-    /**
+    /*
      * @return the flipFlopPositiveitiveAndNegativeativeExamples
      */
-    public boolean getFlipFlopPositiveitiveAndNegativeativeExamples() {
+    boolean getFlipFlopPositiveitiveAndNegativeativeExamples() {
         return flipFlopPositiveitiveAndNegativeativeExamples;
     }
 
-    /** Flips the positiveitive and negativeative example sets.
+    /* Flips the positiveitive and negativeative example sets.
      *
      * If the new value is not the same as the current value, all positiveitive and negativeative
      * sets will be exchanged with their appropriate counterpart.
@@ -415,7 +372,7 @@ public class CrossValidationExampleSets implements Serializable{
      * @throws IllegalStateException If neither allPositiveExamples or allNegativeExamples are set, this method will throw an exception.
      * This is done to protect the user from setting flipFlopped to true and then incorrectly setting up the examples.
      */
-    public void setFlipFlopPositiveitiveAndNegativeativeExamples(boolean flipFlopPositiveitiveAndNegativeativeExamples) throws IllegalStateException{
+    void setFlipFlopPositiveitiveAndNegativeativeExamples(boolean flipFlopPositiveitiveAndNegativeativeExamples) throws IllegalStateException{
         if (this.flipFlopPositiveitiveAndNegativeativeExamples != flipFlopPositiveitiveAndNegativeativeExamples) {
 
             if ( allPositiveExamples == null && allNegativeExamples == null ) {

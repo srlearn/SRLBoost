@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * Keep an ordered list of search nodes being considered.
  * Method for inserting new items depends on the search strategy being used.
  * @author shavlik

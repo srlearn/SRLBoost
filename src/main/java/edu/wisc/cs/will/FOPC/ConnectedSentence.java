@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
@@ -9,22 +6,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  */
-@SuppressWarnings("serial")
 public class ConnectedSentence extends Sentence implements Serializable, Implication {
 	protected static final int debugLevel = 0;  // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-	protected Sentence       sentenceA;
-	protected Sentence       sentenceB; // If the connective = NOT, this first sentence is ignored (and should be set to null).
-	protected ConnectiveName connective;  // Should be one of "AND, OR, NOT, =>, <=>, etc" (case is ignored).
+	private Sentence       sentenceA;
+	Sentence       sentenceB; // If the connective = NOT, this first sentence is ignored (and should be set to null).
+	ConnectiveName connective;  // Should be one of "AND, OR, NOT, =>, <=>, etc" (case is ignored).
 	
-	/**
+	/*
 	 * A connected sentence is the combination of 
 	 *    (a) two sentences combined by a connective
 	 * or (b) a negated sentence.
@@ -72,8 +69,8 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 		Sentence newA = sentenceA;
 		Sentence newB = sentenceB;
 		if (recursiveCopy) {
-			newA = (sentenceA == null ? null : sentenceA.copy(recursiveCopy));
-			newB = (sentenceB == null ? null : sentenceB.copy(recursiveCopy));
+			newA = (sentenceA == null ? null : sentenceA.copy(true));
+			newB = (sentenceB == null ? null : sentenceB.copy(true));
 		}
 		return (ConnectedSentence) stringHandler.getConnectedSentence(newA, connective, newB).setWeightOnSentence(wgtSentence);
 	}
@@ -83,8 +80,8 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 		Sentence newA = sentenceA;
 		Sentence newB = sentenceB;
 		if (recursiveCopy) {
-			newA = (sentenceA == null ? null : sentenceA.copy2(recursiveCopy, bindingList));
-			newB = (sentenceB == null ? null : sentenceB.copy2(recursiveCopy, bindingList));
+			newA = (sentenceA == null ? null : sentenceA.copy2(true, bindingList));
+			newB = (sentenceB == null ? null : sentenceB.copy2(true, bindingList));
 		}
 		return (ConnectedSentence) stringHandler.getConnectedSentence(newA, connective, newB).setWeightOnSentence(wgtSentence);
 	}
@@ -134,7 +131,6 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
         }
     }
 
-
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		final int prime = 31;
@@ -148,9 +144,9 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 		if (!(other instanceof ConnectedSentence)) { return false; }
 		
 		ConnectedSentence otherCsent = (ConnectedSentence) other;
-		boolean equivA = (sentenceA == null ? otherCsent.sentenceA == null : sentenceA.equals(otherCsent.sentenceA));
+		boolean equivA = (Objects.equals(sentenceA, otherCsent.sentenceA));
 		if (!equivA) { return false; }
-		return (sentenceB == null ? otherCsent.sentenceB == null : sentenceB.equals(otherCsent.sentenceB));
+		return (Objects.equals(sentenceB, otherCsent.sentenceB));
 	}
 	
     @Override
@@ -164,7 +160,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
         ConnectiveName thisConnective = connective;
         ConnectiveName thatConnective = otherConnectedSentence.connective;
 
-        if ( thisConnective.isSameConnective(thatConnective) == false ) {
+        if (!thisConnective.isSameConnective(thatConnective)) {
             return null;
         }
 
@@ -178,11 +174,11 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
     @Override
     public BindingList isEquivalentUptoVariableRenaming(Sentence that, BindingList bindings) {
 
-        if (that instanceof ConnectedSentence == false) return null;
+        if (!(that instanceof ConnectedSentence)) return null;
 
         ConnectedSentence thatSentence = (ConnectedSentence) that;
 
-        if ( this.connective.isSameConnective(thatSentence.connective) == false ) return null;
+        if (!this.connective.isSameConnective(thatSentence.connective)) return null;
 
         if ( (this.sentenceA == null && thatSentence.sentenceA != null) || (this.sentenceA != null && thatSentence.sentenceA == null) ) return null;
         if ( (this.sentenceB == null && thatSentence.sentenceB != null) || (this.sentenceB != null && thatSentence.sentenceB == null) ) return null;
@@ -194,19 +190,17 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 
         if ( this.sentenceB != null ) {
             bindings = this.sentenceB.isEquivalentUptoVariableRenaming(thatSentence.sentenceB, bindings);
-            if ( bindings == null ) return null;
-        }
+		}
 
         return bindings;
     }
 
     @Override
 	public boolean containsVariables() {		
-		boolean gndA = (sentenceA == null ? false : sentenceA.containsVariables());
+		boolean gndA = (sentenceA != null && sentenceA.containsVariables());
 		if (gndA) { return true; }
-		boolean gndB = (sentenceB == null ? false : sentenceB.containsVariables());
-		return gndB;	
-	}	
+		return (sentenceB != null && sentenceB.containsVariables());
+	}
 
 	// Clausal-form converter stuff.
     @Override
@@ -216,7 +210,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 		if (ConnectiveName.isaNOT(       marker) && ConnectiveName.isaNOT(       connective.name)) { return true; }
 		if (ConnectiveName.isaIMPLIES(   marker) && ConnectiveName.isaIMPLIES(   connective.name)) { return true; }
 		if (ConnectiveName.isaEQUIVALENT(marker) && ConnectiveName.isaEQUIVALENT(connective.name)) { return true; }
-		boolean sentA = (sentenceA == null ? false : sentenceA.containsThisFOPCtype(marker)); // Handle NOT's case of one argument.
+		boolean sentA = (sentenceA != null && sentenceA.containsThisFOPCtype(marker)); // Handle NOT's case of one argument.
 		if (sentA) { return true; }
 		return sentenceB.containsThisFOPCtype(marker);
 	}
@@ -487,30 +481,6 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
     	}
     	setWeightOnSentence(wgtSentenceToUse);
 	}
-    
-//    @Override
-//    protected Sentence standardizeVariableNames(Set<Variable> usedVariables, BindingList newToOldBindings) {
-//        if ( usedVariables == null ) {
-//            usedVariables = new HashSet<Variable>();
-//        }
-//
-//        if ( newToOldBindings == null ) {
-//            newToOldBindings = new BindingList();
-//        }
-//
-//        Sentence newSentenceA = sentenceA.standardizeVariableNames(usedVariables, newToOldBindings);
-//        Sentence newSentenceB = sentenceB.standardizeVariableNames(usedVariables, newToOldBindings);
-//
-//        if ( newSentenceA != sentenceA || newSentenceB != sentenceB ) {
-//            ConnectedSentence newSentence = stringHandler.getConnectedSentence(newSentenceA, connective, newSentenceB);
-//            newSentence.setWeightOnSentence(wgtSentence);
-//            return newSentence;
-//        }
-//        else {
-//            return this;
-//        }
-//    }
-
 
 	// When this is called the sentence should be in conjunctive normal form.
     @Override
@@ -527,14 +497,14 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 		if (ConnectiveName.isaOR(connective.name)) {
 			Clause clause = convertToClause();
 			clause.setWeightOnSentence(wgtSentence);
-			List<Clause> result = new ArrayList<Clause>(1);
+			List<Clause> result = new ArrayList<>(1);
 			result.add(clause);
 			return result;						
 		}
 		if (ConnectiveName.isaNOT(connective.name) && sentenceB instanceof Literal) {
 			Clause clause = convertToClause();
 			clause.setWeightOnSentence(wgtSentence);
-			List<Clause> result = new ArrayList<Clause>(1);
+			List<Clause> result = new ArrayList<>(1);
 			result.add(clause);
 			return result;						
 		}

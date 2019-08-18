@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.util.Arrays;
 
-/**
+/*
  *
  * @author twalker
  */
@@ -18,7 +18,7 @@ public class StreamTokenizerTAW {
 
     private char[] buf = new char[20];
 
-    /**
+    /*
      * The next character to be considered by the nextToken method.  May also
      * be NEED_CHAR to indicate that a new character should be read, or SKIP_LF
      * to indicate that a new character should be read and, if it is a '\n'
@@ -32,7 +32,7 @@ public class StreamTokenizerTAW {
 
     private boolean pushedBack;
     private boolean forceLower;
-    /** The line number of the last token read */
+    /* The line number of the last token read */
     private int LINENO = 1;
 
     private boolean eolIsSignificantP = false;

@@ -1,8 +1,13 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.BindingList;
@@ -25,23 +30,13 @@ import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.LinkedMapOfSets;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.MapOfSets;
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-/**
- *
+
+/*
  * @author twalker
  */
 public class ActiveAdvice {
@@ -50,25 +45,16 @@ public class ActiveAdvice {
 
     private HandleFOPCstrings stringHandler;
 
-    private RelevanceStrength relevanceStrength;
+    private MapOfSets<PredicateNameAndArity, ModeInfo> adviceModes = new MapOfSets<>();
 
-    private Collection<? extends Literal> positiveExamples;
+    private MapOfSets<PredicateNameAndArity, ClauseInfo> clauses = new LinkedMapOfSets<>();
 
-    private Collection<? extends Literal> negativeExamples;
+    private MapOfLists<PredicateNameAndArity, Clause> supportClauses = new MapOfLists<>();
 
-    private MapOfSets<PredicateNameAndArity, ModeInfo> adviceModes = new MapOfSets<PredicateNameAndArity, ModeInfo>();
+    private Map<PredicateNameAndArity, RelevanceInfo> adviceFeaturesAndStrengths = new LinkedHashMap<>();
 
-    private MapOfSets<PredicateNameAndArity, ClauseInfo> clauses = new LinkedMapOfSets<PredicateNameAndArity, ClauseInfo>();
-
-    private MapOfLists<PredicateNameAndArity, Clause> supportClauses = new MapOfLists<PredicateNameAndArity, Clause>();
-
-    private Map<PredicateNameAndArity, RelevanceInfo> adviceFeaturesAndStrengths = new LinkedHashMap<PredicateNameAndArity, RelevanceInfo>();
-
-    ActiveAdvice(HandleFOPCstrings stringHandler, RelevanceStrength relevanceStrength, Collection<? extends Literal> positiveExamples, Collection<? extends Literal> negativeExamples) {
+    ActiveAdvice(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
-        this.relevanceStrength = relevanceStrength;
-        this.positiveExamples = positiveExamples;
-        this.negativeExamples = negativeExamples;
     }
 
     void addAdviceClause(AdviceProcessor ap, String name, RelevantClauseInformation rci, List<Clause> clauses) throws IllegalArgumentException {
@@ -98,7 +84,7 @@ public class ActiveAdvice {
             }
         }
 
-        MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<PredicateNameAndArity, Clause>();
+        MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<>();
         List<RelevantClauseInformation> expandedRCIs = rci.expandNonOperationalPredicates(ap.getContext());
 
         // We will add all of the support clauses...just for the hell of it...
@@ -157,6 +143,7 @@ public class ActiveAdvice {
             // so we can't check for duplicates before clausal convertion.
             if (impliedClauses.size() == 1) {
                 Clause theNewClause = impliedClauses.get(0);
+                assert clauses != null;
                 for (Clause existing : clauses) {
                     if (areClausesEqualUptoHeadAndVariableRenaming(existing, theNewClause)) {
                         duplicate = true;
@@ -173,13 +160,12 @@ public class ActiveAdvice {
 
                 if (expandedRCI.getTypeSpecList() != null) {  // TODO SHOULD WE BE DOING THE setRelevance, add, mark, assert above if this fails?
 
-                    List<Term> signature = new ArrayList<Term>();
+                    List<Term> signature = new ArrayList<>();
                     for (int i = 0; i < head.getArity(); i++) {
                         signature.add(stringHandler.getStringConstant("constant"));
                     }
 
-                    headSpecList = new ArrayList<>();
-                    headSpecList.addAll(expandedRCI.getTypeSpecList());
+                    headSpecList = new ArrayList<>(expandedRCI.getTypeSpecList());
 
                     ModeInfo mi = addModeAndRelevanceStrength(predicateNameAndArity, signature, headSpecList, rs);
 
@@ -203,12 +189,11 @@ public class ActiveAdvice {
         }
     }
 
-    public void addAdviceMode(AdviceProcessor ap, RelevantModeInformation rci) {
+    void addAdviceMode(AdviceProcessor ap, RelevantModeInformation rci) {
         PredicateNameAndArity pnaa = rci.getPredicateNameAndArity();
 
         // If these contain non-operations, we need to expand them just
         // like we do during addAdviceClause.
-        Set<Clause> supportClause = new HashSet<Clause>();
 
         ConnectedSentence implication = rci.getSentence(ap.getContext());
         Sentence body = implication.getSentenceA();
@@ -228,7 +213,7 @@ public class ActiveAdvice {
 
         List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body);
 
-        if (expansions == null || (expansions.size() == 1 && expansions.get(0).equals(body))) {
+        if (expansions.size() == 1 && expansions.get(0).equals(body)) {
             // No sentences...
             addModeAndRelevanceStrength(pnaa, rci.getSignature(), rci.getTypeSpecs(), rci.getRelevanceStrength());
         }
@@ -264,50 +249,7 @@ public class ActiveAdvice {
 
     }
 
-    private String getUniqueName(HornClauseContext context, String name, int arity) {
-        int index = name.indexOf("_anon");
-        if (index != -1) {
-            name = name.substring(0, index);
-        }
-
-        String newName = null;
-
-        int i = 1;
-        while (true) {
-            newName = name + "_anon" + i;
-            if (context.getClausebase().checkForPossibleMatchingAssertions(context.getStringHandler().getPredicateName(name), arity) == false) {
-                break;
-            }
-        }
-
-        return newName;
-    }
-
-    public Collection<? extends Literal> getNegativeExamples() {
-        return negativeExamples;
-    }
-
-    public void setNegativeExamples(Collection<? extends Literal> negativeExamples) {
-        this.negativeExamples = negativeExamples;
-    }
-
-    public Collection<? extends Literal> getPositiveExamples() {
-        return positiveExamples;
-    }
-
-    public void setPositiveExamples(Collection<? extends Literal> positiveExamples) {
-        this.positiveExamples = positiveExamples;
-    }
-
-    public RelevanceStrength getRelevanceStrength() {
-        return relevanceStrength;
-    }
-
-    public void setRelevanceStrength(RelevanceStrength relevanceStrength) {
-        this.relevanceStrength = relevanceStrength;
-    }
-
-    public void addClause(Clause clause, RelevanceStrength strength) {
+    private void addClause(Clause clause, RelevanceStrength strength) {
         clauses.put(clause.getDefiniteClauseHead().getPredicateNameAndArity(), new ClauseInfo(clause, strength));
     }
 
@@ -319,15 +261,11 @@ public class ActiveAdvice {
         return clauses;
     }
 
-    public void addFeatureRelevance(PredicateNameAndArity key, RelevanceStrength value) {
+    void addFeatureRelevance(PredicateNameAndArity key, RelevanceStrength value) {
         adviceFeaturesAndStrengths.put(key, new RelevanceInfo(key, value));
     }
 
-    public RelevanceInfo getFeatureRelevanceStrength(PredicateNameAndArity key) {
-        return adviceFeaturesAndStrengths.get(key);
-    }
-
-    public ModeInfo addModeAndRelevanceStrength(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> headSpecList, RelevanceStrength relevanceStrength) {
+    private ModeInfo addModeAndRelevanceStrength(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> headSpecList, RelevanceStrength relevanceStrength) {
         ModeInfo mi = new ModeInfo(predicate, signature, headSpecList, relevanceStrength);
 
         Set<ModeInfo> existingModeInfos = adviceModes.getValues(predicate);
@@ -369,23 +307,6 @@ public class ActiveAdvice {
 
     MapOfLists<PredicateNameAndArity, Clause> getSupportClauses() {
         return supportClauses;
-    }
-
-    boolean hasActiveAdvice(RelevanceStrength thisStrengthOrStronger) {
-
-        for (ModeInfo modeInfo : adviceModes) {
-            if (modeInfo.strength.isEqualOrStronger(thisStrengthOrStronger)) {
-                return true;
-            }
-        }
-
-        for (RelevanceInfo ri : adviceFeaturesAndStrengths.values()) {
-            if (ri.strength.isEqualOrStronger(thisStrengthOrStronger)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     boolean hasActiveAdvice(RelevanceStrength strongestStrength, RelevanceStrength weakestStrength) {
@@ -525,10 +446,7 @@ public class ActiveAdvice {
             if (obj == null) {
                 return false;
             }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            return true;
+            return getClass() == obj.getClass();
         }
 
         @Override

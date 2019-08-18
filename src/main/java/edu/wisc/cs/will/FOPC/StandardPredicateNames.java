@@ -7,95 +7,54 @@ package edu.wisc.cs.will.FOPC;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
+/*
  * @author twalker
  */
 public class StandardPredicateNames { // A few FUNCTION names also appear here; for instance, sometimes we need to convert a literal to a function.
 
-    private HandleFOPCstrings stringHandler;
+    final PredicateName dateToString;
 
-    public final PredicateName dateToString;
+    final PredicateName dateToUTCstring;
 
-    public final PredicateName dateToUTCstring;
+    final PredicateName dateToMRstring;
 
-    public final PredicateName dateToMRstring;
-    
-    public final PredicateName convertDateToLong;
+    final PredicateName convertDateToLong;
 
-    public final PredicateName isa_variable; // NOTE: the same stringHandler needs to be used throughout so the same strings get mapped to the same PredicateName instances.
+    final PredicateName isa_variable; // NOTE: the same stringHandler needs to be used throughout so the same strings get mapped to the same PredicateName instances.
 
     public final PredicateName var;
 
-    public final PredicateName isa_constant; // Also note: this mapping is case-independent.
+    final PredicateName isa_constant; // Also note: this mapping is case-independent.
 
-    public final PredicateName atomic;
+    final PredicateName atomic;
 
-    public final PredicateName isa_numericConstant;
+    final PredicateName isa_numericConstant;
 
     public final PredicateName number;
 
-    public final PredicateName isaInteger;
+    final PredicateName isaInteger;
 
-    public final PredicateName isaFloat;
+    final PredicateName isaFloat;
 
-    public final PredicateName isaDouble;
+    final PredicateName isaDouble;
 
-    public final PredicateName isa_stringConstant;
+    final PredicateName isa_stringConstant;
 
-    public final PredicateName atom;
+    final PredicateName atom;
 
-    public final PredicateName nonvar;
+    final PredicateName nonvar;
 
     public final PredicateName list;
 
-    public final PredicateName compound;
+    final PredicateName compound;
 
     public final PredicateName is;
 
-    public final PredicateName halt;
+    final PredicateName halt;
 
     public final PredicateName sort;
 
-    public final FunctionName pullOutNthArgFunction;
-
-    public final FunctionName unifyFunction;
-
-    public final FunctionName unify2Function;
-
-    public final FunctionName ununifiableFunction;
-
-    public final FunctionName ununifiable2Function;
-
-    public final FunctionName equalFunction;
-
-    public final FunctionName equal2Function;
-
-    public final FunctionName notEqualFunction;
-
-
-    public final FunctionName gtFunction;  // Prefix versions of these comparators haven't been provided.
-
-    public final FunctionName gt2Function;
-
-    public final FunctionName ltFunction;
-
-    public final FunctionName lt2Function;
-
-    public final FunctionName gteFunction;   // gte = greater-than-or-equal
-
-    public final FunctionName gte2Function;
-
-    public final FunctionName lteFunction;   // lte = less-than-or-equal
-
-    public final FunctionName lte2Function;
-
-    public final FunctionName lte3Function;
-
-    public final FunctionName equalNumbersFunction;  // Equal numbers.
-
-    public final FunctionName notEqualNumbersFunction; // Not equal numbers.
-
-    public final FunctionName equalDotDotFunction;
+    final FunctionName pullOutNthArgFunction;
 
     public final PredicateName print;
 
@@ -105,15 +64,15 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName wait; // A synonym for 'waitHere.'
 
-    public final PredicateName readEvalPrint;
+    final PredicateName readEvalPrint;
 
-    public final PredicateName findAllCollector;
+    final PredicateName findAllCollector;
 
-    public final PredicateName allCollector;
+    final PredicateName allCollector;
 
-    public final PredicateName bagOfCollector;
+    final PredicateName bagOfCollector;
 
-    public final PredicateName setOfCollector;
+    final PredicateName setOfCollector;
 
     public final PredicateName first;
 
@@ -125,47 +84,46 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName reverse;
 
-
     public final PredicateName position;
 
     public final PredicateName length;
 
-    public final PredicateName nth;
+    final PredicateName nth;
 
-    public final PredicateName nthPlus1;
-    
+    final PredicateName nthPlus1;
+
     // These are also defined in a library.  Note can use fast version via functions, eg:  ?X is union(?Y, ?Z).
     // Libraries override (I [JWS] believe).
-    public final PredicateName appendFast;
-    public final PredicateName intersectionFast;    
-    public final PredicateName unionFast;
-    
-    public final PredicateName listsEquivalent;
+    final PredicateName appendFast;
+    final PredicateName intersectionFast;
+    final PredicateName unionFast;
 
-    public final PredicateName addListOfNumbers;
+    final PredicateName listsEquivalent;
 
-    public final PredicateName multListOfNumbers;
+    final PredicateName addListOfNumbers;
 
-    public final PredicateName countProofsCollector;
+    final PredicateName multListOfNumbers;
 
-    public final PredicateName countUniqueBindingsCollector;
+    final PredicateName countProofsCollector;
 
-    public final PredicateName assertName;
+    final PredicateName countUniqueBindingsCollector;
 
-    public final PredicateName assertifnotName;
+    final PredicateName assertName;
 
-    public final PredicateName assertifunknownName;
+    final PredicateName assertifnotName;
 
-    public final PredicateName atomConcat;
-    
-    public final PredicateName atomLength;
-    
-    public final PredicateName atomChars;
-    
-    public final PredicateName setCounter,  setCounterB,  setCounterC,  setCounterD,  setCounterE;
-    public final PredicateName incrCounter, incrCounterB, incrCounterC, incrCounterD, incrCounterE;
-    
-    public final PredicateName tokenizeString;
+    final PredicateName assertifunknownName;
+
+    final PredicateName atomConcat;
+
+    final PredicateName atomLength;
+
+    final PredicateName atomChars;
+
+    final PredicateName setCounter,  setCounterB,  setCounterC,  setCounterD,  setCounterE;
+    final PredicateName incrCounter, incrCounterB, incrCounterC, incrCounterD, incrCounterE;
+
+    final PredicateName tokenizeString;
 
     public final PredicateName implicit_call;
 
@@ -217,87 +175,85 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName retractall;
 
-    public final PredicateName createUniqueStringConstant;
+    final PredicateName createUniqueStringConstant;
 
     public final PredicateName consCell;
 
-    public final FunctionName plusFunction;  // TODO build in a hash table of synonyms?
+    final FunctionName plusFunction;  // TODO build in a hash table of synonyms?
 
-    public final FunctionName minusFunction;
+    final FunctionName minusFunction;
 
-    public final FunctionName timesFunction;
+    final FunctionName timesFunction;
 
-    public final FunctionName divideFunction;
+    final FunctionName divideFunction;
 
-    public final FunctionName intDivFunction;
+    final FunctionName intDivFunction;
 
-    public final FunctionName intFunction;
+    final FunctionName intFunction;
 
-    public final FunctionName modFunction;
+    final FunctionName modFunction;
 
-    public final FunctionName minFunction;
+    final FunctionName minFunction;
 
-    public final FunctionName maxFunction;
+    final FunctionName maxFunction;
 
-    public final FunctionName absFunction;
+    final FunctionName absFunction;
 
-    public final FunctionName sinFunction;
+    final FunctionName sinFunction;
 
-    public final FunctionName cosFunction;
+    final FunctionName cosFunction;
 
-    public final FunctionName tanFunction;
+    final FunctionName tanFunction;
 
-    public final FunctionName sinhFunction;
+    final FunctionName sinhFunction;
 
-    public final FunctionName coshFunction;
+    final FunctionName coshFunction;
 
-    public final FunctionName tanhFunction;
+    final FunctionName tanhFunction;
 
-    public final FunctionName asinFunction;
+    final FunctionName asinFunction;
 
-    public final FunctionName acosFunction;
+    final FunctionName acosFunction;
 
-    public final FunctionName atanFunction;
+    final FunctionName atanFunction;
 
-    public final FunctionName atan2Function; // From Java: Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta).
+    final FunctionName atan2Function; // From Java: Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta).
 
-    public final FunctionName logFunction;
+    final FunctionName logFunction;
 
-    public final FunctionName expFunction;
+    final FunctionName expFunction;
 
-    public final FunctionName sqrtFunction;
+    final FunctionName sqrtFunction;
 
-    public final FunctionName sqrtSafeFunction;
+    final FunctionName sqrtSafeFunction;
 
-    public final FunctionName sqrtAbsFunction;
+    final FunctionName sqrtAbsFunction;
 
-    public final FunctionName powFunction;
+    final FunctionName powFunction;
 
-    public final FunctionName starStarFunction;
+    final FunctionName starStarFunction;
 
-    public final FunctionName randomFunction;  // A number uniformly drawn from [0,1).  Uses the 'random' used elsewhere in this code so that runs can be repeated deterministically.
+    final FunctionName randomFunction;  // A number uniformly drawn from [0,1).  Uses the 'random' used elsewhere in this code so that runs can be repeated deterministically.
 
-    public final FunctionName ceilFunction; // From Java: Returns the smallest (closest to negative infinity) double value that is greater than or equal to the argument and is equal to a mathematical integer.
+    final FunctionName ceilFunction; // From Java: Returns the smallest (closest to negative infinity) double value that is greater than or equal to the argument and is equal to a mathematical integer.
 
-    public final FunctionName floorFunction;
+    final FunctionName floorFunction;
 
-    public final FunctionName roundFunction;
+    final FunctionName roundFunction;
 
-    public final FunctionName signFunction;
+    final FunctionName signFunction;
 
-    public final FunctionName hypotFunction; // From Java: Returns sqrt(x^2 +y^2) without intermediate overflow or underflow.
+    final FunctionName hypotFunction; // From Java: Returns sqrt(x^2 +y^2) without intermediate overflow or underflow.
 
-    public final FunctionName toDegreesFunction; // Since in Java's Math class, might as well include them.
+    final FunctionName toDegreesFunction; // Since in Java's Math class, might as well include them.
 
-    public final FunctionName toRadiansFunction;
+    final FunctionName toRadiansFunction;
 
-    public final FunctionName lengthFunction;   // Since this returns a number, do here as well as in DoBuiltInListProcessing.
+    final FunctionName lengthFunction;   // Since this returns a number, do here as well as in DoBuiltInListProcessing.
 
     final FunctionName positionFunction; // Since this returns a number, do here as well as in DoBuiltInListProcessing.
 
     final FunctionName minus2Function;
-
-    final FunctionName isFunction;
 
     final PredicateName unify2;
 
@@ -346,7 +302,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
     public final Set<PredicateName> buildinPredicates;
 
     StandardPredicateNames(HandleFOPCstrings stringHandler) {
-        this.stringHandler = stringHandler;
 
 
         boolean hold = stringHandler.cleanFunctionAndPredicateNames;
@@ -498,26 +453,31 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         toRadiansFunction = stringHandler.getFunctionName("toRadians");
         lengthFunction = stringHandler.getFunctionName("length"); // Explicitly list those list-processing functions that return numbers.
         positionFunction = stringHandler.getFunctionName("position");
-        isFunction = stringHandler.getFunctionName("is");
-        unifyFunction = stringHandler.getFunctionName("unify");
-        unify2Function = stringHandler.getFunctionName("=");
-        ununifiableFunction = stringHandler.getFunctionName("notUnify");
-        ununifiable2Function = stringHandler.getFunctionName("\\=");
-        equalFunction = stringHandler.getFunctionName("equal");
-        equal2Function = stringHandler.getFunctionName("==");
-        notEqualFunction = stringHandler.getFunctionName("\\==");
-        gtFunction = stringHandler.getFunctionName(">");  // Prefix versions of these comparators haven't been provided.
-        gt2Function = stringHandler.getFunctionName("gt");
-        ltFunction = stringHandler.getFunctionName("<");
-        lt2Function = stringHandler.getFunctionName("lt");
-        gteFunction = stringHandler.getFunctionName(">=");   // gte = greater-than-or-equal
-        gte2Function = stringHandler.getFunctionName("gte");
-        lteFunction = stringHandler.getFunctionName("=<");   // lte = less-than-or-equal
-        lte2Function = stringHandler.getFunctionName("<=");
-        lte3Function = stringHandler.getFunctionName("lte");
-        equalNumbersFunction = stringHandler.getFunctionName("=:=");  // Equal numbers.
-        notEqualNumbersFunction = stringHandler.getFunctionName("=\\="); // Not equal numbers.
-        equalDotDotFunction = stringHandler.getFunctionName("=..");
+        FunctionName isFunction = stringHandler.getFunctionName("is");
+        FunctionName unifyFunction = stringHandler.getFunctionName("unify");
+        FunctionName unify2Function = stringHandler.getFunctionName("=");
+        FunctionName ununifiableFunction = stringHandler.getFunctionName("notUnify");
+        FunctionName ununifiable2Function = stringHandler.getFunctionName("\\=");
+        FunctionName equalFunction = stringHandler.getFunctionName("equal");
+        FunctionName equal2Function = stringHandler.getFunctionName("==");
+        FunctionName notEqualFunction = stringHandler.getFunctionName("\\==");
+        // Prefix versions of these comparators haven't been provided.
+        FunctionName gtFunction = stringHandler.getFunctionName(">");  // Prefix versions of these comparators haven't been provided.
+        FunctionName gt2Function = stringHandler.getFunctionName("gt");
+        FunctionName ltFunction = stringHandler.getFunctionName("<");
+        FunctionName lt2Function = stringHandler.getFunctionName("lt");
+        // gte = greater-than-or-equal
+        FunctionName gteFunction = stringHandler.getFunctionName(">=");   // gte = greater-than-or-equal
+        FunctionName gte2Function = stringHandler.getFunctionName("gte");
+        // lte = less-than-or-equal
+        FunctionName lteFunction = stringHandler.getFunctionName("=<");   // lte = less-than-or-equal
+        FunctionName lte2Function = stringHandler.getFunctionName("<=");
+        FunctionName lte3Function = stringHandler.getFunctionName("lte");
+        // Equal numbers.
+        FunctionName equalNumbersFunction = stringHandler.getFunctionName("=:=");  // Equal numbers.
+        // Not equal numbers.
+        FunctionName notEqualNumbersFunction = stringHandler.getFunctionName("=\\="); // Not equal numbers.
+        FunctionName equalDotDotFunction = stringHandler.getFunctionName("=..");
         pullOutNthArgFunction = stringHandler.getFunctionName("pullOutNthArg");
 
         spy = stringHandler.getPredicateName("spy");

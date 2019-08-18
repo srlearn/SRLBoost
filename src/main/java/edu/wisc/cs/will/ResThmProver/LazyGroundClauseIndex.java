@@ -13,7 +13,7 @@ import edu.wisc.cs.will.Utils.Utils;
 
 // TODO(@hayesall): Lots of duplicated code with `LazyGroundNthArgumentClauseIndex`
 
-/** This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground heads.
+/* This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground heads.
  *
  * @author twalker
  */
@@ -35,7 +35,7 @@ public class LazyGroundClauseIndex {
 
     private Map<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> definiteClausesAllArgsIndex = new LRUMap();
 
-    /** Store clauses in which one or more of the args is not ground.
+    /* Store clauses in which one or more of the args is not ground.
      *
      * This is used to as a starting place for new definiteClause lists indexed by the
      * all args.  This is necessary to make sure unseen term combinations

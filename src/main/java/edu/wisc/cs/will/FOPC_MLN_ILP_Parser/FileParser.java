@@ -77,7 +77,7 @@ import static edu.wisc.cs.will.Utils.MessageType.STRING_HANDLER_VARIABLE_INDICAT
 
 // Useful when printing things: tokenizer.lineno()
 
-/**
+/*
  * IF "FOLDED" IN ECLIPSE, UNFOLD THIS FOR IMPORTANT DOCUMENTATION.
  * Parse a file (or some other text stream) as one containing FOPC sentences as well as "directives" to MLN's, ILP, etc.
  * Directives include the following.   Note that many commands need to be terminated with a '.' or a ';'
@@ -406,11 +406,7 @@ public class FileParser {
 
 	// This does not allow any non-literals in the file (other than comments).
 	// However it DOES allow a literal to NOT have a trailing '.' or ';' (some programs output their results in such a notation).
-	public List<Literal> readLiteralsInPureFile(String fName) {
-		return readLiteralsInPureFile(fName, false);
-	}
-
-	private List<Literal> readLiteralsInPureFile(String fNameRaw, boolean okIfNoSuchFile) {
+	public List<Literal> readLiteralsInPureFile(String fNameRaw) {
 		String  fName          = Utils.replaceWildCardsAndCheckForExistingGZip(fNameRaw);
 		boolean isaGzippedFile = fName.endsWith(".gz");
 
@@ -436,7 +432,6 @@ public class FileParser {
 			checkDirectoryName(hold_directoryName);
 		}
 		catch (FileNotFoundException e) {
-			if (okIfNoSuchFile) { return null; }
 			Utils.reportStackTrace(e);
 			Utils.error("Unable to successfully read this file: " + fName);
 		}
@@ -455,7 +450,8 @@ public class FileParser {
 	}
 
 	private void checkDirectoryName(String newDirectoryName) {
-		if (newDirectoryName == null) { return; } // If this is from a reset of a 'hold' of a directory name, don't reset back to null.
+		if (newDirectoryName == null) {
+		} // If this is from a reset of a 'hold' of a directory name, don't reset back to null.
 		else if (directoryName == null) {
 			directoryName = newDirectoryName;
 		} else if (!directoryName.equals(newDirectoryName)) {
@@ -534,12 +530,12 @@ public class FileParser {
         return f;
 	}
 
-	/**
+	/*
 	 * A variant of readFOPCfile(String fileName) where an input stream
 	 * instead of a file name is provided.
 	 * @return A list of sentences, the result of parsing the given file.
 	 */
-	public List<Sentence> readFOPCstream(File file, InputStream inStream) throws ParsingException {
+	private List<Sentence> readFOPCstream(File file, InputStream inStream) throws ParsingException {
 
         // This is a big hack to pass around the name with stream.
         // There are better ways to do this, but not at this point in time.
@@ -554,7 +550,7 @@ public class FileParser {
 		return readFOPCreader(file, r);
 	}
 
-	/**
+	/*
 	 * A variant of readFOPCfile(String fileName) where a string instead of
 	 * a file name is provided.
 	 */
@@ -965,7 +961,6 @@ public class FileParser {
 
 	private Constant processConstant() throws ParsingException, IOException  {
 		int      nextToken = tokenizer.nextToken();
-		TypeSpec typeSpec   = null; // For future expansion.
 
 		if (nextToken != StreamTokenizer.TT_WORD) { throw new ParsingException("Was expecting a constant and read: '" + reportLastItemRead() + "'."); }
 		Constant result = stringHandler.getStringConstant(null, tokenizer.sval(), false);
@@ -1360,7 +1355,7 @@ public class FileParser {
 		return tokenRead;
 	}
 
-	/**
+	/*
 	 * Process something like:  relevant: p/2, RELEVANT;
 	 * These automatically create 'cost' statements as well.
 	 * Read documentation above for all the isVariant supported.
@@ -1523,12 +1518,12 @@ public class FileParser {
         }
 		if (strength != null && strength.isLessThanNeutral()) { autoNegate = false; }
 
-		List<TypeSpec> typeSpecs    = new ArrayList<TypeSpec>(4);
+		List<TypeSpec> typeSpecs    = new ArrayList<>(4);
 		List<Term>     terms        = (typedHeadLiteral == null ? bodyTerms : typedHeadLiteral.getArguments());
 		PredicateName  newPname     = (typedHeadLiteral == null ? stringHandler.getPredicateNameNumbered("anonymousAND_WI") : typedHeadLiteral.predicateName);
 		if (typedHeadLiteral == null) {
-			List<Variable> freeVars     = new ArrayList<Variable>(4);
-			List<String>   freeVarNames = new ArrayList<String>(4);
+			List<Variable> freeVars     = new ArrayList<>(4);
+			List<String>   freeVarNames = new ArrayList<>(4);
 
 			stringHandler.getTypedFreeVariablesAndUniquelyName(terms, null, freeVars, freeVarNames, typeSpecs, true);		// These will not maintain the World-State positions since the arguments names are probably not in the file being read.
 			typedHeadLiteral = stringHandler.getLiteral(newPname, convertToListOfTerms(freeVars), freeVarNames).clearArgumentNamesInPlace(); // BUGGY if we want to keep argument names ...
@@ -1540,7 +1535,7 @@ public class FileParser {
 		int   arity = typedHeadLiteral.numberArgs();
 		Clause newC = stringHandler.getClause(typedHeadLiteral, true);
 
-		newC.negLiterals = new ArrayList<Literal>(1);
+		newC.negLiterals = new ArrayList<>(1);
 		for (Term term : bodyTerms) {
 			if        (term instanceof Function) {
 				newC.negLiterals.add(( (Function) term).convertToLiteral(stringHandler));
@@ -2061,7 +2056,7 @@ public class FileParser {
 		return result;
 	}
 
-	/**
+	/*
 	 * Process something like:  cost: p/2, 1.5;
 	 * Such costs can be used when scoring clauses (default cost is 1.0).
 	 */
@@ -2116,7 +2111,7 @@ public class FileParser {
 		throw new ParsingException("Expecting the name of a predicate in a '" + directiveName + "' but read: '" + reportLastItemRead() + "'.");
 	}
 
-	/**
+	/*
 	 * Process the specification of a Horn ('definite' actually) clause that
 	 * should be precomputed. For example: precompute: p(x) :- q(x, y), r(y).
 	 */
@@ -2604,7 +2599,7 @@ public class FileParser {
 		if (parameterName.contains("precompute") || parameterName.contains("import")) { checkForDefinedImportAndPrecomputeVars(parameterName); }
 	}
 
-	/**
+	/*
 	 * Process an 'typeA isa typeB.' The 'isa' is optional. The EOL ('.' or ';') also is optional.
 	 */
 	private void processISA() throws ParsingException, IOException {
@@ -2632,7 +2627,7 @@ public class FileParser {
 		if (++isaCounter % 10000 == 0) { Utils.println("%     Read ISA #" + Utils.comma(isaCounter) + ": " + beforeIsa + " isa " + afterIsa + "."); }
 	}
 
-	/**
+	/*
 	 * Process the specification of the range of a type, e.g. 'teenage = 13,
 	 * ..., 19.' and 'size = {small, medium, large};' Braces are optional.
 	 * The EOL ('.' or ';') is optional IF the braces are present. Note that
@@ -2977,7 +2972,6 @@ public class FileParser {
 		if (debugLevel > 1) {
 			Utils.println("%   READ query predicate: " + predicate + "/" + arity + ".");
 		}
-		stringHandler.addQueryPredicate(predicate, arity);
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2994,7 +2988,6 @@ public class FileParser {
 		if (debugLevel > 1) {
 			Utils.println("%   READ hidden predicate: " + predicate+ "/" + arity + ".");
 		}
-		stringHandler.addHiddenPredicate(predicate, arity);
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -3136,7 +3129,7 @@ public class FileParser {
 		return false;
 	}
 
-	/**
+	/*
          * See if the current token is EOL ('.' or ';').
          *
          * @return Whether the current token in the tokenizer is an end-of-line
@@ -3146,7 +3139,7 @@ public class FileParser {
 		return (tokenizer.ttype() == '.' || tokenizer.ttype() == ';');
 	}
 
-	/**
+	/*
 	 * See if next token is an EOL character ('.' or ';').
 	 */
 	private boolean peekEOL(boolean okIfEOF) throws ParsingException, IOException {
@@ -3293,7 +3286,7 @@ public class FileParser {
 
             if (names != null || name != null) {
                 if (names == null) {
-                    names = new ArrayList<String>();
+                    names = new ArrayList<>();
                 }
                 // Have to add even the null names just
                 // in case they are necessary.

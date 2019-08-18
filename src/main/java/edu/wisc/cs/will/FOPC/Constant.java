@@ -7,10 +7,7 @@ import java.util.Set;
 /**
  * @author shavlik
  */
-@SuppressWarnings("serial")
 public abstract class Constant extends Term {
-	
-	private Set<Literal> generatorsOfThisConstantsTypes; // Helps track down errors in type inference.
 
 	protected Constant() { } // Compiler complains without this (for subtypes).
 	protected Constant(HandleFOPCstrings stringHandler) { // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.

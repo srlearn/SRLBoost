@@ -4,20 +4,20 @@ import java.util.List;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * Implements a best-first search where the next node that is examined is the
  * one with the best score.
  * 
  * @author shavlik
  */
 public class BestFirstSearch extends SearchStrategy {
-    /**
+    /*
      * Default constructor. Does nothing.
      */
     public BestFirstSearch() {
     }
 
-    /**
+    /*
      * @see edu.wisc.cs.will.stdAIsearch.SearchStrategy#addChildrenToOpenList(edu.wisc.cs.will.stdAIsearch.OpenList, java.util.List)
      */
     @Override

@@ -7,7 +7,7 @@ import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Literal;
 
-/**
+/*
  * @author twalker
  */
 public class DefiniteClauseList extends ArrayList<DefiniteClause> {

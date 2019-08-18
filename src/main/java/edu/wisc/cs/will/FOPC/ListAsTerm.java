@@ -8,16 +8,15 @@ import java.util.Map;
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  */
-@SuppressWarnings("serial")
 public class ListAsTerm extends Term {
 	protected List<Term> objects;
 	private boolean processItemsInList; // If false, leave the items in 'objects' untouched.
-	
-	/**
+
+	/*
 	 * This is a way to wrap a list of anything as an argument to an FOPC function.
 	 */
 	protected ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects) {
@@ -29,7 +28,7 @@ public class ListAsTerm extends Term {
 		this.processItemsInList = processItemsInList;
 		if (objects == null) { this.processItemsInList = false; }
 	}
-	
+
 	public Term applyTheta(Map<Variable,Term> bindings) {
 		if (processItemsInList) {
 			List<Term> newObjects = new ArrayList<>(Utils.getSizeSafely(objects));

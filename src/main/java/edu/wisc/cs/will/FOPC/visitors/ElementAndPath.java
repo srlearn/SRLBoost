@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import edu.wisc.cs.will.FOPC.SentenceOrTerm;
 
-/**
+/*
  *
  * @author twalker
  */
@@ -19,10 +19,6 @@ public class ElementAndPath {
 
     public SentenceOrTerm getElement() {
         return element;
-    }
-
-    public void setElement(SentenceOrTerm element) {
-        this.element = element;
     }
 
     public ElementPath getPath() {

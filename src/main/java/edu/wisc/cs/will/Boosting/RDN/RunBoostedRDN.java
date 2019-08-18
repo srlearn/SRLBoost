@@ -8,7 +8,7 @@ import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author Tushar Khot
  */
 public class RunBoostedRDN extends RunBoostedModels {

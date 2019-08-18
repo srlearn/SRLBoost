@@ -5,10 +5,9 @@ import java.util.Collection;
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  */
-@SuppressWarnings("serial")
 public abstract class QuantifiedSentence extends Sentence {
 	public  Collection<Variable> variables;
 	public  Sentence             body;

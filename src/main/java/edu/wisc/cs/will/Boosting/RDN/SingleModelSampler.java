@@ -57,7 +57,7 @@ public class SingleModelSampler extends SRLInference {
 				setup.getHandler().getPredicateName(WILLSetup.recursivePredPrefix + rex.predicateName.name), rex.getArguments());
 	}
 
-	/**
+	/*
 	 * WILLSetup should have been called before
 	 */
 	void getProbabilitiesUsingSamples(List<RegressionRDNExample> ex) {
@@ -126,7 +126,7 @@ public class SingleModelSampler extends SRLInference {
 		conditionalModel.setNumTrees(max);
 	}
 
-	/**
+	/*
 	 * @return the rdn
 	 */
 	public RelationalDependencyNetwork getRdn() {

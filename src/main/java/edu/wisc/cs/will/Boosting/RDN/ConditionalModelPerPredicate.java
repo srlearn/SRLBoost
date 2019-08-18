@@ -44,54 +44,54 @@ public class ConditionalModelPerPredicate implements Serializable {
 
 	private static final long serialVersionUID = 9130108889576097786L;
 
-	/**
+	/*
 	 *  Prior log probability i.e. \psi_0
 	 */
 	private double log_prior = -1.8;
 
-	/**
+	/*
 	 *  List of boosted trees
 	 */
 	private List<RegressionTree[]> boostedTrees;
 
-	/**
+	/*
 	 *  Number of trees. Generally numTrees would be the same as the boostedTrees size but one can reduce this.
 	 */
 	private int numTrees;
 
-	/**
+	/*
 	 *  Step length for gradient.
 	 *  All models in a array of RegressionTree[] have the same stepLength.
 	 */
 	private List<Double> stepLength;
 
-	/**
+	/*
 	 * Predicate for which model is learnt.
 	 */
 	private String targetPredicate;
 
-	/**
+	/*
 	 * Prefix for every tree used while storing the tree.
 	 * Generally set to the targetPredicate 
 	 */
 	private String treePrefix;
 
-	/**
+	/*
 	 * Set to true, if the model just has a set of rules that do the combination
 	 */
 	private boolean hasSingleTheory;
 
-	/**
+	/*
 	 * Needed only with single theory as it stores the clauses 
 	 */
 	private WILLSetup setup;
 
-	/**
+	/*
 	 * Save the constants for this predicate, if multiclass
 	 */
 	private ConstantLookupList constList = null;
 
-	/**
+	/*
 	 * Sentences associated with theory. Needed only with hasSingleTheory.
 	 */
 	private List<Sentence> theory;
@@ -109,7 +109,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 		prior_advice = null;
 	}
 
-	/**
+	/*
 	 * Calculates the regression value for an example based on the model.
 	 * Mostly one shouldn't have to use this but should directly use returnModelProbability.
 	 * @param ex Example to evaluate
@@ -198,7 +198,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 		return modelRegression;
 	}
 
-	/**
+	/*
 	 * Returns the probability of the example
 	 * @param ex input example
 	 * @return probability of the example being true
@@ -208,7 +208,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 		return new ProbDistribution(sum_grad);
 	}
 
-	/**
+	/*
 	 * This function adds the predicates that are used in this model,
 	 * i.e., the parents for the target predicate.
 	 * @param preds - Adds the parent predicate to this collection
@@ -225,7 +225,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 		}
 	}
 
-	/**
+	/*
 	 * Saves the model in the given file
 	 * NOTE: the trees are stored in different files but their 
 	 * filename prefix is stored in the model
@@ -273,7 +273,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 		}
 	}
 
-	/**
+	/*
 	 * Loads the model from a given file
 	 */
 	public void loadModel(String filename, WILLSetup setup, int loadMaxTrees) {
@@ -502,42 +502,42 @@ public class ConditionalModelPerPredicate implements Serializable {
 		}
 	}
 	
-	/**
+	/*
 	 * @return the targetPredicate
 	 */
 	public String getTargetPredicate() {
 		return targetPredicate;
 	}
 
-	/**
+	/*
 	 * @param targetPredicate the targetPredicate to set
 	 */
 	public void setTargetPredicate(String targetPredicate) {
 		this.targetPredicate = targetPredicate;
 	}
 
-	/**
+	/*
 	 * @param treePrefix the treePrefix to set
 	 */
 	void setTreePrefix(String treePrefix) {
 		this.treePrefix = treePrefix;
 	}
 
-	/**
+	/*
 	 * @return the numTrees
 	 */
 	public int getNumTrees() {
 		return numTrees;
 	}
 
-	/**
+	/*
 	 * @param numTrees the numTrees to set
 	 */
 	public void setNumTrees(int numTrees) {
 		this.numTrees = numTrees;
 	}
 
-	/**
+	/*
 	 * @param logPrior the log_prior to set
 	 */
 	void setLog_prior(double logPrior) {
@@ -545,7 +545,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 		log_prior = logPrior;
 	}
 
-	/**
+	/*
 	 * @param hasSingleTheory the hasSingleTheory to set
 	 */
 	public void setHasSingleTheory(boolean hasSingleTheory) {

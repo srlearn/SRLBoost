@@ -4,7 +4,7 @@ import edu.wisc.cs.will.FOPC.Constant;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Variable;
 
-/**
+/*
  * @author shavlik
  *
  */

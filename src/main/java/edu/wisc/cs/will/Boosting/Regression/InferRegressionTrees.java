@@ -13,7 +13,7 @@ import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author tkhot
  */
 class InferRegressionTrees {

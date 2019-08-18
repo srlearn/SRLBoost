@@ -4,7 +4,7 @@ import java.util.Map;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  */
 public class Binding extends AllOfFOPC {

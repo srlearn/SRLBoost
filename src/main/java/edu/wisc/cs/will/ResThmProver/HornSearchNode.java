@@ -11,10 +11,9 @@ import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 
-/**
+/*
  * @author shavlik
  */
-@SuppressWarnings("serial")
 public class HornSearchNode extends SearchNode {
 
     private static final int DEBUG = 0;
@@ -110,7 +109,7 @@ public class HornSearchNode extends SearchNode {
 
     }
 
-    /**
+    /*
      * Returns the binding for variable, or null if no binding is found.
      */
     Term getBinding(Variable variable) {
@@ -133,7 +132,7 @@ public class HornSearchNode extends SearchNode {
         return result == variable ? null : result;
     }
 
-    /** Returns the ParentNode.
+    /* Returns the ParentNode.
      *
      * Jude, I know you don't like getters/setters, but this is a place where they
      * really help.  The HornSearchNode's parent must also be a HornSearchNode.

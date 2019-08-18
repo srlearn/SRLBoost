@@ -2,7 +2,7 @@ package edu.wisc.cs.will.Utils.condor.chirp;
 
 import java.io.IOException;
 
-/**
+/*
 A ChirpOutputStream gives a sequential binary interface to a write-only
 file. Users that require random-access I/O should see ChirpClient.
 Users requiring a character-oriented interface to a Chirp file

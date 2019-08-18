@@ -5,7 +5,6 @@ package edu.wisc.cs.will.ILP.Regression;
 
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.ILP.LearnOneClause;
 import edu.wisc.cs.will.ILP.SingleClauseNode;
 import edu.wisc.cs.will.Utils.Utils;
@@ -91,7 +90,7 @@ public class RegressionVectorInfoHolderForRDN extends RegressionInfoHolderForRDN
 		double output[] =  ((RegressionRDNExample) eg).getOutputVector();
 		//double prob   = ((RegressionRDNExample)eg).getProbOfExample();
 		// TODO (TVK) : use vectors for probability weighting
-		((BranchVectorStats)falseStats).addNumVectorOutput(numGrndg, output, weight, 1);
+		((BranchVectorStats)falseStats).addNumVectorOutput(numGrndg, output, weight);
 	}
 
 	@Override
@@ -111,7 +110,7 @@ public class RegressionVectorInfoHolderForRDN extends RegressionInfoHolderForRDN
               
               if (!caller.posExampleAlreadyExcluded(posEx)) {
           		// TODO (TVK) : use vectors for probability weighting
-            	  ((BranchVectorStats)trueStats).addNumVectorOutput(1, output, weight, 1);		
+            	  ((BranchVectorStats)trueStats).addNumVectorOutput(1, output, weight);
               }
           }
           RegressionInfoHolder totalFalseStats = caller.getTotalFalseBranchHolder() ;
@@ -122,10 +121,10 @@ public class RegressionVectorInfoHolderForRDN extends RegressionInfoHolderForRDN
 	
 	
 	public double[] meanVectorAtSuccess() {
-		return ((BranchVectorStats)trueStats).getLambdaVector(false);
+		return ((BranchVectorStats)trueStats).getLambdaVector();
 	}
 	public double[] meanVectorAtFailure() {
-		return ((BranchVectorStats)falseStats).getLambdaVector(false);
+		return ((BranchVectorStats)falseStats).getLambdaVector();
 	}
 	
 	

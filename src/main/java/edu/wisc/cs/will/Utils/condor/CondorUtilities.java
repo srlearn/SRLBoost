@@ -3,7 +3,7 @@ package edu.wisc.cs.will.Utils.condor;
 import edu.wisc.cs.will.Utils.Utils;
 import java.io.File;
 
-/**
+/*
  * @author twalker
  */
 public final class CondorUtilities {

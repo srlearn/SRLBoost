@@ -2,7 +2,7 @@ package edu.wisc.cs.will.Boosting.RDN;
 
 import java.util.HashMap;
 
-/**
+/*
  * @author Tushar Khot
  */
 public class JointRDNModel extends HashMap<String, ConditionalModelPerPredicate> {

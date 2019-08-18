@@ -9,7 +9,7 @@ import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
+/*
  * @author twalker
  */
 public class CondorFile extends File {

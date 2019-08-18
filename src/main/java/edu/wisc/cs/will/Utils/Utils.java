@@ -51,7 +51,7 @@ import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.util.regex.Pattern;
 
-/**
+/*
  * Some general-purpose utilities. This class is basically a collection of
  * functions intended to be accessible to and used by many classes. In keeping
  * with the spirit of functions, all the fields and methods of this class are
@@ -70,7 +70,7 @@ public class Utils {
     private static String MYSCRATCHDIR     = null;
 	
 
-	/** Stores whether this is a developer run.
+	/* Stores whether this is a developer run.
      *
      * This should null initially.  The getter/setter will initialize it
      * appropriately the first time it is accessed.  Please do not use it
@@ -79,7 +79,7 @@ public class Utils {
      */
     private static Boolean developmentRun = null; // Should be null.  See comment.
 
-    /** Stores whether verbose output should be used.
+    /* Stores whether verbose output should be used.
      *
      * This should null initially.  The getter/setter will initialize it
      * appropriately the first time it is accessed.  Please do not use it
@@ -88,7 +88,7 @@ public class Utils {
      */
     private static Boolean verbose = null; // Should be null.  See comment.
 
-    /** Stores whether waitHereEnabled output should be used.
+    /* Stores whether waitHereEnabled output should be used.
      *
      * This should null initially.  The getter/setter will initialize it
      * appropriately the first time it is accessed.  Please do not use it
@@ -97,7 +97,7 @@ public class Utils {
      */
     private static Boolean waitHereEnabled = null; // Should be null.  See comment.
 
-    /** Stores whether severeErrorThrowsEnabled output should be used.
+    /* Stores whether severeErrorThrowsEnabled output should be used.
      *
      * This should null initially.  The getter/setter will initialize it
      * appropriately the first time it is accessed.  Please do not use it
@@ -118,7 +118,7 @@ public class Utils {
     private static final String DEVELOPER_MACHINE_FILE_NAME    = "runWILLasDeveloper.txt";
 
 
-    /** Some Standard verbosity levels.  
+    /* Some Standard verbosity levels.
      * 
      * The verbosity level can be set via the setVerbosity method.  That actually updates
      * the verbose, extraVerbose, waitHereEnabled, and severeErrorThrowsEnabled settings.
@@ -148,7 +148,7 @@ public class Utils {
         }
     }
 
-    /** Sets the verbose, extraVerbose, waitHereEnabled, and severeErrorThrowsEnabled according to the indicated verbosity.
+    /* Sets the verbose, extraVerbose, waitHereEnabled, and severeErrorThrowsEnabled according to the indicated verbosity.
      *
      * These are just standard settings.  You can override these with the appropriate setters
      * for the specific settings.
@@ -160,14 +160,14 @@ public class Utils {
         severeErrorThrowsEnabled = verbosity.severeWarningThrowsError;
     }
 
-    /** The Default file extension to add to "normal" files.
+    /* The Default file extension to add to "normal" files.
      *
      * This does not (and should not) include a . prior to the extension.
      */
     public static final String defaultFileExtension           = "txt";
     public static final String defaultFileExtensionWithPeriod = "." + defaultFileExtension;
 
-    /**
+    /*
      * How much two numbers (outside of (-1, 1) can differ before they are no longer considered
      * equivalent.
      */
@@ -175,7 +175,7 @@ public class Utils {
     // FOr numbers in [-1, 1] use this (probably could simply use Double.MIN_NORMAL).
     private static final double EQUIVALENCE_TOLERANCE_SMALL_NUMBERS = 8 * Double.MIN_NORMAL;
 
-    /**
+    /*
      * If non-null, copy all printing to this stream as well.
      */
     private static PrintStream dribbleStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
@@ -184,7 +184,7 @@ public class Utils {
     private static PrintStream warningStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
     private static PrintStream warningShadowStream = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
 
-    /** The random instance for all the random utility functions. */
+    /* The random instance for all the random utility functions. */
     private static Random randomInstance = new Random(112957);
 
     private static Map<String,Integer> warningCounts = new HashMap<>();
@@ -192,7 +192,8 @@ public class Utils {
 	private static BufferedReader inBufferedReader;
 
 	private static final int maxStringLength = 25000;
-    /**
+
+    /*
      * Displays a string to the standard output stream and the dribble stream if
      * applicable. Ends with a newline.
      *
@@ -225,7 +226,7 @@ public class Utils {
     	if ( isMessageTypeEnabled(type)) println(str, false);
     }
 
-    /**
+    /*
      * Displays a string to the standard output stream and the dribble stream if
      * applicable. No newline at the end.
      */
@@ -274,7 +275,7 @@ public class Utils {
 	  return newArgs;
 	}
 	
-    /**
+    /*
      * Converts a list to a string that shows at most 100 elements.
      * 
      * @param list The list to print.
@@ -285,7 +286,7 @@ public class Utils {
         return limitLengthOfPrintedList(list, 100);
     }
 
-    /**
+    /*
      * Converts a collection to a string that shows at most maxSize elements.
      * 
      * @param collection The collection to print.
@@ -311,7 +312,7 @@ public class Utils {
         return result + ", ..., plus " + comma(size - maxItems) + " more items]";
     }
 	   
-    /**
+    /*
      * Converts a map to a string that shows at most maxSize elements.
      * 
      * @param map The map to print.
@@ -327,7 +328,7 @@ public class Utils {
 		return limitLengthOfPrintedList(map, 100);
 	}
 
-    /**
+    /*
 	 * Save some typing when throwing generic errors.
      */
 	public static void error(String msg) {
@@ -347,7 +348,7 @@ public class Utils {
 		throw new WILLthrownError("\n Should not happen ...");
 	}
 
-	/**
+	/*
 	 * Provide a simple way to mark code that still needs to be written.
      *
      */
@@ -358,14 +359,14 @@ public class Utils {
 		error("writeMe");
 	}
 
-    /**
+    /*
      * Flushes the standard output stream.
      */
     public static void flush() {
         if (isVerbose() && !doNotPrintToSystemDotOut) { System.out.flush(); }
     }
 
-    /**
+    /*
      * Sort (in place this list of doubles and remove duplicate values (where
      * 'duplicate(a,b)' is 'not diffDoubles(a,b).'
      *
@@ -395,7 +396,7 @@ public class Utils {
     	sortListOfDoublesAndRemoveDuplicates(items, EQUIVALENCE_TOLERANCE, EQUIVALENCE_TOLERANCE_SMALL_NUMBERS);
     }
     
-    /**
+    /*
      * "Safely" returns the size of a collection.
      *
      * @return The size of the given collection, or zero if the collection is null.
@@ -463,7 +464,7 @@ public class Utils {
         }
     }
 
-    /**
+    /*
      * Create a file-name string from this directory and (possibly partial) fileName. 
      * (Could just return a File, but this is what other methods are expecting.)
      * 
@@ -551,7 +552,7 @@ public class Utils {
     	return MYSCRATCHDIR;
 	}
 
-    /**
+    /*
      * Waits for input on standard input after displaying "Waiting for user input".
      */
     public static boolean waitHere() {
@@ -572,7 +573,7 @@ public class Utils {
         waitHere(msg, false, null);
     }
 
-    /** Prints out the message msg, possibly waiting for user input prior to continuing.
+    /* Prints out the message msg, possibly waiting for user input prior to continuing.
      *
      * waitHere prints out the message msg and then, based on the verbosity setting,
      * possibly waits for user input prior to continuing.
@@ -670,13 +671,14 @@ public class Utils {
         System.exit(0);
     }
 
-    /**
+    /*
      * Prints a warning header on standard output.
      */
     public static void warning() {
         println("\n***** Warning *****\n"); // Don't print to warning stream since no message.
     }
-    /** Prints a warning header on standard output that includes the given message.
+
+    /* Prints a warning header on standard output that includes the given message.
      *
      * @param str A message describing the warning.
      */
@@ -686,7 +688,8 @@ public class Utils {
     public static void warning(MessageType type, String str) {
         if ( isMessageTypeEnabled(type) ) warning(str, null);
     }
-    /** Prints a warning header on standard output that includes the given message.
+
+    /* Prints a warning header on standard output that includes the given message.
      *
      * If skipWarningString is non-null, the warning associated with that string will only be
      * printed the first time the warning occurs.
@@ -705,7 +708,8 @@ public class Utils {
             println("\n***** Warning: " + str + " *****\n");
         }
     }
-    /**
+
+    /*
      * Prints a warning header on standard output that includes the given message and waits sleepInSeconds.
      */
     public static void warning(String str, int sleepInSeconds) {
@@ -715,7 +719,7 @@ public class Utils {
         if ( isMessageTypeEnabled(type) ) warning(str, sleepInSeconds);
     }
 
-    /**
+    /*
      * Prints a warning header on standard output that includes the given message and waits sleepInSeconds.
      *
      * If skipWarningString is non-null, the warning associated with that string will only be
@@ -759,7 +763,7 @@ public class Utils {
         }
     }
 
-    /**
+    /*
      * @return A copy of the given string with the case of the first character
      *         changed (e.g., "xyz" becomes "Xyz").
      */
@@ -780,7 +784,7 @@ public class Utils {
     // This is one place that this class maintains state (so if two threads running, their dribble files will interfere).
     private static String dribbleFileName = null;
 
-    /**
+    /*
      * Creates a dribble file with the given name in the current working
      * directory.
      *
@@ -832,7 +836,7 @@ public class Utils {
 		if (warningShadowStream != null) { warningShadowStream.println(str); }
     }
 
-    /**
+    /*
      * Sets the seed on the random instance.
      * @param seed The random seed.
      */
@@ -840,14 +844,14 @@ public class Utils {
         randomInstance.setSeed(seed);
     }
 
-    /**
+    /*
      * @return The next random double.
      */
     public static double random() {
         return randomInstance.nextDouble();
     }
 
-    /**
+    /*
      * @param upper The upper bound on the interval.
      * @return A random number in the interval [1, upper).
      */
@@ -855,7 +859,7 @@ public class Utils {
         return randomInInterval(1, upper);
     }
 
-    /**
+    /*
      * @param upper The upper bound on the interval.
      * @return A random number in the interval [0, upper).
      */
@@ -863,7 +867,7 @@ public class Utils {
         return randomInInterval(0, upper);
     }
 
-    /**
+    /*
      * @param lower The lower end of the interval.
      * @param upper The upper end of the interval. It is not possible for the
      *              returned random number to equal this number.
@@ -873,7 +877,7 @@ public class Utils {
         return lower + (int) Math.floor(random() * (upper - lower));
     }
 
-    /**
+    /*
      * Shorten this list to maxLength by removing elements IN PLACE. Elements
      * are randomly discarded until the list is short enough. If the list is
      * already short enough, it is unchanged.
@@ -900,7 +904,7 @@ public class Utils {
         return items; // Probably no need to return this, since caller knows, but might as well do so (for one thing, this allows the caller to use a functional programming style).
     }
 
-    /**
+    /*
      * Variant of getIthItemInCollection() that works with any collection.
      */
     public static <E> E getIthItemInCollectionUnsafe(Collection<E> items, int index) {
@@ -915,35 +919,17 @@ public class Utils {
 		return null;
     }
 
-    /**
+    /*
      * Randomly select a number of items from this list.
-     * 
+     *
      * @param <E> The element type of the list.
      * @param numberToChoose How many elements to return.
      * @param list The list of elements to choose from.
      * @return A new list containing the specified number of elements from the
      *         given list, or the original list if it was shorter than
      *         numberToChoose.
-     * @see Utils#chooseRandomNfromThisList(int, List, boolean)
      */
     public static <E> List<E> chooseRandomNfromThisList(int numberToChoose, List<E> list) {
-        return chooseRandomNfromThisList(numberToChoose, list, false);
-    }
-
-    /**
-     * Randomly select a number of items from this list. If
-     * maintainOrdering=true, the order in the original list will be preserved
-     * (possibly at a runtime cost).
-     * 
-     * @param <E> The element type of the list.
-     * @param numberToChoose How many elements to return.
-     * @param list The list of elements to choose from.
-     * @param maintainOrdering Whether the order of the list is maintained.
-     * @return A new list containing the specified number of elements from the
-     *         given list, or the original list if it was shorter than
-     *         numberToChoose.
-     */
-    private static <E> List<E> chooseRandomNfromThisList(int numberToChoose, List<E> list, boolean maintainOrdering) {
         if (list == null || numberToChoose < 0) { return null; }
         int length = list.size();
 
@@ -952,7 +938,7 @@ public class Utils {
         List<E> result = new ArrayList<>(numberToChoose);
         if (numberToChoose == 0) {  return result; }
 
-        if (!maintainOrdering && numberToChoose < length / 4) { // We'll collect items if only a few.
+        if (numberToChoose < length / 4) { // We'll collect items if only a few.
             int counter = 0;
             while (counter < numberToChoose) {
                 int itemToKeep = random0toNminus1(length);
@@ -975,7 +961,7 @@ public class Utils {
         return result;
     }
 
-    /**
+    /*
      * @param d A number (double).
      * @return Whether the given double is a number (not not a number). (Note
      *         that by this definition infinity is included as a number.)
@@ -984,7 +970,7 @@ public class Utils {
         return !Double.isNaN(d);
     }
 
-    /**
+    /*
      * Compares two numbers to see if they are different.
      * 
      * @param a A number.
@@ -1007,7 +993,7 @@ public class Utils {
     	return diffDoubles(a, b, EQUIVALENCE_TOLERANCE, EQUIVALENCE_TOLERANCE_SMALL_NUMBERS);
     }
 
-    /**
+    /*
      * Formats the given floating point number by truncating it to one decimal
      * place.
      * 
@@ -1018,7 +1004,7 @@ public class Utils {
         return truncate(d, 1);
     }
 
-    /**
+    /*
      * Format the given floating point number by truncating it to the specified
      * number of decimal places.
      * 
@@ -1039,7 +1025,7 @@ public class Utils {
         return     String.format("%,." +  decimals      + "f", d);
     }
 
-    /**
+    /*
      * Truncates a double and returns it as a string with at least one and at
      * most "decimals" decimal places. Notice that this does not ROUND (i.e, if
      * the first of the dropped digits was '5' or higher, could add 1 to the
@@ -1078,7 +1064,7 @@ public class Utils {
             return " " + substring;
     }
 
-    /**
+    /*
      * A version of java.lang.String.indexOf(String, int) that ignores case.
      * (Since there isn't an CASELESS indexOf, adapt the existing code.)
      * 
@@ -1106,8 +1092,8 @@ public class Utils {
         return -1;
     }
 
-    /**
-     * Create the cross product of a list of list. I.e., { {a,b}, {c, d} -&gt; {
+    /*
+     * Creae the cross product of a list of list. I.e., { {a,b}, {c, d} -&gt; {
      * {a,c}, {a,d}, {b,c}, {b,d} }. Since this is general-purpose utility, it
      * has been placed here. If this causes memory-usage problems, convert to an
      * iterative version.
@@ -1144,7 +1130,8 @@ public class Utils {
         }
     	return computeCrossProduct(allArgPossibilities, Q);
     }
-    /**
+
+    /*
      * See computeCrossProduct(List<Collection<E>> allArgPossibilities, int maximumSize)
      * In this version, maximumSize defaults to infinity.
      */
@@ -1186,23 +1173,8 @@ public class Utils {
         }
         return results;
     }
-    
-    // This is specific to MLNs.  Determine the weight that a single MLN clause should have it it is to produce this probability.
-	public static double getLogWeightForProb(double prob) {
-		double maxClauseWeight = Sentence.maxWeight;
-		if (prob == 0) {
-			return -maxClauseWeight;
-		}
-		if (prob == 1) {
-			return maxClauseWeight;
-		}
-		double logWt = Math.log(prob/(1-prob));
-		if (logWt > maxClauseWeight) {
-			return maxClauseWeight;
-		}
-        return Math.max(logWt, -maxClauseWeight);
-	}
-    /**
+
+    /*
      * Write these objects to this file. Start with a header string (e.g., a
      * comment) and have all lines (except the header) ends with finalEOLchars.
      * 
@@ -1234,7 +1206,7 @@ public class Utils {
         
     }    
 
-	/**
+	/*
 	 * Reads file <filePath> into a string.
 	 * 
 	 * Works for gzipped files as well.  
@@ -1344,7 +1316,7 @@ public class Utils {
 		} catch (NumberFormatException e) { return false; }
 	}
 
-   /** Returns a pretty String starting with prefix, ending with suffix, and contain a comma separated list of the collection items.
+   /* Returns a pretty String starting with prefix, ending with suffix, and contain a comma separated list of the collection items.
     *
     * @param <T> Type of the collection. Any object will do.
     * @param prefix Can be null if no prefix is wanted.
@@ -1394,7 +1366,7 @@ public class Utils {
         return sb.toString();
     }
 
-    /** Returns the maximum of a list of doubles */
+    /* Returns the maximum of a list of doubles */
     public static double max(double ... values) {
         double max = Double.NEGATIVE_INFINITY;
 
@@ -1409,7 +1381,7 @@ public class Utils {
         return max;
     }
 
-    /** Returns the maximum of a list of object based on a comparitor.
+    /* Returns the maximum of a list of object based on a comparitor.
      *
      * @param <T> Type of object to be compared.
      * @param comparator Comparator to use for the comparison.
@@ -1496,7 +1468,7 @@ public class Utils {
 
     private static final Pattern numberPattern = Pattern.compile("-?[0-9]+(\\.[0-9]+)?([eE]-?[0-9]+)?");
 
-    /**
+    /*
     * Replace all problematic characters with underscores.
     * @param string  The string to convert. 
     * */
@@ -1689,33 +1661,6 @@ public class Utils {
 		return ((new CondorFile(fileName)).exists());
 	}
 
-    /**
-     * Copy content of file f1 into file f2
-     */
-    // Found at: http://www.computer-faqs.com/2009/01/30/how-to-copy-text-file-in-java/
-    public static void copyFile(File f1, File f2) {
-    	if (f1.getName().endsWith(".gz")) { waitHere("Use copyCompressedFile for " + f1.getName()); }
-    	if (f2.getName().endsWith(".gz")) { waitHere("Use copyCompressedFile for " + f2.getName()); }
-    	try {
-    		ensureDirExists(f1);
-    		ensureDirExists(f2);
-            CondorFileReader reader = new CondorFileReader(f1);
-            CondorFileWriter writer = new CondorFileWriter(f2, false); // Create a new file.
-            int line;
-            while ((line = reader.read()) != -1) {  // Read line from text file and write to destination file
-                writer.write(line);
-            }
-            reader.close();
-            writer.close();
-        } catch (FileNotFoundException ffx) {
-        	reportStackTrace(ffx);
-            error("FileNotFoundException: " + ffx);
-        } catch (IOException iox) {
-        	reportStackTrace(iox);
-            error("IOException: " + iox);
-        }
-    }
-    
     public static void appendString(File file, String str) {
     	appendString(file, str, true);
     }
@@ -1847,12 +1792,13 @@ public class Utils {
 		return "Using " + comma(memoryInUse) + " memory cells.";
 	}
 
-    /**
+    /*
 	 * Recursive remove an existing directory.
      */
     public static boolean delete(File file) { // Also see deleteDirectory [I think I (JWS) wrote deleteDirectory and Trevor wrote this one.]
         if (file.isDirectory()) {
             File[] files = file.listFiles();
+            assert files != null;
             for (File file1 : files) {
                 if (!delete(file1)) {
                     return false;
@@ -1902,7 +1848,7 @@ public class Utils {
         return verbose != null;
     }
 
-    /** Return whether the properties indicate that we are a developer.
+    /* Return whether the properties indicate that we are a developer.
      *
 	 * Here is some code to decide whether a run is a development run based first on Java system properties
 	 * and then on the presence of a file. The system property is important because it allows more flexibility,
@@ -2018,7 +1964,7 @@ public class Utils {
         }
     }
 
-    /**
+    /*
      * Parses a string into a list of strings. Can handle formats:
      * {1,2, 3,4}
      * 1,2,3,4
@@ -2210,7 +2156,7 @@ public class Utils {
                 if (writer != null) {
                     writer.close();
                 }
-            } catch (IOException iOException) { return false; }
+            } catch (IOException ignored) { }
         }
         return true;
     }

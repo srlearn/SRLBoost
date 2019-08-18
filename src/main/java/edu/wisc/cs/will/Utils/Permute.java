@@ -1,12 +1,12 @@
 package edu.wisc.cs.will.Utils;
 import java.util.List;
 
-/**
+/*
  * @author twalker
  */
 public class Permute {
 
-    /** Randomly permute array in place.
+    /* Randomly permute array in place.
      *
      * @param <T>  Type of list to permute.
      * @param list List to permute in place.  It is highly recommended that this

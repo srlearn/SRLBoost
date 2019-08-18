@@ -13,13 +13,12 @@ import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.ProcedurallyDefinedPredicateHandler;
 import edu.wisc.cs.will.FOPC.Sentence;
 
-/**
- *
+/*
  * @author twalker
  */
 public interface HornClausebase {
 
-    /** Returns the String handler for this fact base.
+    /* Returns the String handler for this fact base.
      * 
      * @return String handler for this fact base.
      */
@@ -27,7 +26,7 @@ public interface HornClausebase {
 
     MapOfDefiniteClauseLists getAssertionsMap();
 
-    /** Returns the set of all asserted sentences.
+    /* Returns the set of all asserted sentences.
      *
      * To maintain prolog semantics, we need to have all assertions in order,
      * independent of whether they are facts or background knowledge.
@@ -43,7 +42,7 @@ public interface HornClausebase {
      */
     Iterable<DefiniteClause> getAssertions();
 
-    /** Returns the set of all asserted facts.
+    /* Returns the set of all asserted facts.
      *
      * The returned collection should be considered immutable.  Changing the
      * collection directly would be bad.
@@ -52,7 +51,7 @@ public interface HornClausebase {
      */
     Iterable<Literal> getFacts();
 
-    /** Returns the set of all asserted background knowledge.
+    /* Returns the set of all asserted background knowledge.
      * 
      * The returned collection should be considered immutable.  Changing the
      * collection directly would be bad.
@@ -61,7 +60,7 @@ public interface HornClausebase {
      */
     Iterable<Clause> getBackgroundKnowledge();
 
-    /** Asserts a definite clause into the background knowledge.
+    /* Asserts a definite clause into the background knowledge.
      *
      * @param definiteClause Clause to assert into the background knowledge.
      * @throws IllegalArgumentException Throws an IllegalArgumentException if the
@@ -69,7 +68,7 @@ public interface HornClausebase {
      */
     void assertBackgroundKnowledge(DefiniteClause definiteClause) throws IllegalArgumentException;
 
-    /** Asserts a list of definite clauses into the background knowledge.
+    /* Asserts a list of definite clauses into the background knowledge.
      *
      * The sentences in the list must be either clause which are definite or Literals.
      *
@@ -79,13 +78,13 @@ public interface HornClausebase {
      */
     void assertBackgroundKnowledge(Collection<? extends Sentence> definiteClauses) throws IllegalArgumentException;
 
-    /** Asserts a fact into the clause base.
+    /* Asserts a fact into the clause base.
      *
      * @param fact Fact to assert into the facts.
      */
     void assertFact(Literal fact);
 
-    /** Asserts a fact into the clause base.
+    /* Asserts a fact into the clause base.
      *
      * @param facts Facts to assert into the clause base.
      * @throws IllegalArgumentException Throws a IllegalArgumentException if any of the Sentences
@@ -94,7 +93,7 @@ public interface HornClausebase {
      */
     void assertFacts(Collection<? extends Sentence> facts) throws IllegalArgumentException;
 
-    /**
+    /*
      * Retracts the first occurrence of the specified definiteClause.
      *
      * The first definite clause in the clausebase which matches definiteClause via
@@ -109,7 +108,7 @@ public interface HornClausebase {
      */
     boolean retract(DefiniteClause definiteClause, BindingList bindingList);
 
-    /**
+    /*
      * Retract all the clauses which unify with definiteClause.
      *
      * Retracts all clauses from the clausebase which unify with definiteClause.
@@ -120,7 +119,7 @@ public interface HornClausebase {
      */
     void retractAllClausesWithUnifyingBody(DefiniteClause definiteClause);
 
-    /**
+    /*
      * Retract all the clauses whose head literal unifies with literal.
      *
      * Retracts all clauses from the clausebase where the head of the
@@ -133,7 +132,7 @@ public interface HornClausebase {
 
     void retractAllClausesForPredicate(PredicateNameAndArity predicateNameAndArity);
 
-    /** Checks to see if there are any possible matching definite clauses in either the background knowledge or the facts.
+    /* Checks to see if there are any possible matching definite clauses in either the background knowledge or the facts.
      * 
      * This method check both facts and background knowledge.
      * 
@@ -143,7 +142,7 @@ public interface HornClausebase {
      */
     boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity);
 
-    /** Returns a Collection of definite clauses whose head might match the specified clauseHead.
+    /* Returns a Collection of definite clauses whose head might match the specified clauseHead.
      *
      * The DefiniteClause returned can be either a Literal or a Clause from either the background
      * knowledge or the facts.
@@ -163,7 +162,7 @@ public interface HornClausebase {
      */
     List<DefiniteClause> getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBinding);
 
-    /** Returns a Collection of definite clauses from both the background knowledge and the facts whose head matches the predicateName and arity.
+    /* Returns a Collection of definite clauses from both the background knowledge and the facts whose head matches the predicateName and arity.
      *
      * This is guaranteed to be the complete list and to only contain definite clauses with
      * a head that matches the predName and arity.
@@ -180,7 +179,7 @@ public interface HornClausebase {
      */
     List<DefiniteClause> getAssertions(PredicateName predName, int arity);
 
-    /** Returns a Collection of definite clauses from both the background knowledge and the facts whose head matches the predicateName and arity.
+    /* Returns a Collection of definite clauses from both the background knowledge and the facts whose head matches the predicateName and arity.
      *
      * This is guaranteed to be the complete list and to only contain definite clauses with
      * a head that matches the predName and arity.
@@ -196,7 +195,7 @@ public interface HornClausebase {
      */
     List<DefiniteClause> getAssertions(PredicateNameAndArity predicateNameAndArity);
 
-    /** Checks to see if there are any possible matching clauses in the background knowledge.
+    /* Checks to see if there are any possible matching clauses in the background knowledge.
      *
      * @param predName Predicate name to lookup.
      * @param arity Arity of predicate.
@@ -204,7 +203,7 @@ public interface HornClausebase {
      */
     boolean checkForPossibleMatchingBackgroundKnowledge(PredicateName predName, int arity);
 
-    /** Returns a Collection of background knowledge whose head might match the specified clauseHead.
+    /* Returns a Collection of background knowledge whose head might match the specified clauseHead.
      *
      * There is no guarantee that head of the clauses in the returned set will match the clauseHead requested.
      * Depending on the indexing method, other predicateNames or arities might be returned.  However,
@@ -217,7 +216,7 @@ public interface HornClausebase {
      */
     Iterable<Clause> getPossibleMatchingBackgroundKnowledge(Literal clauseHead, BindingList currentBinding);
 
-    /** Checks to see if there are any possible matching facts in the factbase.
+    /* Checks to see if there are any possible matching facts in the factbase.
      * 
      * @param predName Predicate name to lookup.
      * @param arity Arity of predicate.
@@ -225,7 +224,7 @@ public interface HornClausebase {
      */
     boolean checkForPossibleMatchingFacts(PredicateName predName, int arity);
 
-    /** Returns a Collection of facts which might match the specified clauseHead.
+    /* Returns a Collection of facts which might match the specified clauseHead.
      *
      * There is no guarantee that head of the clauses in the returned set will match the clauseHead requested.
      * Depending on the indexing method, other predicateNames or arities might be returned.  However,
@@ -237,7 +236,7 @@ public interface HornClausebase {
      */
     Iterable<Literal> getPossibleMatchingFacts(Literal clauseHead, BindingList currentBinding);
     
-    /**
+    /*
      * Removes the clause from facts and assertions. Does not find possible matching assertions or facts.
      */
     void removeClause(DefiniteClause clauseToRemove);
@@ -254,7 +253,7 @@ public interface HornClausebase {
 
     void addAssertRetractListener(AssertRetractListener assertRetractListener, PredicateNameAndArity predicate);
 
-    /**
+    /*
      * Returns whether the predicate currently has a definition.
      */
     boolean isDefined(PredicateNameAndArity pnaa);

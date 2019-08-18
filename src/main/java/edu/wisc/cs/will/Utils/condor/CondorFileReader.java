@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.CharBuffer;
 
-/**
+/*
  * @author twalker
  */
 public class CondorFileReader extends Reader {

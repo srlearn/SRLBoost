@@ -16,7 +16,7 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
-/**
+/*
  * @author tkhot
  *
  */
@@ -197,14 +197,14 @@ public class PropositionalizationModel {
 		return path;
 	}
 
-	/**
+	/*
 	 * @return the oneClassExamples
 	 */
 	List<FeatureVector> getOneClassExamples() {
 		return oneClassExamples;
 	}
 
-	/**
+	/*
 	 * @param oneClassExamples the oneClassExamples to set
 	 */
 	void setOneClassExamples(List<FeatureVector> oneClassExamples) {

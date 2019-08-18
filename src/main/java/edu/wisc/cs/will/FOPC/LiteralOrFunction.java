@@ -2,7 +2,7 @@ package edu.wisc.cs.will.FOPC;
 
 import java.util.List;
 
-/** Interface describing the operations common between literals and terms.
+/* Interface describing the operations common between literals and terms.
  *
  * Literal and terms often play a similar role.  Literals are the arguments
  * of Clauses while Terms are the arguments of Functions.  Literals are easily

@@ -3,20 +3,14 @@ package edu.wisc.cs.will.FOPC;
 import java.util.Comparator;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  */
 public class LiteralComparator implements Comparator<Literal> {
 
-	/**
-	 * 
-	 */
 	public LiteralComparator() {
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-	 */
 	public int compare(Literal lit0, Literal lit1) {
 		if (lit0 == lit1) { return 0; }
 		if (lit0 == null || lit1 == null) { Utils.error("Should not call LiteralComparator.compare with a lit=null."); }

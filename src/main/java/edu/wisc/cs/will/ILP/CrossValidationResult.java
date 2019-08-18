@@ -1,14 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.Utils.Utils;
 import java.util.Comparator;
 
-/**
- *
+/*
  * @author twalker
  */
 public class CrossValidationResult {
@@ -20,60 +15,44 @@ public class CrossValidationResult {
 
     private CrossValidationFoldResult[] foldResults;
 
-    public CrossValidationResult(int numberOfFolds) {
+    CrossValidationResult(int numberOfFolds) {
         this.numberOfFolds = numberOfFolds;
         foldResults = new CrossValidationFoldResult[numberOfFolds];
     }
 
-    public CrossValidationFoldResult getFoldResult(int fold) {
+    CrossValidationFoldResult getFoldResult(int fold) {
         return foldResults[fold];
     }
 
-    public void setFoldResult(int fold, CrossValidationFoldResult foldResult) {
+    void setFoldResult(int fold, CrossValidationFoldResult foldResult) {
         foldResults[fold] = foldResult;
 
         invalidateCoverageScores();
     }
 
-    public CrossValidationFoldResult[] getFoldResults() {
-        return foldResults;
+    private void invalidateCoverageScores() {
+        setAverageEvaluationCoverageScore();
+        setAverageTrainingCoverageScore();
     }
 
-    protected void invalidateCoverageScores() {
-        setAverageEvaluationCoverageScore(null);
-        setAverageTrainingCoverageScore(  null);
-    }
-
-    /**
-     * @return the averageTrainingCoverageScore
-     */
-    public CoverageScore getAverageTrainingCoverageScore() {
+    CoverageScore getAverageTrainingCoverageScore() {
         calculateAverageTrainingCoverageScore();
 
         return averageTrainingCoverageScore;
     }
 
-    /**
-     * @param averageTrainingCoverageScore the averageTrainingCoverageScore to set
-     */
-    private void setAverageTrainingCoverageScore(CoverageScore averageTrainingCoverageScore) {
-        this.averageTrainingCoverageScore = averageTrainingCoverageScore;
+    private void setAverageTrainingCoverageScore() {
+        this.averageTrainingCoverageScore = null;
     }
 
-    /**
-     * @return the averageTestingCoverageScore
-     */
-    public CoverageScore getAverageEvaluationCoverageScore() {
+    CoverageScore getAverageEvaluationCoverageScore() {
         calculateAverageEvaluationCoverageScore();
 
         return averageEvaluationCoverageScore;
     }
 
-    /**
-     * @param averageEvaluationCoverageScore the averageTestingCoverageScore to set
-     */
-    private void setAverageEvaluationCoverageScore(CoverageScore averageEvaluationCoverageScore) {
-        this.averageEvaluationCoverageScore = averageEvaluationCoverageScore;
+    private void setAverageEvaluationCoverageScore() {
+        this.averageEvaluationCoverageScore = null;
     }
 
     private void calculateAverageTrainingCoverageScore() {
@@ -88,31 +67,21 @@ public class CrossValidationResult {
 
             int foldCount = 0;
 
-            for (int i = 0; i < foldResults.length; i++) {
-                CrossValidationFoldResult foldResult = foldResults[i];
-
+            for (CrossValidationFoldResult foldResult : foldResults) {
                 if (foldResult != null) {
-                    foldCount ++;
+                    foldCount++;
 
                     CoverageScore score = foldResult.getTrainingCoverageScore();
 
                     if (score != null) {
-                    	tp += score.getTruePositives();
-                    	tn += score.getTrueNegatives();
-                    	fp += score.getFalsePositives();
-                    	fn += score.getFalseNegatives();
+                        tp += score.getTruePositives();
+                        tn += score.getTrueNegatives();
+                        fp += score.getFalsePositives();
+                        fn += score.getFalseNegatives();
 
-                    	fnMEst += score.getFalseNegativeMEstimate();
-                    	fpMEst += score.getFalsePositiveMEstimate();
-                    } /*else { // Call everything NEGATIVE.  TODO - need #pos and #neg
-                    	tp += 0;
-                    	tn += 100; // THIS IS INCORRECT! JWSJWSJWS
-                    	fp += 0;
-                    	fn += 100;
-                    		
-                    	fnMEst += 0.01;
-                    	fpMEst += 0;
-                    } */
+                        fnMEst += score.getFalseNegativeMEstimate();
+                        fpMEst += score.getFalsePositiveMEstimate();
+                    }
                 }
             }
 
@@ -132,16 +101,14 @@ public class CrossValidationResult {
 
             int foldCount = 0;
 
-            for (int i = 0; i < foldResults.length; i++) {
-                CrossValidationFoldResult foldResult = foldResults[i];
-
+            for (CrossValidationFoldResult foldResult : foldResults) {
                 if (foldResult != null) {
-                    
+
 
                     CoverageScore score = foldResult.getEvaluationCoverageScore();
 
-                    if ( score != null ) {
-                        foldCount ++;
+                    if (score != null) {
+                        foldCount++;
                         tp += score.getTruePositives();
                         tn += score.getTrueNegatives();
                         fp += score.getFalsePositives();
@@ -159,7 +126,7 @@ public class CrossValidationResult {
         }
     }
 
-    public double getAverageTrainingAccuracy() {
+    private double getAverageTrainingAccuracy() {
         CoverageScore score = getAverageTrainingCoverageScore();
 
         if (score == null) {
@@ -170,7 +137,7 @@ public class CrossValidationResult {
         }
     }
 
-    public double getAverageTestingAccuracy() {
+    double getAverageTestingAccuracy() {
         CoverageScore score = getAverageEvaluationCoverageScore();
 
         if (score == null) {
@@ -181,7 +148,7 @@ public class CrossValidationResult {
         }
     }
 
-    public double getAverageAccuracy() {
+    double getAverageAccuracy() {
         double v = getAverageTestingAccuracy();
 
         if (Double.isNaN(v)) {
@@ -191,7 +158,7 @@ public class CrossValidationResult {
         return v;
     }
 
-    public double getAverageTrainingPrecision() {
+    double getAverageTrainingPrecision() {
         CoverageScore score = getAverageTrainingCoverageScore();
 
         if (score == null) {
@@ -202,7 +169,7 @@ public class CrossValidationResult {
         }
     }
 
-    public double getAverageTestingPrecision() {
+    double getAverageTestingPrecision() {
         CoverageScore score = getAverageEvaluationCoverageScore();
 
         if (score == null) {
@@ -213,17 +180,7 @@ public class CrossValidationResult {
         }
     }
 
-    public double getAveragePrecision() {
-        double v = getAverageTestingPrecision();
-
-        if (Double.isNaN(v)) {
-            v = getAverageTrainingPrecision();
-        }
-
-        return v;
-    }
-
-    public double getAverageTrainingRecall() {
+    double getAverageTrainingRecall() {
         CoverageScore score = getAverageTrainingCoverageScore();
 
         if (score == null) {
@@ -234,7 +191,7 @@ public class CrossValidationResult {
         }
     }
 
-    public double getAverageTestingRecall() {
+    double getAverageTestingRecall() {
         CoverageScore score = getAverageEvaluationCoverageScore();
 
         if (score == null) {
@@ -245,30 +202,10 @@ public class CrossValidationResult {
         }
     }
 
-    public double getAverageRecall() {
-        double v = getAverageTestingRecall();
-
-        if (Double.isNaN(v)) {
-            v = getAverageTrainingRecall();
-        }
-
-        return v;
-    }
-
-    public double getAverageTrainingFBeta(double beta) {
-        CoverageScore score = getAverageTrainingCoverageScore();
-
-        if (score == null) {
-            return Double.NaN;
-        }
-		return score.getFBeta(beta);
-    }
-
-
-    public double getAverageTestingFBeta() {
+    double getAverageTestingFBeta() {
     	return getAverageTestingFBeta(1.0); 
     }
-    public double getAverageTestingFBeta(double beta) {
+    private double getAverageTestingFBeta(double beta) {
         CoverageScore score = getAverageEvaluationCoverageScore();
 
         if (score == null) {
@@ -277,10 +214,10 @@ public class CrossValidationResult {
 		return score.getFBeta(beta);
     }
 
-    public double getAverageFBeta() {
+    double getAverageFBeta() {
     	return getAverageFBeta(1.0); 
     }
-    public double getAverageFBeta(double beta) {
+    private double getAverageFBeta(double beta) {
         CoverageScore score = getAverageEvaluationCoverageScore();
 
         if (score == null) {
@@ -293,30 +230,12 @@ public class CrossValidationResult {
 		return score.getFBeta(beta);
     }
 
-    public int getCompletedFoldCount() {
-        int count = 0;
-        for (int i = 0; i < foldResults.length; i++) {
-            if ( foldResults[i] != null ) {
-                count++;
-            }
-
-        }
-        return count;
-    }
-
-    public boolean isCrossValidationComplete() {
-        return getCompletedFoldCount() == numberOfFolds;
-    }
-
-    /**
-     * @return the numberOfFolds
-     */
-    public int getNumberOfFolds() {
+    private int getNumberOfFolds() {
         return numberOfFolds;
     }
 
     
-    public String toShortString() {
+    private String toShortString() {
         StringBuilder sb = new StringBuilder();
 
         CoverageScore cs;
@@ -334,30 +253,12 @@ public class CrossValidationResult {
         return sb.toString();
     }
 
-    public String toLongString() {
-                StringBuilder sb = new StringBuilder();
-
-        CoverageScore cs;
-
-        sb.append("%%% Cross-Validation Average Scores [Folds = ").append(getNumberOfFolds()).append("]:\n\n");
-
-        cs = getAverageTrainingCoverageScore();
-        if ( cs != null ) {
-            sb.append("%%% Average TRAINING Coverage Score:\n").append(cs.toLongString());
-        }
-        cs = getAverageEvaluationCoverageScore();
-        if ( cs != null ) {
-            sb.append("%%% Average TESTING[Trevor should rename or drop this] Coverage Score:\n").append(cs.toLongString());
-        }
-        return sb.toString();
-    }
-
     @Override
     public String toString() {
         return toShortString();
     }
 
-    /** Returns the FoldResults with the best Accuracy across all examples.
+    /* Returns the FoldResults with the best Accuracy across all examples.
      *
      * The coverage score used to compare the fold results is based upon all
      * of the examples in the positive and negative sets.  If you would like
@@ -367,15 +268,15 @@ public class CrossValidationResult {
      *
      * @return FoldResults with the best Accuracy across all examples.
      */
-    public CrossValidationFoldResult getBestOverallFoldByAccuracy() {
+    CrossValidationFoldResult getBestOverallFoldByAccuracy() {
         return getBestOverallFold(CoverageScore.ascendingAccuracyComparator);
     }
 
-    public CrossValidationFoldResult getBestOverallFoldByF1() {
+    CrossValidationFoldResult getBestOverallFoldByF1() {
         return getBestOverallFold(CoverageScore.ascendingF1Comparator);
     }
     
-    /** Returns the best FoldResults across all examples as determined by the comparator.
+    /* Returns the best FoldResults across all examples as determined by the comparator.
      *
      * The comparator must be a CoverageScore comparator.  The CoverageScore
      * class many of the common comparison, such as accuracy, precision, etc.
@@ -392,19 +293,14 @@ public class CrossValidationResult {
      * 
      * @return FoldResults with the best coverage score across all examples as determined by the comparator.
      */
-    public CrossValidationFoldResult getBestOverallFold(final Comparator<CoverageScore> coverageScoreComparator) {
+    private CrossValidationFoldResult getBestOverallFold(final Comparator<CoverageScore> coverageScoreComparator) {
 
-        Comparator<CrossValidationFoldResult> foldComparator = new Comparator<CrossValidationFoldResult>() {
-
-            public int compare(CrossValidationFoldResult o1, CrossValidationFoldResult o2) {
-                return coverageScoreComparator.compare(o1.getAllExamplesCoverageScore(), o2.getAllExamplesCoverageScore());
-            }
-        };
+        Comparator<CrossValidationFoldResult> foldComparator = (o1, o2) -> coverageScoreComparator.compare(o1.getAllExamplesCoverageScore(), o2.getAllExamplesCoverageScore());
 
         return getBestOrverallFold(foldComparator);
     }
 
-    /** Returns the best FoldResults as determined by the comparator.
+    /* Returns the best FoldResults as determined by the comparator.
      *
      * This method allows for maximum configurability with regards to how to
      * compare folds.  See getBestOverallFoldByAccuracy() and
@@ -414,10 +310,9 @@ public class CrossValidationResult {
      * @param foldComparator Comparator used to order the fold results.
      * @return FoldResults with the best score as determined by the comparator.
      */
-    public CrossValidationFoldResult getBestOrverallFold(Comparator<CrossValidationFoldResult> foldComparator) {
-        CrossValidationFoldResult best = Utils.argmax(foldComparator, foldResults);
+    private CrossValidationFoldResult getBestOrverallFold(Comparator<CrossValidationFoldResult> foldComparator) {
 
-        return best;
+        return Utils.argmax(foldComparator, foldResults);
     }
 
 

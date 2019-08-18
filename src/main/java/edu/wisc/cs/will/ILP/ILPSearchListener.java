@@ -2,8 +2,7 @@ package edu.wisc.cs.will.ILP;
 
 import java.util.EventListener;
 
-/**
- *
+/*
  * @author twalker
  */
 public interface ILPSearchListener extends EventListener {

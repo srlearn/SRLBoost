@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  * 
  * Binding lists return the results of unification.
@@ -62,7 +62,7 @@ public class BindingList extends AllOfFOPC {
 		return new BindingList(newMap);
 	}
 
-    /** Creates a new theta map.
+    /* Creates a new theta map.
      *
      * I offloading this to a small helper so that I could easily change the type of
      * map that was created without changing it in 5 different places.
@@ -87,7 +87,7 @@ public class BindingList extends AllOfFOPC {
 			if (literals1 == null) { return literals2; }
 			if (literals2 == null) { return literals1; }
 			
-			List<Literal> literals1Copy = new ArrayList<Literal>(literals1);
+			List<Literal> literals1Copy = new ArrayList<>(literals1);
 			literals1Copy.addAll(literals2);
 			return literals1Copy;
 		}
@@ -102,7 +102,7 @@ public class BindingList extends AllOfFOPC {
 	public List<Literal> applyTheta(List<Literal> literals) { // Note that the above code assumes this will make a top-level copy (but the above wont call this if theta is empty or the list is).
 		if (literals == null) { return null; }
 		if (theta    == null || theta.size() == 0) { return literals; } // No need to apply the empty list of bindings.
-		List<Literal> result = new ArrayList<Literal>(literals.size());
+		List<Literal> result = new ArrayList<>(literals.size());
 		for (Literal literal : literals) {	
 			result.add(literal.applyTheta(theta));  // Since Java doesn't do dynamic casting, need to put applyTheta's in the FOPC classes.
 		}
@@ -191,8 +191,7 @@ public class BindingList extends AllOfFOPC {
 			Term oldAnswer = theta.get(var);
 			if (oldAnswer == term) { return true; } // Already there, which is fine.
 			if (oldAnswer instanceof Variable) { addBinding((Variable) oldAnswer, term); return true; }
-			else if (term instanceof Variable) { 
-			//	Utils.waitHere("help_addBinding: " + var + " -> " + term);  THIS MIGHT BE BUGGY ...
+			else if (term instanceof Variable) {
 				Variable v = (Variable) term;
 				// Have something like ?X->term and asking to do ?X->?Y.  Then do ?Y->term if ?Y is not yet bound.
 				if (!theta.containsKey(v)) {  // If this term is a variable and is not already in the binding list, then just return the binding for it.

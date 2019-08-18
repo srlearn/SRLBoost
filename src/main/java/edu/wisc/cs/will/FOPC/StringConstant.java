@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
@@ -8,11 +5,10 @@ import edu.wisc.cs.will.Utils.Utils;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
-/**
+/*
  * @author shavlik
  *
  */
-@SuppressWarnings("serial")
 public class StringConstant extends Constant implements Serializable {
     private String name = null;
 
@@ -83,7 +79,7 @@ public class StringConstant extends Constant implements Serializable {
                 : '"' + safeName + '"'); // Need to override by quoting.  Note that if safeName started with quote marks, it would have been caught above.
     }
 
-    /** Returns the name without any quoting or escaping of characters.
+    /* Returns the name without any quoting or escaping of characters.
      *
      * Sometime we need the name of a StringConstant without the quoting
      * and escaping of characters.  This is necessary when we are going to
@@ -180,12 +176,6 @@ public class StringConstant extends Constant implements Serializable {
         return stringHandler.getLiteral( stringHandler.getPredicateName(name));
     }
 
-
-    public Function asFunction() {
-        return stringHandler.getFunction( name);
-    }
-
-    
     @Override
     public BindingList isEquivalentUptoVariableRenaming(Term that, BindingList bindings) {
         if (!(that instanceof StringConstant)) {
@@ -201,7 +191,7 @@ public class StringConstant extends Constant implements Serializable {
         return bindings;
     }
 
-    /** Replace with the cached version from stringHandler.
+    /* Replace with the cached version from stringHandler.
      */
     private Object readResolve() throws ObjectStreamException {
         return stringHandler.getStringConstant(typeSpec, name, true);

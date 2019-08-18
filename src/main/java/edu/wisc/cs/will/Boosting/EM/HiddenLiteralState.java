@@ -20,13 +20,14 @@ import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * Class to store one world state
  * @author tkhot
  *
  */
 public class HiddenLiteralState {
-	/**
+
+	/*
 	 * Hash maps from predicate name to literals and their assignments in this world state
 	 * Can't rely on the "sampledState" within each example as that may keep changing.
 	 * Used Integer instead of Boolean. For multi-class examples, it indicates the index of 
@@ -92,13 +93,6 @@ public class HiddenLiteralState {
 		return sb.toString();
 	}
 
-	HiddenLiteralState marginalizeOutPredicate(String predicate) {
-		HiddenLiteralState marginState = new HiddenLiteralState(this.predNameToLiteralMap, this.predNameToAssignMap);
-		marginState.predNameToLiteralMap.remove(predicate);
-		marginState.predNameToAssignMap.remove(predicate);
-		return marginState;
-	}
-	
 	@Override
 	public int hashCode()  {
 		return getStringRep().hashCode();
@@ -363,7 +357,7 @@ public class HiddenLiteralState {
 		}
 	}
 	
-	/**
+	/*
 	 * @return the statePseudoProbability
 	 */
 	public double getStatePseudoProbability() {
@@ -448,7 +442,8 @@ public class HiddenLiteralState {
 			}
 		}
 	}
-	/**
+
+	/*
 	 * Returns the examples that need to be added/removed from the fact base to move from
 	 * lastState to newstate
 	 * @param lastState Old assignment of facts

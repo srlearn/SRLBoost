@@ -16,7 +16,7 @@ import edu.wisc.cs.will.ILP.ILPouterLoop;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-/**
+/*
  * @author tkhot
  */
 public class LearnOCCModel {
@@ -59,8 +59,7 @@ public class LearnOCCModel {
 		}
 	}
 
-	void learnNextModel(RunOneClassModel runOneClassModel,
-						PropositionalizationModel propModel,
+	void learnNextModel(PropositionalizationModel propModel,
 						int moreTrees) {
 
 		Utils.println("\n% Learn model for: " + targetPredicate);

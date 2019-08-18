@@ -15,7 +15,7 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Theory;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author Tushar Khot
  */
 public class LearnRegressionTree {

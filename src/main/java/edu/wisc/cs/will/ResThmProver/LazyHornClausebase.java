@@ -24,13 +24,13 @@ import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  *
  * @author twalker
  */
 public class LazyHornClausebase implements HornClausebase {
 
-    /** Set of all asserted sentences.
+    /* Set of all asserted sentences.
      *
      * To maintain prolog semantics, we need to have all assertions in order,
      * independent of whether they are facts (definite clauses with no body, stored
@@ -45,7 +45,7 @@ public class LazyHornClausebase implements HornClausebase {
     
     static final int DEBUG = 0;
 
-    /** Index for all assertions.
+    /* Index for all assertions.
      *
      * This should never be used directly.  Always use the accessor method since
      * indices are build lazily and the index may not yet be built if you use this
@@ -73,7 +73,7 @@ public class LazyHornClausebase implements HornClausebase {
         setupDataStructures();
     }
 
-    /** Initializes the clausebase. */
+    /* Initializes the clausebase. */
     private void setupDataStructures() {
         assertions = new MapOfDefiniteClauseLists();
         // Check to see if the indexers are null, since someone might have tried to use other indexing class
@@ -230,7 +230,7 @@ public class LazyHornClausebase implements HornClausebase {
         }
     }
 
-    /** Checks to fact to make sure we should add it.
+    /* Checks to fact to make sure we should add it.
      *
      * Depending on the settings stringHandler.variantFactHandling settings, various checks will be performed.
      *
@@ -268,7 +268,7 @@ public class LazyHornClausebase implements HornClausebase {
         return keep;
     }
 
-    /** Checks to fact to make sure we should add it.
+    /* Checks to fact to make sure we should add it.
      *
      * Depending on the settings stringHandler.variantFactHandling settings, various checks will be performed.
      *
@@ -302,7 +302,7 @@ public class LazyHornClausebase implements HornClausebase {
         return keep;
     }
 
-    /** Resets the indexes.
+    /* Resets the indexes.
      *
      * The indexes are built lazily, as needed.
      */
@@ -316,9 +316,10 @@ public class LazyHornClausebase implements HornClausebase {
         }
     }
 
-    /** Builds the AllAssertions index, if necessary.
+    /* Builds the AllAssertions index, if necessary.
      */
     private void buildAllAssertionsIndex() {
+        // TODO(@hayesall): Empty method, remove.
     }
 
     @Override
@@ -444,7 +445,7 @@ public class LazyHornClausebase implements HornClausebase {
         return false;
     }
 
-    /** Returns the index for all assertions.
+    /* Returns the index for all assertions.
      *
      * If the index is not built yet, this method will build it.
      *

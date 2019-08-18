@@ -23,7 +23,7 @@ import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-/**
+/*
  * @author shavlik
  * 
  * Note: when looking for typed constants for generated negative examples, only FACTS (and not rules) are currently used.  TODO - or maybe not?
@@ -363,10 +363,7 @@ public class CreateSyntheticExamples {
 			} else if (arg instanceof Function) {
 				Function f = (Function) arg;
 				help_getConstantsOfThisTypeInThisWorldState(stringHandler, type, f.getArguments(), results);
-			} else if (arg instanceof Variable) {
-				
-			} 
-            else {
+			} else {
 				Utils.error("Need to handle this argument: " + arg);
 			}
 		}

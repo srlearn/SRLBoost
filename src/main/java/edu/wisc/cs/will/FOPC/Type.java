@@ -5,20 +5,16 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Map;
 
-/**
+/*
  * @author shavlik
  * 
  * The material in this class is used in ILP and MLNs, though it can play a role in other logical-reasoning systems.
  *
  */
-@SuppressWarnings("serial")
 public class Type extends AllOfFOPC implements Serializable {
 	public String typeName;
     public HandleFOPCstrings stringHandler;
 
-	/**
-	 * 
-	 */
     protected Type(String typeName, HandleFOPCstrings stringHandler) {
         this.typeName = typeName;
         this.stringHandler = stringHandler;
@@ -39,13 +35,13 @@ public class Type extends AllOfFOPC implements Serializable {
         return stringHandler.isaHandler.isa(this, parentType);
     }
 
-   /** Substitutes the Type with a SerializableType while Serializing.
+   /* Substitutes the Type with a SerializableType while Serializing.
     */
    private Object writeReplace() throws ObjectStreamException {
        return new SerializableType(typeName);
     }
 
-    /** This is a little hack to allow the Type to be canonicalized by the string handler.
+    /* This is a little hack to allow the Type to be canonicalized by the string handler.
      *
      * We want to use readResolve to canonicalize the Type object.  However, when we
      * run readResolve, we don't have the InputStream.  No inputStream, no string handler.
@@ -63,7 +59,7 @@ public class Type extends AllOfFOPC implements Serializable {
             this.typeName = type;
         }
 
-        /** Methods for reading a Object cached to disk.
+        /* Methods for reading a Object cached to disk.
          */
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             if (!(in instanceof FOPCInputStream)) {

@@ -1,13 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
 import java.io.Serializable;
 
-/** Provides a stopping condition for cross-validation based upon the maximum obtainable average coverage score on a partially completely cross-validation run.
+/* Provides a stopping condition for cross-validation based upon the maximum obtainable average coverage score on a partially completely cross-validation run.
  *
  * The maximum obtainable average coverage score is calculated by taking the average of
  * the scores of all the completed folds along with a maximum perfect score for
@@ -21,69 +17,30 @@ import java.io.Serializable;
  *
  * @author twalker
  */
-@SuppressWarnings("serial")
 public class CVMaximumObtainableAverageCoverageStoppingCondition implements StoppingCondition<ILPCrossValidationLoop>, Serializable {
 
-    /** Precision based stopping condition.
-     *
-     * If the maximum obtainable average precision can not exceed this value,
-     * cross-validation will be stopped.
-     */
     private double stopIfPrecisionCannotMeetOrExceedThis;
 
-    /** Recall based stopping condition.
-     *
-     * If the maximum obtainable average recall can not exceed this value,
-     * cross-validation will be stopped.
-     */
     private double stopIfRecallCannotMeetOrExceedThis;
 
-    /** Accuracy based stopping condition.
-     *
-     * If the maximum obtainable average accuracy can not exceed this value,
-     * cross-validation will be stopped.
-     */
     private double stopIfAccuracyCannotMeetOrExceedThis;
 
-    /** F-Score based stopping condition.
-     *
-     * If the maximum obtainable average F-score can not exceed this value,
-     * cross-validation will be stopped.
-     */
     private double stopIfFScoreCannotMeetOrExceedThis;
 
-    /** Beta for F-Score based stopping condition.
-     *
-     * The beta used for calculating the F-Score stopping condition.
-     */
     private double beta;
 
-    public CVMaximumObtainableAverageCoverageStoppingCondition() {
-        this(0,0,0,0,1);
-    }
 
-
-
-    public CVMaximumObtainableAverageCoverageStoppingCondition(double stopIfPrecisionCannotMeetOrExceedThis) {
-        this(stopIfPrecisionCannotMeetOrExceedThis, 0,0,0,1);
-    }
-
-    public CVMaximumObtainableAverageCoverageStoppingCondition(double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis) {
+    CVMaximumObtainableAverageCoverageStoppingCondition(double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis) {
         this(stopIfPrecisionCannotMeetOrExceedThis,stopIfRecallCannotMeetOrExceedThis,0,0,1);
     }
 
-    public CVMaximumObtainableAverageCoverageStoppingCondition(double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis, double stopIfAccuracyCannotMeetOrExceedThis, double stopIfFScoreCannotMeetOrExceedThis, double beta) {
+    private CVMaximumObtainableAverageCoverageStoppingCondition(double stopIfPrecisionCannotMeetOrExceedThis, double stopIfRecallCannotMeetOrExceedThis, double stopIfAccuracyCannotMeetOrExceedThis, double stopIfFScoreCannotMeetOrExceedThis, double beta) {
         this.stopIfPrecisionCannotMeetOrExceedThis = stopIfPrecisionCannotMeetOrExceedThis;
         this.stopIfRecallCannotMeetOrExceedThis    = stopIfRecallCannotMeetOrExceedThis;
         this.stopIfAccuracyCannotMeetOrExceedThis  = stopIfAccuracyCannotMeetOrExceedThis;
         this.stopIfFScoreCannotMeetOrExceedThis    = stopIfFScoreCannotMeetOrExceedThis;
         this.beta = beta;
     }
-
-
-
-
-
 
     public boolean isStoppingConditionMet(ILPCrossValidationLoop search) {
         CrossValidationResult result = search.getCrossValidationResults();
@@ -167,10 +124,7 @@ public class CVMaximumObtainableAverageCoverageStoppingCondition implements Stop
         if (this.stopIfFScoreCannotMeetOrExceedThis    != other.stopIfFScoreCannotMeetOrExceedThis) {
             return false;
         }
-        if (this.beta != other.beta) {
-            return false;
-        }
-        return true;
+        return this.beta == other.beta;
     }
 
     @Override
@@ -184,93 +138,19 @@ public class CVMaximumObtainableAverageCoverageStoppingCondition implements Stop
         return hash;
     }
 
-
-
-    /** Returns the precision based stopping condition.
-     *
-     * If the maximum obtainable average precision can not exceed this value,
-     * cross-validation will be stopped.
-     *
-     * @return the stopIfPrecisionCannotMeetOrExceedThis
-     */
-    public double getStopIfPrecisionCannotMeetOrExceedThis() {
+    private double getStopIfPrecisionCannotMeetOrExceedThis() {
         return stopIfPrecisionCannotMeetOrExceedThis;
     }
 
-    /** Sets the precision based stopping condition.
-     *
-     * If the maximum obtainable average precision can not exceed this value,
-     * cross-validation will be stopped.
-     *
-     * @param stopIfPrecisionCannotMeetOrExceedThis the stopIfPrecisionCannotMeetOrExceedThis to set
-     */
-    public void setStopIfPrecisionCannotMeetOrExceedThis(double stopIfPrecisionCannotMeetOrExceedThis) {
-        this.stopIfPrecisionCannotMeetOrExceedThis = stopIfPrecisionCannotMeetOrExceedThis;
-    }
-
-    /** Returns the recall based stopping condition.
-     *
-     * If the maximum obtainable average recall can not exceed this value,
-     * cross-validation will be stopped.
-     *
-     * @return the stopIfPrecisionCannotMeetOrExceedThis
-     */
-    public double getStopIfRecallCannotMeetOrExceedThis() {
+    private double getStopIfRecallCannotMeetOrExceedThis() {
         return stopIfRecallCannotMeetOrExceedThis;
     }
 
-    /** Sets the recall based stopping condition.
-     *
-     * If the maximum obtainable average recall can not exceed this value,
-     * cross-validation will be stopped.
-     *
-     * @param stopIfRecallCannotMeetOrExceedThis the stopIfRecallCannotMeetOrExceedThis to set
-     */
-    public void setStopIfRecallCannotMeetOrExceedThis(double stopIfRecallCannotMeetOrExceedThis) {
-        this.stopIfRecallCannotMeetOrExceedThis = stopIfRecallCannotMeetOrExceedThis;
-    }
-
-    /**
-     * @return the stopIfFScoreCannotMeetOrExceedThis
-     */
-    public double getStopIfFScoreCannotMeetOrExceedThis() {
+    private double getStopIfFScoreCannotMeetOrExceedThis() {
         return stopIfFScoreCannotMeetOrExceedThis;
     }
 
-    /**
-     * @param stopIfFScoreCannotMeetOrExceedThis the stopIfFScoreCannotMeetOrExceedThis to set
-     */
-    public void setStopIfFScoreCannotMeetOrExceedThis(double stopIfFScoreCannotMeetOrExceedThis) {
-        this.stopIfFScoreCannotMeetOrExceedThis = stopIfFScoreCannotMeetOrExceedThis;
-    }
-
-    /**
-     * @return the beta
-     */
-    public double getBeta() {
-        return beta;
-    }
-
-    /**
-     * @param beta the beta to set
-     */
-    public void setBeta(double beta) {
-        this.beta = beta;
-    }
-
-    /**
-     * @return the stopIfAccuracyCannotMeetOrExceedThis
-     */
-    public double getStopIfAccuracyCannotMeetOrExceedThis() {
+    private double getStopIfAccuracyCannotMeetOrExceedThis() {
         return stopIfAccuracyCannotMeetOrExceedThis;
     }
-
-    /**
-     * @param stopIfAccuracyCannotMeetOrExceedThis the stopIfAccuracyCannotMeetOrExceedThis to set
-     */
-    public void setStopIfAccuracyCannotMeetOrExceedThis(double stopIfAccuracyCannotMeetOrExceedThis) {
-        this.stopIfAccuracyCannotMeetOrExceedThis = stopIfAccuracyCannotMeetOrExceedThis;
-    }
-
-    
 }

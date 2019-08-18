@@ -1,6 +1,13 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
@@ -14,7 +21,7 @@ import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfSets;
 
-/**
+/*
  * @author twalker
  */
 class NonOperationalExpander {
@@ -72,7 +79,7 @@ class NonOperationalExpander {
 
         if (!nonOps.isEmpty()) {
 
-            List<Literal> firstLiteralExpansion = null;
+            List<Literal> firstLiteralExpansion;
 
             Literal firstLiteral = nonOps.get(0);
 

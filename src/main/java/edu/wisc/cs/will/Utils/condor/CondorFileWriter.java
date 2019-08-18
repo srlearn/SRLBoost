@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-/**
+/*
  * @author twalker
  */
 public class CondorFileWriter extends Writer {

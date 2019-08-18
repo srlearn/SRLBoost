@@ -2,7 +2,7 @@ package edu.wisc.cs.will.Boosting.Utils;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * Class performs line search to compute step length give a PhiFunction
  * that computes phi value at a given step length.
  *

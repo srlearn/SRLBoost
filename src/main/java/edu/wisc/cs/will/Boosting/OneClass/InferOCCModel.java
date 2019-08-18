@@ -14,7 +14,7 @@ import edu.wisc.cs.will.DataSetUtils.ComputeAUC;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author tkhot
  */
 class InferOCCModel {

@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.FOPC;
 
-
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.List;
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-@SuppressWarnings("serial")
 public class Variable extends Term {
 
     private static final boolean useShortNames = true; // If false, will write out x1, x2, etc so printouts are more readable during debugging.
@@ -22,7 +20,7 @@ public class Variable extends Term {
 
     protected Variable() {
     }
-    /**
+    /*
      * The way this works is that a request for variable 'x' will always return the SAME instance,
      * UNTIL Variable.resetAllVariables() is called or a new instance is pushed onto the stack.  Each time a new sentence is created, this reset
      * method should be called, so that new occurrences of 'x' become different instances (and hence wont unify).  The variables of a
@@ -65,9 +63,9 @@ public class Variable extends Term {
         					? stringHandler.getGeneratedVariable(typeSpec, getNameToUse(name), newVar)
         					: stringHandler.getExternalVariable( typeSpec, getNameToUse(name), newVar)); // If we make a copy, use the correct name for the settings of what denotes a variable.
         if (typeSpec != null) {
-            copy.typeSpec = (recursiveCopy ? typeSpec.copy(recursiveCopy) : typeSpec);
+            copy.typeSpec = (recursiveCopy ? typeSpec.copy() : typeSpec);
         }
-        stringHandler.recordParentVariable(copy, this);
+        stringHandler.recordParentVariable();
         return copy;
     }
 
@@ -99,7 +97,7 @@ public class Variable extends Term {
                 }
 
                 if (typeSpec != null) {
-                    copy.typeSpec = (recursiveCopy ? typeSpec.copy(recursiveCopy) : typeSpec);
+                    copy.typeSpec = (recursiveCopy ? typeSpec.copy() : typeSpec);
                 }
 
                 bindingList.addBinding(this, copy);
@@ -353,7 +351,7 @@ public class Variable extends Term {
         }
     }
 
-    /** Replace with the cached version from stringHandler.
+    /* Replace with the cached version from stringHandler.
      */
     private Object readResolve() throws ObjectStreamException {
     	if (isaGeneratedVariable()) {
@@ -372,21 +370,15 @@ public class Variable extends Term {
 		return (this == v ? 1 : 0);
 	}
 
-    /**
-     * @return the name
-     */
     public String getName() {
         if ( name != null ) {
             return name;
         }
         else {
-            return getNameToUse(name);
+            return getNameToUse(null);
         }
     }
 
-    /**
-     * @param name the name to set
-     */
     public void setName(String name) {
         this.name = name;
     }

@@ -29,7 +29,7 @@ import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-/**
+/*
  * @author shavlik
  * 
  *  THIS PROBABLY BELONGS IN FOPC
@@ -38,21 +38,13 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
  */
 public class Precompute {
 
-    public static boolean operateAsSilentlyAsPossible = false;
-
-    public static boolean stopIfNoPrecomputesFound = true;
-
-    public boolean reportPrunes = true; // Sometimes we want ONLY the precomputed facts and not the pruning rules.  If so, set this to false.
-
-    public boolean complainIfFileExists = false; // The caller should take care of this (and this check can be turned off at the caller).
-
     public static boolean alwaysRecreatePrecomputeFiles = false;
 
     private int counter;
 
     private int duplicates;
 
-    private Set<String> checked; // I (JWS) changed this (1/5/11) since FUNCTIONS are not unique.
+    private Set<String> checked;
 
     public Precompute() {}
     
@@ -60,28 +52,21 @@ public class Precompute {
     	return (new CondorFile(fileName)).exists() || (new CondorFile(fileName + ".gz")).exists();
     }
 
-    public List<Literal> processPrecomputeSpecifications(boolean overwritePrecomputeFileIfExists, HornClausebase clausebase, List<Sentence> sentencesToPrecompute, String fileName) {
+    public void processPrecomputeSpecifications(boolean overwritePrecomputeFileIfExists, HornClausebase clausebase, List<Sentence> sentencesToPrecompute, String fileName) {
         List<Literal> results = null;
-
         if (sentencesToPrecompute != null) {
-
             File file = new CondorFile(fileName);
             if (!alwaysRecreatePrecomputeFiles && !overwritePrecomputeFileIfExists && precomputeFileAlreadyExists(fileName)) {
-                if (complainIfFileExists) {
-                    Utils.waitHere("\n% Precomputing of' " + fileName + "' has previously occurred.\n% If this is incorrect, delete:\n%   '" + file.getPath() + "' (or its *.gz version).");
-                }
-
+                // The caller should take care of this (and this check can be turned off at the caller).
             }
             else {
                 MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute = convertPrecomputeSpecificationToDefiniteClauseMap(sentencesToPrecompute);
-
                 results = createPrecomputedFile(clausesToPrecompute, clausebase, fileName);
             }
         }
-        return results;
     }
 
-    /**
+    /*
      * Converts a sentence to precompute into a definite clauses.
      */
     private MapOfLists<PredicateNameAndArity, Clause> convertPrecomputeSpecificationToDefiniteClauseMap(List<Sentence> sentencesToPrecompute) {
@@ -106,7 +91,7 @@ public class Precompute {
         return clausesToPrecompute;
     }
 
-    /**
+    /*
      * For each predicate to be precomputed:
      * 		a) collect all constants that match the types of its arguments
      * 		b) try to prove each possible grounded list of arguments
@@ -176,6 +161,7 @@ public class Precompute {
                         Utils.error("Have no clauses for this to-be-precomputed predicate: " + pName);
                     }
 
+                    assert clauses != null;
                     for (Clause c : clauses) {
                         int currentCounter = counter;
                         int currentDuplicates = duplicates;
@@ -184,13 +170,11 @@ public class Precompute {
                         } // Check again even if checked above.
                         String utilsC = c.toPrettyString("    ", Integer.MAX_VALUE, 999, null);
                         String printStreamC = "/* " + c.toStringOneLine(Integer.MAX_VALUE, null) + " */"; // TODO - fix bug that leads to an inserted linefeed (max line length of some sort?).
-                        if (!operateAsSilentlyAsPossible) {
-                            Utils.println("% using clause:   " + utilsC + "\n");
-                            if (printStream != null) {
-                                printStream.println("// using clause:\n   " + printStreamC + "\n");
-                            }
+                        Utils.println("% using clause:   " + utilsC + "\n");
+                        if (printStream != null) {
+                            printStream.println("// using clause:\n   " + printStreamC + "\n");
                         }
-                        Literal head = c.getDefiniteClauseHead();            //Utils.warning("head = " + head);
+                        Literal head = c.getDefiniteClauseHead();
                         Collection<Variable> boundVariables = head.collectFreeVariables(null); //Utils.warning("boundVariables = " + boundVariables);
                         Literal negatedQuery = stringHandler.getLiteral(stringHandler.standardPredicateNames.findAll); // Use 'findAll' since we may want to remove duplicates our own way.
                         Variable resultList = stringHandler.getNewUnamedVariable();
@@ -214,13 +198,11 @@ public class Precompute {
                         }
                         Utils.println("%  Found " + Utils.comma(((ConsCell) lookup).length()) + " proofs of '" + head + "'.");
                         writeResultsToStream((ConsCell) lookup, printStream, precomputedLiterals);
-                        boolean canPrune = (reportPrunes
-                                && matchingFactExists(clausebase, head) == null
-                                && matchingClauseHeadExists(clausebase, head) == null
-                                && matchingClauseHeadExists(clausebase, head, c, clauses) == null);
+                        // Sometimes we want ONLY the precomputed facts and not the pruning rules.  If so, set this to false.
+                        boolean canPrune = matchingFactExists(clausebase, head) == null && matchingClauseHeadExists(clausebase, head) == null && matchingClauseHeadExists(head, c, clauses) == null;
                         // Can only prune predicates that are DETERMINED by the arguments in the clauseHead.  Also see lookForPruneOpportunities.
                         // Note: this code is 'safe' but it misses some opportunities.  E.g., if one has 'p(x) :- q(x,y)' AND THERE IS ONLY ONE POSSIBLE y FOR EACH x, then pruning is valid.  (Called "determinate literals" in ILP - TODO handle such cases.)
-                        if (canPrune && reportPrunes) {
+                        if (canPrune) {
                             for (Literal lit : c.negLiterals) {
                                 if (lit.collectFreeVariables(boundVariables) == null) {
                                     if (printStream != null) {
@@ -229,41 +211,34 @@ public class Precompute {
                                 }
                             }
                         }
-                        if (!operateAsSilentlyAsPossible) {
-                            Utils.println("\n// Precomputed a total of " + Utils.comma(counter - currentCounter) + " facts (and found " + Utils.comma(duplicates - currentDuplicates) + " duplications) from: '" + utilsC + ".'\n");
-                            if (printStream != null) {
-                                printStream.println("\n% Precomputed a total of " + Utils.comma(counter - currentCounter) + " facts (and found " + Utils.comma(duplicates - currentDuplicates) + " duplications) from:\n   " + printStreamC + "\n");
-                            }
+                        Utils.println("\n// Precomputed a total of " + Utils.comma(counter - currentCounter) + " facts (and found " + Utils.comma(duplicates - currentDuplicates) + " duplications) from: '" + utilsC + ".'\n");
+                        if (printStream != null) {
+                            printStream.println("\n% Precomputed a total of " + Utils.comma(counter - currentCounter) + " facts (and found " + Utils.comma(duplicates - currentDuplicates) + " duplications) from:\n   " + printStreamC + "\n");
                         }
                         if (counter - currentCounter < 1) {
                             boolean okNotFound = head.predicateName.canBeAbsent(head.getArity());
 
-                            if (!okNotFound || !operateAsSilentlyAsPossible) {
-                                Utils.println("/* *** NOTE THAT NOTHING WAS FOUND FOR '" + head.toStringOneLine() + "'. *** */");
+                            Utils.println("/* *** NOTE THAT NOTHING WAS FOUND FOR '" + head.toStringOneLine() + "'. *** */");
+                            if (printStream != null) {
+                                printStream.println("/* ***** NOTE THAT NOTHING WAS FOUND FOR '" + head.toStringOneLine() + "'. ***** */");
+                            }
+                            if (!okNotFound) { // NOTE: this is a little buggy in that there might be some 'regular' facts as well as the precomputed ones, but a okIfUnknown can be added safely.
+                                Utils.println("// Possibly a typo?  If not, add to a BK file:   okIfUnknown: " + head.predicateName + "/" + head.getArity() + ".\n// NOTE: if the head of this rule appears in other rules, this error report might be incorrect."); // TODO fix this
                                 if (printStream != null) {
-                                    printStream.println("/* ***** NOTE THAT NOTHING WAS FOUND FOR '" + head.toStringOneLine() + "'. ***** */");
+                                    printStream.println("// Possibly a typo?  If not, add to a BK file:   okIfUnknown: " + head.predicateName + "/" + head.getArity() + ".\n// NOTE: if the head of this rule appears in other rules, this error report might be incorrect.");
                                 }
-                                if (!okNotFound) { // NOTE: this is a little buggy in that there might be some 'regular' facts as well as the precomputed ones, but a okIfUnknown can be added safely.
-                                    Utils.println("// Possibly a typo?  If not, add to a BK file:   okIfUnknown: " + head.predicateName + "/" + head.getArity() + ".\n// NOTE: if the head of this rule appears in other rules, this error report might be incorrect."); // TODO fix this
-                                    if (printStream != null) {
-                                        printStream.println("// Possibly a typo?  If not, add to a BK file:   okIfUnknown: " + head.predicateName + "/" + head.getArity() + ".\n// NOTE: if the head of this rule appears in other rules, this error report might be incorrect.");
-                                    }
-                                    if (stopIfNoPrecomputesFound) {
-                                        Utils.waitHere("Fix the above?");
-                                    }
-                                } else {
-                                    Utils.println("// That is OK since 'okIfUnknown' has been specified for it.\n");
-                                    printStream.println("// That is OK since 'okIfUnknown' has been specified for it.\n");
-                                }
+                                Utils.waitHere("Fix the above?");
+                            } else {
+                                Utils.println("// That is OK since 'okIfUnknown' has been specified for it.\n");
+                                assert printStream != null;
+                                printStream.println("// That is OK since 'okIfUnknown' has been specified for it.\n");
                             }
                         }
                     }
                 }
-                if (!operateAsSilentlyAsPossible) {
-                    Utils.println("\n\n%%% Precomputed a total of " + Utils.comma(counter) + " facts (and found " + Utils.comma(duplicates) + " duplications).  Done at " + Utils.getDateTime() + "\n");
-                    if (printStream != null)
-                        printStream.println("\n\n%%% Precomputed a total of " + Utils.comma(counter) + " facts (and found " + Utils.comma(duplicates) + " duplications).  Done at " + Utils.getDateTime() + "\n");
-                }
+                Utils.println("\n\n%%% Precomputed a total of " + Utils.comma(counter) + " facts (and found " + Utils.comma(duplicates) + " duplications).  Done at " + Utils.getDateTime() + "\n");
+                if (printStream != null)
+                    printStream.println("\n\n%%% Precomputed a total of " + Utils.comma(counter) + " facts (and found " + Utils.comma(duplicates) + " duplications).  Done at " + Utils.getDateTime() + "\n");
             } catch (FileNotFoundException | SearchInterrupted e) {
                 Utils.reportStackTrace(e);
                 Utils.error("Unable to successfully open this file for writing\n" + fileName + ".\nError message:\n" + e.getMessage());
@@ -292,7 +267,7 @@ public class Precompute {
         while (true) {
             if (!first.isGrounded()) {
                 Utils.error("This code assumes all precomputed items are grounded (" + stringHandler.getShortStringToIndicateCurrentVariableNotation() + "),\n so need to rethink what to do here:\n '" + first + "'.");
-            } // TODO
+            }
             Literal inner = ((LiteralAsTerm) first).itemBeingWrapped;
             String checkItem = inner.toString(); // See if the print the same (and hence will be re-parsed the same).
             if (!checked.contains(checkItem)) {
@@ -317,7 +292,7 @@ public class Precompute {
         }
     }
 
-    /**
+    /*
      * Does an item in the fact base match (i.e., unify with) this query?
      * @return The matching fact, if one exists. Otherwise null.
      */
@@ -332,6 +307,7 @@ public class Precompute {
         if (factsToUse != null) {
             for (Literal fact : factsToUse) {
                 bindings.theta.clear(); // Revert to the empty binding list.
+                assert query != null;
                 if (Unifier.UNIFIER.unify(fact, query, bindings) != null) {
                     return fact;
                 }
@@ -340,7 +316,7 @@ public class Precompute {
         return null;
     }
 
-    /**
+    /*
      * Does this query unify with any known clause, other than the one to ignore?  (OK to set ignoreThisClause=null.)
      *
      * @return The matching clause head if one exists, otherwise null.
@@ -350,15 +326,15 @@ public class Precompute {
         if (candidates == null) {
             return null;
         }
-        return matchingClauseHeadExists(clausebase, query, null, candidates);
+        return matchingClauseHeadExists(query, null, candidates);
     }
 
-    /**
+    /*
      * Does this query unify with the head of any of these clauses, other than the one to ignore?  (OK to set ignoreThisClause=null.)
      *
      * @return The matching clause head if one exists, otherwise null.
      */
-    private Clause matchingClauseHeadExists(HornClausebase clausebase, Literal query, Clause ignoreThisClause, Iterable<Clause> listOfClauses) {
+    private Clause matchingClauseHeadExists(Literal query, Clause ignoreThisClause, Iterable<Clause> listOfClauses) {
         if (query == null) {
             Utils.error("Cannot have query=null here.");
         }
@@ -373,6 +349,7 @@ public class Precompute {
             }
             if (clause != ignoreThisClause) {
                 bindings.theta.clear();
+                assert query != null;
                 if (Unifier.UNIFIER.unify(clause.posLiterals.get(0), query, bindings) != null) {
                     return clause;
                 }

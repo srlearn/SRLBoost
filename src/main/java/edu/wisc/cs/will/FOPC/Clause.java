@@ -9,11 +9,9 @@ import java.util.Map;
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
- *
  */
-@SuppressWarnings("serial")
 public class Clause extends Sentence implements DefiniteClause {
 	static final int defaultNumberOfLiteralsPerRowInPrintouts = 1;
 	private static final int maxLiteralsToPrint = 100; // This maximum applies INDEPENDENTLY to both the positive and negative literals.
@@ -26,9 +24,7 @@ public class Clause extends Sentence implements DefiniteClause {
 	private String        extraLabel      = null; // This is partially implemented so that we can take extraLabels from SingleClauseNodes and have them persist when clauses are created.  However, weight until we are sure we want the overhead of doing this, plus if a comment should be printed inside a comment, we might have parser problems.
 	public String getExtraLabel()                  {	return extraLabel; }
 
-    private static long instancesCreated = 0;  // PROBABLY SHOULD PUT THESE IN THESE IN THE STRING HANDLER.
     public Clause() {
-    	instancesCreated++;
     }
     
 	public Clause(HandleFOPCstrings stringHandler, List<Literal> posLiterals, List<Literal> negLiterals) { // If called this, there is no error checking to confirm 'sign' of literals. This is done to save cpu time.
@@ -78,13 +74,6 @@ public class Clause extends Sentence implements DefiniteClause {
 		this.extraLabel = extraLabel;
 	}
 
-	public boolean getSign(Literal lit) {
-		if (posLiterals != null) { for (Literal litP : posLiterals) if (litP == lit) { return true;  } }
-		if (negLiterals != null) { for (Literal litN : negLiterals) if (litN == lit) { return false; } }
-		Utils.error("Did not find '" + lit + "' in " + toString());
-		return false;
-	}
-
     void addNegLiteralToFront(Literal lit) {
 		if (negLiterals == null) { negLiterals = new ArrayList<>(1); }
 		negLiterals.add(0, lit);
@@ -118,7 +107,7 @@ public class Clause extends Sentence implements DefiniteClause {
         return negLiterals == null ? 0 : negLiterals.size();
     }
 
-    /** Returns the list of positive literals with gaurantee of being non-null.
+    /* Returns the list of positive literals with gaurantee of being non-null.
      *
      * @return Non-null list of Positive literals.
      */
@@ -127,7 +116,7 @@ public class Clause extends Sentence implements DefiniteClause {
         else return posLiterals;
     }
 
-    /** Returns the list of negative literals with gaurantee of being non-null.
+    /* Returns the list of negative literals with gaurantee of being non-null.
      *
      * @return Non-null list of negative literals.
      */
@@ -136,7 +125,7 @@ public class Clause extends Sentence implements DefiniteClause {
         else return negLiterals;
     }
 
-	/**
+	/*
 	 * Would any variables in this clause remain UNBOUND if this binding list were to be applied?
 	 */
     @Override
@@ -298,14 +287,10 @@ public class Clause extends Sentence implements DefiniteClause {
         return bindings;
     }
 
-	/*
-	 * (non-Javadoc)
-	 * @see edu.wisc.cs.will.FOPC.Sentence#copy(boolean, boolean)
-	 */
     @Override
 	public Clause copy(boolean recursiveCopy) {
-		List<Literal> newPosLiterals = (posLiterals == null ? null : new ArrayList<Literal>(posLiterals.size()));
-		List<Literal> newNegLiterals = (negLiterals == null ? null : new ArrayList<Literal>(negLiterals.size()));
+		List<Literal> newPosLiterals = (posLiterals == null ? null : new ArrayList<>(posLiterals.size()));
+		List<Literal> newNegLiterals = (negLiterals == null ? null : new ArrayList<>(negLiterals.size()));
 		
 		if (recursiveCopy) {
             if (posLiterals != null) {
@@ -329,10 +314,6 @@ public class Clause extends Sentence implements DefiniteClause {
 		return newClause;
 	}
 
-    	/*
-	 * (non-Javadoc)
-	 * @see edu.wisc.cs.will.FOPC.Sentence#copy(boolean, boolean)
-	 */
     @Override
 	public Clause copy2(boolean recursiveCopy, BindingList bindingList) {
 		List<Literal> newPosLiterals = (posLiterals == null ? null : new ArrayList<>(posLiterals.size()));
@@ -798,17 +779,13 @@ public class Clause extends Sentence implements DefiniteClause {
 
 	}
 
-
-    /**
-     * @return the bodyContainsCut
-     */
     public Boolean getBodyContainsCut() {
         if ( bodyContainsCut == null ) checkForCut();
 
         return bodyContainsCut;
     }
 
-    /** Set the bodyContainsCut parameter.
+    /* Set the bodyContainsCut parameter.
      *
      * <rant>
      * This really shouldn't be set directly, but since the

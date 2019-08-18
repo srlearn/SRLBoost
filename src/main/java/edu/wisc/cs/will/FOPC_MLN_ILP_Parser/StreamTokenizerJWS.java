@@ -6,7 +6,7 @@ import java.io.StreamTokenizer;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  * The built-in StreamReader doens't support more than one pushBack.

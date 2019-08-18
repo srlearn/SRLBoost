@@ -14,7 +14,7 @@ import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 
-/**
+/*
  * Class used for inference in MLNs
  * @author tkhot
  */

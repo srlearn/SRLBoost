@@ -133,7 +133,7 @@ public class IsaHetrarchy {
 		if (debugLevel > 1) { Utils.println("addISA(" + child + ", " + parent + "): isa = " + Utils.limitLengthOfPrintedList(isaHetrarchy, 25)); }
 	}
 	
-	/**
+	/*
 	 * @return All the children of this type in the type Hetrarchy.
 	 */
 	private List<Type> reverseIsa(Type parent) {

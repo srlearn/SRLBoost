@@ -5,7 +5,7 @@ import edu.wisc.cs.will.stdAIsearch.ScoringFunction;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 
-/**
+/*
  * @author shavlik
  */
 public abstract class ScoreSingleClause extends ScoringFunction {

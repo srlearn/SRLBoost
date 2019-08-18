@@ -4,12 +4,12 @@ import java.util.Arrays;
 
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 
-/**
+/*
  * @author tkhot
  */
 public class ProbDistribution {
 
-	/** Used if we don't have a distribution over multiple values but a single probability */
+	/* Used if we don't have a distribution over multiple values but a single probability */
 	private double probOfBeingTrue;
 	
 	private double[] probDistribution = null;
@@ -33,7 +33,7 @@ public class ProbDistribution {
 		}
 	}
 	
-	/** 
+	/*
 	 * Construct distribution using sigmoid
 	 */
 	public ProbDistribution(RegressionValueOrVector reg) {
@@ -144,7 +144,7 @@ public class ProbDistribution {
 		return probOfBeingTrue;
 	}
 
-	/** 
+	/*
 	 * Return a randomly selected value from the distribution.
 	 */
 	public int randomlySelect() {

@@ -2,7 +2,7 @@ package edu.wisc.cs.will.stdAIsearch;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  */
 public abstract class ScoringFunction {

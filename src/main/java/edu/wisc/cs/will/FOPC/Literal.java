@@ -15,10 +15,9 @@ import java.util.Set;
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  */
-@SuppressWarnings("serial")
 public class Literal extends Sentence implements Serializable, DefiniteClause, LiteralOrFunction {
 	
     public PredicateName predicateName;
@@ -27,12 +26,8 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     private int containsVariables = -1; // Only set to false if CHECKED.  (Key: -1 = unknown, 0 = false, 1 = true.)
     private int cached_arity      = -1;
-    
-    private static long instancesCreated = 0;  // PROBABLY SHOULD PUT THESE IN THESE IN THE STRING HANDLER.
-
 
     protected Literal() {
-    	instancesCreated++;
     }
     
     public Literal(Literal lit) { // This is used for classes that need to extend Literal.  *** USE WITH CARE. ***
@@ -72,7 +67,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         this.stringHandler = stringHandler;
     }
 
-    /** Create a Literal given a predicate name and list of terms.
+    /* Create a Literal given a predicate name and list of terms.
      *
      * TAW: This uses the varargs semantics common in C.  It allows the user to
      * specify a list of terms to be used as arguments without wrapping it in a List
@@ -125,20 +120,14 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
     public Literal clearArgumentNamesInPlace() {
-        return clearArgumentNamesInPlace(true);
-    }
-
-    private Literal clearArgumentNamesInPlace(boolean removeNameArg) {
         if (numberArgs() < 1) {
             return this;
         }
         if (argumentNames != null) {
             List<String> argOrdering = predicateName.getNamedArgOrdering(numberArgs());
 
-            if (removeNameArg) {
-                if (argumentNames.get(0).equalsIgnoreCase("name")) {
-                    removeArgument(arguments.get(0), argumentNames.get(0));
-                }
+            if (argumentNames.get(0).equalsIgnoreCase("name")) {
+                removeArgument(arguments.get(0), argumentNames.get(0));
             }
 
             if (argOrdering != null) {
@@ -466,7 +455,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
     @Override
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object other) {
         return equals(other, true);
     }
@@ -597,7 +585,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return (containsVariables > 0);
     }
 
-    /** Would any variables in this clause remain UNBOUND if this binding list were to be applied?
+    /* Would any variables in this clause remain UNBOUND if this binding list were to be applied?
      */
     @Override
     public boolean containsFreeVariablesAfterSubstitution(BindingList theta) {
@@ -865,7 +853,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         }
     }
 
-    /** Returns all possible TypeSpecs for this literal.
+    /* Returns all possible TypeSpecs for this literal.
      *
      * If typeSpec variable is set, only that type
      */

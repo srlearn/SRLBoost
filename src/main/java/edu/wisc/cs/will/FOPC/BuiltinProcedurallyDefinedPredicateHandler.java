@@ -231,9 +231,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 		List<Term>    args = literal.getArguments();
 		int       numbArgs = literal.numberArgs();
 
-        BindingList TRUE = bindingList;
-
-        UserDefinedLiteral match = context.getStringHandler().getUserDefinedLiteral(pred, numbArgs);
+		UserDefinedLiteral match = context.getStringHandler().getUserDefinedLiteral(pred, numbArgs);
         
         // Trevor: should we set stringHandler=context.getStringHandler() here?  JWS (6/11)
         if ( match != null ) {
@@ -290,7 +288,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 			return null;
 		}
 		if ((pred == stringHandler.standardPredicateNames.isaFloat || pred == stringHandler.standardPredicateNames.isa_numericConstant) && numbArgs == 1) {
-			if (true) { Utils.error("There are no float's in this code.  Only int's and double's.  You used float() in your Prolog code."); }
+			Utils.error("There are no float's in this code.  Only int's and double's.  You used float() in your Prolog code.");
 			if (args.get(0) instanceof NumericConstant && ((NumericConstant) args.get(0)).isaFloat()) {
 				return bindingList;
 			}
@@ -379,8 +377,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 				Term         list      =                args.get(0);
 				ObjectAsTerm collector = (ObjectAsTerm) args.get(1);
 				ConsCell     answers   = (ConsCell)     collector.item;
-				BindingList  result    = unifier.unify(list, (answers == null ? null : answers.reverse()), bindingList); // Need to reverse since collecting pushes.
-				return result;
+				return unifier.unify(list, (answers == null ? null : answers.reverse()), bindingList);
 			}
 			Utils.error("Wrong number of arguments (expecting 2 or 3): '" + literal + "'.");
 		}
@@ -403,8 +400,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 				Term         list      =                args.get(0);
 				ObjectAsTerm collector = (ObjectAsTerm) args.get(1);
 				ConsCell     answers   = (ConsCell)     collector.item;
-				BindingList  result    = unifier.unify(list, (answers == null ? null : answers.reverse()), bindingList); // Need to reverse since collecting pushes.
-				return result;
+				return unifier.unify(list, (answers == null ? null : answers.reverse()), bindingList);
 			}
 			Utils.error("Wrong number of arguments (expecting 2 or 3): '" + literal + "'.");
 		}
@@ -432,8 +428,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 				ObjectAsTerm collector = (ObjectAsTerm) args.get(1);
 				ConsCell     answers   = (ConsCell)     collector.item;
 				Term         counter   = (answers.length() < 1 ? context.getStringHandler().getNumericConstant(0) : answers.getArgument(0)); // Pull the number out of the cons cell.
-				BindingList  result    = unifier.unify(list, counter, bindingList);
-				return result;
+				return unifier.unify(list, counter, bindingList);
 			}
 			Utils.error("Wrong number of arguments (expecting 2 or 3): '" + literal + "'.");
 		}
@@ -633,7 +628,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 			if (args.get(0) instanceof NumericConstant) {
 				date = ((NumericConstant) args.get(0)).value.longValue();
 			} else if (args.get(0) instanceof StringConstant) {
-				date = Long.parseLong(((StringConstant) args.get(0)).toString());
+				date = Long.parseLong(args.get(0).toString());
 			} else {
 				Utils.error("First argument must be a number: " + literal + "  " + args.get(0).getClass());
 			}
@@ -651,7 +646,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 			if (args.get(0) instanceof NumericConstant) {
 				date = ((NumericConstant) args.get(0)).value.longValue();
 			} else if (args.get(0) instanceof StringConstant) {
-				date = Long.parseLong(((StringConstant) args.get(0)).toString());
+				date = Long.parseLong(args.get(0).toString());
 			} else {
 				Utils.error("First argument must be a number: " + literal + "  " + args.get(0).getClass());
 			}
@@ -737,7 +732,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
             List<Constant> listOfTokens =  new ArrayList<>(4);
             while (toker.hasMoreTokens()) { 
             	String str = wrapInQuotesIfNeeded(toker.nextToken());
-            	listOfTokens.add(context.getStringHandler().getStringConstantButCheckIfNumber(null, str, false));
+            	listOfTokens.add(context.getStringHandler().getStringConstantButCheckIfNumber(str));
             }
             ConsCell consCell = ConsCell.convertListToConsCell(context.getStringHandler(), listOfTokens);
             
@@ -805,11 +800,11 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
                         String newName = prefixAsString + suffixAsString;
                         if ( concatIsConstant ) {
                             // Form: Constant, Constant, Constant
-                            return concat.toString().equals(newName) ? TRUE : FAIL;
+                            return concat.toString().equals(newName) ? bindingList : FAIL;
                         }
 						// Form: Constant, Constant, Variable
 						bindingList.addBinding((Variable)concat, stringHandler.getStringConstant(newName, false));
-						return TRUE;
+						return bindingList;
                     }
                     else if ( suffixIsVariable ) {
                         if ( concatIsConstant ) {
@@ -827,7 +822,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
                             }
 							String suffixAsString = concatAsString.substring(prefixAsString.length());
 							bindingList.addBinding((Variable)suffix, stringHandler.getStringConstant(suffixAsString, false));
-							return TRUE;
+							return bindingList;
                         }
 						// Form: Constant, Variable, Variable
 						return FAIL;
@@ -851,7 +846,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
                             }
 							String prefixAsString = concatAsString.substring(0, concatAsString.length() - suffixAsString.length());
 							bindingList.addBinding((Variable)prefix, stringHandler.getStringConstant(prefixAsString, false));
-							return TRUE;
+							return bindingList;
                         }
 						// Form: Variable, Constant, Variable
 						return FAIL;
@@ -879,35 +874,35 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 
 			if (!(args.get(0) instanceof NumericConstant)) { Utils.error("First argument must be a number: " + literal); }
 			stringHandler.prologCounter = ((NumericConstant) arg0).value.intValue();
-			return TRUE;
+			return bindingList;
         }
         if ( pred == stringHandler.standardPredicateNames.setCounterB && numbArgs == 1) {
 			Term       arg0       = args.get(0);
 
 			if (!(args.get(0) instanceof NumericConstant)) { Utils.error("First argument must be a number: " + literal); }
 			stringHandler.prologCounterB = ((NumericConstant) arg0).value.intValue();
-			return TRUE;
+			return bindingList;
         }
         if ( pred == stringHandler.standardPredicateNames.setCounterC && numbArgs == 1) {
 			Term       arg0       = args.get(0);
 
 			if (!(args.get(0) instanceof NumericConstant)) { Utils.error("First argument must be a number: " + literal); }
 			stringHandler.prologCounterC = ((NumericConstant) arg0).value.intValue();
-			return TRUE;
+			return bindingList;
         }
         if ( pred == stringHandler.standardPredicateNames.setCounterD && numbArgs == 1) {
 			Term       arg0       = args.get(0);
 
 			if (!(args.get(0) instanceof NumericConstant)) { Utils.error("First argument must be a number: " + literal); }
 			stringHandler.prologCounterD = ((NumericConstant) arg0).value.intValue();
-			return TRUE;
+			return bindingList;
         }
         if ( pred == stringHandler.standardPredicateNames.setCounterE && numbArgs == 1) {
 			Term       arg0       = args.get(0);
 
 			if (!(args.get(0) instanceof NumericConstant)) { Utils.error("First argument must be a number: " + literal); }
 			stringHandler.prologCounterE= ((NumericConstant) arg0).value.intValue();
-			return TRUE;
+			return bindingList;
         }
 
         if ( pred == stringHandler.standardPredicateNames.incrCounter && numbArgs == 2) {

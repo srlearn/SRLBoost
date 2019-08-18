@@ -5,15 +5,14 @@ import java.util.Map;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  */
-@SuppressWarnings("serial")
 public class TermAsLiteral extends Literal {
 
 	public Term term;
-	/**
+	/*
 	 * This is a dummy class.  It is used, during parsing, to hold a term inside something of type Literal.
 	 */
 	TermAsLiteral(HandleFOPCstrings stringHandler, Term term) {
@@ -76,7 +75,6 @@ public class TermAsLiteral extends Literal {
 	
     @Override
 	public BindingList variants(Sentence other, BindingList bindings) {
-		// if (this == other) { return bindings; } // Need to collect the matched variables (so they don't get matched to another variable elsewhere).
 		if (!(other instanceof TermAsLiteral)) { return null; }
 		return term.variants(((TermAsLiteral) other).term, bindings);
 	}

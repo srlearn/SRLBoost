@@ -1,6 +1,6 @@
 package edu.wisc.cs.will.stdAIsearch;
 
-/**
+/*
  * The job of this is to initialize the open list for the given search task.
  * @author shavlik
  */

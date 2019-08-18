@@ -3,7 +3,7 @@ package edu.wisc.cs.will.Utils;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
+/*
  * @author twalker
  */
 public class NamedInputStream extends InputStream {

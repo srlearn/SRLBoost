@@ -4,10 +4,9 @@ import edu.wisc.cs.will.Utils.Utils;
 import java.io.IOException;
 import java.io.Serializable;
 
-/**
+/*
  * @author shavlik
  */
-@SuppressWarnings("serial")
 public abstract class SearchNode implements Serializable {
 
 	private SearchNode parentNode;
@@ -26,7 +25,7 @@ public abstract class SearchNode implements Serializable {
 
 	private boolean dontAddMeToOPEN = false;
 
-	/**
+	/*
 	 * Create the root node, since it connects nodes to the search task.
 	 */
 	public SearchNode(StateBasedSearchTask task) {
@@ -61,7 +60,7 @@ public abstract class SearchNode implements Serializable {
 		return super.equals(otherNode); 
 	}
 
-   /**
+   /*
 	* Methods for reading a Object cached to disk.
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

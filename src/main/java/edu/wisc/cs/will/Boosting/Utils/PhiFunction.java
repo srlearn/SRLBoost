@@ -1,6 +1,6 @@
 package edu.wisc.cs.will.Boosting.Utils;
 
-/**
+/*
  * Class that computes the value of phi to be used in LineSearch
  * phi(alpha) = f(x + alpha*p).
  * phi'(alpha) = p*f'(x+alpha*p) 
@@ -14,14 +14,14 @@ package edu.wisc.cs.will.Boosting.Utils;
  */
 public interface PhiFunction {
 
-	/**
+	/*
 	 * 
 	 * @param alpha Step length
 	 * @return the value of phi at alpha
 	 */
 	double phiAt(double alpha);
 	
-	/**
+	/*
 	 * 
 	 * @param alpha Step length
 	 * @return the derivative of phi at alpha

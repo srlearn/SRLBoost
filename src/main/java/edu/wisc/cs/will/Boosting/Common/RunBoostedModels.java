@@ -186,7 +186,7 @@ public abstract class RunBoostedModels {
 		if (cmd == null) {
 			Utils.error(CommandLineArguments.getUsageString());
 		}
-		RunBoostedModels runClass = null;
+		RunBoostedModels runClass;
 		if (cmd.isLearnMLN()) {
 			runClass = new RunBoostedMLN();
 		} else {

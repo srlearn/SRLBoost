@@ -8,7 +8,7 @@ import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName;
 
-/** Interface for an indexer of a horn clause fact base.
+/* Interface for an indexer of a horn clause fact base.
  *
  * @param <T> Type of the indexed object.  This is just for convenience if you
  * know that only Clauses or Literals are being indexed.
@@ -17,12 +17,11 @@ import edu.wisc.cs.will.FOPC.PredicateName;
  */
 public interface HornClausebaseIndexer<T extends DefiniteClause> {
 
-    /** Clears the index.
-     *
+    /* Clears the index.
      */
     void resetIndex();
 
-    /** Indicates that the index is built.
+    /* Indicates that the index is built.
      *
      * After being reset, an index will not be built.  Prior to using
      * an index, it must be built via buildIndex.
@@ -31,7 +30,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      */
     boolean isBuilt();
 
-    /** Builds the index for the indicated collection of DefiniteClauses.
+    /* Builds the index for the indicated collection of DefiniteClauses.
      *
      * After a reset, the index will not be built.  buildIndex(Collection)
      * must be called prior to the index being used.
@@ -41,7 +40,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      */
     void buildIndex(Collection<? extends T> clauses);
 
-    /** Indexes the definite clause rule.
+    /* Indexes the definite clause rule.
      *
      * This should be called by the HornClauseFactBase every time a definite
      * clause rule is added to the fact base.
@@ -51,7 +50,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      */
     void indexAssertion(T clause);
 
-    /** Retracts the specified definiteClause.
+    /* Retracts the specified definiteClause.
      *
      * The definite clause in the index.  The definite clause
      * should be the exact one that is in the clausebase.
@@ -60,7 +59,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      */
     void removeAssertion(T definiteClause);
 
-    /** Returns a Collection of definite clauses whose head might match the specified clauseHead.
+    /* Returns a Collection of definite clauses whose head might match the specified clauseHead.
      *
      * The Sentence return can be either a Literal (representing a definite clause with no body) or a
      * Clause (representing a definite clause with a body).  This can be restricted by specifying a Generics
@@ -76,7 +75,7 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      */
     List<T> getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBinding);
     
-    /** Returns a Collection of definite clauses whose head might match the specified clauseHead.
+    /* Returns a Collection of definite clauses whose head might match the specified clauseHead.
      *
      * The Sentence return can be either a Literal (representing a definite clause with no body) or a
      * Clause (representing a definite clause with a body).  This can be restricted by specifying a Generics
@@ -91,6 +90,4 @@ public interface HornClausebaseIndexer<T extends DefiniteClause> {
      * @return Collection of Sentences that may match predicateName/arity, possible null.
      */
     List<T> getPossibleMatchingAssertions(PredicateName predicateName, int arity);
-
-
 }

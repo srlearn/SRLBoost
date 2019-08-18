@@ -21,8 +21,6 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 	// 8/8/11 : TVK set this to true. RDN-Boost code will take care of dropping the false nodes whereas the MLN code needs the false tests.
 	// TODO(@hayesall): This should have no knowledge of boosting, refactor.
 
-	private boolean                  collectTestForFalseNodes = false; // Not needed due to semantics of Prolog and our use of CUTs.
-	private boolean				   createInventedFalseTestClause = false; // If collectTestForFalseNodes is true, create invented supporting predicates ?
 	private double				       regressionValueIfLeaf= 0;    // Since we reset the examples while trying to expand a node, this value is lost. Rather than re-computing it, we cache it here.
 	private double[]                   regressionVectorIfLeaf;
 	private List<Boolean>			   treePath = new ArrayList<>();
@@ -160,20 +158,12 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 
 		assert newLits != null;
 		Literal           newHead = newLits.get(0);
-		if (collectTestForFalseNodes && numbNewLits > 1) { // If the test is more than a single literal, create a new clause for it.  And reset newHead.
-			Collection<Variable> vars = nodeTest.collectFreeVariables(null, true, false); // Only collect variables that are in the BODY.
-			List<Term>      arguments = (vars == null ? null : new ArrayList<>(vars));
-			                  newHead = treeTheory.stringHandler.getLiteral(newPredName, arguments);
-			List<Literal>     posLits = new ArrayList<>(1); posLits.add(newHead);
-			Clause          newClause = treeTheory.stringHandler.getClause(posLits, newLits);
-			treeTheory.addSupportingClause(newClause);
-			// Mark invented predicate as inline.
-		}
-		
+		// Not needed due to semantics of Prolog and our use of CUTs.
+
 		List<Clause> results = new ArrayList<>(Utils.getSizeSafely(clausesTrue));
 		if (clausesTrue != null) for (Clause c : clausesTrue) {
 			Clause cCopy = c.copy(false);
-			if (collectTestForFalseNodes || numbNewLits < 2) {
+			if (numbNewLits < 2) {
 				cCopy.addNegLiteralToFront(newHead);
 			} else {
 				for (int i = numbNewLits - 1; i >= 0; i--) { cCopy.addNegLiteralToFront(newLits.get(i)); } // Need to maintain left-to-right order.
@@ -181,29 +171,9 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 			results.add(cCopy);
 		}
 		if (clausesFalse != null) {
-			Literal nbfHead = null;
-			Literal nbfBody = null;
-			if (collectTestForFalseNodes) {
-				// Need to create a negation-by-failure (nbf) clause.
-				PredicateName nbfPname  = treeTheory.stringHandler.getPredicateName("not_" + newPredName.name);
-				Collection<Variable> vars = newHead.collectAllVariables();
-				List<Term>      arguments = (vars == null ? null : new ArrayList<>(vars));
-				                nbfHead   = treeTheory.stringHandler.getLiteral(nbfPname, arguments);
-				                nbfBody   = treeTheory.stringHandler.wrapInNot(newHead);
-				if (createInventedFalseTestClause) {
-						Clause          nbfClause = treeTheory.stringHandler.getClause(nbfHead, nbfBody);
-						treeTheory.addSupportingClause(nbfClause);
-				}
-			}
+			// If collectTestForFalseNodes is true, create invented supporting predicates ?
 			for (Clause c : clausesFalse) {
 				Clause cCopy = c.copy(false);
-				if (collectTestForFalseNodes) { 
-					if (createInventedFalseTestClause) {
-						cCopy.addNegLiteralToFront(nbfHead);
-					} else {
-						cCopy.addNegLiteralToFront(nbfBody);
-					}
-				}
 				results.add(cCopy);
 			}
 		}

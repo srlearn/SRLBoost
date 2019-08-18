@@ -11,7 +11,7 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName; 
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 
-/** Default implementation of a HornClauseFactbaseIndexer.
+/* Default implementation of a HornClauseFactbaseIndexer.
  *
  * @param <T> Type of the indexed object.  This is just for convenience if you
  * know that only Clauses or Literals are being indexed.
@@ -22,15 +22,14 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
 
     private HornClausebase clausebase;
 
-    /** Stores the class of T.
+    /* Stores the class of T.
      * 
      * Since java generics do not store the actual class of T,
      * we need to do this by hand, since we need it later.
      */
     private Class<? extends T> elementClass;
 
-    /** The number of arguments that should be index.
-     *
+    /* The number of arguments that should be index.
      */
     private int indexWidth;
 

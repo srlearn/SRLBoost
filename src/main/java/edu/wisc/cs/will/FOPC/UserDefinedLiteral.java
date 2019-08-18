@@ -1,13 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 
-/** User Defined Literal interface.
+/* User Defined Literal interface.
  *
  * A User defined literal allows arbitrary code to be embedded in Will
  * concepts and evaluated transparently.
@@ -43,13 +38,13 @@ import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 public interface UserDefinedLiteral {
 
 
-    /** Returns the arity of the predicate this object defines.
+    /* Returns the arity of the predicate this object defines.
      *
      * @return Arity of defined predicate.
      */
     int getArity();
 
-    /** Handles the processing of the procedurally defined predicate.
+    /* Handles the processing of the procedurally defined predicate.
      *
      * @param caller Literal to be evaluated.  This literal is guaranteed to be
      * of the arity indicated by getArity() method.

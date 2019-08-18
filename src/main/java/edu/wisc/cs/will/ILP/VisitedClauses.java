@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.ILP;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -22,7 +21,7 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.ClosedList;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 
-/**
+/*
  * @author shavlik
  * 
  * TODO pull out the generic part of this and then specialize for SearchNodes
@@ -34,9 +33,9 @@ public class VisitedClauses extends ClosedList {
 	private int    size    =  0; // Count how many items are in this CLOSED.
 	private int    maxSize = -1; // If size gets close to this, then 1-fractionToKeep of the items are randomly deleted.  A non-pos value means "do not prune CLOSED."
 	private double fractionToKeep = 0.75; // When CLOSED reaches 90% of its maxSize, discard 25% of the items (which means it will be be about 2/3rds full).
-	private BindingList tempBindings = null;
-	private boolean     sortLiterals = true;
-	/**
+	private BindingList tempBindings;
+
+	/*
 	 * 
 	 * Need a way to put visited clauses in a (quasi)canonical form.  It is ok if there are a few 'false negatives' - ie, ok to revisit 
 	 * a clause since that only wastes CPU time.  However, there should not be any 'false positives,' since in that case a good clause
@@ -48,7 +47,7 @@ public class VisitedClauses extends ClosedList {
 	 */
 	private VisitedClauses() {
 		literalComparator = new LiteralComparator();
-		canonicalClauses  = new HashMap<Integer,Map<PredicateName,List<List<Literal>>>>(64);
+		canonicalClauses  = new HashMap<>(64);
 		tempBindings      = new BindingList();
 	}
 	VisitedClauses(int maxSize) {
@@ -125,19 +124,19 @@ public class VisitedClauses extends ClosedList {
 		return newLiterals;
 	}
 	private List<Literal> createCanonicalClause(HandleFOPCstrings stringHandler, Clause clause) {
-		List<Literal> literals = new ArrayList<Literal>(1);
+		List<Literal> literals = new ArrayList<>(1);
 		if (clause.posLiterals != null) { literals.addAll(clause.posLiterals); }
 		if (clause.negLiterals != null) { literals.addAll(clause.negLiterals); }
 		return createCanonicalClause(stringHandler, literals);
 	}
 	private List<Literal> createCanonicalClause(HandleFOPCstrings stringHandler, List<Literal> literals) {
 		if (literals == null) { return null; }
-		List<Literal> newLiterals = new ArrayList<Literal>(Utils.getSizeSafely(literals));
+		List<Literal> newLiterals = new ArrayList<>(Utils.getSizeSafely(literals));
 
 		stringHandler.pushVariableHash(); // Want to have all new variables in these.
 		for (Literal lit : literals) { newLiterals.add(lit.copy(true)); }
 		stringHandler.popVariableHash();
-		if (sortLiterals) { Collections.sort(newLiterals, literalComparator); } // Sorting is done in place.
+		newLiterals.sort(literalComparator);
 		return newLiterals;
 	}
 	
@@ -188,16 +187,16 @@ public class VisitedClauses extends ClosedList {
 		size++;
 		if (maxSize > 0 && maxSize - size < maxSize / 10) { reduceSize(fractionToKeep); }  // Reduce if within 10% of full.
 		if (hashObj1 == null) { // No items yet with this primary key.
-			List<List<Literal>> newSecondaryObject = new ArrayList<List<Literal>>(8);  // Create a new entry.
+			List<List<Literal>> newSecondaryObject = new ArrayList<>(8);  // Create a new entry.
 			newSecondaryObject.add(literals);
-			Map<PredicateName,List<List<Literal>>> newPrimaryObject = new HashMap<PredicateName,List<List<Literal>>>(8);
+			Map<PredicateName,List<List<Literal>>> newPrimaryObject = new HashMap<>(8);
 			newPrimaryObject.put(secondaryKey, newSecondaryObject);
 			canonicalClauses.put(primaryKey,   newPrimaryObject);
 			return;
 		}
 		List<List<Literal>> hashObj2 = hashObj1.get(secondaryKey);
 		if (hashObj2 == null) { // No items yet with this secondary key.
-			List<List<Literal>> newObject = new ArrayList<List<Literal>>(8);  // Create a new entry.
+			List<List<Literal>> newObject = new ArrayList<>(8);  // Create a new entry.
 			newObject.add(literals);
 			hashObj1.put(secondaryKey,newObject);
 		}
@@ -270,7 +269,7 @@ public class VisitedClauses extends ClosedList {
 	}
 
 	public String toString() {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		// Walk through the hash maps and random discard some literals.
 		Set< Entry<Integer,Map<PredicateName,List<List<Literal>>>>> entrySet1 = canonicalClauses.entrySet();
 		for (Entry<Integer,Map<PredicateName,List<List<Literal>>>>  entry1 : entrySet1) {
@@ -280,14 +279,13 @@ public class VisitedClauses extends ClosedList {
 			for (Entry<        PredicateName, List<List<Literal>>> entry2 : entrySet2) {
 				PredicateName       secondaryKey = entry2.getKey();
 				List<List<Literal>> storedItems  = hashObj1.get(secondaryKey);
-				Iterator<List<Literal>> iter     = storedItems.iterator();					 
 
-				while (iter.hasNext()) {
-					result += "%     " + iter.next() + "\n";
+				for (List<Literal> storedItem : storedItems) {
+					result.append("%     ").append(storedItem).append("\n");
 				}
 			}
 		}
-		return result;
+		return result.toString();
 	}
 
 }

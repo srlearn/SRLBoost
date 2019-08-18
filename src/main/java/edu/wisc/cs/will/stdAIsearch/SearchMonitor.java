@@ -4,7 +4,7 @@ import edu.wisc.cs.will.Utils.Utils;
 import java.io.IOException;
 import java.io.Serializable;
 
-/**
+/*
  * The job of this class is to keep track of a search and return the desired result at the end.
  * @author shavlik
  */
@@ -99,7 +99,7 @@ public class SearchMonitor implements Serializable {
 	
 	public void clearAnySavedInformation(boolean insideIterativeDeepening) {}
 
-   /**
+   /*
 	* Methods for reading a Object cached to disk.
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

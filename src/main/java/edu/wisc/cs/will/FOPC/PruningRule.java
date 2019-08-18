@@ -3,7 +3,7 @@ package edu.wisc.cs.will.FOPC;
 import edu.wisc.cs.will.FOPC.visitors.ElementPath;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 
-/**
+/*
  * @author twalker
  */
 public interface PruningRule {

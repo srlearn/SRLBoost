@@ -1,6 +1,6 @@
 package edu.wisc.cs.will.FOPC;
 
-/** This is just an interface to simplify the proof definitions.
+/* This is just an interface to simplify the proof definitions.
  *
  * Both sentences and terms support this interface, but not all sentences
  * and term are legal SLD queries.
@@ -8,7 +8,8 @@ package edu.wisc.cs.will.FOPC;
  * @author twalker
  */
 public interface SLDQuery {
-    /** Returns a Horn goal clause (clause with only negative literals).
+
+    /* Returns a Horn goal clause (clause with only negative literals).
      *
      * @return a Horn goal clause.
      * @throws IllegalArgumentException An illegal argument exception is thrown

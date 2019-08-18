@@ -2,7 +2,15 @@ package edu.wisc.cs.will.FOPC;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.ChildrenClausesGenerator;
@@ -11,13 +19,12 @@ import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  * A 'theory' is a collection of first-order predicate calculus sentences, represented (for us) in clausal form.
  * 
  */
-@SuppressWarnings("serial")
 public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence> {
 	private static final int debugLevel = 0;
 
@@ -373,7 +380,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	// First group literals by predicateName
     	for (Literal nLit : c.negLiterals) {
     		PredicateName pName = nLit.predicateName;
-    		if (!pName.isFunctionAsPredicate(null, nLit.getArguments())) { continue; }
+    		if (!pName.isFunctionAsPredicate(nLit.getArguments())) { continue; }
 			List<Literal> lookup = samePredicates.computeIfAbsent(pName, k -> new ArrayList<>(1));
 			if (!nLit.member(lookup, false)) { lookup.add(nLit); } // Set's weren't working (even when using setUseStrictEqualsForLiterals(false)), so handle explicitly.
     	}
@@ -401,10 +408,10 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	while (!copyOfSet.isEmpty()) {
         	Literal litToConsider = copyOfSet.remove(0).applyTheta(bl.theta);
         	int numbArgs = litToConsider.numberArgs();
-        	int arg      = litToConsider.predicateName.returnFunctionAsPredPosition(null, numbArgs);
+        	int arg      = litToConsider.predicateName.returnFunctionAsPredPosition(numbArgs);
         	Utils.println("\n%  litToConsider = " + litToConsider + ", arg #" + arg);
         	if (copyOfSet.size() > 0) for (Literal otherLit : copyOfSet) if (numbArgs == otherLit.numberArgs()) {
-            	int otherArg = litToConsider.predicateName.returnFunctionAsPredPosition(null, otherLit.numberArgs());
+            	int otherArg = litToConsider.predicateName.returnFunctionAsPredPosition(otherLit.numberArgs());
             	if (otherArg != arg) { continue; }
             	Literal otherLit2 = otherLit.applyTheta(bl.theta); // This might be necessary, but do it anyway.
             	Utils.println("%  otherLitToConsider = " + otherLit2 + ", arg #" + otherArg);
@@ -566,7 +573,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 					body = pLit.getArguments();
 				} else {
 					body = new ArrayList<>(arity);
-					body.addAll(Objects.requireNonNull(stringHandler.getThisManyVars(arity, true)));
+					body.addAll(Objects.requireNonNull(stringHandler.getThisManyVars(arity)));
 				}
 			} else if (pName != pLit.predicateName) { 
 				Utils.warning("Cannot negate a theory with different head clauses: " + pName + " vs. " + pLit.predicateName); 
@@ -616,9 +623,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			addMainClause(c, checkForInlinersAndSupportingClauses);
 		}	
 	}
-    public void addMainClause(Clause clause) {
-        addMainClause(clause, inlineHandler);
-    }
+
 	public void addMainClause(Clause clause, InlineManager checkForInlinersAndSupportingClauses) {
 		if (clause == null) { return; }
 		if (clauses         == null) { clauses         = new ArrayList<>(4); }
@@ -633,7 +638,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			if (doubleResults == null) { Utils.error("Should not get a NULL here using: " + clause); }
 			assert doubleResults != null;
 			clauses.add(doubleResults.remove(0));
-			for (Clause sc : doubleResults) { addSupportingClause(sc, null); }
+			for (Clause sc : doubleResults) { addSupportingClause(sc); }
 		} else {
 			clauses.add(clause);
 		}
@@ -644,10 +649,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		
 	}
 
-    public void addSupportingClause(Clause clause) {
-        addSupportingClause(clause, inlineHandler);
-    }
-	private void addSupportingClause(Clause clause, InlineManager checkForInlinersAndSupportingClauses) {
+	private void addSupportingClause(Clause clause) {
 		if (clause == null) { return; }
 		if (supportClauses == null) { supportClauses = new ArrayList<>(4); }
 		
@@ -663,9 +665,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
         if (!found) supportClauses.add(clause);
 	}
 
-	/**
-     * @return the clauses
-     */
     public List<Clause> getClauses() {
         return clauses;
     }
@@ -680,7 +679,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	private void rewriteFlipFloppedTheory() {
 		rewriteFlipFloppedTheory(true);
 	}
-		public void rewriteFlipFloppedTheory(boolean complainIfAlreadyFlipper) {
+		private void rewriteFlipFloppedTheory(boolean complainIfAlreadyFlipper) {
 		if (!negated)          { return; }
 		if (theoryFlipFlopped) { if (complainIfAlreadyFlipper) { Utils.waitHere("Have already flipped this theory!\n " + toString()); } return; }
 		theoryFlipFlopped = true;
@@ -871,7 +870,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
         return toPrettyString("", 0, bl);
     }
 
-   /** Methods for reading a Object cached to disk.
+   /* Methods for reading a Object cached to disk.
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         if (!(in instanceof FOPCInputStream)) {

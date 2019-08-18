@@ -34,7 +34,7 @@ import edu.wisc.cs.will.stdAIsearch.OpenList;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  */
@@ -54,7 +54,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     private final Unifier unifier;
 
-    /** Literal that tracks where we need to cut to when encountered.
+    /* Literal that tracks where we need to cut to when encountered.
      *
      * The cutLiteral is created the first time a cut is encountered
      * for a given Literal expansion.  It holds a copy of the
@@ -74,7 +74,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      */
     private CutLiteral cutLiteral = null;
 
-    /** Search Node holding the place to be cut to when a cut is encountered.
+    /* Search Node holding the place to be cut to when a cut is encountered.
      *
      * The cutMarkerNode is created the first time a cut is encountered
      * for a given Literal expansion.  It is held by the corresponding
@@ -93,7 +93,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      */
     private CutMarkerNode cutMarkerNode = null;
 
-    /** Tracks whether the cutMarker has already been added during the expansion of the current literal.
+    /* Tracks whether the cutMarker has already been added during the expansion of the current literal.
      *
      * Only want to add CutMarkerNode per expansion of a single literal.
      * <p>
@@ -102,7 +102,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      */
     private boolean cutMarkerAdded;
 
-    /** Tracks the expansion we are on.
+    /* Tracks the expansion we are on.
      *
      * Use getNextExpansion() to get the next expansion.
      * <P>
@@ -111,12 +111,11 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      */
     private int nextExpansion;
 
-    /** Caches a failLiteral locally.
-     *
+    /* Caches a failLiteral locally.
      */
     private final Literal failLiteral;
 
-    /** Tracks the current proof step counter.
+    /* Tracks the current proof step counter.
      *
      * Each time a literal is evaluated (it's expanded to include it's children),
      * this counter is increased by 1.
@@ -1041,7 +1040,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         }
     }
 
-    /**
+    /*
      * Create a new list, where all the cuts are replaced by new cuts that have the argument cutMarkerLiteralAsTerm.
      */
     private List<Literal> markCutsInClauseWithCurrentCutMarker(List<Literal> ruleBody) {
@@ -1298,7 +1297,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     protected static class CutMarkerLiteral extends Literal {
 
-        /** Head of the clause that contained the cut.
+        /* Head of the clause that contained the cut.
          *
          * This is just for debugging purpose, never used in the actual resolution.
          *

@@ -9,7 +9,7 @@ import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author twalker
  */
 public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<DefiniteClause>{

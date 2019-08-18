@@ -3,19 +3,24 @@ package edu.wisc.cs.will.FOPC;
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.MapOfSets;
 import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  *  All predicates with the same name map to the same instance.
  */
-@SuppressWarnings("serial")
 public class PredicateName extends AllOfFOPC implements Serializable {
 	public    String                   name;	
 	private   List<PredicateSpec>      typeSpecList = null; // Information about this Predicate, e.g. legal arguments to it.  A 'type' describes both the kind of arguments it takes (e.g., 'people' are 'books') and whether these arguments are "input" variables, "output" variables, or constants.
@@ -51,7 +56,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Map<Integer,List<String>>      namedArgumentOrdering      = null;  // When getting rid of named arguments, this is the order argument should be placed (if null, then use alphabetic ordering).
 	private   Map<Integer,Map<Integer, List<Object>>> constrainsType    = null;  // Record if this literal constrains the type of one of its arguments.
 
-    /** Map from non-operation arities to operational predicates.
+    /* Map from non-operation arities to operational predicates.
      *
      * Currently, the operational predicates must be the same arity as the
      * non-operational one.  Additionally, they must take the exact same arguments
@@ -115,19 +120,14 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return results;
 	}
 
-	// See if this literal is a determinate.  FOR NOW, JUST CHECK THE PREDICATE NAME AND ARITY, BUT SHOULD REALLY CHECK IT MATCHES THE TYPE IN THE DETERMINATE SPEC.
-	boolean isDeterminatePredicate(List<Term> arguments) {
-		return (determinateSpec != null && determinateSpec.get(Utils.getSizeSafely(arguments)) != null);
-	}
-
-    private boolean isDeterminatePredicate(int arity) {
+	private boolean isDeterminatePredicate(int arity) {
 		return (determinateSpec != null && determinateSpec.get(arity) != null);
 	}
 
 	// See if this literal is a predicate that holds a numeric value. 
-	boolean isFunctionAsPredicate(FunctionAsPredType type, List<Term> arguments) {
+	boolean isFunctionAsPredicate(List<Term> arguments) {
 		if (functionAsPredSpec == null) { return false; }
-		Map<Integer,Integer> lookup1 = functionAsPredSpec.get(type);
+		Map<Integer,Integer> lookup1 = functionAsPredSpec.get(null);
 		if (lookup1 == null) { return false; }
 		return (lookup1.get(Utils.getSizeSafely(arguments)) != null);
 	}
@@ -179,17 +179,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	
 	public enum FunctionAsPredType {      numeric,       bool,          categorical,       structured,       anything,
 									listOfNumeric, listOfBoolean, listOfCategorical, listOfStructured, listOfAnything}
-	
-	boolean isaNumericFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.numeric,     arguments); }
-	boolean isaBooleanFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.bool,        arguments); }
-	boolean isaCategoricalFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.categorical, arguments); }
-	boolean isaAnythingFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.anything,    arguments); }
-	boolean isaListOfNumericFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfNumeric,     arguments); }
-	boolean isaListOfBooleanFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfBoolean,     arguments); }
-	boolean isaListOfCategoricalFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfCategorical, arguments); }
-	boolean isaListOfStructuredFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfStructured,  arguments); }
-	boolean isaListOfAnythingFunctionAsPredLiteral(List<Term> arguments) { return isFunctionAsPredicate(FunctionAsPredType.listOfAnything,    arguments); }
-			
+
 	// See if this predicate name is temporary for this run (if so, it might need to be renamed to avoid name conflicts across runs).
 	public boolean isaTemporaryName(int arity) {
 		if (temporary == null)      { return false; }
@@ -211,7 +201,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         return operationalExpansion != null && operationalExpansion.containsKey(arity);
     }
 
-    /** Returns the set of operational expansions of the predicate/arity.
+    /* Returns the set of operational expansions of the predicate/arity.
      * @return Returns null if no operational expansions exist.
      */
     public Set<PredicateNameAndArity> getOperationalExpansions(int arity) {
@@ -222,7 +212,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         return result;
     }
 
-    /** Adds an operational expansion of the predicate.
+    /* Adds an operational expansion of the predicate.
      *
      * Operational expansions are keyed on the predicate name and the arity.
      * A PredicateNameAndArity is used to provide both the name and arity of
@@ -236,7 +226,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         operationalExpansion.put(operationalPredicateNameAndArity.getArity(), operationalPredicateNameAndArity);
     }
 
-    /** Adds an operational expansion of the predicate.
+    /* Adds an operational expansion of the predicate.
      *
      * Operational expansions are keyed on the predicate name and the arity.
      * A PredicateNameAndArity is used to provide both the name and arity of
@@ -266,7 +256,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return variantHashMap.get(arity);
 	}
 	
-	/**
+	/*
 	 * Can prune 'prunableLiteral' if 'ifPresentLiteral' is present (and both unify consistently with the current literal being considered for adding to the current clause during ILP search).
 	 * However, if 'ifPresentLiteral' has 'warnIfPresentLiteralCount' ways to be proven, warn the user (i.e., prune is based on the assumption that fewer than this number of clauses for this literal/arity exist).
 	 * Note: this code does not check for duplicate entries (which would need to use 'variant' since variables are present).
@@ -294,7 +284,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		prunes.add(pnaa, new Pruner(prunableLiteral, ifPresentLiteral, warnIfPresentLiteralCount, truthValue));
 	}
 	
-	/**
+	/*
 	 * Get the list of pruning rules for this literal (whose head should be that of this PredicateName instance, but we also need the specific arity).
 	 * Note that this method does not check for those pruners that unify with prunableLiteral.  That is the job of the caller.
 	 */
@@ -395,7 +385,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public void reportPossibleInstantiations() {
 		Utils.println(reportPossibleInstantiationsAsString());
 	}
-	public String reportPossibleInstantiationsAsString() {
+	private String reportPossibleInstantiationsAsString() {
 		StringBuilder result = new StringBuilder();
 		if (typeSpecList == null) {
 			result.append("  There are no possible instantiations of predicate '").append(name).append("'.\n");
@@ -454,7 +444,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return maxOccurrencesPerArity.get(arity);
 	}
 	
-	/**
+	/*
 	 * This is used to say that this predicate/arity should appear at most max times in a learned rule
 	 * FOR a given binding to the "input" arguments in the typeSpecs.
 	 */
@@ -491,7 +481,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return maxOccurrencesPerInputVars != null && maxOccurrencesPerInputVars.get(arity) != null;
 	}
 	
-	/**
+	/*
 	 * Does this literal match some mode? That is, is there some mode for the predicate name of the same arity as this literal?
 	 *
 	 * @return Whether the given literal has a matching mode.
@@ -679,7 +669,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			}
 		}
 		cost.put(arity, predicateCost);
-		stringHandler.setPredicatesHaveCosts(true);
+		stringHandler.setPredicatesHaveCosts();
 		if (isFinal) { costIsFinal = true; }
 	}
 
@@ -705,7 +695,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 	
 	// On these, the later override the earlier (allows code to change these).
-	public void setRelevance(int arity, RelevanceStrength strength) {
+	void setRelevance(int arity, RelevanceStrength strength) {
 		if (relevance == null) {
 			relevance = new HashMap<>(4);
 		}
@@ -732,37 +722,20 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return null;
 	}
 
-	int getDeterminateArgumentIndex(int arity) {
-		return getDeterminateArgumentIndex(arity, null);
-	}
-	private int getDeterminateArgumentIndex(int arity, String requiredType) {
+	private int getDeterminateArgumentIndex(int arity) {
 		if (determinateSpec == null) { return -1; }
 		Map<Integer,Type> firstLookUp = determinateSpec.get(arity);
-		
 		if (firstLookUp == null) { return -1; } // This means "not found."
 		for (Integer key : firstLookUp.keySet()) {
 			Type type = firstLookUp.get(key);
-
-			if (requiredType == null) {
-				return key;
-			}
-			if (requiredType.equalsIgnoreCase("numeric")) {
-				if (type.toString().equalsIgnoreCase("integer") ||
-						type.toString().equalsIgnoreCase("float") ||
-						type.toString().equalsIgnoreCase("double") ||
-						type.toString().equalsIgnoreCase("number") ||
-						type.toString().equalsIgnoreCase("Boolean")) {
-					return key;
-				}  // If we did NOT find what we sought, keep looking.
-			}
-			Utils.error("This type is not numeric: '" + type + "'.");
+			return key;
 		}
 		return -1; // Did not find what we sought, so return -1 to indicate "not found."
 	}
-	
-	public int returnFunctionAsPredPosition(FunctionAsPredType type, int arity) {
+
+	int returnFunctionAsPredPosition(int arity) {
 		if (functionAsPredSpec == null) { return -1; }
-		Map<Integer,Integer> lookup = functionAsPredSpec.get(type);
+		Map<Integer,Integer> lookup = functionAsPredSpec.get(null);
 		if (lookup == null) { return -1; }
 		Integer result = lookup.get(arity);
 		if (result == null) { return -1; }
@@ -776,7 +749,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return name;
 	}
 
-   /**
+   /*
 	* Methods for reading a Object cached to disk.
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -791,7 +764,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         this.stringHandler = fOPCInputStream.getStringHandler();
     }
 
-    /** Replaces the stream object with a cached one if available.
+    /* Replaces the stream object with a cached one if available.
      *
      */
     private Object readResolve() throws ObjectStreamException {

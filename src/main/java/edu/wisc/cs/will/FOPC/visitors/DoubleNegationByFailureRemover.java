@@ -6,7 +6,7 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
 
-/**
+/*
  *
  * @author twalker
  */

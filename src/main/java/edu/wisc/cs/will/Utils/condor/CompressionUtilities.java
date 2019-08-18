@@ -2,7 +2,7 @@ package edu.wisc.cs.will.Utils.condor;
 
 import java.io.File;
 
-/**
+/*
  * @author twalker
  */
 class CompressionUtilities {

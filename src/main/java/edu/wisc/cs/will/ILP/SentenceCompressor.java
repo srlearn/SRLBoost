@@ -1,15 +1,16 @@
 package edu.wisc.cs.will.ILP;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.ConnectedSentence;
 import edu.wisc.cs.will.FOPC.ConnectiveName;
 import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Sentence;
-import java.util.ArrayList;
-import java.util.List;
 
-/** Sentence Visitor that compresses Clause joined via AND connectives into a single clause.
+/* Sentence Visitor that compresses Clause joined via AND connectives into a single clause.
  * 
  * @author twalker
  */
@@ -32,7 +33,7 @@ public class SentenceCompressor extends DefaultFOPCVisitor<Void> {
         
         @Override
         public Sentence visitConnectedSentence(ConnectedSentence sentence, Void data) {
-            Sentence result = sentence;
+            Sentence result;
             if (ConnectiveName.isaAND(sentence.getConnective().name)) {
 
                 Sentence newA = sentence.getSentenceA().accept(this, data);
@@ -40,8 +41,8 @@ public class SentenceCompressor extends DefaultFOPCVisitor<Void> {
 
                 if ((newA instanceof Clause || newA instanceof Literal) && (newB instanceof Clause || newB instanceof Literal)) {
 
-                    List<Literal> posLits = new ArrayList<Literal>();
-                    List<Literal> negLits = new ArrayList<Literal>();
+                    List<Literal> posLits = new ArrayList<>();
+                    List<Literal> negLits = new ArrayList<>();
 
                     if (newA instanceof Clause) {
                         Clause clause = (Clause) newA;
@@ -52,7 +53,7 @@ public class SentenceCompressor extends DefaultFOPCVisitor<Void> {
                             posLits.addAll(clause.getPositiveLiterals());
                         }
                     }
-                    else if (newA instanceof Literal) {
+                    else {
                         Literal literal = (Literal) newA;
                         posLits.add(literal);
                     }
@@ -66,7 +67,7 @@ public class SentenceCompressor extends DefaultFOPCVisitor<Void> {
                             posLits.addAll(clause.getPositiveLiterals());
                         }
                     }
-                    else if (newB instanceof Literal) {
+                    else {
                         Literal literal = (Literal) newB;
                         posLits.add(literal);
                     }

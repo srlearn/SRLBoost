@@ -39,15 +39,14 @@ import edu.wisc.cs.will.Utils.LinkedMapOfSets;
 import edu.wisc.cs.will.Utils.MapOfSets;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
- *
+/*
  * @author twalker
  */
 public class AdviceProcessor {
 
     public static int debugLevel = 0;
 
-    /** Original Relevance statements, prior to generalization.
+    /* Original Relevance statements, prior to generalization.
      *
      * This list contains the original relevance statements prior to generalization.
      * groundedRelevance is a bit of a misnomer, since the relevance may contain variables.
@@ -57,12 +56,6 @@ public class AdviceProcessor {
     private List<RelevantFeatureInformation> relevantFeatures = new ArrayList<>();
 
     private List<RelevantModeInformation> relevantModes = new ArrayList<>();
-
-    private Set<Integer> unsplitableExamplePositions = new HashSet<>();
-
-    final static int numberOfRuns = 30;
-
-    final static double[] droppingProbs = {0.0, 0.05, 0.10, 0.15, 0.25, 0.37, 0.50, 0.62, 0.75, 0.87}; // Note: these will be multiplied by 100 and then truncated.  So be sure that is unique.
 
     private final HornClauseContext context;
 
@@ -75,8 +68,6 @@ public class AdviceProcessor {
     private Set<PredicateNameAndArity> assertedRelevanceModes = new HashSet<>();
 
     private Set<PredicateNameAndArity> assertedRelevanceClauses = new HashSet<>();
-
-    private Map<PredicateNameAndArity, RelevanceStrength> originalRelevantStrengths = new HashMap<>();
 
     private MutuallyExclusiveModeConstraint constraint = null;
 
@@ -113,10 +104,10 @@ public class AdviceProcessor {
         context.getStringHandler().setVariableIndicator(oldVI);
     }
 
-    /** Returns the active advice for the given examples and relevanceStrength without asserting/retracting.
+    /* Returns the active advice for the given examples and relevanceStrength without asserting/retracting.
      */
-    public ActiveAdvice getActiveAdvice(RelevanceStrength relevanceStrength, List<? extends Example> positiveExamples, List<? extends Example> negativeExamples) {
-        ActiveAdvice activeAdvice = new ActiveAdvice(stringHandler, relevanceStrength, positiveExamples, negativeExamples);
+    ActiveAdvice getActiveAdvice(RelevanceStrength relevanceStrength, List<? extends Example> positiveExamples, List<? extends Example> negativeExamples) {
+        ActiveAdvice activeAdvice = new ActiveAdvice(stringHandler);
 
         processRelevantClauses(activeAdvice, relevanceStrength, positiveExamples, negativeExamples);
 
@@ -127,7 +118,7 @@ public class AdviceProcessor {
         return activeAdvice;
     }
 
-    /** Generalizes the relevance statements and asserts the clauses and relevance into the context.
+    /* Generalizes the relevance statements and asserts the clauses and relevance into the context.
      *
      * The positiveExamples and negativeExample collections are required to determine
      */
@@ -147,13 +138,6 @@ public class AdviceProcessor {
 
         // First, make sure that the world/state variable positions are included
         // in the unsplitable set.
-        if (stringHandler.locationOfWorldArg != -1) {
-            unsplitableExamplePositions.add(stringHandler.locationOfWorldArg);
-        }
-
-        if (stringHandler.locationOfStateArg != -1) {
-            unsplitableExamplePositions.add(stringHandler.locationOfStateArg);
-        }
 
         // Filter out duplicate relevance statements that exist on multiple examples.
         MapOfSets<Example, RelevantClauseInformation> filteredGroundedPerPieceMap = createFilteredGroundedPerPieceMap(positiveExamples, negativeExamples);
@@ -891,7 +875,6 @@ public class AdviceProcessor {
                 if (debugLevel >= 3) {
                     Utils.println("% [AdviceProcessor] Setting Feature Relevance for " + pnaa + " to " + relevanceInfo.strength);
                 }
-                originalRelevantStrengths.put(pnaa, oldStrength);
             }
         }
 
@@ -1030,46 +1013,6 @@ public class AdviceProcessor {
         return result;
     }
 
-    private List<RelevantInformation> getRelevantInformationForExample(Example example) {
-        List<RelevantInformation> result = new ArrayList<>();
-
-        if (relevantFeatures != null) {
-            for (RelevantFeatureInformation relevantFeatureInformation : relevantFeatures) {
-                if (relevantFeatureInformation.example.equals(example)) {
-                    result.add(relevantFeatureInformation);
-                }
-            }
-        }
-
-        if (relevantClauses != null) {
-            for (RelevantClauseInformation info : relevantClauses) {
-                if (info.example.equals(example)) {
-                    result.add(info);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    private void addUnsplitableExamplePosition(int e) {
-        unsplitableExamplePositions.add(e);
-    }
-
-    List<Example> getExamplesWithUniqueAdvice(List<? extends Example> examplesToCheck) {
-
-        List<RelevantInformation> riForExamples = new ArrayList<>();
-        for (Example Example : examplesToCheck) {
-            riForExamples.addAll(getRelevantInformationForExample(Example));
-        }
-        MapOfSets<Example, RelevantInformation> exampleToAdviceMap = createExampleToAdviceMap(riForExamples);
-
-        // Filter out duplicate relevance statements that exist on multiple examples.
-        MapOfSets<Example, RelevantInformation> filteredGroundedRelevance = filterDuplicateRelevance(exampleToAdviceMap);
-
-        return new ArrayList<>(filteredGroundedRelevance.keySet());
-    }
-
     boolean isOutputArgumentsEnabled() {
         return false;
     }
@@ -1157,8 +1100,6 @@ public class AdviceProcessor {
                     try {
                         NumericConstant indexConstant = (NumericConstant) lit.getArgument(0);
                         int index = indexConstant.value.intValue();
-
-                        addUnsplitableExamplePosition(index);
 
                     } catch (ClassCastException castException) {
                         Utils.waitHere(castException + "\nIllegal relevantClause specification '" + clause + "'.  Must be fact of form relevant_clause(Example, Clause, RelevantStrength.");

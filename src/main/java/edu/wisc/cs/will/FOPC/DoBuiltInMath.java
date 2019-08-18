@@ -8,7 +8,7 @@ import java.util.Set;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  * 
  * Differences from ISO Prolog (as per YAP's documentation 12/07: http://www.ncc.up.pt/~vsc/Yap/documentation.html)
@@ -46,7 +46,7 @@ public class DoBuiltInMath extends AllOfFOPC {
 
     private Map<FunctionName, Set<Integer>> canHandle = new HashMap<>(16);
 
-    /**
+    /*
      * Reduce an arithmetic expression, producing a NumericConstant node.   Throw an error if any variables encountered where a number is needed.
      * Can NOT use statics since the function names will be different instances for each string handler.
      */
@@ -94,7 +94,7 @@ public class DoBuiltInMath extends AllOfFOPC {
         lookup.add(arity);
     }
 
-    public boolean canHandle(FunctionName fName, int arity) {
+    private boolean canHandle(FunctionName fName, int arity) {
 
         // Handle the odd ones...
         if (fName == stringHandler.standardPredicateNames.minFunction) {
@@ -126,7 +126,7 @@ public class DoBuiltInMath extends AllOfFOPC {
         return lookup.contains(arity);
     }
 
-    public boolean canHandle(Term expression) {
+    boolean canHandle(Term expression) {
         if (expression instanceof NumericConstant) {
             return true;
         }
@@ -137,7 +137,7 @@ public class DoBuiltInMath extends AllOfFOPC {
         return false;
     }
 
-    /**
+    /*
      * Simplify a logical Term into a numeric constant.  Complain if this can't be done.
      * @return The numeric constant that is the simplification of the given expression.
      */
@@ -160,7 +160,7 @@ public class DoBuiltInMath extends AllOfFOPC {
 		return null;
     }
 
-    /**
+    /*
      * Do all the intermediate calculations using doubles.  The method above converts into a FOPC data structure at the end.
      * @return A double, the result of computing the given expression.
      */

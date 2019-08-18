@@ -8,7 +8,7 @@ import java.util.Map;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author tkhot
  */
 public class PairWiseExampleScore {

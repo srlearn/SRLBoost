@@ -4,7 +4,7 @@ import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.FOPC.Term;
 import java.io.Serializable;
 
-/**
+/*
  * @author shavlik
  */
 public class ArgSpec implements Serializable {

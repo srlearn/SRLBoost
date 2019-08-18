@@ -6,7 +6,7 @@ import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
 import java.util.Map;
 
-/**
+/*
  * @author twalker
  */
 public class ReplaceLiteralsVisitor extends DefaultFOPCVisitor<Map<Literal, Literal>> {

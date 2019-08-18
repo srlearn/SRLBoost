@@ -1,6 +1,6 @@
 package edu.wisc.cs.will.stdAIsearch;
 
-/**
+/*
  * If some code wishes to interrupt a search in the middle, it should throw a new instance of this class.
  * @author shavlik
  */

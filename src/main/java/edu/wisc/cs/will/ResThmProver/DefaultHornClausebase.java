@@ -26,12 +26,12 @@ import edu.wisc.cs.will.FOPC.Unifier;
 import edu.wisc.cs.will.Utils.Utils;
 
 
-/**
+/*
  * @author twalker
  */
 public class DefaultHornClausebase implements HornClausebase {
 
-    /** Set of all asserted sentences.
+    /* Set of all asserted sentences.
      *
      * To maintain prolog semantics, we need to have all assertions in order,
      * independent of whether they are facts (definite clauses with no body, stored
@@ -50,7 +50,7 @@ public class DefaultHornClausebase implements HornClausebase {
 
     private Map<PredicateNameAndArity, List<AssertRetractListener>> listenerMap = null;
 
-    /** Index for all assertions.
+    /* Index for all assertions.
      *
      * This should never be used directly.  Always use the accessor method since
      * indices are build lazily and the index may not yet be built if you use this
@@ -60,7 +60,7 @@ public class DefaultHornClausebase implements HornClausebase {
      */
     private HornClausebaseIndexer<DefiniteClause> indexerForAllAssertions;
 
-    /** Index for all facts.
+    /* Index for all facts.
      *
      * This should never be used directly.  Always use the accessor method since
      * indices are build lazily and the index may not yet be built if you use this
@@ -70,7 +70,7 @@ public class DefaultHornClausebase implements HornClausebase {
      */
     private HornClausebaseIndexer<Literal> indexerForFacts;
 
-    /** Index for all background knowledge.
+    /* Index for all background knowledge.
      *
      * This should never be used directly.  Always use the accessor method since
      * indeces are build lazily and the index may not yet be built if you use this
@@ -117,8 +117,7 @@ public class DefaultHornClausebase implements HornClausebase {
         }
     }
 
-    /** Initializes the clausebase.
-     *
+    /* Initializes the clausebase.
      */
     private void setupDataStructures() {
         assertions = new ArrayList<>();
@@ -327,7 +326,7 @@ public class DefaultHornClausebase implements HornClausebase {
 
     }
 
-    /** Checks to fact to make sure we should add it.
+    /* Checks to fact to make sure we should add it.
      *
      * Depending on the settings stringHandler.variantFactHandling settings, various checks will be performed.
      *
@@ -374,7 +373,7 @@ public class DefaultHornClausebase implements HornClausebase {
         return keep;
     }
 
-    /** Checks to fact to make sure we should add it.
+    /* Checks to fact to make sure we should add it.
      *
      * Depending on the settings stringHandler.variantFactHandling settings, various checks will be performed.
      *
@@ -416,7 +415,7 @@ public class DefaultHornClausebase implements HornClausebase {
         return keep;
     }
 
-    /** Resets the indexes.
+    /* Resets the indexes.
      *
      * The indexes are built lazily, as needed.
      */
@@ -600,7 +599,7 @@ public class DefaultHornClausebase implements HornClausebase {
         return false;
     }
 
-    /** Returns the index for all assertions.
+    /* Returns the index for all assertions.
      *
      * If the index is not built yet, this method will build it.
      *
@@ -611,7 +610,7 @@ public class DefaultHornClausebase implements HornClausebase {
         return indexerForAllAssertions;
     }
 
-    /** Returns the index for all facts.
+    /* Returns the index for all facts.
      *
      * If the index is not built yet, this method will build it.
      *
@@ -622,7 +621,7 @@ public class DefaultHornClausebase implements HornClausebase {
         return indexerForFacts;
     }
 
-    /** Returns the index for all background knowledge.
+    /* Returns the index for all background knowledge.
      *
      * If the index is not built yet, this method will build it.
      *

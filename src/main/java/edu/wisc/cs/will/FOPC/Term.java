@@ -9,17 +9,13 @@ import java.util.Map;
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  */
-@SuppressWarnings("serial")
 public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, Comparable<Term>, SentenceOrTerm {
 	protected TypeSpec          typeSpec;
 	transient protected HandleFOPCstrings stringHandler; // Add another field to everything so it can access this, and hence access things like lowercaseMeansVariable.
-	
-	/**
-	 * 
-	 */
+
 	protected Term() {} // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.
 	protected Term(HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
@@ -30,17 +26,14 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 	}
 
 	// Only allow ONE type per term?  Note: numbers should not have spec's.
+
 	public void setTypeSpec(TypeSpec typeSpec) {
-		setTypeSpec(typeSpec, true);
-	}
-	private void setTypeSpec(TypeSpec typeSpec, boolean complainIfSet) {
 		if (     typeSpec == null) { return; }
 		if (this.typeSpec == null) { this.typeSpec = typeSpec; return; }
 
-		if (complainIfSet && !this.typeSpec.equals(typeSpec)) {
+		if (!this.typeSpec.equals(typeSpec)) {
 			this.typeSpec.isNotYetSet();
 		}
-
 		int newMode =      typeSpec.mode;
 		int oldMode = this.typeSpec.mode;
 		if (newMode != oldMode) { this.typeSpec.mode = newMode; }
@@ -82,7 +75,7 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 		return toString().compareTo(otherTerm.toString());
 	}
 	
-    /** Returns the term in the form of a sentence.
+    /* Returns the term in the form of a sentence.
      *
      * Not all terms have sentence representations.  For example, there is no
      * sentence representation for a NumericConstant.  If no sentence representation
@@ -92,7 +85,7 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
      */
     public abstract Sentence       asSentence();
 
-    /** Returns the Term as a clause.
+    /* Returns the Term as a clause.
      * @return Clause represented by the term, or null if one does not exist.
      */
     public Clause         asClause() { return null; }
@@ -124,18 +117,14 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
         return stringHandler.getClause(null, Collections.singletonList(stringHandler.getTermAsLiteral(this)));
     }
 
-    public boolean isVariant(Term thatTerm) {
-        return variants(thatTerm, new BindingList() ) != null;
-    }
-
-    public boolean                       isEquivalentUptoVariableRenaming(Term that) {
+	public boolean                       isEquivalentUptoVariableRenaming(Term that) {
         return this.isEquivalentUptoVariableRenaming(that, new BindingList()) != null;
     }
 
     public abstract BindingList          isEquivalentUptoVariableRenaming(Term that, BindingList bindings);
 
 	
-   /** Methods for reading a Object cached to disk.
+   /* Methods for reading a Object cached to disk.
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         if (!(in instanceof FOPCInputStream)) {

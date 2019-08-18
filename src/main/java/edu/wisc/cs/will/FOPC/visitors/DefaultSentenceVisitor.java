@@ -10,7 +10,7 @@ import edu.wisc.cs.will.FOPC.Term;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
+/*
  * @author twalker
  */
 public class DefaultSentenceVisitor<Data> implements SentenceVisitor<Sentence, Data>{

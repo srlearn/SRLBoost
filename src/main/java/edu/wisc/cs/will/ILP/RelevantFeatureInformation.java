@@ -1,15 +1,13 @@
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.RelevanceStrength;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.MapOfLists;
 
 import java.util.Objects;
 
-/**
+/*
  * @author twalker
  */
 public class RelevantFeatureInformation implements RelevantInformation, Cloneable {
@@ -64,9 +62,6 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
         return this;
     }
 
-    /**
-     * @return the relevanceStrength
-     */
     public RelevanceStrength getRelevanceStrength() {
         return relevanceStrength;
     }
@@ -78,16 +73,10 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
 
     }
 
-    /**
-     * @return the predicateNameAndArity
-     */
     public PredicateNameAndArity getPredicateNameAndArity() {
         return predicateNameAndArity;
     }
 
-    /**
-     * @param predicateNameAndArity the predicateNameAndArity to set
-     */
     public void setPredicateNameAndArity(PredicateNameAndArity predicateNameAndArity) {
         this.predicateNameAndArity = predicateNameAndArity;
     }
@@ -147,7 +136,4 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
         return true;
     }
 
-    public RelevantFeatureInformation getSimplified(HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
-        return this;
-    }
 }

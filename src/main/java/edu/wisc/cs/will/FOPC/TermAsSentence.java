@@ -6,21 +6,20 @@ import java.util.List;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  */
-@SuppressWarnings("serial")
 public class TermAsSentence extends Sentence {
 
     public Term term;
 
-    /**
+    /*
      * This is a dummy class.  It is used, during parsing, to hold a term inside something of type sentence.
      * E.g. it is needed when dealing with:  (-5) < X.
      * The '(-5)' could be arbitrarily complex (e.g., wrapped in more parentheses), and until the '<' is encountered, we don't know it is grammatical.
      */
-    TermAsSentence(HandleFOPCstrings stringHandler, Term term) {
+    private TermAsSentence(HandleFOPCstrings stringHandler, Term term) {
         this.term = term;
         this.stringHandler = stringHandler;
         if (term == null) {

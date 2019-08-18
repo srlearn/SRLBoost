@@ -7,12 +7,12 @@ import java.util.Set;
 
 import edu.wisc.cs.will.Utils.Filter;
 
-/**
+/*
  * @author twalker
  */
 public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
 
-    /** Indicates that all arities are included in this filter.
+    /* Indicates that all arities are included in this filter.
      *
      * When this is set to true, all arities are included in the filter.
      * Additionally, when this is set to true, the includedAritySet will
@@ -80,7 +80,7 @@ public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
         return !includeAllArities && includedAritySet.isEmpty();
     }
 
-    /** Returns an iterator over all included arities.
+    /* Returns an iterator over all included arities.
      *
      * Note, this does not account for the includeAllArities setting.
      * If includeAllArities is true, the returned iterator will always

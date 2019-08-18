@@ -180,7 +180,7 @@ public class InlineManager {
 					BindingList bl = literalMatchesDeterminateClause(functAtLit, c2, blToUse);
 					if (bl == null) { continue; }
 					List<Clause> recurResults = help_handleInlinerAndSupportingClauses(c2.applyTheta(bl.theta), depth + 1);
-					if (supporters == null) { supporters = new HashSet<Clause>(1); }
+					if (supporters == null) { supporters = new HashSet<>(1); }
 					//	Utils.println("%   supporters = " + recurResults);
 					if (Utils.getSizeSafely(recurResults) > 0) { supporters.addAll(recurResults); }
 				}
@@ -221,8 +221,7 @@ public class InlineManager {
                             if (bl == null) { continue; }
 
                             List<Clause> recurResults = help_handleInlinerAndSupportingClauses(c2.applyTheta(bl.theta), depth + 1);
-                            if (supporters == null) { supporters = new HashSet<Clause>(1); }
-                            //Utils.println("%   supporters = " + recurResults);
+                            if (supporters == null) { supporters = new HashSet<>(1); }
                             if (Utils.getSizeSafely(recurResults) > 0) { supporters.addAll(recurResults); }
                         }
                     }
@@ -231,7 +230,7 @@ public class InlineManager {
                         List<Clause> moreClauses = help_handleInlinerAndSupportingClauses(litAsDefiniteClause, depth+1);
                         if ( moreClauses != null && moreClauses.size() > 1 ) {
                             for (int i = 1; i < moreClauses.size(); i++) {
-                                if (supporters == null) { supporters = new HashSet<Clause>(1); }
+                                if (supporters == null) { supporters = new HashSet<>(1); }
                                 supporters.add(moreClauses.get(i));
                             }
                         }
@@ -288,23 +287,24 @@ public class InlineManager {
 		}
 		newListOfClauses.add(newClauseBound);
 		if (Utils.getSizeSafely(supporters) < 1) { return newListOfClauses; }
+		assert supporters != null;
 		newListOfClauses.addAll(supporters); // These do not need to be unified since they are stand-alone.
 		return newListOfClauses;		
 	}
 	
 	private String bindingsToDetailedString(BindingList bl) {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		if (bl == null || bl.theta == null) {
-			result = "| ";
+			result = new StringBuilder("| ");
 		}
 		else for (Variable var : bl.theta.keySet()) {
-			result += "| " + var + (getStringHandler().printVariableCounters ? "" : ":" + var.counter) + " -> ";
+			result.append("| ").append(var).append(getStringHandler().printVariableCounters ? "" : ":" + var.counter).append(" -> ");
 			 			 
 			Term term = bl.theta.get(var);
-			if (getStringHandler().printVariableCounters) { result += term; }
-			else if (term instanceof Variable)       { result += term + ":" + ((Variable) term).counter; }
-			else                                     { result += term; }
-			result += " ";
+			if (getStringHandler().printVariableCounters) { result.append(term); }
+			else if (term instanceof Variable)       { result.append(term).append(":").append(((Variable) term).counter); }
+			else                                     { result.append(term); }
+			result.append(" ");
 		}
 		return result + "|";
 	}
@@ -314,23 +314,14 @@ public class InlineManager {
 		Utils.println(str);		
 	}
 
-    /**
-     * @return the stringHandler
-     */
     public HandleFOPCstrings getStringHandler() {
         return stringHandler;
     }
 
-    /**
-     * @param stringHandler the stringHandler to set
-     */
     public void setStringHandler(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
     }
 
-    /**
-     * @return the hornClauseKnowledgeBase
-     */
     public HornClausebase getHornClauseKnowledgeBase() {
         return hornClauseKnowledgeBase;
     }

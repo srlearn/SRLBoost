@@ -4,13 +4,10 @@ import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-/**
+/*
  * @author shavlik
- * 
  * This is a clause with some extra information concerning how it was learned.
- *
  */
-@SuppressWarnings("serial")
 public class LearnedClause extends Clause {
 	private LearnOneClause   task;
 	private SingleClauseNode node;
@@ -59,18 +56,7 @@ public class LearnedClause extends Clause {
 						                        + "examples have been covered."
 						                      : "")	+ "";
 	}
-	
-	public String toPrettyString(boolean useStdLogicNotation) {	
-		try {
-			return reportStats() + "\n" + super.toPrettyString();
-		}
-		catch (SearchInterrupted e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Something went wrong when trying to report statistics on a learned clause.  Error message: " + e.getMessage());
-			return null;
-		}
-	}
-	
+
 	public String toString() {	
 		try {
 			return reportStats() + "\n" + super.toString();

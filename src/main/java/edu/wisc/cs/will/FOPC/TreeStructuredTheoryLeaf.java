@@ -21,14 +21,6 @@ public class TreeStructuredTheoryLeaf extends TreeStructuredTheoryNode {
 		this.weightedCountOfNegativeExamples = weightedCountOfNegativeExamples;
 	}
 
-	public String getExtraLabel() {
-		return extraLabel;
-	}
-	public void setExtraLabel(String extraLabel) {
-	//	Utils.waitHere(" adding extraLabel = " + extraLabel);
-		this.extraLabel = extraLabel;
-	}
-	
 	@Override
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		return printRelationalTree(newLineStarter, precedenceOfCaller, 0, bindingList);

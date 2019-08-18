@@ -5,15 +5,14 @@ import java.util.Map;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  */
-@SuppressWarnings("serial")
 public class ObjectAsTerm extends Term {
 	public Object item;
 	
-	/**
+	/*
 	 * Wrap an arbitrary item in a Term.  Don't operate on it.
 	 */
 	ObjectAsTerm(HandleFOPCstrings stringHandler, Object item, boolean warnIfWrappingTerm) {

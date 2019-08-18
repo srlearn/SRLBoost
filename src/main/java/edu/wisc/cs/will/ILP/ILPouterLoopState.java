@@ -1,7 +1,12 @@
 package edu.wisc.cs.will.ILP;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Theory;
@@ -9,11 +14,10 @@ import edu.wisc.cs.will.FOPC.TreeStructuredTheory;
 import edu.wisc.cs.will.FOPC.TreeStructuredTheoryInteriorNode;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  *
  * @author twalker
  */
-@SuppressWarnings("serial")
 public class ILPouterLoopState implements Serializable, Cloneable {
 
     private int            numberOfCycles;
@@ -57,7 +61,7 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     private long             clockTimeUsedInMillisec;
     private long             maximumClockTimeInMillisec = Long.MAX_VALUE;
     
-   /** Empty constructor for ILPouterLoopState.
+   /* Empty constructor for ILPouterLoopState.
     *
     * It is assumed that the ILPOuterLoop will setup all of these variables during
     * initialization or re-constitution of the checkpoint file.
@@ -164,10 +168,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
         return lengthPosSeedArray;
     }
 
-    void setLengthPosSeedArray(int lengthPosSeedArray) {
-        this.lengthPosSeedArray = lengthPosSeedArray;
-    }
-
     int getNumberOfCycles() {
         return numberOfCycles;
     }
@@ -210,10 +210,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
 
     int[] getPosSeedIndicesToUse() {
         return posSeedIndicesToUse;
-    }
-
-    void setPosSeedIndicesToUse(int[] posSeedIndicesToUse) {
-        this.posSeedIndicesToUse = posSeedIndicesToUse;
     }
 
     Theory getStdILPtheory() {
@@ -276,7 +272,7 @@ public class ILPouterLoopState implements Serializable, Cloneable {
         return prefix;
     }
 
-    protected void setPrefix(String prefix) {
+    void setPrefix(String prefix) {
         this.prefix = prefix;
     }
 
@@ -306,10 +302,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
         return seedPosExamplesUsed;
     }
 
-    void setSeedPosExamplesUsed(Set<Example> seedPosExamplesUsed) {
-        this.seedPosExamplesUsed = seedPosExamplesUsed;
-    }
-
     Set<Example> getSeedNegExamplesUsed() {
         if ( seedNegExamplesUsed == null ) seedNegExamplesUsed = new HashSet<>();
 
@@ -324,10 +316,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     void clearSeedNegExamplesUsed() {
     	if ( seedNegExamplesUsed == null ) { seedNegExamplesUsed = new HashSet<>(4);return; }
     	seedNegExamplesUsed.clear();
-    }
-
-    void setSeedNegExamplesUsed(Set<Example> seedNegExamplesUsed) {
-        this.seedNegExamplesUsed = seedNegExamplesUsed;
     }
 
     long getClockTimeUsedInMillisec() {

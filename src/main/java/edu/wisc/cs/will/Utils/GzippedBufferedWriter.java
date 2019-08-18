@@ -6,7 +6,7 @@ import java.io.Writer;
 
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
-/**
+/*
  * This class should be used instead of the BufferedWriter for writing to files. 
  * It buffers the contents of the file till they exceed a certain limit. Once the 
  * buffer is too big, it will write the contents to the file. This is useful when writing to remote locations. 

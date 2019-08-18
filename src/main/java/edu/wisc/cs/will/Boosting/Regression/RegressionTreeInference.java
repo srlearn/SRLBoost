@@ -8,7 +8,7 @@ import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author tkhot
  *
  */
@@ -21,9 +21,6 @@ public class RegressionTreeInference extends SRLInference {
 		this.conditionalModel=model;
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.Boosting.Common.SRLInference#getExampleProbability(edu.wisc.cs.will.DataSetUtils.Example)
-	 */
 	@Override
 	public ProbDistribution getExampleProbability(Example eg) {
 
@@ -37,9 +34,6 @@ public class RegressionTreeInference extends SRLInference {
 		return new ProbDistribution(reg.getSingleRegressionValue());
 	}
 
-	/* (non-Javadoc)
-	 * @see edu.wisc.cs.will.Boosting.Common.SRLInference#setMaxTrees(int)
-	 */
 	@Override
 	public void setMaxTrees(int max) {
 		conditionalModel.setNumTrees(max);

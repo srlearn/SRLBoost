@@ -11,7 +11,7 @@ import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.Proof;
 import edu.wisc.cs.will.Utils.Filter;
 
-/**
+/*
  * @author twalker
  */
 public class PruneDuplicatesIfTrueRule implements PruningRule {

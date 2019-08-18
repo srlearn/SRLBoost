@@ -27,7 +27,7 @@ import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
-/**
+/*
  * The class sets the probability of examples, given a joint RDN model (i.e. RDN model
  * for each predicate). 
  * 
@@ -41,7 +41,7 @@ public class JointModelSampler extends SRLInference {
 	private boolean useMLNInference;
 	private CommandLineArguments cmdArgs;
 
-	/**
+	/*
 	 * 
 	 * @param model - The joint model to use
 	 * @param setup - The WILLSetup class with the facts
@@ -61,7 +61,7 @@ public class JointModelSampler extends SRLInference {
 		rdn = new RelationalDependencyNetwork(model, setup);
 	}
 
-	/**
+	/*
 	 * This method computes the marginal probabilities of {@link RegressionRDNExample} by setting the 
 	 * probOfExample in each example. Make sure to pass all possible groundings of the target predicates
 	 * as it would be using Gibbs Sampling over these examples. If there is no recursion or dependencies
@@ -325,7 +325,7 @@ public class JointModelSampler extends SRLInference {
 		}
 	}
 
-	/**
+	/*
 	 * Orders predicates by the number of query predicates that are ancestors of 
 	 * a predicate. Actually, it marks the best predicate; finds the next best predicate
 	 * with least number of unmarked predicates and marks it. This is done till all
@@ -428,7 +428,7 @@ public class JointModelSampler extends SRLInference {
 		}
 	}
 
-	/**
+	/*
 	 * Writes the RDN to a DOT file. Use GraphViz to convert it to an image.
 	 */
 	private void printNetwork(DependencyNetwork dn, String filename) {

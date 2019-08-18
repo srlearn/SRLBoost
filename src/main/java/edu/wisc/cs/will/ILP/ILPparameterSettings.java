@@ -240,27 +240,23 @@ public class ILPparameterSettings {
 		this.maxNumberOfCycles = maxNumberOfCycles;
 	}
 
-	public int getMaxBodyLength() {
+	int getMaxBodyLength() {
 		return maxBodyLength;
 	}
 
-	public void setMaxBodyLength(int maxBodyLength) {
+	void setMaxBodyLength(int maxBodyLength) {
 		this.maxBodyLength = maxBodyLength;
 	}
 
-	public void setMaxNodesToCreate(int maxNodesToCreate) {
+	void setMaxNodesToCreate(int maxNodesToCreate) {
 		this.maxNodesToCreate = maxNodesToCreate;
-	}
-
-	public int getMaxNodesToConsider() {
-		return maxNodesToConsider;
 	}
 
 	public void setMaxNodesToConsider(int maxNodesToConsider) {
 		this.maxNodesToConsider = maxNodesToConsider;
 	}
 
-	public void setMinPosCoverage(double minPosCoverage) {
+	void setMinPosCoverage(double minPosCoverage) {
 		this.minPosCoverage = minPosCoverage;
 	}
 
@@ -288,19 +284,15 @@ public class ILPparameterSettings {
 		this.flipFlopPosAndNegExamples = flipFlopPosAndNegExamples;
 	}
 
-	public int getMaxNumberOfClauses() {
+	int getMaxNumberOfClauses() {
 		return maxNumberOfClauses;
 	}
 
-	public void setMaxNumberOfClauses(int maxNumberOfClauses) {
+	void setMaxNumberOfClauses(int maxNumberOfClauses) {
 		this.maxNumberOfClauses = maxNumberOfClauses;
 	}
 
-	public double getMinPrecision() {
-		return minPrecision;
-	}
-
-	public void setMinPrecision(double minPrecision) {
+	void setMinPrecision(double minPrecision) {
 		this.minPrecision = minPrecision;
 	}
 

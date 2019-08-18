@@ -6,7 +6,7 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.QuantifiedSentence;
 import edu.wisc.cs.will.FOPC.Sentence;
 
-/**
+/*
  * @author twalker
  */
 public interface SentenceVisitor<Return, Data> {

@@ -64,7 +64,7 @@ public class PredicateNameAndArity {
         arity = arityNew;
     }
 
-    public Type getType(int argumentIndex) {
+    private Type getType(int argumentIndex) {
         List<PredicateSpec> ps = predicateName.getTypeOnlyList(arity);
         if (ps != null && ps.size() > 0) {
             return ps.get(0).getTypeSpecList().get(argumentIndex).isaType;
@@ -74,7 +74,7 @@ public class PredicateNameAndArity {
         }
     }
 
-    /** Returns the types of all arguments.
+    /* Returns the types of all arguments.
      * 
      * @return List of types, one for each argument.
      */
@@ -86,7 +86,7 @@ public class PredicateNameAndArity {
         return types;
     }
 
-    /** Returns all of the Predicate specification attached to the predicate/arity.
+    /* Returns all of the Predicate specification attached to the predicate/arity.
      *
      */
     public List<PredicateSpec> getPredicateSpecs() {

@@ -2,7 +2,7 @@ package edu.wisc.cs.will.stdAIsearch;
 
 import java.util.List;
 
-/**
+/*
  * Implements a depth-first search.
  * 
  * @author shavlik
@@ -11,7 +11,7 @@ public class DepthFirstSearch extends SearchStrategy {
 
     public DepthFirstSearch() {}
 
-    /**
+    /*
      * Adds the children to the front of the open list so that the search
      * proceeds depth-first.
      * 
@@ -30,11 +30,6 @@ public class DepthFirstSearch extends SearchStrategy {
         }
     }
 
-    /**
-     * Returns "depth-first search".
-     * 
-     * @see java.lang.Object#toString()
-     */
     public String toString() {
         return "depth-first search";
     }

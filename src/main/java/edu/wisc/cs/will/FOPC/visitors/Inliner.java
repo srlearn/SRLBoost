@@ -20,14 +20,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-/**
+/*
  * @author twalker
  */
 public class Inliner {
 
     private static final InlinerVisitor INLINER_VISITOR = new InlinerVisitor();
 
-    /** Returns the lined version of the sentence.
+    /* Returns the lined version of the sentence.
      *
      * If supportClauses is non-null, the support clauses encountered (including the
      * clauses mark as inlined but can't be inlined for some reason) will be placed into
@@ -92,7 +92,7 @@ public class Inliner {
             return result;
         }
 
-        /** Returns a clause containing the expanded literals.
+        /* Returns a clause containing the expanded literals.
          *
          * This clause will always contain the expanded literals
          * as positive literals, not negative literals.
@@ -235,7 +235,7 @@ public class Inliner {
             this.parent = parent;
         }
 
-        /** Returns whether a predicate can be inlined.
+        /* Returns whether a predicate can be inlined.
          *
          * Returns true if the predicate is in the inlineSet but is not in
          * the doNotInlineSet.
@@ -265,7 +265,7 @@ public class Inliner {
             return result;
         }
 
-        /** Returns whether a predicate can not be inlined.
+        /* Returns whether a predicate can not be inlined.
          *
          * Returns true if the predicate is in the doNotInlineSet.  Only
          * considers the doNotInlineSet, so a false return value does not

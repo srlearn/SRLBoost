@@ -40,7 +40,7 @@ public class ClauseBasedTree  {
 		}
 	}
 
-	/**
+	/*
 	 * Computes the regression value for an example returned by this tree 
 	 * @param ex - Example to be evaluated
 	 * @return the regression value. Note: This is the value for just ONE tree.
@@ -83,7 +83,7 @@ public class ClauseBasedTree  {
 		return sum;
 	}
 
-	/**
+	/*
 	 * 
 	 * @param clause - the clause to evaluate against
 	 * @param ex - the example to evaluate
@@ -231,7 +231,7 @@ public class ClauseBasedTree  {
 		return regressionClauses;
 	}
 
-	public void setBreakAfterFirstMatch(boolean breakAfterFirstMatch) {
+	void setBreakAfterFirstMatch(boolean breakAfterFirstMatch) {
 		this.breakAfterFirstMatch = breakAfterFirstMatch;
 	}
 

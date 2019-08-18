@@ -30,7 +30,7 @@ public class RegressionTree extends ClauseBasedTree {
 		super(setup);
 	} 
 
-	/**
+	/*
 	 * This function adds the predicates that are used in this tree ie
 	 * the parents for the head predicate.
 	 * @param preds - Adds the parent predicate to this collection

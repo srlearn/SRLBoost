@@ -4,7 +4,7 @@ import java.util.Comparator;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * Create a pair of a term and its name.
  * 
  * @author shavlik
@@ -35,9 +35,6 @@ public class NamedTerm {
 
 		NamedTermComparator() {}
 
-		/* (non-Javadoc)
-		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-		 */
 		public int compare(NamedTerm o1, NamedTerm o2) {
 			if (o1 == o2) { return 0;}
 			if (o1 == null || o2 == null) { Utils.error("Should not have a null name being compared to a non-null name."); }

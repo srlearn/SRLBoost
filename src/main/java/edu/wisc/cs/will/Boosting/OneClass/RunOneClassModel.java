@@ -7,7 +7,7 @@ import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author tkhot
  */
 public class RunOneClassModel extends RunBoostedModels {
@@ -51,7 +51,7 @@ public class RunOneClassModel extends RunBoostedModels {
 				}
 				int currIterStep =  (i+iterStepSize) - fullModel.get(pred).getNumTrees();
 				Utils.println("% Learning " + currIterStep + " trees in this iteration for " + pred);
-				learners.get(pred).learnNextModel(this, fullModel.get(pred), currIterStep);
+				learners.get(pred).learnNextModel(fullModel.get(pred), currIterStep);
 			}
 		}
 		

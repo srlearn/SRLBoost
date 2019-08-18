@@ -2,12 +2,12 @@ package edu.wisc.cs.will.Utils;
 
 import java.util.Arrays;
 
-/**
+/*
  * @author tkhot
  */
 public class RegressionValueOrVector {
 
-	/** Used if we don't have a distribution over multiple values but a single probability */
+	/* Used if we don't have a distribution over multiple values but a single probability */
 	private double singleRegressionValue;
 	
 	private double[] regressionVector;

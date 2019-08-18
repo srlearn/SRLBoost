@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-/**
+/*
  * A ChirpClient object represents the connection between a client and
  * a Chirp server.  The methods of this object correspond to RPCs in
  * the Chirp protocol, and are very similar to standard UNIX I/O operations.
@@ -20,7 +20,7 @@ public class ChirpClient {
 	private InputStream input=null;
 	final private String encoding = "US-ASCII";
 
-	/**
+	/*
 	 * Connect and authenticate to the default Chirp server.
 	 * Determine the "default" from a variety of environmental concerns.
 	 * If running within Condor, then Condor will set up the environment
@@ -45,7 +45,7 @@ public class ChirpClient {
 		input = socket.getInputStream();
 	}
 
-	/**
+	/*
 	 * Present a 'cookie' string to a Chirp server. This call must be done before any
 	 * other Chirp calls. If it is not, other methods are likely to throw exceptions
 	 * indicating "not authenticated."
@@ -55,7 +55,7 @@ public class ChirpClient {
 		simple_command("cookie "+ChirpWord(c)+"\n");	
 	}
 
-	/**
+	/*
 	 * Open a file.
 	 * @param path The path to the file to open.
 	 * @param flags A string of characters that state how the file is to be used. (r,w,t,c,x,a)
@@ -72,14 +72,14 @@ public class ChirpClient {
 		return simple_command("open "+ChirpWord(path)+" "+flags+" "+mode+"\n");
 	}
 
-	/**
+	/*
 	 * Same as the three-argument `open`, but the server selects a default initial UNIX mode.
 	 */
 	public int open(String path, String flags) throws IOException {
 		return open(path, flags, 511);
 	}
 
-	/**
+	/*
 	 * Close a file.
 	 * @param fd The file descriptor to close.
 	 */
@@ -87,7 +87,7 @@ public class ChirpClient {
 		simple_command("close "+fd+"\n");
 	}
 
-	/**
+	/*
 	 * Read data from a file. This method is free to read any number of bytes less than or equal to the parameter
 	 * 'length'. A result of zero indicates end of file.
 	 * @param fd The file descriptor to read.
@@ -116,7 +116,7 @@ public class ChirpClient {
 		return returnOrThrow(response);
 	}
 
-	/**
+	/*
 	 * Write data to a file. This method is free to write any number of elements less than or equal to the parameter
 	 * 'length'.  A result of zero indicates end of file.
 	 * @param fd The file descriptor to write.
@@ -141,7 +141,7 @@ public class ChirpClient {
 		return returnOrThrow(response);
 	}
 
-	/**
+	/*
 	 * Delete a file.
 	 * @param name The name of the file.
 	 */
@@ -149,7 +149,7 @@ public class ChirpClient {
 		simple_command("unlink " + ChirpWord(name) + "\n");
 	}
 
-	/**
+	/*
 	 * Rename a file.
 	 * @param name The old name.
 	 * @param new_name The new name.
@@ -158,7 +158,7 @@ public class ChirpClient {
 		simple_command("rename "+ChirpWord(name)+" "+ChirpWord(new_name)+"\n");
 	}
 
-	/**
+	/*
 	 * Create a directory.
 	 * @param name The directory name.
 	 */

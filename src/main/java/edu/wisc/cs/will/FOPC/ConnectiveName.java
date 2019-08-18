@@ -7,12 +7,11 @@ import java.util.Map;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-/**
+/*
  * @author shavlik
  *
  *  All functions with the same name map to the same instance. 
  */
-@SuppressWarnings("serial")
 public class ConnectiveName extends AllOfFOPC implements Serializable { // If items are added here, add them to HandleFOPCstrings as well.
 	
     private final static String ANDalt0        = "AND";
@@ -102,7 +101,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 		return name;
 	}
 
-    /** Substitutes the ConnectiveName with a SerializableConnectiveName while Serializing.
+    /* Substitutes the ConnectiveName with a SerializableConnectiveName while Serializing.
      */
     private Object writeReplace() throws ObjectStreamException {
         return new SerializableConnectiveName(name);
@@ -119,7 +118,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
    	   "equivalent".equalsIgnoreCase(str);
     }
 
-    /** This is a little hack to allow the Type to be canonicalized by the string handler.
+    /* This is a little hack to allow the Type to be canonicalized by the string handler.
      *
      * We want to use readResolve to canonicalize the Type object.  However, when we
      * run readResolve, we don't have the InputStream.  No inputStream, no string handler.
