@@ -1,16 +1,13 @@
-/**
- * 
- */
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.Collections;
 
 /**
  * @author shavlik
@@ -18,8 +15,8 @@ import java.util.Collections;
  */
 @SuppressWarnings("serial")
 public class Clause extends Sentence implements DefiniteClause {
-	public  static final int defaultNumberOfLiteralsPerRowInPrintouts = 1;
-	public  static final int maxLiteralsToPrint = 100; // This maximum applies INDEPENDENTLY to both the positive and negative literals.
+	static final int defaultNumberOfLiteralsPerRowInPrintouts = 1;
+	private static final int maxLiteralsToPrint = 100; // This maximum applies INDEPENDENTLY to both the positive and negative literals.
 	
 	public  List<Literal> posLiterals;
 	public  List<Literal> negLiterals;
@@ -28,9 +25,8 @@ public class Clause extends Sentence implements DefiniteClause {
 
 	private String        extraLabel      = null; // This is partially implemented so that we can take extraLabels from SingleClauseNodes and have them persist when clauses are created.  However, weight until we are sure we want the overhead of doing this, plus if a comment should be printed inside a comment, we might have parser problems.
 	public String getExtraLabel()                  {	return extraLabel; }
-	public void   setExtraLabel(String extraLabel) {this.extraLabel = extraLabel;	}
-	
-    public static long instancesCreated = 0;  // PROBABLY SHOULD PUT THESE IN THESE IN THE STRING HANDLER.  
+
+    private static long instancesCreated = 0;  // PROBABLY SHOULD PUT THESE IN THESE IN THE STRING HANDLER.
     public Clause() {
     	instancesCreated++;
     }
@@ -43,7 +39,7 @@ public class Clause extends Sentence implements DefiniteClause {
 	}
 	public Clause(HandleFOPCstrings stringHandler, List<Literal> posLiterals, List<Literal> negLiterals, String extraLabel) {
 		this(stringHandler, posLiterals, negLiterals);
-		this.extraLabel = extraLabel; // if (extraLabel != null) Utils.println("public Clause: " + extraLabel);
+		this.extraLabel = extraLabel;
 	}
 	public Clause(HandleFOPCstrings stringHandler, Clause other)  {
     	this();
@@ -67,12 +63,12 @@ public class Clause extends Sentence implements DefiniteClause {
     	this();
 		this.stringHandler = stringHandler;
 		if (literalIsPos) {
-			posLiterals = new ArrayList<Literal>(1);
+			posLiterals = new ArrayList<>(1);
 			posLiterals.add(literal);
 			negLiterals = null;
 		}
 		else{
-			negLiterals = new ArrayList<Literal>(1);
+			negLiterals = new ArrayList<>(1);
 			negLiterals.add(literal);
 			posLiterals = null;
 		}
@@ -88,24 +84,12 @@ public class Clause extends Sentence implements DefiniteClause {
 		Utils.error("Did not find '" + lit + "' in " + toString());
 		return false;
 	}
-	
-	public void addPosLiteralToFront(Literal lit) {
-		if (posLiterals == null) { posLiterals = new ArrayList<Literal>(1); }		
-		posLiterals.add(0, lit);
-	}	
-	public void addNegLiteralToFront(Literal lit) {
-		if (negLiterals == null) { negLiterals = new ArrayList<Literal>(1); }		
+
+    void addNegLiteralToFront(Literal lit) {
+		if (negLiterals == null) { negLiterals = new ArrayList<>(1); }
 		negLiterals.add(0, lit);
-	}	
-	public void addPosLiteralToEnd(Literal lit) {
-		if (posLiterals == null) { posLiterals = new ArrayList<Literal>(1); }		
-		posLiterals.add(lit);
-	}	
-	public void addNegLiteralToEnd(Literal lit) {
-		if (negLiterals == null) { negLiterals = new ArrayList<Literal>(1); }		
-		negLiterals.add(lit);
 	}
-	
+
 	// These allow a single FOR LOOP to walk through all the literals.
 	public int getLength() {
 		return Utils.getSizeSafely(posLiterals) + Utils.getSizeSafely(negLiterals);
@@ -115,12 +99,8 @@ public class Clause extends Sentence implements DefiniteClause {
 		if (i < numberPosLiterals) { return posLiterals.get(i); }
 		return                              negLiterals.get(i - numberPosLiterals);
 	}
-	public boolean getSignOfIthLiteral(int i) { // Is the ith literal positive?
-		int numberPosLiterals = Utils.getSizeSafely(posLiterals);
-		return (i < numberPosLiterals);
-	}
 
-    public Literal getPosLiteral(int i) {
+	public Literal getPosLiteral(int i) {
         if ( posLiterals == null ) throw new IndexOutOfBoundsException();
         return posLiterals.get(i);
     }
@@ -155,29 +135,18 @@ public class Clause extends Sentence implements DefiniteClause {
         if ( negLiterals == null ) return Collections.EMPTY_LIST;
         else return negLiterals;
     }
-    
-    public Clause clearArgumentNamesInPlace() {
-    	if (posLiterals != null) for (Literal pLit : posLiterals) { pLit.clearArgumentNamesInPlace(); }
-    	if (negLiterals != null) for (Literal nLit : negLiterals) { nLit.clearArgumentNamesInPlace(); }
-    	return this;
-    }
-	public Clause copyAndClearArgumentNames() {
-		return copy(true).clearArgumentNamesInPlace();
-	}
 
 	/**
 	 * Would any variables in this clause remain UNBOUND if this binding list were to be applied?
-	 * @param theta
-	 * @return
 	 */
     @Override
-	public boolean containsFreeVariablesAfterSubstitution(BindingList theta) { // Utils.println("CLAUSE: freeVariablesAfterSubstitution: " + theta + "  clause: " + this);
+	public boolean containsFreeVariablesAfterSubstitution(BindingList theta) {
 		if (posLiterals != null) { for (Literal litP : posLiterals) if (litP.containsFreeVariablesAfterSubstitution(theta)) { return true; } }
 		if (negLiterals != null) { for (Literal litN : negLiterals) if (litN.containsFreeVariablesAfterSubstitution(theta)) { return true; } }
 		return false;
 	}	
 	
-	public void checkForCut() {
+	void checkForCut() {
 		if ( bodyContainsCut == null ) {
 
             boolean found = false;
@@ -211,19 +180,19 @@ public class Clause extends Sentence implements DefiniteClause {
 
     @Override
     public Literal getDefiniteClauseHead() throws IllegalStateException{
-        if ( isDefiniteClause() == false ) throw new IllegalStateException("Clause '" + this + "' is not a definite clause.");
+        if (!isDefiniteClause()) throw new IllegalStateException("Clause '" + this + "' is not a definite clause.");
         return posLiterals.get(0);
     }
 
     @Override
     public Literal getDefiniteClauseFactAsLiteral() throws IllegalStateException {
-        if ( isDefiniteClauseFact() == false ) throw new IllegalStateException("Clause '" + this + "' is not a definite clause fact.");
+        if (!isDefiniteClauseFact()) throw new IllegalStateException("Clause '" + this + "' is not a definite clause fact.");
         return posLiterals.get(0);
     }
 
     @Override
     public Clause getDefiniteClauseAsClause() throws IllegalStateException {
-        if ( isDefiniteClause() == false ) throw new IllegalStateException("Clause '" + this + "' is not a definite clause.");
+        if (!isDefiniteClause()) throw new IllegalStateException("Clause '" + this + "' is not a definite clause.");
         return this;
     }
 
@@ -243,22 +212,8 @@ public class Clause extends Sentence implements DefiniteClause {
 
     }
 
-    public Sentence getAntecedent() {
-        if ( getNegLiteralCount() == 0 ) {
-            return stringHandler.trueLiteral;
-        }
-		return stringHandler.getClause( getNegativeLiterals(), null);
-    }
-
-    public Sentence getConsequence() {
-        if ( getNegLiteralCount() == 0 ) {
-            return stringHandler.trueLiteral;
-        }
-		return stringHandler.getClause( getPositiveLiterals(), null);
-    }
-
-    public int getArity() {
-        if ( isDefiniteClause() == false ) throw new IllegalStateException("Clause '" + this + "' is not a definite clause.");
+	public int getArity() {
+        if (!isDefiniteClause()) throw new IllegalStateException("Clause '" + this + "' is not a definite clause.");
         return posLiterals.get(0).getArity();
     }
 
@@ -291,52 +246,22 @@ public class Clause extends Sentence implements DefiniteClause {
 	public boolean isEmptyClause() {
 		return getPosLiteralCount() == 0 && getNegLiteralCount() == 0;
 	}
-	
-	public void appendClause(Clause otherClause) {
-		if (otherClause.posLiterals != null) {
-			if (posLiterals == null) { posLiterals = otherClause.posLiterals; } else { posLiterals.addAll(otherClause.posLiterals); }
-		}
-		if (otherClause.negLiterals != null) {
-			if (negLiterals == null) { negLiterals = otherClause.negLiterals; } else { negLiterals.addAll(otherClause.negLiterals); }
-		}
-	}
-	
-	public void copyThenAppendClause(Clause otherClause) {
-		Clause newCopy = copy(false);
-		if (otherClause.posLiterals != null) {
-			if (newCopy.posLiterals == null) { newCopy.posLiterals = otherClause.posLiterals; } else { newCopy.posLiterals.addAll(otherClause.posLiterals); }
-		}
-		if (otherClause.negLiterals != null) {
-			if (newCopy.negLiterals == null) { newCopy.negLiterals = otherClause.negLiterals; } else { newCopy.negLiterals.addAll(otherClause.negLiterals); }
-		}
-	}
-	
-	// This is used in resolution theorem proving.
-	public Clause copyThenAppendToNegativeLiterals(List<Literal> negatedLiterals) {
-		Clause newCopy = copy(false);
-		if (negatedLiterals != null) {
-			if (newCopy.negLiterals == null) { newCopy.negLiterals = negatedLiterals; } else { newCopy.negLiterals.addAll(negatedLiterals); }
-		}
-		return newCopy;
-	}
-	
-    @Override
+
+	@Override
 	public Clause applyTheta(Map<Variable,Term> theta) {
 		List<Literal> newPosLiterals = null;
 		List<Literal> newNegLiterals = null;
 		
 		if (posLiterals != null) {
-			newPosLiterals = new ArrayList<Literal>(posLiterals.size());
+			newPosLiterals = new ArrayList<>(posLiterals.size());
 			for (Literal lit : posLiterals) { newPosLiterals.add(lit.applyTheta(theta)); }
 		}
 		if (negLiterals != null) {
-			newNegLiterals = new ArrayList<Literal>(negLiterals.size());
+			newNegLiterals = new ArrayList<>(negLiterals.size());
 			for (Literal lit : negLiterals) { newNegLiterals.add(lit.applyTheta(theta)); }
 		}
-		
-		Clause newClause = (Clause) stringHandler.getClause(newPosLiterals, newNegLiterals, extraLabel).setWeightOnSentence(wgtSentence);
-		// newClause.bodyContainsCut = bodyContainsCut; // We do NOT want this property to propagate here - it is only for the top-level clause, rather than clauses generated during resolution.
-		return newClause;
+
+		return (Clause) stringHandler.getClause(newPosLiterals, newNegLiterals, extraLabel).setWeightOnSentence(wgtSentence);
 	}
 
     @Override
@@ -351,7 +276,7 @@ public class Clause extends Sentence implements DefiniteClause {
 
     @Override
     public BindingList isEquivalentUptoVariableRenaming(Sentence that, BindingList bindings) {
-        if (that instanceof Clause == false) return null;
+        if (!(that instanceof Clause)) return null;
 
         Clause thatClause = (Clause) that;
 
@@ -385,12 +310,12 @@ public class Clause extends Sentence implements DefiniteClause {
 		if (recursiveCopy) {
             if (posLiterals != null) {
                 for (Literal p : posLiterals) {
-                    newPosLiterals.add(p.copy(recursiveCopy));
+                    newPosLiterals.add(p.copy(true));
                 }
             }
             if (negLiterals != null) {
                 for (Literal n : negLiterals) {
-                    newNegLiterals.add(n.copy(recursiveCopy));
+                    newNegLiterals.add(n.copy(true));
                 }
             }
 			Clause newClause = (Clause) stringHandler.getClause(newPosLiterals, newNegLiterals, extraLabel).setWeightOnSentence(wgtSentence);
@@ -410,34 +335,30 @@ public class Clause extends Sentence implements DefiniteClause {
 	 */
     @Override
 	public Clause copy2(boolean recursiveCopy, BindingList bindingList) {
-		List<Literal> newPosLiterals = (posLiterals == null ? null : new ArrayList<Literal>(posLiterals.size()));
-		List<Literal> newNegLiterals = (negLiterals == null ? null : new ArrayList<Literal>(negLiterals.size()));
+		List<Literal> newPosLiterals = (posLiterals == null ? null : new ArrayList<>(posLiterals.size()));
+		List<Literal> newNegLiterals = (negLiterals == null ? null : new ArrayList<>(negLiterals.size()));
 
 		if (recursiveCopy) {
             if (posLiterals != null) {
                 for (Literal p : posLiterals) {
-                    newPosLiterals.add(p.copy2(recursiveCopy, bindingList));
+                    newPosLiterals.add(p.copy2(true, bindingList));
                 }
             }
             if (negLiterals != null) {
                 for (Literal n : negLiterals) {
-                    newNegLiterals.add(n.copy2(recursiveCopy, bindingList));
+                    newNegLiterals.add(n.copy2(true, bindingList));
                 }
             }
-			Clause newClause = (Clause) stringHandler.getClause(newPosLiterals, newNegLiterals).setWeightOnSentence(wgtSentence);
-			//newClause.setBodyContainsCut(getBodyContainsCut());
-			return newClause;
+			return (Clause) stringHandler.getClause(newPosLiterals, newNegLiterals).setWeightOnSentence(wgtSentence);
 		}
 		if (posLiterals != null) { newPosLiterals.addAll(posLiterals); }
 		if (negLiterals != null) { newNegLiterals.addAll(negLiterals); }
-		Clause newClause = (Clause) stringHandler.getClause(newPosLiterals, newNegLiterals).setWeightOnSentence(wgtSentence);
-		//newClause.setBodyContainsCut(getBodyContainsCut());
-		return newClause;
+		return (Clause) stringHandler.getClause(newPosLiterals, newNegLiterals).setWeightOnSentence(wgtSentence);
 	}
 
     @Override
     public List<Clause> convertToClausalForm() {
-		List<Clause> listClause = new ArrayList<Clause>(1);
+		List<Clause> listClause = new ArrayList<>(1);
 
         Clause clause = this;
         listClause.add(clause);
@@ -482,7 +403,7 @@ public class Clause extends Sentence implements DefiniteClause {
 			Collection<Variable> temp = lit.collectFreeVariables(boundVariables);
 			
 			if (temp != null) for (Variable var : temp) if (result == null || !result.contains(var)) {
-				if (result == null) { result = new ArrayList<Variable>(4); } // Wait to create until needed.
+				if (result == null) { result = new ArrayList<>(4); } // Wait to create until needed.
 				result.add(var);
 			}	
 		}
@@ -490,7 +411,7 @@ public class Clause extends Sentence implements DefiniteClause {
 			Collection<Variable> temp = lit.collectFreeVariables(boundVariables);
 			
 			if (temp != null) for (Variable var : temp) if (result == null || !result.contains(var)) {
-				if (result == null) { result = new ArrayList<Variable>(4); } // Wait to create until needed.
+				if (result == null) { result = new ArrayList<>(4); } // Wait to create until needed.
 				result.add(var);
 			}		
 		}						
@@ -682,7 +603,7 @@ public class Clause extends Sentence implements DefiniteClause {
 
     @Override
     protected List<Clause> convertToListOfClauses() {
-        List<Clause> list =  new ArrayList<Clause>(1);
+        List<Clause> list =  new ArrayList<>(1);
         list.add(this);
         return list;
     }
@@ -705,24 +626,13 @@ public class Clause extends Sentence implements DefiniteClause {
     protected Sentence distributeConjunctionOverDisjunction() {
         return this;
     }
-		
-	public static String toPrettyStringListOfClauses(String lineStarter, List<Clause> clauses) {
-		String result = "[";
-		boolean firstOne = true;
-		
-		if (clauses != null) for (Clause c : clauses) { 
-			if (firstOne) { firstOne = false; } else { result += ",\n" + lineStarter; }
-			result += " " + c.toString();
-		}
-		return result + " ]";
-	}
-	
+
 	public String toPrettyString(int precedenceOfCaller) {
 
         if (renameVariablesWhenPrinting) {
             return toPrettyString("", precedenceOfCaller, new BindingList());
         }
-		return toPrettyString("", precedenceOfCaller, (BindingList) null);
+		return toPrettyString("", precedenceOfCaller, null);
     }
 
 
@@ -730,7 +640,7 @@ public class Clause extends Sentence implements DefiniteClause {
     @Override
 	public String toPrettyString(String lineStarter, int precedenceOfCaller, BindingList bindingList) { // Allow the 'lineStarter' to be passed in, e.g., the caller might want this to be quoted text.
 		boolean useStdLogicNotation = stringHandler.printUsingStdLogicNotation();
-		String  result     = returnWeightString();
+		StringBuilder result     = new StringBuilder(returnWeightString());
 		String  extra      = (extraLabel == null ? "" : " " +  extraLabel + " ");
 		boolean firstOne   = true;
 		int     counter    = 0;
@@ -749,66 +659,64 @@ public class Clause extends Sentence implements DefiniteClause {
 			return result + "~" + negLiterals.get(0).toString(precedence, bindingList) + extra;
 		}
 		if (numPosLits == 0) { // In this case, write out the negative literals as a negated conjunction. I.e., 'p,q->false' is the same as '~p v ~q v false' which is the same as '~(p ^ q)'.
-			result += "~(";
+			result.append("~(");
 			counter2 = 0;
 			if (negLiterals != null) for (Literal literal : negLiterals) {
-				if (counter2++ > currentMaxLiteralsToPrint) { result += " ... [plus " + Utils.comma(Utils.getSizeSafely(negLiterals) - currentMaxLiteralsToPrint)+ " more negative literals]"; break; }
-				if (firstOne) { firstOne = false; } else {result += " ^ "; }
-				result += literal.toString(precedence, bindingList);
+				if (counter2++ > currentMaxLiteralsToPrint) { result.append(" ... [plus ").append(Utils.comma(Utils.getSizeSafely(negLiterals) - currentMaxLiteralsToPrint)).append(" more negative literals]"); break; }
+				if (firstOne) { firstOne = false; } else {
+					result.append(" ^ "); }
+				result.append(literal.toString(precedence, bindingList));
 			}
 			return result + ")" + extra;
 		}
 
-		if (precedenceOfCaller < precedence) { result += "("; }
+		if (precedenceOfCaller < precedence) { result.append("("); }
 		if (useStdLogicNotation) {
 			if (numNegLits > 0) {
-				counter2 = 0;
 				for (Literal literal : negLiterals) {
-					if (counter2++ > currentMaxLiteralsToPrint) { result += " ... [plus " + Utils.comma(Utils.getSizeSafely(negLiterals) - currentMaxLiteralsToPrint)+ " more negative literals]"; break; }
+					if (counter2++ > currentMaxLiteralsToPrint) { result.append(" ... [plus ").append(Utils.comma(Utils.getSizeSafely(negLiterals) - currentMaxLiteralsToPrint)).append(" more negative literals]"); break; }
 					if (firstOne) { firstOne = false; }
 					else {
-						if (++counter % stringHandler.numberOfLiteralsPerRowInPrintouts == 0) { result += " ^\n" + lineStarter; }
-						else { result += " ^ "; }
+						if (++counter % stringHandler.numberOfLiteralsPerRowInPrintouts == 0) { result.append(" ^\n").append(lineStarter); }
+						else { result.append(" ^ "); }
 					}
-					result += literal.toString(precedence, bindingList);
+					result.append(literal.toString(precedence, bindingList));
 				}
-				result += " => ";
-				if (stringHandler.numberOfLiteralsPerRowInPrintouts > 0 && numNegLits >= stringHandler.numberOfLiteralsPerRowInPrintouts) { result += "\n" + lineStarter; }
+				result.append(" => ");
+				if (stringHandler.numberOfLiteralsPerRowInPrintouts > 0 && numNegLits >= stringHandler.numberOfLiteralsPerRowInPrintouts) { result.append("\n").append(lineStarter); }
 			}
 			counter = 0;
 			if (numPosLits > 0) {
 				firstOne = true;
 				counter2 = 0;
 				for (Literal literal : posLiterals) {
-					if (counter2++ > currentMaxLiteralsToPrint) { result += " ... [plus " + Utils.comma(Utils.getSizeSafely(posLiterals) - currentMaxLiteralsToPrint)+ " more positive literals]"; break; }
+					if (counter2++ > currentMaxLiteralsToPrint) { result.append(" ... [plus ").append(Utils.comma(Utils.getSizeSafely(posLiterals) - currentMaxLiteralsToPrint)).append(" more positive literals]"); break; }
 					if (firstOne) { firstOne = false; }
 					else {
-						if (++counter % stringHandler.numberOfLiteralsPerRowInPrintouts == 0) { result += " v\n" + lineStarter; }
-						else { result += " v "; } // The POSITIVE literals didn't have deMorgan's law applied to them since they weren't negated:  '(P^Q)->(RvS)' becomes '~(P^Q) v R v S' which becomes '~P v ~Q v R v S'.
+						if (++counter % stringHandler.numberOfLiteralsPerRowInPrintouts == 0) { result.append(" v\n").append(lineStarter); }
+						else { result.append(" v "); } // The POSITIVE literals didn't have deMorgan's law applied to them since they weren't negated:  '(P^Q)->(RvS)' becomes '~(P^Q) v R v S' which becomes '~P v ~Q v R v S'.
 					}
-					result += literal.toString(precedence, bindingList);
+					result.append(literal.toString(precedence, bindingList));
 				}
 			}
 			else { Utils.error("Should not reach here (by construction)."); }
 		}
 		else {
 			if (numPosLits > 0) {
-				firstOne = true;
-				counter2 = 0;
 				for (Literal literal : posLiterals) {
-					if (counter2++ > currentMaxLiteralsToPrint) { result += " ... [plus " + Utils.comma(Utils.getSizeSafely(posLiterals) - currentMaxLiteralsToPrint)+ " more positive literals]"; break; }
+					if (counter2++ > currentMaxLiteralsToPrint) { result.append(" ... [plus ").append(Utils.comma(Utils.getSizeSafely(posLiterals) - currentMaxLiteralsToPrint)).append(" more positive literals]"); break; }
 					if (firstOne) { firstOne = false; }
 					else {
-						if (++counter % stringHandler.numberOfLiteralsPerRowInPrintouts == 0) { result += ",\n" + lineStarter; }
-						else { result += ", "; }
+						if (++counter % stringHandler.numberOfLiteralsPerRowInPrintouts == 0) { result.append(",\n").append(lineStarter); }
+						else { result.append(", "); }
 					}
-					result += literal.toString(precedence, bindingList);
+					result.append(literal.toString(precedence, bindingList));
 				}
                 if ( numNegLits > 0 ) {
-                    result += " :- " + extra;
+                    result.append(" :- ").append(extra);
                 }
 				if (stringHandler.numberOfLiteralsPerRowInPrintouts > 0 && numNegLits >= stringHandler.numberOfLiteralsPerRowInPrintouts) { 
-					result += "\n" + lineStarter;
+					result.append("\n").append(lineStarter);
 				}
 			}
 			else { Utils.error("Should not reach here (by construction)."); }
@@ -817,26 +725,20 @@ public class Clause extends Sentence implements DefiniteClause {
 				firstOne = true;
 				counter2 = 0;
 				for (Literal literal : negLiterals) {
-					if (counter2++ > currentMaxLiteralsToPrint) { result += " ... [plus " + Utils.comma(Utils.getSizeSafely(negLiterals) - currentMaxLiteralsToPrint)+ " more negative literals]"; break; }
+					if (counter2++ > currentMaxLiteralsToPrint) { result.append(" ... [plus ").append(Utils.comma(Utils.getSizeSafely(negLiterals) - currentMaxLiteralsToPrint)).append(" more negative literals]"); break; }
 
 					if (firstOne) { firstOne = false; }
 					else {
-						if (++counter % stringHandler.numberOfLiteralsPerRowInPrintouts == 0) { result += ",\n" + lineStarter; }
-						else { result += ", "; }
+						if (++counter % stringHandler.numberOfLiteralsPerRowInPrintouts == 0) { result.append(",\n").append(lineStarter); }
+						else { result.append(", "); }
 					}
-					result += literal.toString(precedence, bindingList);
+					result.append(literal.toString(precedence, bindingList));
 				}
-				if (numPosLits < 1) { result += extra; }
+				if (numPosLits < 1) { result.append(extra); }
 			}
 		}
-		if (precedenceOfCaller < precedence) { result += ")"; }
-		return result;
-
-//        StringBuilder sb = new StringBuilder();
-//
-//        appendString(sb, lineStarter, precedenceOfCaller, Integer.MAX_VALUE);
-//
-//        return sb.toString();
+		if (precedenceOfCaller < precedence) { result.append(")"); }
+		return result.toString();
 	}
     
     // TODO - lineStarter needs to be passed into literals as well.
@@ -873,209 +775,28 @@ public class Clause extends Sentence implements DefiniteClause {
 		// If we want these to print variables like in Yap, it will take some thought.
 		// Could add a flag ("printMeAsIs") and when this is false, create a NEW literal, set printMeAsIs=true on it, call stringHandler.renameAllVariables(), and then toString(precedenceOfCaller) on the result ...
 		
-		String result = returnWeightString() + (AllOfFOPC.printUsingAlchemyNotation ? "" : "{ ");
+		StringBuilder result = new StringBuilder(returnWeightString() + (AllOfFOPC.printUsingAlchemyNotation ? "" : "{ "));
 		boolean firstOne = true;
 		int currentMaxLiteralsToPrint = (AllOfFOPC.truncateStrings ? maxLiteralsToPrint : 1000000); // Still use a huge limit just in case there is an infinite loop/
 		
 		int counter = 0;
 		if (posLiterals != null) for (Literal literal : posLiterals) {
-			if (counter++ > currentMaxLiteralsToPrint) { result += " ... [plus " + Utils.comma(Utils.getSizeSafely(posLiterals) - currentMaxLiteralsToPrint)+ " more positive literals]"; break; }
+			if (counter++ > currentMaxLiteralsToPrint) { result.append(" ... [plus ").append(Utils.comma(Utils.getSizeSafely(posLiterals) - currentMaxLiteralsToPrint)).append(" more positive literals]"); break; }
 
-			if (firstOne) { firstOne = false; } else {result += " v "; }
-			result += literal.toString(precedenceOfCaller, bindingList);
+			if (firstOne) { firstOne = false; } else {
+				result.append(" v "); }
+			result.append(literal.toString(precedenceOfCaller, bindingList));
 		}
 		counter = 0;
 		if (negLiterals != null) for (Literal literal : negLiterals) {
-			if (counter++ > currentMaxLiteralsToPrint) { result += " ... [plus " + Utils.comma(Utils.getSizeSafely(negLiterals) - currentMaxLiteralsToPrint)+ " more negative literals]"; break; }
-			if (firstOne) { firstOne = false; } else {result += " v "; }
-			result += (AllOfFOPC.printUsingAlchemyNotation ? "!" : "~") + literal.toString(precedenceOfCaller, bindingList); // NOTE: due to '!' WILL cannot read Alchemy files.  TODO fix.
+			if (counter++ > currentMaxLiteralsToPrint) { result.append(" ... [plus ").append(Utils.comma(Utils.getSizeSafely(negLiterals) - currentMaxLiteralsToPrint)).append(" more negative literals]"); break; }
+			if (firstOne) { firstOne = false; } else {
+				result.append(" v "); }
+			result.append(AllOfFOPC.printUsingAlchemyNotation ? "!" : "~").append(literal.toString(precedenceOfCaller, bindingList)); // NOTE: due to '!' WILL cannot read Alchemy files.  TODO fix.
 		}
 		return result + (AllOfFOPC.printUsingAlchemyNotation ? "" : " }") + (extraLabel == null ? "" : " /* " +  extraLabel + " */");
 
-//        StringBuilder sb = new StringBuilder();
-//
-//        appendString(sb, "", precedenceOfCaller, Integer.MAX_VALUE);
-//
-//        return sb.toString();
 	}
-
-//    public int appendPrettyString(Appendable appendable, String newLineStarter, int precedenceOfCaller, int maximumLength) {
-//
-//        // I think I have probably broken the maximum literal per row handling for pretty print here...
-//
-//		return appendPrettyString(appendable, newLineStarter, precedenceOfCaller, maximumLength, stringHandler.numberOfLiteralsPerRowInPrintouts);
-//
-//    }
-//
-//    private int appendPrettyString(Appendable appendable, String newLineStarter, int precedenceOfCaller, int maximumLength, int literalsPerRow) {
-//
-//        int length = 0;
-//
-//        boolean useStdLogicNotation = stringHandler.lowercaseMeansVariable;
-//        //int     counter2   = 0;
-//        int numPosLits = Utils.getSizeSafely(posLiterals);
-//        int numNegLits = Utils.getSizeSafely(negLiterals);
-//        int precedence = stringHandler.getConnectivePrecedence(stringHandler.getConnectiveName("=>"));
-//
-//        length += appendWeightString(appendable);
-//
-//        try {
-//            if (numPosLits == 0 && numNegLits == 0) {
-//                appendable.append("true");
-//                length += 4;
-//            }
-//            else if (numPosLits == 1 && numNegLits == 0) {
-//                length += posLiterals.get(0).appendString(appendable, newLineStarter, precedence, maximumLength - length);
-//
-//            }
-//            else if (numPosLits == 0 && numNegLits == 1) {
-//                appendable.append("~");
-//                length += 1;
-//
-//                length += negLiterals.get(0).appendString(appendable, newLineStarter, precedence, maximumLength - length);
-//            }
-//            else if (numPosLits == 0) { // In this case, write out the negative literals as a negated conjunction. I.e., 'p,q->false' is the same as '~p v ~q v false' which is the same as '~(p ^ q)'.
-//                appendable.append("~(");
-//                length += 2;
-//
-//                length += appendLiterals(appendable, newLineStarter, precedence, negLiterals, " ^ ", "", numNegLits, maximumLength - length - 1, literalsPerRow);
-//
-//                appendable.append(")");
-//                length += 1;
-//            }
-//            else {
-//                if (precedenceOfCaller < precedence) {
-//                    appendable.append("(");
-//                    length += 1;
-//                }
-//
-//                if (useStdLogicNotation) {
-//                    if (numNegLits > 0) {
-//                        length += appendLiterals(appendable, newLineStarter, precedence, negLiterals, " ^ ", "", getLength(), maximumLength - length, literalsPerRow);
-//
-//                        appendable.append(" => ");
-//                        length += 4;
-//
-//                        if (stringHandler.numberOfLiteralsPerRowInPrintouts > 0 && numNegLits >= stringHandler.numberOfLiteralsPerRowInPrintouts) {
-//                            appendable.append("\n").append(newLineStarter);
-//                        }
-//                    }
-//
-//                    if (numPosLits > 0) {
-//                        length += appendLiterals(appendable, newLineStarter, precedence, posLiterals, " v ", "", getPosLiteralCount(), maximumLength - length, literalsPerRow);
-//                    }
-//                }
-//                else {
-//                    if (numPosLits > 0) {
-//                        length += appendLiterals(appendable, newLineStarter, precedence, posLiterals, ", ", "", getPosLiteralCount(), maximumLength - length - 4, literalsPerRow);
-//
-//                        appendable.append(" :- ");
-//                        length += 4;
-//
-//                        if (stringHandler.numberOfLiteralsPerRowInPrintouts > 0 && numPosLits >= stringHandler.numberOfLiteralsPerRowInPrintouts) {
-//                            appendable.append("\n").append(newLineStarter);
-//                        }
-//                    }
-//
-//                    if (numNegLits > 0) {
-//                        length += appendLiterals(appendable, newLineStarter, precedence, negLiterals, ", ", "", getLength(), maximumLength - length, literalsPerRow);
-//                    }
-//                }
-//
-//                if (precedenceOfCaller < precedence) {
-//                    appendable.append(")");
-//                    length += 1;
-//                }
-//            }
-//        } catch (IOException ioe) {
-//        }
-//
-//        return length;
-//    }
-//
-//
-//
-//    @Override
-//    public int appendString(Appendable appendable, String newLineStarter, int precedenceOfCaller, int maximumLength)  {
-//        if (stringHandler.prettyPrintClauses) {
-//            return appendPrettyString(appendable, "", precedenceOfCaller, maximumLength, 10);
-//        }
-//
-//        int length = 0;
-//        try {
-//            length += appendWeightString(appendable);
-//
-//            appendable.append("{ ");
-//            length += 2;
-//
-//            length += appendLiterals(appendable, newLineStarter, precedenceOfCaller, posLiterals, " v ", "", getLength(), maximumLength-length-2, 0);
-//
-//            if ( getPosLiteralCount() > 0 ) {
-//                appendable.append(" v ");
-//                length += " v ".length();
-//            }
-//
-//            length += appendLiterals(appendable, newLineStarter, precedenceOfCaller, negLiterals, " v ", "~", getNegLiteralCount(), maximumLength-length-2, 0);
-//
-//            appendable.append(" }");
-//            length += 2;
-//
-//        } catch (IOException iOException) {
-//
-//        }
-//
-//        return length;
-//    }
-//
-//    private int appendLiterals(Appendable appendable, String newLineStarter, int precedenceOfCaller, List<Literal> literals, String connective, String literalPrefix, int literalsLeft, int maximumLength, int literalsPerLine) {
-//
-//        int length = 0;
-//        int counter = 0;
-//
-//        String literalType = (literals == posLiterals ? "positive" : "negative");
-//
-//        boolean firstOne = true;
-//
-//        try {
-//            if (literals != null) {
-//                for (Literal literal : literals) {
-//                    if (counter > currentMaxLiteralsToPrint || (counter > 0 && length >= maximumLength)) {
-//                        String countString = Utils.comma(Utils.getSizeSafely(literals) - currentMaxLiteralsToPrint);
-//                        appendable.append(" ... [plus ").append(countString).append(" more ").append(literalType).append(" literals]");
-//                        length += " ... [plus ".length() + countString.length() + " more ".length() + literalType.length() + " literals]".length();
-//                        break;
-//                    }
-//
-//                    if (firstOne == false) {
-//                        appendable.append(connective);
-//                        length += connective.length();
-//                    }
-//
-//                    // Calculate how much room each literal gets...
-//                    // If previous literals didn't use all their length, allow the rest
-//                    // of the literals to use it.
-//                    int lengthPerLiteral = Math.max(0, (maximumLength - length) / literalsLeft - connective.length() - literalPrefix.length());
-//
-//                    appendable.append(literalPrefix);
-//                    length += literalPrefix.length();
-//
-//                    counter++;
-//
-//                    if ( literalsPerLine > 0 && counter % literalsPerLine == 0 ) {
-//                        appendable.append("\n").append(newLineStarter);
-//                    }
-//
-//                    length += literal.appendString(appendable, newLineStarter, precedenceOfCaller, lengthPerLiteral);
-//
-//                    firstOne = false;
-//
-//                }
-//            }
-//        } catch (IOException iOException) {
-//        }
-//
-//        return length;
-//    }
 
 
     /**
@@ -1109,7 +830,7 @@ public class Clause extends Sentence implements DefiniteClause {
     @Override
     public Clause getNegatedQueryClause() throws IllegalArgumentException {
 
-        Clause result = null;
+        Clause result;
 
         if ( getPosLiteralCount() == 0 ) {
             result = this;

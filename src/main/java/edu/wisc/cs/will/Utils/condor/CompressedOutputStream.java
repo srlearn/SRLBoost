@@ -10,16 +10,10 @@ import java.util.zip.GZIPOutputStream;
  */
 public class CompressedOutputStream extends OutputStream {
 
-    private static boolean outputCompressedByDefault = false;
-
     private OutputStream realStream;
 
     public CompressedOutputStream(String fileName, boolean compressOutput) throws IOException {
         this(new File(fileName), compressOutput);
-    }
-    
-    public CompressedOutputStream(File file) throws IOException {
-        this(file, outputCompressedByDefault);
     }
 
     private CompressedOutputStream(File file, boolean compressOutput) throws IOException {

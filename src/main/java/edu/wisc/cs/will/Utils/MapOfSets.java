@@ -67,28 +67,6 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
         }
     }
 
-    public <K extends Key, S extends Set<Value>> void putAll(Map<K, S> newMap) {
-
-        if ( newMap != null && !newMap.isEmpty()) {
-
-            if ( map == null ) {
-                map = createMap();
-            }
-
-            for (Entry<K, S> entry : newMap.entrySet()) {
-                Set<Value> setToAdd = entry.getValue();
-                K keyToAdd = entry.getKey();
-
-                Set<Value> existingSet = map.get(keyToAdd);
-                if (existingSet == null) {
-                    existingSet = createValueSet();
-                    map.put(keyToAdd, existingSet);
-                }
-                existingSet.addAll(setToAdd);
-            }
-        }
-    }
-
     public void putAll(Key key, Set<? extends Value> values) {
 
         if (!values.isEmpty()) {
@@ -138,11 +116,11 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
     }
 
     protected Set<Value> createValueSet() {
-        return new HashSet<Value>();
+        return new HashSet<>();
     }
 
     protected Map<Key, Set<Value>> createMap() {
-        return new HashMap<Key, Set<Value>>();
+        return new HashMap<>();
     }
 
     public String toString(String prefix) {

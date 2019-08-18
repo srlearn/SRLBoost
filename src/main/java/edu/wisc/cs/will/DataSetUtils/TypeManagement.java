@@ -1,12 +1,7 @@
-/**
- * 
- */
 package edu.wisc.cs.will.DataSetUtils;
 
 import java.io.File;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
 import java.io.FileNotFoundException;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,11 +23,12 @@ import edu.wisc.cs.will.FOPC.Type;
 import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.Utils.MessageType;
+import edu.wisc.cs.will.Utils.condor.CondorFile;
+import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.Utils;
 
 /**
  * @author shavlik
- *
  */
 public class TypeManagement {
 
@@ -57,17 +53,13 @@ public class TypeManagement {
             Utils.println("\n% Collection of the types of constants has previously occurred.  If this is incorrect, delete:\n%   '" + file.getPath() + "'");
             return true; // Tell the caller to load this file.
         }
-        if (debugLevel > -1) {
-            Utils.println("\n% Collecting the types of constants.");
-        }
+        Utils.println("\n% Collecting the types of constants.");
         try {
             CondorFileOutputStream outStream = (createCacheFiles ? new CondorFileOutputStream(typesFileNameToUse) : null);
             PrintStream printStream = (createCacheFiles ? new PrintStream(outStream, false) : null); // (Don't) Request auto-flush (can slow down code).
 
             collectImplicitTypeConstantsViaModeAndFactInspection(printStream, bodyModes, backgroundFacts);
-            if (debugLevel > -1) {
-                Utils.println("\n% Looking at the training examples to see if any types of new constants can be inferred.");
-            }
+            Utils.println("\n% Looking at the training examples to see if any types of new constants can be inferred.");
             if (printStream != null) {
                 printStream.println("\n% Looking at the training examples to see if any types of new constants can be inferred.");
             }
@@ -83,6 +75,7 @@ public class TypeManagement {
             if (targetLiterals != null && (posExamples != null || negExamples != null)) {
                 for (int i = 0; i < Utils.getSizeSafely(targetLiterals); i++) {
                     PredicateName targetPredicate = targetLiterals.get(i).predicateName;
+                    assert targetArgSpecs != null;
                     List<ArgSpec> argSpecs = targetArgSpecs.get(i);
                     recordTypedConstantsFromTheseExamples(printStream, posExamples, "positive", targetPredicate, argSpecs);
                     recordTypedConstantsFromTheseExamples(printStream, negExamples, "negative", targetPredicate, argSpecs);
@@ -104,11 +97,11 @@ public class TypeManagement {
 
     private int inHash = 0;
 
-    public void collectImplicitTypeConstantsViaModeAndFactInspection(PrintStream printStream, Set<PredicateNameAndArity> bodyModes, Iterable<Sentence> backgroundFacts) {
-        Map<Term, Set<Type>> alreadyCheckedConstantHash = new HashMap<Term, Set<Type>>(4096);
+    private void collectImplicitTypeConstantsViaModeAndFactInspection(PrintStream printStream, Set<PredicateNameAndArity> bodyModes, Iterable<Sentence> backgroundFacts) {
+        Map<Term, Set<Type>> alreadyCheckedConstantHash = new HashMap<>(4096);
         for (PredicateNameAndArity predName : bodyModes) {
             // First need to see if this predicate can have DIFFERENT numbers of arguments.  If so, we need to treat each separately.
-            Set<Integer> sizes = new HashSet<Integer>(4);
+            Set<Integer> sizes = new HashSet<>(4);
             for (PredicateSpec specs : predName.getPredicateName().getTypeList()) { // Consider each known mode for this predicate.
                 Integer length = Utils.getSizeSafely(specs.getSignature());
                 sizes.add(length);
@@ -120,8 +113,8 @@ public class TypeManagement {
             for (Integer argSize : sizes) {
                 boolean firstTime = true;
                 int size = Utils.getSizeSafely(predName.getPredicateName().getTypeListForThisArity(argSize));
-                Set<Integer> ambiguous = new HashSet<Integer>(size);
-                List<Type> argTypes = new ArrayList<Type>(size);
+                Set<Integer> ambiguous = new HashSet<>(size);
+                List<Type> argTypes = new ArrayList<>(size);
                 for (PredicateSpec specs : predName.getPredicateName().getTypeListForThisArity(argSize)) { // Again consider each known mode for this predicate, but only worry about those with arity = argSize.
                     // We now have to see if all modes for this parity and arity specify the same types for the arguments.
                     // If there is ambiguity then we cannot infer new typed constants since we don't know which mode matches the facts.
@@ -167,7 +160,7 @@ public class TypeManagement {
     }
 
     private void help_matchFactsAndModes(Literal fact, List<Term> args, int counter, Set<Integer> ambiguous, List<Type> argTypes, PrintStream printStream, Map<Term, Set<Type>> alreadyCheckedConstantHash) {
-        //Utils.println("help_matchFactsAndModes: fact = " + fact + " args = " + args + " counter = " + counter + " argTypes = " + argTypes);
+
         if (args == null) {
             return;
         }
@@ -191,30 +184,22 @@ public class TypeManagement {
 
                 if (lookup1 != null && lookup1.contains(thisType)) {
                     inHash++;
-                    // if (args.size() > 1) Utils.println(fact + "   IN HASH: [" + argAsConstant + ", " + thisType + "] Have inferred the type of '" + arg + "' is '" + argTypes.get(counter) + "' from fact: '" + fact + "' and mode '" + argTypes + "'.");
                     counter++;
                     continue; // Already checked if this constant is of this type.
                 }
                 // Have inferred the type of this constant.
                 if (addNewConstant(printStream, stringHandler, arg, thisType, fact)) {
-                    // if (args.size() > 1) Utils.waitHere(fact + "   ADD: [" + argAsConstant + ", " + thisType + "] Have inferred the type of '" + arg + "' is '" + argTypes.get(counter) + "' from fact: '" + fact + "' and mode '" + argTypes + "'.");
                     adds++;
                 }
                 else {
-                    // if (args.size() > 1) Utils.println( fact + "   DUP: [" + argAsConstant + ", " + thisType + "] Have inferred the type of '" + arg + "' is '" + argTypes.get(counter) + "' from fact: '" + fact + "' and mode '" + argTypes + "'.");
                     dups++;
                 }
                 if (lookup1 == null) {
-                    lookup1 = new HashSet<Type>(4);
+                    lookup1 = new HashSet<>(4);
                     alreadyCheckedConstantHash.put(arg, lookup1);
                 }
                 lookup1.add(thisType);
                 counter++;
-            }
-            else if (arg instanceof Function) {
-//            	Function f = (Function) arg;
-//            	help_matchFactsAndModes(fact, f.getArguments(), counter, ambiguous, argTypes, printStream, alreadyCheckedConstantHash);
-//            	counter += f.countLeaves();
             }
             else if (arg instanceof Variable) {
                 counter++; // Simply skip variables.
@@ -247,11 +232,6 @@ public class TypeManagement {
                 }
                 counter++;
             }
-//            else if (term instanceof Function) {
-//                Function f = (Function) term;
-//                help_collectImplicitTypeConstantsViaModeAndFactInspection(ambiguous, f.getArguments(), predName, counter, firstTime, typeSpecList, argTypes);
-//                counter += f.countLeaves();
-//            }
             else {
                 Utils.error("Should not have term = " + term);
             }
@@ -259,9 +239,9 @@ public class TypeManagement {
     }
 
     // Check all constants in facts and make sure they are typed (and uniquely!).
-    public boolean checkThatTypesOfAllConstantsAreKnown(PrintStream printStream, Iterable<Sentence> backgroundFacts) {
+    private void checkThatTypesOfAllConstantsAreKnown(PrintStream printStream, Iterable<Sentence> backgroundFacts) {
         boolean untypedConstantFound = false;
-        Set<Term> alreadyCheckedHash = new HashSet<Term>(1024);
+        Set<Term> alreadyCheckedHash = new HashSet<>(1024);
 
         if (backgroundFacts != null) {
             for (Sentence sentence : backgroundFacts) {
@@ -311,20 +291,12 @@ public class TypeManagement {
         if (debugLevel > 0) {
             Utils.println("\n% Have confirmed that the type is known for each constant in the facts file that matches at least one provided mode.");
         }
-        //Utils.waitHere();
-        return true;
     }
-    // Since we only allow one mode specification of the head, we can use that to infer the types of constants.
-    // TODO - is this buggy if the mode of the head uses a type that is not a "base level" type, e.g. Animal instead of Dog?
-    private int warningCounter = 0;
 
-    public int recordTypedConstantsFromTheseExamples(PrintStream printStream, List<Example> examples, String exampleType, PredicateName targetPredicate, List<ArgSpec> targetArgSpecs) {
-        //if (targetPredicate == null)  { Utils.error("Cannot have targetPredicate=null here."); }
-        //if (targetModes     == null)  { Utils.error("Cannot have targetModes=null here.");     }
-        //if (targetArgSpecs  == null)  { Utils.error("Cannot have targetArgSpecs=null here.");  }
-        //if (targetModes.size() > 1)   { Utils.error("Cannot have size(targetModes) > 1.");     }
+    private void recordTypedConstantsFromTheseExamples(PrintStream printStream, List<Example> examples, String exampleType, PredicateName targetPredicate, List<ArgSpec> targetArgSpecs) {
+
         if (examples == null) {
-            return 0;
+            return;
         }
 
         // Collect all the constants in the specified set of examples.
@@ -333,7 +305,6 @@ public class TypeManagement {
         for (Literal ex : examples) {
             if (targetPredicate != ex.predicateName) { // && warningCounter++ < 10) {
                 // This would be handled later by the next call to recordTyped...
-                // Utils.warning(" TypeManagement Warning #" + Utils.comma(warningCounter) + ":  Have an example, '" + ex + "', that doesn't match target predicate = '" + targetPredicate + "'.");
                 continue;
             }
             int counter = 0;
@@ -369,12 +340,11 @@ public class TypeManagement {
         if (debugLevel > 0) {
             Utils.println("  Have recorded " + Utils.comma(countOfAdds) + " new typed constants from the " + Utils.comma(examples) + " " + exampleType + " examples.  Ignored " + Utils.comma(countOfDups) + " duplications.");
         }
-        return countOfAdds;
     }
 
     private int reportCounter = 0;
     // See if this is a new constant of this type.
-    public boolean addNewConstant(PrintStream printStream, HandleFOPCstrings stringHandler, Term constant, Type type, Literal generator) {
+    private boolean addNewConstant(PrintStream printStream, HandleFOPCstrings stringHandler, Term constant, Type type, Literal generator) {
         if (generator == null) {
             Utils.error("Cannot have generator=null.");
         }
@@ -401,26 +371,28 @@ public class TypeManagement {
 
             List<Type> existingTypes = stringHandler.getTypesOfConstant(constant, false);
             if (existingTypes != null) {
-                for (int i = 0; i < existingTypes.size(); i++) {
-                    Type existing = existingTypes.get(i);
-
+                for (Type existing : existingTypes) {
                     // If the new type is a superclass of an existing type, don't add.
                     if (stringHandler.isaHandler.isa(existing, type)) {
-                    	reportCounter++;
+                        reportCounter++;
                         if (reportCounter <= 25 && debugLevel > 1) {
                             Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "%    Term '" + constant + "' is already known to be of type '" + existing + ",' so ignoring that it is of parent type '" + type + ".'");
-                            if (reportCounter == 25) { Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "% (Future reports will be suppressed since 25 have been reported.)"); }
+                            if (reportCounter == 25) {
+                                Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "% (Future reports will be suppressed since 25 have been reported.)");
+                            }
                         }
                         return false;
                     }
 
                     // If the new type is a subclass of an existing type, remove the old attachment to this constant, since the ISA hierarchy contains this information.
                     if (stringHandler.isaHandler.isa(type, existing)) {
-                    	reportCounter++;
-                        if (reportCounter <= 25 && debugLevel > -1) {
+                        reportCounter++;
+                        if (reportCounter <= 25) {
                             Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "% Already know '" + constant + "' isa '" + existing + ",' but now being told it isa '" + type + ",' which is LOWER in the isa hierarchy.  Editing the hierarchy.");
-                            if (reportCounter == 25) { Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "% (Future reports will be suppressed since 25 have been reported.)"); }
-                         }  // TODO figure out what to do here (move isa's around?)
+                            if (reportCounter == 25) {
+                                Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "% (Future reports will be suppressed since 25 have been reported.)");
+                            }
+                        }  // TODO figure out what to do here (move isa's around?)
                         // TAW: This used to be: stringHandler.constantToTypesMap.remove(existing).
                         // TAW: However, that was obviously a typo, since constantToTypesMap uses
                         // TAW: constants as keys, not Types.  I change it to the constant being checked.
@@ -430,28 +402,21 @@ public class TypeManagement {
             }
 
             if (beenWarnedHashMap == null) {
-                beenWarnedHashMap = new HashMap<PredicateName, Set<Type>>(4);
+                beenWarnedHashMap = new HashMap<>(4);
             }
-            Set<Type> lookup1a = beenWarnedHashMap.get(predName);  // See if there has been a warning about this type from this predicate.
-            if (lookup1a == null) {
-                lookup1a = new HashSet<Type>(4);
-                beenWarnedHashMap.put(predName, lookup1a);
-            }
-            if (!lookup1a.contains(type)) { // TODO clean up these two println's
+            Set<Type> lookup1a = beenWarnedHashMap.computeIfAbsent(predName, k -> new HashSet<>(4));  // See if there has been a warning about this type from this predicate.
+            if (!lookup1a.contains(type)) {
                 if (!predName.dontComplainAboutMultipleTypes(predArity) && !dontWorryAboutTheseTypes(existingTypes)) {
                     Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "\n%   *** WARNING ***  Constant '" + constant + "' is already marked as being of types = " + existingTypes
                             + ";\n%          type = '" + type + "' may be added if not already known.\n%  PredicateName = '" + predName + "', from '" + generator + "',\n%  which has types = " + predName.getTypeList()
-                    //        + ".\n%    All generators: " + constant.getGeneratorOfThisConstantsType()
                             + "\n%   Other warnings with this predicate and this new type are not reported in order to keep this printout small.  Use dontComplainAboutMultipleTypes to override.");
-
-                    // Utils.waitHere();
                 }
                 lookup1a.add(type);
             }
         }
 
         if (addedConstantHashMap == null) {
-            addedConstantHashMap = new HashMap<Term, Map<Type, Literal>>(1024);
+            addedConstantHashMap = new HashMap<>(1024);
         }
         Map<Type, Literal> lookup1b = addedConstantHashMap.get(constant);  // See if this constant has been already assigned to another type, and if so report the literal that caused it to be so.
         if (lookup1b != null && !lookup1b.containsKey(type)) { // Just report the FIRST conflict, since the others can be traced back from the reports (i.e., the first one doesn't know it is a duplicate).
@@ -462,7 +427,7 @@ public class TypeManagement {
             }
         }
         if (lookup1b == null) {
-            lookup1b = new HashMap<Type, Literal>(4);
+            lookup1b = new HashMap<>(4);
             addedConstantHashMap.put(constant, lookup1b);
         }
         if (!lookup1b.containsKey(type)) {
@@ -483,7 +448,6 @@ public class TypeManagement {
             Utils.println("addNewConstantOfThisType: '" + constant + "' isa '" + type + "'");
         }
         stringHandler.addNewConstantOfThisType(constant, type);
-        //constant.addGeneratorOfThisConstantsType(generator);
         return true;
     }
 

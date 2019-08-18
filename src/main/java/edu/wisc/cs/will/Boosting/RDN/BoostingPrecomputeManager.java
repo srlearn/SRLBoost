@@ -74,7 +74,7 @@ class BoostingPrecomputeManager {
 		if (factsReader == null) {
 			return null;
 		}
-		List<Sentence> sentences = null;
+		List<Sentence> sentences;
 		// TODO(?): should get the DIR of the facts file.
 		sentences = setup.getInnerLooper().getParser().readFOPCreader(factsReader, readerDirectory);
 		if (sentences == null) {

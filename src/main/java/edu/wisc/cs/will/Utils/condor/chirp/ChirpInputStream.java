@@ -2,7 +2,7 @@ package edu.wisc.cs.will.Utils.condor.chirp;
 
 import java.io.IOException;
 
-/**
+/*
 A ChirpInputStream gives a sequential binary interface to a read-only
 file.  Users that require random-access I/O should see ChirpClient.
 Users requiring a character-oriented interface to a Chirp file
@@ -16,7 +16,7 @@ public class ChirpInputStream extends java.io.InputStream {
 	private ChirpClient client;
 	private int fd;
 
-	/**
+	/*
 	 * Create a new input stream attached to the named file. Use the Chirp server
 	 * implicitly defined by the environment.
 	 * @param p The file name.
@@ -26,7 +26,7 @@ public class ChirpInputStream extends java.io.InputStream {
 		fd = client.open(p,"r",0);
 	}
 
-	/**
+	/*
 	 * Read bytes from the stream
 	 * @param buffer The buffer to fill.
 	 * @param pos The starting position in the buffer.
@@ -44,7 +44,7 @@ public class ChirpInputStream extends java.io.InputStream {
 		}
 	}
 
-	/**
+	/*
 	 * Read bytes from the stream.
 	 * @param buffer The buffer to fill.
 	 * @return The number of bytes actually read, or -1 at end-of-file.
@@ -53,7 +53,7 @@ public class ChirpInputStream extends java.io.InputStream {
 		return read(buffer,0,buffer.length);
 	}
 
-	/**
+	/*
 	 * Read one byte from the stream.
 	 * @return The byte read, or -1 at end-of-file.
 	 */

@@ -13,11 +13,7 @@ public abstract class SearchStrategy {
      */
     protected StateBasedSearchTask task;
 
-    public SearchStrategy() {}
-
-    public SearchStrategy(StateBasedSearchTask task) {
-        this.task = task;
-    }
+    SearchStrategy() {}
 
     public void setSearchTask(StateBasedSearchTask task) {
         this.task = task;

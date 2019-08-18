@@ -63,14 +63,11 @@ public class Utils {
 	
 	// For large-scale runs we do not want to create dribble (nor 'debug') files. 
 	public static Boolean doNotCreateDribbleFiles  = false;
-	public static Boolean doNotPrintToSystemDotOut = false;
-	private static Boolean doNotPrintToSystemDotErr = false;
-	
-	// If the strings MYUSERNAME, MYPATHPREFIX, or SHAREDPATHPREFIX appear in file names, they will be replaced with these settings.
+	private static Boolean doNotPrintToSystemDotOut = false;
+
+    // If the strings MYUSERNAME appear in file names, they will be replaced with these settings.
 	private static String MYUSERNAME       = null; // If we add to this list, edit replaceWildCards().
-	private static String MYPATHPREFIX     = "MYPATHPREFIXisUnset";
-	private static String SHAREDPATHPREFIX = "SHAREDPATHPREFIXisUnset";
-	private static String MYSCRATCHDIR     = null;
+    private static String MYSCRATCHDIR     = null;
 	
 
 	/** Stores whether this is a developer run.
@@ -117,7 +114,7 @@ public class Utils {
 	//   In Windows this typically is "C:\\Documents and Settings\\shavlik", where 'shavlik' is replaced by one's login name.
 	//   In Unix, this is "~/:
 	// You can call getUserHomeDir() to find out.	
-    public  static final String DEVELOPER_MACHINE_PROPERTY_KEY = "edu.wisc.cs.bl.devrun"; // Used to see if this is a 'developer run' - if not, less might be printed and waitHere()'s will become warnings.
+    private static final String DEVELOPER_MACHINE_PROPERTY_KEY = "edu.wisc.cs.bl.devrun"; // Used to see if this is a 'developer run' - if not, less might be printed and waitHere()'s will become warnings.
     private static final String DEVELOPER_MACHINE_FILE_NAME    = "runWILLasDeveloper.txt";
 
 
@@ -181,7 +178,6 @@ public class Utils {
     /**
      * If non-null, copy all printing to this stream as well.
      */
-    // TODO NEED TO CLEAN UP DRIBBLE STREAM!
     private static PrintStream dribbleStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
     private static PrintStream dribbleStream2      = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
     private static PrintStream debugStream         = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
@@ -189,7 +185,6 @@ public class Utils {
     private static PrintStream warningShadowStream = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
 
     /** The random instance for all the random utility functions. */
-    // TODO clean up so that the random instance is robust to multiple runs
     private static Random randomInstance = new Random(112957);
 
     private static Map<String,Integer> warningCounts = new HashMap<>();
@@ -218,8 +213,8 @@ public class Utils {
     		String str = (strRaw == null || strRaw.length() <= maxStringLength ? strRaw : strRaw.substring(0, maxStringLength) + " ... [string too long]");
     		boolean hold = doNotPrintToSystemDotOut;
     		doNotPrintToSystemDotOut = false; // If these printout become too much, we can add a 3rd flag to override these ...
-    		if (!doNotPrintToSystemDotErr) { System.err.println(str); }
-    		if (dribbleStream != null) { dribbleStream.println(str); }  // No need to flush since println already does so.
+            System.err.println(str);
+            if (dribbleStream != null) { dribbleStream.println(str); }  // No need to flush since println already does so.
             doNotPrintToSystemDotOut = hold;
     	}
     }
@@ -248,15 +243,6 @@ public class Utils {
     	if ( isMessageTypeEnabled(type)) print(str, false);
     }
 
-    public static String padLeft(int value, int width) {
-    	String spec = "%, " + width + "d"; // Always use separators (e.g., "100,000").
-    	return String.format(spec, value);    	
-    }      
-    public static String padLeft(long value, int width) {
-    	String spec = "%, " + width + "d"; // Always use separators (e.g., "100,000").
-    	return String.format(spec, value);    	
-    }
-
     public static String comma(int value) { // Always use separators (e.g., "100,000").
     	return String.format("%,d", value);    	
     }    
@@ -283,10 +269,8 @@ public class Utils {
 		  }
 	  }
 	  if (commentStart < 0) { return args; }
-	  String[] newArgs = new String[commentStart];
-	  for (int i = 0; i < commentStart; i++) {
-		  newArgs[i] = args[i];
-	  }
+      String[] newArgs = new String[commentStart];
+	  System.arraycopy(args, 0, newArgs, 0, commentStart);
 	  return newArgs;
 	}
 	
@@ -318,10 +302,10 @@ public class Utils {
             return collection.toString();
         }
         Iterator<?> iter = collection.iterator();
-        String result = "[" + iter.next();
+        StringBuilder result = new StringBuilder("[" + iter.next());
         if (size > 1) {
             for (int i = 1; i < maxItems; i++) {
-                result += ", " + iter.next();
+                result.append(", ").append(iter.next());
             }
         }
         return result + ", ..., plus " + comma(size - maxItems) + " more items]";
@@ -343,12 +327,7 @@ public class Utils {
 		return limitLengthOfPrintedList(map, 100);
 	}
 
-	public static void exit(String msg) {
-        println("\nEXITING:   " + msg);
-	    cleanupAndExit();
-	}
-	
-	/**
+    /**
 	 * Save some typing when throwing generic errors.
      */
 	public static void error(String msg) {
@@ -448,7 +427,7 @@ public class Utils {
     }
 
     // TODO(@hayesall): Utils/MapOfSets.java uses this?
-    public static String getStringWithLinePrefix(String string, String prefix) {
+    static String getStringWithLinePrefix(String string, String prefix) {
         if (prefix != null && !prefix.isEmpty() && !string.isEmpty()) {
 
             StringBuilder stringBuilder = new StringBuilder();
@@ -475,7 +454,7 @@ public class Utils {
             if (lastIndex != 0) {
                 stringBuilder.append(prefix);
             }
-            stringBuilder.append(string.substring(lastIndex, string.length()));
+            stringBuilder.append(string.substring(lastIndex));
 
             return stringBuilder.toString();
         }
@@ -492,7 +471,6 @@ public class Utils {
      * @param fileNameRaw The name of the file.
      * @return A path string indicating the given file within the given directory.
      */
-    // TODO cleanup
     public static String createFileNameString(String directoryRaw, String fileNameRaw) {
     	String directory = replaceWildCards(directoryRaw);
     	String fileName  = replaceWildCards(fileNameRaw);
@@ -563,11 +541,11 @@ public class Utils {
     	return MYUSERNAME;
     }
     private static String getMyPathPrefix() {
-    	return MYPATHPREFIX;
+        return "MYPATHPREFIXisUnset";
     }
     private static String getSharedPathPrefix() {
-    	return SHAREDPATHPREFIX;
-    }	
+        return "SHAREDPATHPREFIXisUnset";
+    }
 	private static String getMyScratchDir() {
     	if (MYSCRATCHDIR == null) { setMyScratchDir(help_getScratchDirForUser()); } // Will get into an infinite loop without the "help_" prefix.
     	return MYSCRATCHDIR;
@@ -585,12 +563,13 @@ public class Utils {
     public static boolean waitHere(String msg, String skipWaitString) {
         return waitHere(msg, false, skipWaitString);
     }
-    public static boolean waitHereErr(String msg) {
+    public static void waitHereErr(String msg) {
     	if ( msg != null && !msg.isEmpty()) {
     		printlnErr(msg);
-    	   	return waitHere(msg, false, null);
+            waitHere(msg, false, null);
+            return;
     	}
-    	return waitHere(msg, false, null);
+        waitHere(msg, false, null);
     }
 
     /** Prints out the message msg, possibly waiting for user input prior to continuing.
@@ -798,27 +777,6 @@ public class Utils {
         return newFirstChar + old.substring(1);
     }
 
-    /**
-     * Creates a dribble file in the given directory.
-     * 
-     * @param directory The path of the directory in which to create the dribble file.
-     */
-    public static void createDribbleFileInDirectory(String directory) {
-        createDribbleFile(directory + "/dribble.txt");
-    }
-
-    /**
-     * Creates a dribble file named "dribble.txt" in the current working
-     * directory.
-     * 
-     * @see Utils#createDribbleFile(String)
-     */
-    public static void createDribbleFile() {
-        if ( dribbleStream == null ) {
-            createDribbleFile("dribble.txt");
-        }
-    }
-
     // This is one place that this class maintains state (so if two threads running, their dribble files will interfere).
     private static String dribbleFileName = null;
 
@@ -826,17 +784,16 @@ public class Utils {
      * Creates a dribble file with the given name in the current working
      * directory.
      *
-     * @param fileName The name of the dribble file.
+     * @param fileNameRaw The name of the dribble file.
      */
-    public static void createDribbleFile(String fileName) {
-    	if (dribbleStream != null) { 
-    		dribbleStream.println("\n\n// Closed by a createDribble call with file = " + fileName);
-    	}
-    	createDribbleFile(fileName, false);
-    }
-    public static void createDribbleFile(String fileNameRaw, boolean createEvenForNonDevelopmentRuns) {
+    public static void createDribbleFile(String fileNameRaw) {
+
+        if (dribbleStream != null) {
+            dribbleStream.println("\n\n// Closed by a createDribble call with file = " + fileNameRaw);
+        }
+
     	if (doNotCreateDribbleFiles) { return; }
-    	if (!isVerbose() && !createEvenForNonDevelopmentRuns) { return; }
+    	if (!isVerbose()) { return; }
     	closeDribbleFile();
         String fileName = replaceWildCards(fileNameRaw);
         try {
@@ -907,31 +864,13 @@ public class Utils {
     }
 
     /**
-     * @param upper The upper bound on the interval.
-     * @return A random number in the interval [0.0, upper).
-     */
-    public static double random0toNminus1(double upper) {
-        return randomInInterval(0.0, upper);
-    }
-
-    /**
      * @param lower The lower end of the interval.
      * @param upper The upper end of the interval. It is not possible for the
      *              returned random number to equal this number.
      * @return Returns a random integer in the given interval [lower, upper).
      */
-    public static int randomInInterval(int lower, int upper) {
+    private static int randomInInterval(int lower, int upper) {
         return lower + (int) Math.floor(random() * (upper - lower));
-    }
-
-    /**
-     * @param lower The lower end of the interval.
-     * @param upper The upper end of the interval. It is not possible for the
-     *              returned random number to equal this number.
-     * @return Returns a random integer in the given interval [lower, upper).
-     */
-    private static double randomInInterval(double lower, double upper) {
-        return lower + random() * (upper - lower);
     }
 
     /**
@@ -960,57 +899,20 @@ public class Utils {
         }
         return items; // Probably no need to return this, since caller knows, but might as well do so (for one thing, this allows the caller to use a functional programming style).
     }
-    /**
-     * Reduce this set to maxLength by removing elements IN PLACE. Elements
-     * are randomly discarded until the set is small enough. If the set is
-     * already small enough, it is unchanged.  (Since cannot remove the ith object
-     * from a set directly, this is a bit inefficient.  Will take O(m x n),
-     * where m equals the number of items to remove and n is the size of the set.
-     * 
-     * @param <E> The element type of the list.
-     * @param items The list.
-     * @param maxLength The maximum length the list should be.
-     * @return The given list with maxLength or fewer elements.
-     */
-    public static <E> Set<E> reduceToThisSizeByRandomlyDiscardingItemsInPlace(Set<E> items, int maxLength) {
-    	if (items == null) { return null; }
-        int size = items.size();
-        if (size <= maxLength) { return items; }
-
-        int numberToDiscard = size - maxLength;
-        for (int i = 0; i < numberToDiscard; i++) {
-            int index = randomInInterval(0, size);
-        	int counter = 0;
-        	boolean foundIt = false;
-    		for (Iterator<E> iter = items.iterator(); iter.hasNext();) {
-    			E next = iter.next(); // Need to do the next() else will not advance in the iterator.
-    			if (counter++ == index) { 
-    				if (!items.remove(next)) { error("Failed to remove item #" + index + " = " + next); }
-    				foundIt = true;
-    				break;
-    			}
-    		}
-    		if (!foundIt) { error("Could not find the " + index + "th item in a set of size " + items.size()); }
-            size--;
-        }
-        return items; // Probably no need to return this, since caller knows, but might as well do so (for one thing, this allows the caller to use a functional programming style).
-    }
 
     /**
      * Variant of getIthItemInCollection() that works with any collection.
      */
     public static <E> E getIthItemInCollectionUnsafe(Collection<E> items, int index) {
     	int counter = 0;
-		for (Iterator<E> iter = items.iterator(); iter.hasNext();) {
-			E next = iter.next(); // Need to do the next() else will not advance in the iterator.
-			if (counter++ == index) { return next; }
-		}
+        // Need to do the next() else will not advance in the iterator.
+        for (E next : items) {
+            if (counter++ == index) {
+                return next;
+            }
+        }
 		error("Could not find the " + index + "th item in a collection of size " + items.size());
 		return null;
-    }
-    // Can do this potentially faster with get() - e.g., should be constant time with an ArrayList.
-    public static <E> E getIthItemInCollectionUnsafe(List<E> items, int index) {
-    	return items.get(index);
     }
 
     /**
@@ -1026,26 +928,6 @@ public class Utils {
      */
     public static <E> List<E> chooseRandomNfromThisList(int numberToChoose, List<E> list) {
         return chooseRandomNfromThisList(numberToChoose, list, false);
-    }
-    
-    /**
-     * Randomly (uniformly) choose an item from this list.  If list=null or is empty, return null;
-     */
-    public static <E> E chooseRandomFromThisCollection(List<E> list) {
-    	if (list == null) { return null; }
-    	int size = list.size();
-    	if (size == 0) { return null; }
-    	return list.get(random0toNminus1(size));
-    }
-    
-    /**
-     * Randomly (uniformly) choose an item from this collection.  If collection=null or is empty, return null;
-     */
-    public static <E> E chooseRandomFromThisCollection(Collection<E> collection) {
-    	if (collection == null) { return null; }
-    	int size = collection.size();
-    	if (size == 0) { return null; }
-    	return getIthItemInCollectionUnsafe(collection, random0toNminus1(size));
     }
 
     /**
@@ -1065,7 +947,7 @@ public class Utils {
         if (list == null || numberToChoose < 0) { return null; }
         int length = list.size();
 
-        if (numberToChoose >= length) { return list; } // TODO make a copy in this case?
+        if (numberToChoose >= length) { return list; }
 
         List<E> result = new ArrayList<>(numberToChoose);
         if (numberToChoose == 0) {  return result; }
@@ -1092,20 +974,6 @@ public class Utils {
         }
         return result;
     }
-    
-    /** Randomly remove (in place) this many items from this collection.
-     *  This can be slow, since it can take linear time to find each item.
-     */
-    public static <E> void randomlyRemoveThisManyItems(Collection<E> collection, int numberToRemove) {
-    	if (numberToRemove < 1) { return; }
-    	int counter = collection.size();
-    	for (int i = 0; i < numberToRemove; i++) {
-            int itemOrdinalNumberToDiscard = random0toNminus1(counter);
-            E item = getIthItemInCollectionUnsafe(collection, itemOrdinalNumberToDiscard);
-            if (!collection.remove(item)) { error("Could not find item='" + item + "', which is item#" + itemOrdinalNumberToDiscard); }
-            counter--;
-    	}
-    }
 
     /**
      * @param d A number (double).
@@ -1125,7 +993,7 @@ public class Utils {
      *         tolerance.
      * @see #EQUIVALENCE_TOLERANCE
      */
-    public static boolean diffDoubles(double a, double b, double tolerance, double toleranceSmallNumbers) {
+    private static boolean diffDoubles(double a, double b, double tolerance, double toleranceSmallNumbers) {
     	double  diff        = Math.abs(a - b);
         boolean firstResult = diff > tolerance;
         if (firstResult) { return true; }
@@ -1139,11 +1007,6 @@ public class Utils {
     	return diffDoubles(a, b, EQUIVALENCE_TOLERANCE, EQUIVALENCE_TOLERANCE_SMALL_NUMBERS);
     }
 
-    public static String truncPad(double d, int decimals, int width) {
-    	String spec = "%" + width + "s";
-    	return String.format(spec, truncate(d, decimals));
-    }
-    
     /**
      * Formats the given floating point number by truncating it to one decimal
      * place.
@@ -1175,9 +1038,6 @@ public class Utils {
     	}
         return     String.format("%,." +  decimals      + "f", d);
     }
-    public static String truncateNoSciNotation(double d, int decimals) {
-        return String.format("%." + decimals + "f", d);
-    }
 
     /**
      * Truncates a double and returns it as a string with at least one and at
@@ -1194,7 +1054,6 @@ public class Utils {
      * @param addSpaceBeforePosNumbers Whether to add space before positive numbers (so they are in alignment with the '-' sign before negative numbers).
      * @return A string containing the number formatted as described above.
      */
-    // TODO convert to standard Java number formatting
     public static String truncate(double d, int decimals, boolean addSpaceBeforePosNumbers) { // This should always produce at least one decimal (by official documentation some years ago).
         String str = String.format("$,d", d);
         int index = str.indexOf(".");
@@ -1330,7 +1189,6 @@ public class Utils {
     
     // This is specific to MLNs.  Determine the weight that a single MLN clause should have it it is to produce this probability.
 	public static double getLogWeightForProb(double prob) {
-		// TODO  make it a constant?
 		double maxClauseWeight = Sentence.maxWeight;
 		if (prob == 0) {
 			return -maxClauseWeight;
@@ -1353,7 +1211,6 @@ public class Utils {
      * @param finalEOLchars A string appended to the end of each line, but before the newline.
      * @param headerStringToPrint A description for the beginning of the file.
      */
-    // TODO replace with something standard like Java serialization or XStream
     public static void writeObjectsToFile(String fileName, Collection<?> objects,
             							  String finalEOLchars, String headerStringToPrint) { // If object is a number, need an extra space so the period doesn't look like a decimal point.
         try {
@@ -1372,7 +1229,6 @@ public class Utils {
             stream.close();
         } catch (FileNotFoundException e) {
         	reportStackTrace(e);
-            // TODO replace this error with an exception
             error("Unable to successfully open this file for writing: " + fileName + ".  Error message: " + e.getMessage());
         }
         
@@ -1543,9 +1399,9 @@ public class Utils {
         double max = Double.NEGATIVE_INFINITY;
 
         if ( values != null ) {
-            for (int i = 0; i < values.length; i++) {
-                if (values[i] > max) {
-                    max = values[i];
+            for (double value : values) {
+                if (value > max) {
+                    max = value;
                 }
             }
         }
@@ -1566,9 +1422,8 @@ public class Utils {
         T max = null;
 
         if ( objects != null ) {
-            for (int i = 0; i < objects.length; i++) {
-                T object = objects[i];
-                if ( object != null && (max == null || comparator.compare(object, max) > 0)) {
+            for (T object : objects) {
+                if (object != null && (max == null || comparator.compare(object, max) > 0)) {
                     max = object;
                 }
             }
@@ -1716,7 +1571,7 @@ public class Utils {
 
         return sb == null ? string : sb.toString();
     }
-    public static String cleanString(String str, HandleFOPCstrings stringHandler) {
+    private static String cleanString(String str, HandleFOPCstrings stringHandler) {
     	return cleanString(str, stringHandler, false);
     }
 	public static String cleanString(String str, HandleFOPCstrings stringHandler, boolean hadQuotesOriginally) { // TODO - do a better job when there is a leading '-' (ie, it might not be a minus sign).
@@ -1769,39 +1624,7 @@ public class Utils {
         return stringHandler.getStringConstant(result).getName();
 	}
 
-	public static String createSafeStringVariableForWILL(String stringUntrimmed, HandleFOPCstrings stringHandler) {
-		if (stringUntrimmed == null) { return null; }
-		
-		String string = stringUntrimmed.trim();
-		if (stringHandler.doVariablesStartWithQuestionMarks()) {
-			if (string.charAt(0) == '?') {
-                // Pull out the first character, standardize, then add back in the '?'.
-				return "?" + cleanString(string.substring(1), stringHandler);
-			}
-            // Even if starts with '_' add this, since an underscore-led variable has special semantics.
-			return "?" + cleanString(string, stringHandler);
-		}
-
-		String result = cleanString(string, stringHandler);
-		boolean useUpperCase = stringHandler.usingPrologNotation();
-		if (!Character.isLetter(result.charAt(0))) {
-		    result = "c" + result;
-		}
-		if (!useUpperCase && Character.isLowerCase(result.charAt(0))) {
-		    return result;
-		} else if ( useUpperCase && Character.isUpperCase(result.charAt(0))) {
-		    return result;
-		}
-		else {
-		    result = changeCaseFirstChar(result);
-		}
-
-        // Make these canonical.
-        // TODO(?): allow an override?
-        return stringHandler.getExternalVariable(result).getName();
-	}
-	
-	public static String getUserHomeDir() {
+    private static String getUserHomeDir() {
 	   return System.getProperty("user.home");
 	}
 
@@ -1866,24 +1689,7 @@ public class Utils {
 		return ((new CondorFile(fileName)).exists());
 	}
 
-    public static void copyFile(String f1raw, String f2raw) {
-    	String f1 = replaceWildCards(f1raw);
-    	String f2 = replaceWildCards(f2raw);
-    	if (f1.equals(f2)) { return; }
-    	ensureDirExists(f1);
-    	ensureDirExists(f2);
-    	if (fileExists(f1)) {
-    		copyFile(new CondorFile(f1), new CondorFile(f2));
-    	} else if (fileExists(f1 + ".gz")) {
-    		if (f2raw.endsWith(".gz")) {
-    			copyCompressedFile(f1, f2); 
-    		} else {
-    			copyCompressedFile(f1, f2 + ".gz"); 
-    		}
-    	}
-    }
-
-    /** 
+    /**
      * Copy content of file f1 into file f2
      */
     // Found at: http://www.computer-faqs.com/2009/01/30/how-to-copy-text-file-in-java/
@@ -1935,7 +1741,7 @@ public class Utils {
                 if (writer != null) {
                     try {
                         writer.close();
-                    } catch (IOException ex) {
+                    } catch (IOException ignored) {
                     }
                 }
 
@@ -1959,7 +1765,7 @@ public class Utils {
             println(           "Lock file " + lockFile + " already exists.  Waiting " + convertMillisecondsToTimeSpan(waitToUse) + " to obtain lock.");
         	try {
                 Thread.sleep(waitToUse);
-            } catch (InterruptedException ex) {
+            } catch (InterruptedException ignored) {
             }
             wait = Math.min(55 + random1toN(11), Math.max(1, 2 * wait)); // Never wait more than 60 seconds, but add some randomness in case two waits are in synch.
         }
@@ -2047,8 +1853,7 @@ public class Utils {
     public static boolean delete(File file) { // Also see deleteDirectory [I think I (JWS) wrote deleteDirectory and Trevor wrote this one.]
         if (file.isDirectory()) {
             File[] files = file.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                File file1 = files[i];
+            for (File file1 : files) {
                 if (!delete(file1)) {
                     return false;
                 }
@@ -2165,77 +1970,6 @@ public class Utils {
 		}
 	}
 
-    /** Creates all combinations of the elements of the groups.
-     *
-     * Each generated combination contains at most a single element
-     * for any give group (and may contain no elements for the group).
-     * The null set is not generated.
-     *
-     * This is not the cross product, but is similar to the power
-     * set with the addition that only one element of any sublist
-     * can be added to any subset in the result.
-     *
-     * Example:
-     *
-     * Input = {  { a, b } , { 1, 2 } }
-     * where {a,b} is the first group and {1,2} is the second group,
-     * the returned output would be:
-     * { a }, { a, 1 }, { a, 2 },
-     * { b }, { b, 1 }, { b, 2 },
-     * { 1 }, { 2 }.
-     *
-     */
-    public static <T> List<List<T>> getCombinations(List<List<T>> groups) {
-        List<List<T>> results = new ArrayList<>();
-
-        if (groups != null && groups.size() > 0) {
-
-            int groupCount = groups.size();
-
-            int[] currentIndicies = new int[groupCount];
-
-            boolean done = false;
-
-            while (!done) {
-                // Create the current conjunction...
-                List<T> conjunction = new ArrayList<T>();
-                for (int groupIndex = 0; groupIndex < groupCount; groupIndex++) {
-                    int elementIndex = currentIndicies[groupIndex];
-                    List<T> group = groups.get(groupIndex);
-                    if (elementIndex < group.size()) {
-                        conjunction.add(group.get(elementIndex));
-                    }
-                }
-
-                // Add it to results...
-                if (conjunction.size() > 0) {
-                    results.add(conjunction);
-                }
-
-                // Increment the indicies, rolling them over when
-                // they reach their max's.  Stop when all indicies
-                // all indicies have rolled over once.
-                for (int groupIndex = 0; groupIndex < groupCount; groupIndex++) {
-                    List<T> group = groups.get(groupIndex);
-                    if (currentIndicies[groupIndex] < group.size()) {
-                        currentIndicies[groupIndex]++;
-                        break;
-                    }
-                    else {
-                        if (groupIndex == groupCount - 1) {
-                            done = true;
-                        }
-                        else {
-                            currentIndicies[groupIndex] = 0;
-                        }
-                    }
-                }
-            }
-        }
-
-        return results;
-    }
-
     public static <T> String toString(Collection<T> collection, String divider) {
         StringBuilder sb = new StringBuilder();
 
@@ -2294,13 +2028,12 @@ public class Utils {
      * Make sure that the string is not surrounded by quotes otherwise
      * we cant tell if """,""" is a list of " and "[ie {","}] or a list of two empty strings[ie {"", ""}] surrounded by quotes.
      * @param input Input string
-     * @param removeAllQuotes Whether we should remove all quotes
      * @return list of strings from the list
      */
-    private static List<String> parseListOfStrings(String input, boolean removeAllQuotes) {
+    public static List<String> parseListOfStrings(String input) {
     	String[] items = input.split(",");
     	    	
-    	List<String> result = new ArrayList<String>();
+    	List<String> result = new ArrayList<>();
     	for (String item : items) {
 			result.add(item.trim());
 		}
@@ -2324,33 +2057,23 @@ public class Utils {
     	result.set(0, firstItem);
     	result.set(result.size()-1, lastItem);
 
-    	// Remove quotes
-    	if (removeAllQuotes) {
-    		for (int i = 0; i < result.size(); i++) {
-				String item = result.get(i);
-				if (item.startsWith("\"") && item.endsWith("\"")) {
-					item = item.substring(1, item.length()-1);
-					// Dont trim here, as the quotes would be used to prevent removing whitespace
-					result.set(i, item);
-				}
+        // Remove quotes
+        for (int i = 0; i < result.size(); i++) {
+            String item = result.get(i);
+            if (item.startsWith("\"") && item.endsWith("\"")) {
+                item = item.substring(1, item.length()-1);
+                // Dont trim here, as the quotes would be used to prevent removing whitespace
+                result.set(i, item);
+            }
 
-			}
-    	}
-    	return result;
-    }
-
-    public static List<String> parseListOfStrings(String input) {
-    	return parseListOfStrings(input, true);
+        }
+        return result;
     }
 
 	public static String removeAnyOuterQuotes(String str) {
 		if (str == null || !str.startsWith("\"")) { return str; }
 		return str.substring(1, str.length() - 1);
 	}
-
-    public static void addFilteredMessageType(Set<MessageType> types) {
-        filteredMessageTypes.addAll(types);
-    }
 
     public static boolean isMessageTypeEnabled(MessageType type) {
         return !filteredMessageTypes.contains(type);
@@ -2374,27 +2097,27 @@ public class Utils {
 		return null;
 	}
 
-	public static boolean compressFile(String fileNameRaw) {
+	public static void compressFile(String fileNameRaw) {
 		int minSizeToCompressInK = 1000;
-		return compressFile(fileNameRaw, minSizeToCompressInK);
+        compressFile(fileNameRaw, minSizeToCompressInK);
     }
 
-	private static boolean compressFile(String fileNameRaw, int toUse_minSizeToCompressInK) {
-		if (fileNameRaw == null) { return false; }
+	private static void compressFile(String fileNameRaw, int toUse_minSizeToCompressInK) {
+		if (fileNameRaw == null) { return; }
 		String fileName = replaceWildCardsAndCheckForExistingGZip(fileNameRaw);
 		if (fileNameRaw.endsWith(".gz")) { 
 			println("%    No need to compress since already in 'gz' format: " + fileName); 
-			return false; 
+			return;
 		}
 		
 		File    f = new CondorFile(fileName);
 		long size = f.length() / 1000; // The units of File.length() are BYTES.
 		if (size < toUse_minSizeToCompressInK) {
 			println("%    No need to compress since small: " + fileName);
-			return false;
+			return;
 		}
-		return copyAndGzip(fileName, fileName, true);
-	}
+        copyAndGzip(fileName, fileName, true);
+    }
 	
 	private static void copyCompressedFile(String fileName1, String fileName2) {
 		String renamed1 = replaceWildCards(fileName1);
@@ -2416,11 +2139,10 @@ public class Utils {
 		try {
 			String  renamed1   = replaceWildCards(fileName1);
 			String  renamed2   = replaceWildCards(fileName2);
-			boolean compressed = false;
+			boolean compressed;
 
             // See if a compressed version exists if the regular version doesn't.
 			if (!Utils.fileExists(renamed1) && Utils.fileExists(renamed1 + ".gz")) {
-                // TODO(?): check if BOTH exist and use the newer file.  (Make a utility function to do this check since it is also made elsewhere.)
 				copyCompressedFile(renamed1, renamed2);
 				compressed = true;
 			} else {
@@ -2474,13 +2196,6 @@ public class Utils {
         return stringBuilder.toString();
     }
 
-    public static boolean writeToGzippedFileIfLarge(String fileNameRaw, String stringToWrite) throws IOException {
-    	if (stringToWrite.length() >= 100000) { return writeToGzippedFile(fileNameRaw, stringToWrite); }
-    	else {
-    		writeStringToFile(stringToWrite, new CondorFile(fileNameRaw));
-    		return true;
-    	}
-    }
     private static boolean writeToGzippedFile(String fileNameRaw, String stringToWrite) throws IOException {
 		String       fileName = replaceWildCards(fileNameRaw);   
 		ensureDirExists(fileName);

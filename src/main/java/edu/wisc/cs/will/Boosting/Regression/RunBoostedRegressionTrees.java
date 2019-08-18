@@ -40,7 +40,7 @@ public class RunBoostedRegressionTrees extends RunBoostedModels {
 			ConditionalModelPerPredicate model = new ConditionalModelPerPredicate(setup);
 
 			SRLInference sampler = new RegressionTreeInference(model, setup);
-			learner.learnNextModel(this, sampler, model, cmdArgs.getMaxTreesVal());
+			learner.learnNextModel(sampler, model, cmdArgs.getMaxTreesVal());
 			model.saveModel(saveModelName);
 			// Do a final save since learnModel doesn't save every time (though we should make it do so at the end).
 			// No need for checkpoint file anymore

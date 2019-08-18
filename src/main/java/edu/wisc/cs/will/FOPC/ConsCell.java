@@ -4,17 +4,10 @@
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
 
 import edu.wisc.cs.will.Utils.Utils;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
 
 /**
  * @author shavlik
@@ -394,7 +387,7 @@ public class ConsCell extends Function implements Iterable<Term> {
 
             Term rest = aCell.getArgument(1);
 
-            if (rest instanceof ConsCell == false) {
+            if (!(rest instanceof ConsCell)) {
                 break;
             }
 
@@ -409,7 +402,7 @@ public class ConsCell extends Function implements Iterable<Term> {
     @Override
     public BindingList variants(Term other, BindingList bindings) {
 
-        if (other instanceof ConsCell == false ) {
+        if (!(other instanceof ConsCell)) {
             return null;
         }
         else {
@@ -500,7 +493,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         if (this == object) {
             return true;
         }
-        if (object instanceof ConsCell == false) {
+        if (!(object instanceof ConsCell)) {
             return false;
         }
         ConsCell that = (ConsCell) object;
@@ -546,7 +539,7 @@ public class ConsCell extends Function implements Iterable<Term> {
                     thatTerm = thatCell.cdr();
                 }
 
-                if (thisCar != thatCar && (thisCar == null || thisCar.equals(thatCar) == false)) {
+                if (!Objects.equals(thisCar, thatCar)) {
                     // The Car's aren't the same, so return false;
                     return false;
                 }
@@ -684,6 +677,7 @@ public class ConsCell extends Function implements Iterable<Term> {
 
         while (true) {
             answer = stringHandler.getConsCell(first, answer, null);
+            assert rest != null;
             if (rest.numberArgs() == 0) {
                 return answer;
             }
@@ -705,14 +699,14 @@ public class ConsCell extends Function implements Iterable<Term> {
         return a.append(b);
     }
 
-    public static ConsCell union(ConsCell a, ConsCell b) {
+    static ConsCell union(ConsCell a, ConsCell b) {
         if (a.length() <= b.length()) { // Walk through the smaller set.
             return a.union(b);
         }
         return b.union(a);
     }
 
-    public static ConsCell intersection(ConsCell a, ConsCell b) {
+    static ConsCell intersection(ConsCell a, ConsCell b) {
         if (a.length() <= b.length()) { // Walk through the smaller set.
             return a.intersection(b);
         }
@@ -726,7 +720,7 @@ public class ConsCell extends Function implements Iterable<Term> {
             return other;
         }
         if (isaConsCell(getArgument(1))) {
-            return stringHandler.getConsCell(getArgument(0), ensureIsaConsCell(stringHandler, getArgument(1)).append(other), null);
+            return stringHandler.getConsCell(getArgument(0), Objects.requireNonNull(ensureIsaConsCell(stringHandler, getArgument(1))).append(other), null);
         }
         Utils.error("Can't yet handle 'dotted-pair' type of lists.");
         return null;
@@ -737,16 +731,16 @@ public class ConsCell extends Function implements Iterable<Term> {
         return visitor.visitConsCell(this, data);
     }
 
-    public ConsCell intersection(ConsCell other) {
+    ConsCell intersection(ConsCell other) {
         if (this == other) {
             return this;
         }
-        if (this == null || other == null) {
+        if (other == null) {
             return null;
         }
 
         // Collect the items in THIS that are in OTHER.
-        List<Term> result = new ArrayList<Term>(1); // Assume no duplicates in 'this'.
+        List<Term> result = new ArrayList<>(1); // Assume no duplicates in 'this'.
         if (this.numberArgs() == 0) {
             return convertListToConsCell(stringHandler, result, typeSpec);
         }
@@ -757,6 +751,7 @@ public class ConsCell extends Function implements Iterable<Term> {
             if (other.memberViaEquals(first)) {
                 result.add(first);
             }
+            assert rest != null;
             if (rest.numberArgs() < 1) {
                 continueWhile = false;
             } else {
@@ -767,22 +762,23 @@ public class ConsCell extends Function implements Iterable<Term> {
         return convertListToConsCell(stringHandler, result, typeSpec); // Just use the original typeSpec (TODO - what if OTHER doesn't match?).
     }
 
-    public ConsCell union(ConsCell other) { // NOTE: since a Set is used, the order of the result is arbitrary.
+    ConsCell union(ConsCell other) { // NOTE: since a Set is used, the order of the result is arbitrary.
         if (this == other) {
             return this;
         }
-        if (this == null || other == null) {
+        if (other == null) {
             return null;
         }
 
         // Collect the items in THIS that are in OTHER.
-        Set<Term> result = new HashSet<Term>(4);
+        Set<Term> result = new HashSet<>(4);
         Term      first  = getArgument(0);
         ConsCell  rest   = ensureIsaConsCell(stringHandler, getArgument(1));
         result.addAll(other.convertConsCellToList()); // Collect everything in other.
         boolean continueWhile = true;
         while (continueWhile) {
             result.add(first);
+            assert rest != null;
             if (rest.numberArgs() < 1) {
                 continueWhile = false;
             } else {
@@ -790,53 +786,9 @@ public class ConsCell extends Function implements Iterable<Term> {
                 rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
             }
         }
-        List<Term> resultAsList = new ArrayList<Term>(result.size());
+        List<Term> resultAsList = new ArrayList<>(result.size());
         resultAsList.addAll(resultAsList);
         return convertListToConsCell(stringHandler, resultAsList, typeSpec); // Just use the original typeSpec (TODO - what if OTHER doesn't match?).
-    }
-
-
-    public Boolean listsEquivalent(ConsCell other) {
-        if (this == other) {
-            return true;
-        }
-        if (this == null || other == null) {
-            return false;
-        }
-
-        // First see if every item in THIS is in OTHER.
-        Term first = getArgument(0);
-        ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1));
-        boolean continueWhile = true;
-        while (continueWhile) {
-            if (!other.memberViaEquals(first)) {
-                return false;
-            } // Found a member of this list that is not in the other list.
-            if (rest.numberArgs() < 1) {
-                continueWhile = false;
-            }
-            else {
-                first = rest.getArgument(0);
-                rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-            }
-        }
-        // Now see if every item in OTHER is in THIS.
-        first = other.getArgument(0);
-        rest = ensureIsaConsCell(stringHandler, other.getArgument(1));
-        continueWhile = true;
-        while (continueWhile) {
-            if (!memberViaEquals(first)) {
-                return false;
-            } // Found a member of the other list that is not in this list.
-            if (rest.numberArgs() < 1) {
-                continueWhile = false;
-            }
-            else {
-                first = rest.getArgument(0);
-                rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-            }
-        }
-        return true;
     }
 
     // Cache this calculation to save time.
@@ -849,7 +801,7 @@ public class ConsCell extends Function implements Iterable<Term> {
             // exception of the Nil ConsCell.  However, we
             // haven't been consistent so we need to do the
             // safety checks here...
-            while (aCell != null && aCell.getArity() != 0) {
+            while (aCell.getArity() != 0) {
 
                 if (aCell.cachedVariableCount >= 0) {
                     // We ran into a cell that already has a
@@ -870,7 +822,7 @@ public class ConsCell extends Function implements Iterable<Term> {
 
                 Term rest = aCell.getArgument(1);
 
-                if (rest instanceof ConsCell == false) {
+                if (!(rest instanceof ConsCell)) {
                     // rest should be a Variable here, but
                     // who knows.
                     aCell = null;
@@ -914,7 +866,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         ConsCell result = this;
         ConsCell tail = null;
 
-        if (aCell.isNil() == false && aCell.getArity() > 0) {
+        if (!aCell.isNil() && aCell.getArity() > 0) {
             Term currentPosition = aCell;
 
             while (currentPosition != null) {
@@ -952,13 +904,11 @@ public class ConsCell extends Function implements Iterable<Term> {
                     // to a non-variable && non-consCell then we just built a bad
                     // list.
                     Term newTerm = currentPosition.applyTheta(theta);
-                    if (tail != null) {
-                        // We are extending the tail, so set the cdr of tail.
-                        // If tail is null here...hmm...that shouldn't happen
-                        // since we had a consCell coming in so the first iteration
-                        // of the while loop had to create a tail.
-                        tail.setCdr(newTerm);
-                    }
+                    // We are extending the tail, so set the cdr of tail.
+                    // If tail is null here...hmm...that shouldn't happen
+                    // since we had a consCell coming in so the first iteration
+                    // of the while loop had to create a tail.
+                    tail.setCdr(newTerm);
 
                     // Now just drop out of the loop by setting currentPosition to null;
                     currentPosition = null;
@@ -970,7 +920,7 @@ public class ConsCell extends Function implements Iterable<Term> {
     }
 
     // Play it safe and make sure any Functions that are really ConsCells are so represented.
-    public static ConsCell ensureIsaConsCell(HandleFOPCstrings stringHandler, Term expression) {
+    static ConsCell ensureIsaConsCell(HandleFOPCstrings stringHandler, Term expression) {
         if (expression instanceof ConsCell) {
             return (ConsCell) expression;
         }
@@ -986,25 +936,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         return null;
     }
 
-    // No need to make this iterative.  If too long, don't really want to print it anyway.
-//    @Override
-//	public String toString(int precedenceOfCaller) {
-//
-//		if (numberArgs() == 0) { return "[]"; } // Could make this a constant, but probably not worth it.
-//		String result = "[" + getArgument(0).toString(precedenceOfCaller);
-//
-//		Term arg1 = getArgument(1);
-//
-//		// Be robust to ConsCell;s masguarading (sp?) as Function's.
-//		boolean arg2isNil = (isaConsCell(arg1) && ((Function) arg1).numberArgs() == 0);
-//		if (arg2isNil) { return result + "]"; }
-//		if (checkIfReallyIsaConsCell(getArgument(1))) {
-//			String rest = getArgument(1).toString(precedenceOfCaller);
-//			return result + ", " + rest.substring(1); // Drop the leading '[' from the recursive call.
-//		}
-//		return result + " | " + getArgument(1).toString(precedenceOfCaller) + "]";
-//	}
-//
     @Override
     public String toString(int precedenceOfCaller, BindingList bindingList) {
 
@@ -1032,7 +963,7 @@ public class ConsCell extends Function implements Iterable<Term> {
                 ConsCell consCell = (ConsCell) term;
                 Term car = consCell.car();
 
-                if ( first == false ) {
+                if (!first) {
                     sb.append(", "); counter++; if (counter % 10 == 0) { sb.append("\n               "); } // Added by JWS to allow easier reading of lists, though note this is buggy if the printing started more than 15 chars in ...
                 }
                 sb.append(car.toString(precedenceOfCaller, bindingList));
@@ -1041,7 +972,7 @@ public class ConsCell extends Function implements Iterable<Term> {
                 term = consCell.cdr();
             }
             else {
-                if ( first == false ) {
+                if (!first) {
                     sb.append("| ");
                 }
                 sb.append(term.toString(precedenceOfCaller, bindingList));
@@ -1094,7 +1025,7 @@ public class ConsCell extends Function implements Iterable<Term> {
 
         Term next = null;
 
-        public ConsCellIterator(ConsCell consCell) {
+        ConsCellIterator(ConsCell consCell) {
             this.currentPosition = consCell;
         }
 

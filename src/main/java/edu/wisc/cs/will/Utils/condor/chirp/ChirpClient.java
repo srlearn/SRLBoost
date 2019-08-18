@@ -1,6 +1,3 @@
-// TODO(@hayesall): There are three variables that are "never" used, but they seem to be used in other files.
-//		This will take a bit more time to refactor.
-
 package edu.wisc.cs.will.Utils.condor.chirp;
 
 import java.io.FileNotFoundException;
@@ -42,16 +39,6 @@ public class ChirpClient {
 		cookie(config.getCookie());
 	}
 
-	/**
-	 * Connect to a given Chirp server. The caller must pass a cookie before using any other methods.
-	 * Condor users should use the no-argument constructor instead.
-	 * @param host The server host.
-	 * @param port The server port.
-	 */
-	ChirpClient(String host, int port) throws IOException {
-		connect(host,port);
-	}
-
 	private void connect( String host, int port ) throws IOException {
 		Socket socket = new Socket(host, port);
 		output = socket.getOutputStream();
@@ -89,7 +76,7 @@ public class ChirpClient {
 	 * Same as the three-argument `open`, but the server selects a default initial UNIX mode.
 	 */
 	public int open(String path, String flags) throws IOException {
-		return open(path, flags,0777);
+		return open(path, flags, 511);
 	}
 
 	/**
@@ -154,15 +141,6 @@ public class ChirpClient {
 		return returnOrThrow(response);
 	}
 
-	/** Seek from the beginning of a file. */
-	public static final int SEEK_SET=0;
-
-	/** Seek from the current position. */
-	public static final int SEEK_CUR=1;
-
-	/** Seek from the end of a file. */
-	public static final int SEEK_END=2;
-
 	/**
 	 * Delete a file.
 	 * @param name The name of the file.
@@ -183,18 +161,9 @@ public class ChirpClient {
 	/**
 	 * Create a directory.
 	 * @param name The directory name.
-	 * @param mode The initial UNIX access mode.
 	 */
-	private void mkdir(String name, int mode) throws IOException {
-		simple_command("mkdir " + ChirpWord(name) + " " + mode + "\n");
-	}
-
-	/**
-	 * Create a directory. The server selects default initial permissions for the directory.
-	 * @param name The directory name.
-	 */
-	public void mkdir( String name ) throws IOException {
-		mkdir(name,0777);
+	public void mkdir(String name) throws IOException {
+		simple_command("mkdir " + ChirpWord(name) + " " + 511 + "\n");
 	}
 
 	public int version() throws IOException {
@@ -212,10 +181,6 @@ public class ChirpClient {
 		}
 		returnOrThrow(response);
 		return url;
-	}
-
-	public void constrain( String expr ) throws IOException {
-		simple_command("constrain "+" "+ChirpWord(expr)+"\n");
 	}
 
 	private int simple_command(String cmd) throws IOException {

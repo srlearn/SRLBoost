@@ -1234,7 +1234,7 @@ public class LearnOneClause extends StateBasedSearchTask {
                 double fractOrTotalToUse = (fractionOfImplicitNegExamplesToKeep < 1.1 ? fractionOfImplicitNegExamplesToKeep : Math.max(negsStillNeeded, fractionOfImplicitNegExamplesToKeep));
 
                 // Always save the synthetic negatives, at least for now.
-                   setNegExamples(CreateSyntheticExamples.createImplicitNegExamples(worldStatesContainingNoPositiveExamples, true, "from a world-state containing no known positive examples", true || createCacheFiles, stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), negExamplesReader, fractOrTotalToUse, factPredicateNames)); // TODO use a variable to set the maximum.
+                   setNegExamples(CreateSyntheticExamples.createImplicitNegExamples(worldStatesContainingNoPositiveExamples, true, "from a world-state containing no known positive examples", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames)); // TODO use a variable to set the maximum.
                 if (debugLevel > 0) { Utils.println("% Now have |negExamples| = " + Utils.comma(getNegExamples()) + ", of which " + Utils.comma(Utils.getSizeSafely(getNegExamples()) - oldNegCount) + " were created from world states containing no positive examples."); }
             }
             // See if we still need to create any random examples.
@@ -1245,7 +1245,7 @@ public class LearnOneClause extends StateBasedSearchTask {
                 double fractOrTotalToUse = (fractionOfImplicitNegExamplesToKeep < 1.1 ? fractionOfImplicitNegExamplesToKeep : Math.max(negsStillNeeded, fractionOfImplicitNegExamplesToKeep));
 
                 // Always save the synthetic negatives, at least for now.
-                   List<Example> negativeExamples = CreateSyntheticExamples.createImplicitNegExamples(null, usingWorldStates, "a randomly generated negative example", true || createCacheFiles, stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), negExamplesReader, fractOrTotalToUse, factPredicateNames);  // Need to have set targetModes and create all the the above instances before calling this.
+                   List<Example> negativeExamples = CreateSyntheticExamples.createImplicitNegExamples(null, usingWorldStates, "a randomly generated negative example", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames);  // Need to have set targetModes and create all the the above instances before calling this.
                    setNegExamples(negativeExamples);
 
                    if (debugLevel > 0) { Utils.println("% Now have |negExamples| = " + Utils.getSizeSafely(getNegExamples()) + ", of which " + Utils.comma(Utils.getSizeSafely(getNegExamples()) - oldNegCount) + " were created randomly."); }

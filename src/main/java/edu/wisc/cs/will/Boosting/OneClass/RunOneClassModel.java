@@ -36,10 +36,8 @@ public class RunOneClassModel extends RunBoostedModels {
 			}
 			minTreesInModel = Math.min(fullModel.get(pred).getNumTrees(), minTreesInModel);
 		}
-	
-	
-		int iterStepSize = 1;
-		iterStepSize = cmdArgs.getMaxTreesVal();
+
+		int iterStepSize = cmdArgs.getMaxTreesVal();
 
 		if (cmdArgs.getRdnIterationStep() != -1) {
 			iterStepSize  = cmdArgs.getRdnIterationStep();
@@ -73,7 +71,7 @@ public class RunOneClassModel extends RunBoostedModels {
 
 		Utils.println("\n% Getting occ's target predicates.");
 		for (String pred : cmdArgs.getTargetPredVal()) {
-			PropositionalizationModel propModel = null;
+			PropositionalizationModel propModel;
 			if (fullModel.containsKey(pred)) {
 				propModel = fullModel.get(pred);
 				propModel.reparseModel(setup);

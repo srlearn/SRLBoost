@@ -135,7 +135,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 				int currIterStep =  (i+iterStepSize) - fullModel.get(pred).getNumTrees();
 				newModel=true;
 				Utils.println("% Learning " + currIterStep + " trees in this iteration for " + pred);
-				learners.get(pred).learnNextModel(this, sampler, fullModel.get(pred), currIterStep); 
+				learners.get(pred).learnNextModel(sampler, fullModel.get(pred), currIterStep);
 			}
 		}
 

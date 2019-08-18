@@ -219,14 +219,7 @@ public final class WILLSetup {
 
 		} else {
 			// If no targets (say because only testing and there are no positive examples), then simply accept all the examples.
-			for (Example pos : posExamples) {
-				// If not in the list of targets, we would add to facts
-				if (cmdArgs.getTargetPredVal().contains(pos.predicateName.name)) {
-					posExamples.add(pos);
-				} else {
-					addFact(pos);
-				}
-			}
+			// If not in the list of targets, we would add to facts
 
 			for (Example neg : negExamplesRaw) {
 				// If not in the list of targets, we would add to facts
@@ -377,7 +370,6 @@ public final class WILLSetup {
 			try {
 				outputFactsAndExamples(directory  + "/" + cmdArgs.getOutputAlchDBFile());
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				Utils.waitHere(e.getMessage());
 			}
@@ -387,7 +379,6 @@ public final class WILLSetup {
 			try {
 				outputHiddenLiterals(hiddenLitFile);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				Utils.waitHere(e.getMessage());
 			}
@@ -750,6 +741,7 @@ public final class WILLSetup {
 									getHandler(), getProver(), getInnerLooper().getTargets().get(i),getInnerLooper().getTargetArgSpecs().get(i),
 									getInnerLooper().getExamplePredicateSignatures().get(i), null,
 								new ArrayList<>(backupPosExamples.get(predName)), null, null);
+						assert negEgs != null;
 						for (Example negEx : negEgs) {
 							getInnerLooper().confirmExample(negEx);
 						}
@@ -945,6 +937,7 @@ public final class WILLSetup {
 			Utils.error("No specs for " + pName);
 		}
 		// Just take the first spec to get the number of arguments.
+		assert specs != null;
 		int numArgs = specs.get(0).getArity();
 		List<Term> args = new ArrayList<>();
 		for (int i = 0; i < numArgs; i++) {
@@ -1282,7 +1275,7 @@ public final class WILLSetup {
 		return cl;
 	}
 
-	public void setOuterLooper(ILPouterLoop outerLooper) {
+	private void setOuterLooper(ILPouterLoop outerLooper) {
 		this.outerLooper = outerLooper;
 		this.innerLooper = outerLooper.innerLoopTask;
 		this.handler     = outerLooper.innerLoopTask.getStringHandler();
@@ -1320,7 +1313,7 @@ public final class WILLSetup {
 	}
 	
 	// Pulled out by JWS (7/8/10) so could be called elsewhere for a plain regression-tree learning.
-	private void createRegressionOuterLooper(String[] newArgList, String directory, String prefix, double negToPosRatio, boolean isaRegressionTaskRightAway) throws SearchInterrupted {
+	private void createRegressionOuterLooper(String[] newArgList, String directory, String prefix, double negToPosRatio, boolean isaRegressionTaskRightAway) {
 
 		try {
 			SearchStrategy         strategy = new BestFirstSearch();
@@ -1335,7 +1328,7 @@ public final class WILLSetup {
 			LazyGroundClauseIndex.setMaximumIndexSize(           100);
 					
 			HandleFOPCstrings stringHandler = new HandleFOPCstrings(true); // Let the first file read set the default.  (Are libraries read first?)
-			HornClausebase clausebase = null;
+			HornClausebase clausebase;
 			if (cmdArgs.isUsingDefaultClausebase()) {
 				clausebase = new DefaultHornClausebase(stringHandler); 
 			} else {
@@ -1353,7 +1346,7 @@ public final class WILLSetup {
 			stringHandler.dontComplainIfMoreThanOneTargetModes = true;
 			boolean                                     useRRR = false;
 			Utils.println("\n% Calling ILPouterLoop from createRegressionOuterLooper.");
-			setOuterLooper(new ILPouterLoop(directory, prefix, newArgList, strategy, scorer, new Gleaner(), context, useRRR, isaRegressionTaskRightAway));
+			setOuterLooper(new ILPouterLoop(directory, prefix, newArgList, strategy, scorer, new Gleaner(), context, false, isaRegressionTaskRightAway));
 			Utils.println("\n% The outer looper has been created.");
 		} catch (IOException e) {
 			Utils.reportStackTrace(e);

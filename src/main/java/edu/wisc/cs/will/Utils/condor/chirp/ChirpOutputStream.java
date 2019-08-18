@@ -16,25 +16,21 @@ public class ChirpOutputStream extends java.io.OutputStream {
 	private ChirpClient client;
 	private int fd;
 
-	private void init( String host, int port, String p, boolean append ) throws IOException {
-		if(host!=null) {
-			client = new ChirpClient(host,port);
-		} else {
-			client = new ChirpClient();
-		}
+	private void init(String p, boolean append) throws IOException {
+		client = new ChirpClient();
 		if(append) {
-			fd = client.open(p,"wac",0777);
+			fd = client.open(p,"wac", 511);
 		} else {
-			fd = client.open(p,"wtc",0777);
+			fd = client.open(p,"wtc", 511);
 		}
 	}
 
 	public ChirpOutputStream( String p ) throws IOException {
-		init(null,0,p,false);
+		init(p,false);
 	}
 
 	public ChirpOutputStream( String p, boolean append ) throws IOException {
-		init(null,0,p,append);
+		init(p,append);
 	}
 
 	public void write( byte [] buffer, int pos, int length ) throws IOException {

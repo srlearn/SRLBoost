@@ -1,9 +1,5 @@
-/**
- * 
- */
 package edu.wisc.cs.will.DataSetUtils;
 
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,11 +39,11 @@ public class CreateSyntheticExamples {
 			  														  List<Example>       posExamples) throws SearchInterrupted {
 		return createWorldStatesWithNoPosExamples(stringHandler, parser, prover, posExamples, null);
 	}
-	public static List<WorldState> createWorldStatesWithNoPosExamples(HandleFOPCstrings stringHandler,
-																      FileParser        parser,
-			  														  HornClauseProver  prover,
-			  														  List<Example>     posExamples,
-			  														  String            worldStateName) throws SearchInterrupted {
+	private static List<WorldState> createWorldStatesWithNoPosExamples(HandleFOPCstrings stringHandler,
+																	   FileParser parser,
+																	   HornClauseProver prover,
+																	   List<Example> posExamples,
+																	   String worldStateName) throws SearchInterrupted {
 		List<Sentence> collectorList = parser.readFOPCstream("findAll(worldState(X,Y), worldState(X,Y), All).");
 		Literal allWorldStatesQuery = (Literal) ((UniversalSentence) collectorList.get(0)).body;
 		BindingList bl = prover.proveSimpleQueryAndReturnBindings(allWorldStatesQuery);
@@ -55,7 +51,7 @@ public class CreateSyntheticExamples {
 		
 		List<Term> groundings = ((ConsCell) answers).convertConsCellToList();
 		if (groundings == null) { return null; }
-		List<WorldState> results = new ArrayList<WorldState>(groundings.size());
+		List<WorldState> results = new ArrayList<>(groundings.size());
 		for (Term worldState : groundings) {
 			List<Term> args = ((Function) worldState).getArguments();
 			Constant  world = (Constant) args.get(0);
@@ -77,20 +73,18 @@ public class CreateSyntheticExamples {
 	}
 	
 	// Note: any realNegExamples are also returned, since we might need to write all the negative examples to negExamplesFile.
-	public static List<Example> createImplicitNegExamples(List<WorldState>    worldStatesToProcess,
-												  		  boolean             usingWorldStates,
-														  String              provenanceString,
-														  Boolean             createCacheFiles, 
-														  HandleFOPCstrings   stringHandler,
-														  HornClauseProver    prover,
-														  List<Literal>       targets, 
-														  List<List<ArgSpec>> targetArgSpecs, 
-														  List<List<Term>>    targetPredicateSignatures,
-														  List<Example>       posExamples, 
-														  List<Example>       realNegExamples,
-														  Reader              negExamplesReader, 
+	public static List<Example> createImplicitNegExamples(List<WorldState> worldStatesToProcess,
+														  boolean usingWorldStates,
+														  String provenanceString,
+														  HandleFOPCstrings stringHandler,
+														  HornClauseProver prover,
+														  List<Literal> targets,
+														  List<List<ArgSpec>> targetArgSpecs,
+														  List<List<Term>> targetPredicateSignatures,
+														  List<Example> posExamples,
+														  List<Example> realNegExamples,
 														  double fractionOfImplicitNegExamplesToKeep,
-                                                          Set<PredicateNameAndArity> factPredicates) { // If > 1.1 (allow 0.1 of buffer), then we'll keep this NUMBER of generated examples.
+														  Set<PredicateNameAndArity> factPredicates) { // If > 1.1 (allow 0.1 of buffer), then we'll keep this NUMBER of generated examples.
 		
 		if (debugLevel > 0 && fractionOfImplicitNegExamplesToKeep <= 1.1) { Utils.println("% When creating synthetic examples, keeping at most this fraction of the possible negative examples: " + fractionOfImplicitNegExamplesToKeep);       }
 		if (debugLevel > 0 && fractionOfImplicitNegExamplesToKeep >  1.1 && fractionOfImplicitNegExamplesToKeep < Integer.MAX_VALUE) { Utils.println("% Keeping at most this many negative examples: " + (int) fractionOfImplicitNegExamplesToKeep); }
@@ -99,7 +93,7 @@ public class CreateSyntheticExamples {
 			int size = Utils.getSizeSafely(posExamples);
 			if (realNegExamples != null) { size += Utils.getSizeSafely(realNegExamples); }
 			
-			if (size > 0 ) { worldStatesToProcess = new ArrayList<WorldState>(size); }		
+			if (size > 0 ) { worldStatesToProcess = new ArrayList<>(size); }
 			if (posExamples != null) {
 				for (Example ex : posExamples) {
 					int  numbArgs = ex.numberArgs();
@@ -163,19 +157,19 @@ public class CreateSyntheticExamples {
 		boolean usingWorldStates = (worldStatesToProcess != null);
 		List<WorldState>  worldStatesToProcess2 = worldStatesToProcess;		
 		if (!usingWorldStates) {
-			worldStatesToProcess2 = new ArrayList<WorldState>(1);
+			worldStatesToProcess2 = new ArrayList<>(1);
 			worldStatesToProcess2.add(new WorldState(null, null)); // Create a dummy world state, so the FOR LOOP below is used once.
 		}
 			
 		if (debugLevel > 0) { Utils.println("\n% Creating some possible examples with " + numbArgs + " getArguments().  Signature = " + targetPredicateSignature + ".  Reason for each: " + provenanceString + "."); }
-		Set< Example>  resultsAsSet      = new HashSet<  Example>(4); // Use this to quickly look for duplicates.
-		List<Example>  results           = new ArrayList<Example>(4);
+		Set< Example>  resultsAsSet      = new HashSet<>(4); // Use this to quickly look for duplicates.
+		List<Example>  results           = new ArrayList<>(4);
 		Constant       dummyConstant     = stringHandler.getStringConstant("Dummy"); // Need a filler for the positions from which we don't extract.
-		Set<Term>      dummyConstantSet  = new HashSet<Term>(4);
+		Set<Term>      dummyConstantSet  = new HashSet<>(4);
 		dummyConstantSet.add(dummyConstant);
 		for (WorldState worldState : worldStatesToProcess2) {
 			if (debugLevel > 1 && usingWorldStates) { Utils.println("%    WorldState: " + worldState); }
-			List<Set<Term>> crossProduct = new ArrayList<Set<Term>>(targetPredicateSignature.size());
+			List<Set<Term>> crossProduct = new ArrayList<>(targetPredicateSignature.size());
 			int             leafCounter  = 0;
 			for (int argCounter = 0; argCounter < numbArgs; argCounter++) { // Look at each argument in the target's specification.
 				Term sig = targetPredicateSignature.get(argCounter);
@@ -197,18 +191,14 @@ public class CreateSyntheticExamples {
 				Set<Term> groundedTermsOfThisTypeInThisState = null;
 				if (sig instanceof Constant) {
 					groundedTermsOfThisTypeInThisState = getConstantsOfThisTypeInThisWorldState(stringHandler, targetArgSpecs.get(leafCounter), worldState, prover.getClausebase().getFacts(), factPredicates);
-					if (groundedTermsOfThisTypeInThisState == null) { // If none in the state, grab 'globally.'
-						groundedTermsOfThisTypeInThisState = getConstantsOfThisTypeInThisWorldState(stringHandler, targetArgSpecs.get(leafCounter), null, prover.getClausebase().getFacts(), factPredicates);
-					}
-					if (groundedTermsOfThisTypeInThisState == null) { crossProduct = null; break; } // Cannot make any examples from this state since no constants of the necessary type.
-					if (debugLevel > 1) { 
+					if (debugLevel > 1) {
 						Utils.println("%   For argument #" + argCounter + " (leaf #" + leafCounter + "), constants of type='" + targetArgSpecs.get(leafCounter).typeSpec + "' in world-state='" + worldState + "':"); 
 						Utils.println("%      " + Utils.limitLengthOfPrintedList(groundedTermsOfThisTypeInThisState));
 					}
 					if (debugLevel > 2) { Utils.println("% Existing groundedTermsOfThisTypeInThisState '" + targetArgSpecs.get(leafCounter) + "':\n%   " + Utils.limitLengthOfPrintedList(groundedTermsOfThisTypeInThisState)); }
 					leafCounter++;
                 } else if (sig instanceof ConsCell) {
-                    groundedTermsOfThisTypeInThisState = new HashSet<Term>();
+                    groundedTermsOfThisTypeInThisState = new HashSet<>();
                     groundedTermsOfThisTypeInThisState.add( stringHandler.getNil() );
                     leafCounter++;
 				} else if (sig instanceof Function) {
@@ -235,7 +225,7 @@ public class CreateSyntheticExamples {
 					counter++;
 					if (counter % 1000 == 0) { Utils.println("%   Have considered " + Utils.comma(counter) + " possible negative examples for " + worldState + "."); }
 					Example  example  = new Example(stringHandler, target.predicateName, null, provenanceString + (usingWorldStates ? " (" + worldState + ")." : "."), "createdNeg", null);
-					List<Term> arguments2 = new ArrayList<Term>(numbArgs);
+					List<Term> arguments2 = new ArrayList<>(numbArgs);
 					for (int argCounter = 0; argCounter < numbArgs; argCounter++) {
 						if      (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)) { arguments2.add(worldState.getWorld()); }
 						else if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)) { arguments2.add(worldState.getState()); }
@@ -268,15 +258,11 @@ public class CreateSyntheticExamples {
         if (f == null || f.numberArgs() < 1) {
             Utils.error("Functions without getArguments() should not be used since no 'type' information is available.");
         }
-		List<Set<Term>> crossProduct = new ArrayList<Set<Term>>(f.numberArgs());
+		List<Set<Term>> crossProduct = new ArrayList<>(f.numberArgs());
 		int currentCounter = leafCounter;
 		for (Term term : f.getArguments()) {
 			if (term instanceof Constant) {
 				Set<Term> groundedTermsOfThisTypeInThisState = getConstantsOfThisTypeInThisWorldState(stringHandler, targetArgSpecs.get(currentCounter), worldState, prover.getClausebase().getFacts(), factPredicates);
-				if (groundedTermsOfThisTypeInThisState == null) { 
-					if (debugLevel > 1 || worldState == null) { Utils.println(" No grounded terms for " + targetArgSpecs.get(currentCounter) + " in " + worldState); }
-					return null; 
-				}
 				crossProduct.add(groundedTermsOfThisTypeInThisState);
 				currentCounter++;
     		} else if (Function.isaConsCell(term)) {
@@ -297,7 +283,7 @@ public class CreateSyntheticExamples {
 		if (debugLevel > 0) { Utils.println("%      For '" + f  + "', [leaves " + leafCounter + " to " + currentCounter + "] crossProduct = " + Utils.limitLengthOfPrintedList(crossProduct)); }
 		List<List<Term>> allPossibilities = Utils.computeCrossProduct(crossProduct);
 		if (debugLevel > 0) { Utils.println("%        results: " + Utils.limitLengthOfPrintedList(allPossibilities)); }
-		Set<Term>        results          = new HashSet<Term>(allPossibilities.size());
+		Set<Term>        results          = new HashSet<>(allPossibilities.size());
 		for (List<Term> args : allPossibilities) {
 			results.add(stringHandler.getFunction(f.functionName, args, f.getTypeSpec()));
 		}

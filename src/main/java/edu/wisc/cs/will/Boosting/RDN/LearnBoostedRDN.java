@@ -1,22 +1,17 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import java.io.BufferedWriter;
-import java.io.File;  import java.io.FileWriter;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
-import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
@@ -28,17 +23,19 @@ import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Boosting.Utils.ExampleSubSampler;
 import edu.wisc.cs.will.Boosting.Utils.LineSearch;
 import edu.wisc.cs.will.DataSetUtils.Example;
-
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Theory;
 import edu.wisc.cs.will.FOPC.TreeStructuredTheory;
 import edu.wisc.cs.will.ILP.ILPouterLoop;
-
+import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+import edu.wisc.cs.will.Utils.condor.CondorFile;
+import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
+import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
+import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.VectorStatistics;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 /**
  * @author Tushar Khot
@@ -51,21 +48,19 @@ public class LearnBoostedRDN {
 	private ExampleSubSampler egSubSampler;
 	private WILLSetup setup;
 
-	public List<RegressionRDNExample> egs    = null;
+	private List<RegressionRDNExample> egs    = null;
 	private String  targetPredicate          = null;
 	private int     maxTrees                 = 10;
 	private double  minGradientForSame       = 0.0002;
 	private double  minPercentageSameForStop = 0.8;
 	private String  yapSettingsFile;
 	private boolean resampleExamples        = true;
-	private boolean newInputFileForEachTree = true;
 	private boolean stopIfFewChanges        = false;
 	private boolean performLineSearch       = false;
 	private boolean learnSingleTheory 		= false;
 	private boolean disableBoosting			= false;
-    private boolean printGradients = false;
-    
-    private long learningTimeTillNow = 0;
+
+	private long learningTimeTillNow = 0;
 
 	public LearnBoostedRDN(CommandLineArguments cmdArgs, WILLSetup setup) {
 		this.cmdArgs = cmdArgs;
@@ -81,35 +76,17 @@ public class LearnBoostedRDN {
 		egSubSampler = new ExampleSubSampler(setup);
 	}
 
-	/**
-	 * @deprecated
-	 * @param predicate
-	 * @param yapFile
-	 * @param caller
-	 * @return
-	 */
-	public ConditionalModelPerPredicate learnModel(String predicate, String yapFile, RunBoostedModels caller) {
-		setYapSettingsFile(yapFile);
-		targetPredicate = predicate;
-		ConditionalModelPerPredicate rdn = new ConditionalModelPerPredicate(setup);
-		SingleModelSampler sampler = new SingleModelSampler(rdn, setup, null, false);
-		learnNextModel(caller, sampler, rdn, maxTrees);
-		return rdn;
-	}
-	
-	public void learnNextModel(RunBoostedModels caller, SRLInference sampler, ConditionalModelPerPredicate rdn, int numMoreTrees) {
+	public void learnNextModel(SRLInference sampler, ConditionalModelPerPredicate rdn, int numMoreTrees) {
 
 		Utils.println("\n% Learn model for: " + targetPredicate);
 		long start = (debugLevel > 0 ? System.currentTimeMillis() : 0);
-		//if (!cmdArgs.isLearnRegression()) {
 		// Call facts and examples the first time.
-			setup.prepareFactsAndExamples(targetPredicate);
-		//}
+		setup.prepareFactsAndExamples(targetPredicate);
 		if (debugLevel > 1) { Utils.println("%  Have prepared facts.");}
 		if (cmdArgs.isNoTargetModesInitially() && rdn.getNumTrees() == 0) {
 			setup.removeAllTargetsBodyModes();
 		}
-		learnRDN(targetPredicate, rdn,sampler, getYapSettingsFile(), caller, numMoreTrees);
+		learnRDN(targetPredicate, rdn,sampler, numMoreTrees);
 		if (debugLevel > 0) { 
 			long end = System.currentTimeMillis();
 			learningTimeTillNow += (end-start);
@@ -120,7 +97,7 @@ public class LearnBoostedRDN {
 	}
 
 
-	public void learnRDN(String pred, ConditionalModelPerPredicate rdn, SRLInference sampler, String yapFile, RunBoostedModels caller, int numMoreTrees) { // Thought we needed the 'caller' but we don't - leave it here, though, in case we do end up needing it.
+	private void learnRDN(String pred, ConditionalModelPerPredicate rdn, SRLInference sampler, int numMoreTrees) { // Thought we needed the 'caller' but we don't - leave it here, though, in case we do end up needing it.
 		String saveModelName = BoostingUtils.getModelFile(cmdArgs, pred, true);
 		if(rdn.getNumTrees() == 0) {
 			rdn.setTargetPredicate(pred);
@@ -149,7 +126,7 @@ public class LearnBoostedRDN {
 			outerLoop.setMaxAcceptableNodeScoreToStop(0.0001);
 		}
 		//TODO(TVK!)
-		if (// cmdArgs.isLearnMLN() || 
+		if (
 			cmdArgs.isLearnRegression()) {
 			rdn.setLog_prior(0);
 		}
@@ -162,7 +139,7 @@ public class LearnBoostedRDN {
 		}
 		
 		// Learn maxTrees models.
-		int i = 0;
+		int i;
 		if (rdn.getNumTrees() == 0 && cmdArgs.useCheckPointing()) {
 			loadCheckPointModel(rdn);
 		}
@@ -177,7 +154,7 @@ public class LearnBoostedRDN {
 		}
 		if (i == 0) {
 			if (!cmdArgs.isUseYapVal()) { 
-				dumpTheoryToFiles(null, -1, -1);  // Print something initially in case a run dies (i.e., be sure to erase any old results right away).
+				dumpTheoryToFiles(null, -1);  // Print something initially in case a run dies (i.e., be sure to erase any old results right away).
 			}
 		}
 		for (; i < maxTreesForThisRun; i++) {
@@ -209,11 +186,11 @@ public class LearnBoostedRDN {
 				List<RegressionRDNExample> newDataSet = buildDataSet(targetPredicate, sampler, getGradientFile(i));
 				long bbend = System.currentTimeMillis();
 				Utils.println("Time to build dataset: " + Utils.convertMillisecondsToTimeSpan(bbend-bddstart));
-				RegressionTree tree = null;
+				RegressionTree tree;
 				if (cmdArgs.isUseYapVal()) {
 					tree = getYapTree( newDataSet, modelNumber, i);
 				} else {
-					tree = getWILLTree(newDataSet, modelNumber, i);
+					tree = getWILLTree(newDataSet, i);
 				}
 				if (debugLevel > 1) { reportStats(); }
 				double stepLength = 1;
@@ -353,12 +330,11 @@ public class LearnBoostedRDN {
 		if ((lookup =  willSetup.getHandler().getParameterSetting("lineSearch")) != null) {
 			performLineSearch = Boolean.parseBoolean(lookup);
 		}
-		
 	}
 
-	private Collection<Literal> theseFlattenedLits = new HashSet<Literal>(4);
-	private RegressionTree getWILLTree(List<RegressionRDNExample> newDataSet, int modelNumber, int i) {
-		TreeStructuredTheory th = null;
+	private Collection<Literal> theseFlattenedLits = new HashSet<>(4);
+	private RegressionTree getWILLTree(List<RegressionRDNExample> newDataSet, int i) {
+		TreeStructuredTheory th;
 		Theory thry = null;
 		try {
 			// WILL somehow loses all the examples after every run.  TODO - JWS: Guess there is some final cleanup. 
@@ -378,7 +354,7 @@ public class LearnBoostedRDN {
 				th = (TreeStructuredTheory)thry;
 				Collection<Literal> currentFlattenedLits = th.getUniqueFlattenedLiterals();
 				addToFlattenedLiterals(currentFlattenedLits);
-				dumpTheoryToFiles(th, modelNumber, i);
+				dumpTheoryToFiles(th, i);
 			}
 		} catch (SearchInterrupted e) {
 			Utils.reportStackTrace(e);
@@ -386,8 +362,7 @@ public class LearnBoostedRDN {
 		}
 		
 		LearnRegressionTree learner = new LearnRegressionTree(setup);
-		RegressionTree      tree    = learner.parseTheory(thry);
-		return tree;
+		return learner.parseTheory(thry);
 	}
 
 
@@ -396,7 +371,7 @@ public class LearnBoostedRDN {
 		String prefix =  cmdArgs.getModelDirVal() + "/yap/"; 
 
 		String outfile = prefix + "Output" + targetPredicate + i + ".pl";
-		String infile  = prefix + "Input"  + targetPredicate + (newInputFileForEachTree? i : "") +	BoostingUtils.getLabelForModelNumber(modelNumber) + ".pl";
+		String infile  = prefix + "Input" + targetPredicate + i + BoostingUtils.getLabelForModelNumber(modelNumber) + ".pl";
 		Utils.ensureDirExists(infile);
 		try {
 			writeDataSetForYap(newDataSet, infile);
@@ -409,13 +384,9 @@ public class LearnBoostedRDN {
 
 		LearnRegressionTree learner = new LearnRegressionTree(setup);
 		try {
-			RegressionTree tree = learner.parsePrologRegressionTrees(outfile);
-			return tree;
+			return learner.parsePrologRegressionTrees(outfile);
 			//tree.printTrees();
-		} catch (NumberFormatException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in getYapTree.");
-		} catch (IOException e) {
+		} catch (NumberFormatException | IOException e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Problem in getYapTree.");
 		}
@@ -439,10 +410,7 @@ public class LearnBoostedRDN {
 				System.out.print((char)c);
 			}
 			p.waitFor();
-		} catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in runYapTreeLearner.");
-		} catch (InterruptedException e) {
+		} catch (IOException | InterruptedException e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Problem in runYapTreeLearner.");
 		}
@@ -452,9 +420,7 @@ public class LearnBoostedRDN {
 		if (stopIfFewChanges && old_eg_set != null) {
 			int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
 			if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set)); }
-			if (((double)numOfEgSame/(double)old_eg_set.size()) > minPercentageSameForStop) {
-				return true;
-			} 
+			return ((double) numOfEgSame / (double) old_eg_set.size()) > minPercentageSameForStop;
 		} else {
 			if(old_eg_set != null) {
 				int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
@@ -473,17 +439,14 @@ public class LearnBoostedRDN {
 			sampler.getExampleProbability(eg);
 			ProbDistribution new_prob = eg.getProbOfExample();
 
-			// double eg_grad = Math.abs((new_prob - old_prob)); // / old_prob);
 			ProbDistribution diff = new ProbDistribution(old_prob);
 			diff.scaleDistribution(-1);
 			diff.addDistribution(new_prob);
 			double eg_grad = diff.norm();
 			if (eg_grad < grad) {
 				counter++;
-			} else {
-				//
 			}
-			//System.out.println(eg +" " + new_prob +" " + old_prob +" " + eg_grad);
+
 		}
 		return counter;
 	}
@@ -505,11 +468,9 @@ public class LearnBoostedRDN {
 				Utils.waitHere("Weighted examples wont work with Yap. Remove weights or use WILL.");
 			}
 			
-			String literal = "";
+			String literal;
 
 			literal = "example("  + counter++ + "," + ex.toString() +  "," + ex.getOutputValue() + ").";
-			//}
-			//System.out.println(ex.toString());
 			writer.write(literal + "\r\n");
 		}
 		Iterable<Literal> lits = setup.getInnerLooper().getFacts();
@@ -527,7 +488,7 @@ public class LearnBoostedRDN {
 		System.out.println("Writer closed");
 	}
 
-	public void getSampledPosNegEx(List<RegressionRDNExample> all_exs) {
+	private void getSampledPosNegEx(List<RegressionRDNExample> all_exs) {
 
 		if (egs != null) {
 			for (int i = 0; i < Utils.getSizeSafely(egs); i++) {
@@ -553,7 +514,7 @@ public class LearnBoostedRDN {
 	}
 
 	private List<RegressionRDNExample> buildDataSet(String targetPredicate, SRLInference sampler, String gradFile) {
-		List<RegressionRDNExample> all_exs = new ArrayList<RegressionRDNExample>();
+		List<RegressionRDNExample> all_exs = new ArrayList<>();
 		double scaleFactor = 1e8; // Used in EM to scale up the gradients
 
 		getSampledPosNegEx(        all_exs);
@@ -579,7 +540,6 @@ public class LearnBoostedRDN {
 							 }
 							 scaleFactor = 1 / (1 * mostLikelyStateProb);
 						 }
-						// Utils.waitHere("Scaled gradients by: " + scaleFactor + " since max prob=" + mostLikelyStateProb);		 
 					 } else {
 						 Utils.error("What to do with the hidden states ? Set strategy to MAP or EM. Currently set as : " + cmdArgs.getHiddenStrategy());
 					 }
@@ -596,8 +556,6 @@ public class LearnBoostedRDN {
 		if (cmdArgs.getHiddenStrategy().equals("MAP")) {
 			SRLInference.updateFactsFromState(setup, setup.getLastSampledWorlds().getWorldStates().get(0));
 		}
-		BufferedWriter gradWriter = null;
-		// for debugging
 		boolean foundhidden = false;
 		
 		for (int i = 0; i < Utils.getSizeSafely(all_exs); i++) {
@@ -622,16 +580,16 @@ public class LearnBoostedRDN {
 			} else {
 				ProbDistribution probDistr = eg.getProbOfExample();
 				if (probDistr.isHasDistribution()) {
-					double[] base_prob = null;					
+					double[] base_prob;
 					double[] distr = probDistr.getProbDistribution();
 					if (eg.isHiddenLiteral()) {
 						// Utils.error("Can't handle distributions for hidden examples");
-						ProbDistribution base_distr = null;
+						ProbDistribution base_distr;
 						if (cmdArgs.getHiddenStrategy().equals("EM")) {
-							if (((RegressionRDNExample)eg).getStateAssociatedWithOutput() == null) {
+							if (eg.getStateAssociatedWithOutput() == null) {
 								Utils.error("Associated state not set for example: " + eg);
 							}
-							HiddenLiteralState stateForEx = ((RegressionRDNExample)eg).getStateAssociatedWithOutput();
+							HiddenLiteralState stateForEx = eg.getStateAssociatedWithOutput();
 							base_distr = stateForEx.getConditionalDistribution(eg);
 						} else {
 							base_distr = setup.getLastSampledWorlds().sampledProbOfExample(eg);
@@ -641,16 +599,15 @@ public class LearnBoostedRDN {
 						base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
 					}
 
-					// double[] indic = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
 					double[] grad  = VectorStatistics.subtractVectors(base_prob, distr);
 					
 					// Only update for EM
 					if (cmdArgs.getHiddenStrategy().equals("EM")) {
-						if (((RegressionRDNExample)eg).getStateAssociatedWithOutput() == null) {
+						if (eg.getStateAssociatedWithOutput() == null) {
 							Utils.error("Associated state not set for example: " + eg);
 						}
 						if (!cmdArgs.isIgnoreStateProb()) {
-							double stateProb = ((RegressionRDNExample)eg).getStateAssociatedWithOutput().getStatePseudoProbability();
+							double stateProb = eg.getStateAssociatedWithOutput().getStatePseudoProbability();
 							grad = VectorStatistics.scalarProduct(grad, stateProb*scaleFactor);
 						}
 					}
@@ -665,10 +622,10 @@ public class LearnBoostedRDN {
 						}
 
 						if (cmdArgs.getHiddenStrategy().equals("EM")) {
-							if (((RegressionRDNExample)eg).getStateAssociatedWithOutput() == null) {
+							if (eg.getStateAssociatedWithOutput() == null) {
 								Utils.error("Associated state not set for example: " + eg);
 							}
-							HiddenLiteralState stateForEx = ((RegressionRDNExample)eg).getStateAssociatedWithOutput();
+							HiddenLiteralState stateForEx = eg.getStateAssociatedWithOutput();
 							ProbDistribution exampleDistr = stateForEx.getConditionalDistribution(eg);
 							if (cmdArgs.isIgnoreStateProb()) {
 								eg.setOutputValue(exampleDistr.getProbOfBeingTrue() - prob);
@@ -685,19 +642,17 @@ public class LearnBoostedRDN {
 							double base_prb = base_prb_dist.getProbOfBeingTrue();
 							eg.setOutputValue(base_prb - prob);
 						}
-						
-						// Utils.println("Setting grad for " + eg.toPrettyString("") + " at " + base_prb + " - " + prob + " = " + eg.outputValue);
+
 					} else {
 						double stateProb = 1;
 						// Only set for EM
 						if (cmdArgs.getHiddenStrategy().equals("EM")) {
-							if (cmdArgs.isIgnoreStateProb()) { 
-								stateProb = 1.0; 
-							} else { 
-								if (((RegressionRDNExample)eg).getStateAssociatedWithOutput() == null) {
+							if (!cmdArgs.isIgnoreStateProb()) {
+								if (eg.getStateAssociatedWithOutput() == null) {
 									Utils.error("Associated state not set for example: " + eg);
 								}
-								stateProb = scaleFactor * ((RegressionRDNExample)eg).getStateAssociatedWithOutput().getStatePseudoProbability();
+								stateProb = scaleFactor * eg.getStateAssociatedWithOutput().getStatePseudoProbability();
+
 							}
 						}
 						if (cmdArgs.isSoftM()){
@@ -719,33 +674,12 @@ public class LearnBoostedRDN {
 						}
 					}
 				}
-				if (printGradients ) {
-					try {
-						if (gradWriter == null) {
-							gradWriter = new BufferedWriter(new FileWriter(gradFile));
-						}
-						gradWriter.write(eg.getOutputValue() + " " + eg.isOriginalTruthValue());
-						gradWriter.newLine();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
 			}
-		//	Utils.println(eg.toPrettyString());
 		}
 		if (!foundhidden) {
 			Utils.println("No hidden examples for : " + targetPredicate);
 		}
 		all_exs = egSubSampler.sampleExamples(all_exs);
-		if (gradWriter != null) {
-			try {
-				gradWriter.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 		return all_exs;
 	}
 	
@@ -753,9 +687,8 @@ public class LearnBoostedRDN {
 	private List<RegressionRDNExample> createExamplesForEachState(
 			HiddenLiteralSamples lastSampledWorlds,
 			List<RegressionRDNExample> all_exs, SRLInference sampler) {
-		List<RegressionRDNExample> new_Exs = new ArrayList<RegressionRDNExample>();
+		List<RegressionRDNExample> new_Exs = new ArrayList<>();
 		for (HiddenLiteralState state : lastSampledWorlds.getWorldStates()) {
-			//Utils.println("State prob:" + state.getStatePseudoProbability());
 			// Set facts using the hidden state
 			SRLInference.updateFactsFromState(setup, state);
 			// Needed by the tree learning code to set the facts required by each example
@@ -786,15 +719,15 @@ public class LearnBoostedRDN {
 	// Functions that write various useful theory/prolog files
 	// ------------------------------------------------------
 	// ------------------------------------------------------
-	public static final String LOG_PRIOR_PREDICATE = "logPrior";
-	public static final String STEPLEN_PREDICATE_PREFIX = "stepLength";
+	static final String LOG_PRIOR_PREDICATE = "logPrior";
+	private static final String STEPLEN_PREDICATE_PREFIX = "stepLength";
 
 	private File getWILLsummaryFile() {  // Always recompute in case 'targetPredicate' changes.
 	//	return new CondorFile(getWILLFile(setup.getOuterLooper().getWorkingDirectory() + "/" +  cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
 		return Utils.ensureDirExists(getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
 	}
 	
-	public static final String getWILLFile(String dir, String postfix, String predicate) {
+	public static String getWILLFile(String dir, String postfix, String predicate) {
 		String filename = dir + "/WILLtheories/" + predicate + "_learnedWILLregressionTrees" + BoostingUtils.getLabelForCurrentModel();
 		if (postfix != null) {
 			filename += "_" + postfix;
@@ -803,7 +736,7 @@ public class LearnBoostedRDN {
 		return filename;
 	}
 
-	public void reportStats() {
+	private void reportStats() {
 		setup.reportStats();
 		Utils.println("\n% Memory usage by LearnBoostedRDN:");
 		Utils.println("%  |egs|                = " + Utils.comma(egs));
@@ -813,14 +746,13 @@ public class LearnBoostedRDN {
 
 	private void addToFlattenedLiterals(Collection<Literal> lits) { // Written by JWS.
 		if (lits == null) { return; }
-		for (Literal lit : lits) {			
-			if (lit.member(theseFlattenedLits, false)) { 
-				// Utils.println(" " + lit + " already in " + theseFlattenedLits); 
+		for (Literal lit : lits) {
+			if (!(lit.member(theseFlattenedLits, false))) {
+				theseFlattenedLits.add(lit);
 			}
-			else { theseFlattenedLits.add(lit); } 
 		}
 	}
-	private void dumpTheoryToFiles(Theory th, int modelNumber, int i) {
+	private void dumpTheoryToFiles(Theory th, int i) {
 		String stringToPrint = (i < 0 ? "" : "\n%%%%%  WILL-Produced Tree #" + (i + 1) + " @ " + Utils.getDateTime() + ".  [" + Utils.reportSystemInfo() + "]  %%%%%\n\n");
 		if (debugLevel > 0 && i >= 0) { Utils.println(stringToPrint); }
 		File file = getWILLsummaryFile();
@@ -866,11 +798,11 @@ public class LearnBoostedRDN {
 	 * @param i The tree index(starts from 1)
 	 * @return Suffix that is used for filenames and rules.
 	 */
-	public static String getTreeSuffix(int i) {
+	private static String getTreeSuffix(int i) {
 		return "_tree" + i;
 	}
 	 
-	public static final String stepLengthPredicate(int i) {
+	static String stepLengthPredicate(int i) {
 		return LearnBoostedRDN.STEPLEN_PREDICATE_PREFIX + getTreeSuffix(i);
 	}
 	
@@ -880,35 +812,36 @@ public class LearnBoostedRDN {
 		List<Literal> targets = setup.getInnerLooper().getTargets();
 		Literal       target  = null;
 		if (Utils.getSizeSafely(targets) == 1) { target = targets.get(0); } else { Utils.error("Should only have one target.  Have: " + targets); }
-		if (!target.predicateName.name.equals(targetPredicate) && !target.predicateName.name.equals(WILLSetup.multiclassPredPrefix + targetPredicate) ) { 
+		assert target != null;
+		if (!target.predicateName.name.equals(targetPredicate) && !target.predicateName.name.equals(WILLSetup.multiclassPredPrefix + targetPredicate) ) {
 			Utils.error("These predicate names should match: targetPredicate = " + targetPredicate + " and target = " + target); 
 		}
 
-		String stringToPrint = "\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n%%%%%  Final call for computing score for " + targetPredicate + ".  %%%%%\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
+		StringBuilder stringToPrint = new StringBuilder("\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n%%%%%  Final call for computing score for " + targetPredicate + ".  %%%%%\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n");
 
 		for (int i = 0; i < numberOfTrees; i++) {
 			String sentence = rdn.getStepLengthSentence(i+1);
-			stringToPrint += sentence +"\n";
+			stringToPrint.append(sentence).append("\n");
 		}
 		
-		stringToPrint += "\n" + rdn.getLogPriorSentence();
+		stringToPrint.append("\n").append(rdn.getLogPriorSentence());
 
-		stringToPrint += "\n" + getComputationPrologRules(numberOfTrees); 
+		stringToPrint.append("\n").append(getComputationPrologRules(numberOfTrees));
 		if (!theseFlattenedLits.isEmpty()) {
-			stringToPrint += "\nflattenedLiteralsInThisSetOfTrees(" + targetPredicate + ", " + theseFlattenedLits.size() + ", [\n";
+			stringToPrint.append("\nflattenedLiteralsInThisSetOfTrees(").append(targetPredicate).append(", ").append(theseFlattenedLits.size()).append(", [\n");
 			boolean firstTime = true;
 			for (Literal lit : theseFlattenedLits) {
-				if (firstTime) { firstTime = false; } else { stringToPrint += ",\n"; }
-				stringToPrint += "   " + lit;
+				if (firstTime) { firstTime = false; } else { stringToPrint.append(",\n"); }
+				stringToPrint.append("   ").append(lit);
 			}
-			stringToPrint += "]).";
+			stringToPrint.append("]).");
 			theseFlattenedLits.clear();
 		} else {
-			stringToPrint += "\nflattenedLiteralsInThisSetOfTrees(0, []).";
+			stringToPrint.append("\nflattenedLiteralsInThisSetOfTrees(0, []).");
 		}
 
-		Utils.appendString(file, stringToPrint, cmdArgs.useLockFiles);
-		if (debugLevel > 0) { Utils.println(stringToPrint); }
+		Utils.appendString(file, stringToPrint.toString(), cmdArgs.useLockFiles);
+		if (debugLevel > 0) { Utils.println(stringToPrint.toString()); }
 	}
 
 
@@ -919,38 +852,34 @@ public class LearnBoostedRDN {
 		String stepStr     = setup.getInnerLooper().getStringHandler().convertToVarString("StepLen");
 		String logPriorStr = setup.getInnerLooper().getStringHandler().convertToVarString("LogPrior");
 		
-		String argsString  = "";
+		StringBuilder argsString  = new StringBuilder();
 		// The error checking whether this matches the target predicate is done in addPrologCodeForUsingAllTrees.
 		List<Literal> targets = setup.getInnerLooper().getTargets();
 		Literal       target  = null;
 		if (Utils.getSizeSafely(targets) == 1) { target = targets.get(0); } else { Utils.error("Should only have one target.  Have: " + targets); }
 
-		for (int i = target.numberArgs() - 1; i >= 0; i--) { argsString = target.getArgument(i) + ", " + argsString; }
-		String stringToPrint = targetPredicate + "(" + argsString + totalStr + ") :- // A general accessor. \n";
-		stringToPrint += "   " + targetPredicate + "(" + argsString + "1000000, "  + totalStr + "), !.\n";
-		stringToPrint += targetPredicate + "(" + argsString + totalStr + ") :- waitHere(\"This should not fail\", " + targetPredicate + "(" + argsString + totalStr + ")).\n\n";
+		assert target != null;
+		for (int i = target.numberArgs() - 1; i >= 0; i--) { argsString.insert(0, target.getArgument(i) + ", "); }
+		StringBuilder stringToPrint = new StringBuilder(targetPredicate + "(" + argsString + totalStr + ") :- // A general accessor. \n");
+		stringToPrint.append("   ").append(targetPredicate).append("(").append(argsString).append("1000000, ").append(totalStr).append("), !.\n");
+		stringToPrint.append(targetPredicate).append("(").append(argsString).append(totalStr).append(") :- waitHere(\"This should not fail\", ").append(targetPredicate).append("(").append(argsString).append(totalStr).append(")).\n\n");
 
-		stringToPrint += targetPredicate + "(" + argsString + treeStr + ", "  + totalStr + ") :- // A tree-limited accessor (e.g., for tuning the number of trees to use).\n";
-		stringToPrint += "   " + LOG_PRIOR_PREDICATE + "(" + logPriorStr + "),\n";
+		stringToPrint.append(targetPredicate).append("(").append(argsString).append(treeStr).append(", ").append(totalStr).append(") :- // A tree-limited accessor (e.g., for tuning the number of trees to use).\n");
+		stringToPrint.append("   " + LOG_PRIOR_PREDICATE + "(").append(logPriorStr).append("),\n");
 		for (int i = 1; i <= numberOfTrees; i++) {
-			stringToPrint += "   getScore_" + targetPredicate + getTreeSuffix(i) + "(" + argsString + treeStr + ", " + totalStr + i + "),\n";
+			stringToPrint.append("   getScore_").append(targetPredicate).append(getTreeSuffix(i)).append("(").append(argsString).append(treeStr).append(", ").append(totalStr).append(i).append("),\n");
 		}
 
-		stringToPrint += "   " + totalStr + " is " + logPriorStr ;
+		stringToPrint.append("   ").append(totalStr).append(" is ").append(logPriorStr);
 		for (int i = 1; i <= numberOfTrees; i++) {
-			stringToPrint += " + " + totalStr + i;
+			stringToPrint.append(" + ").append(totalStr).append(i);
 		}
-		stringToPrint += ",\n   !.\n" + targetPredicate + "(" + argsString + treeStr + ", " + totalStr + ") :- waitHere(\"This should not fail\", " + targetPredicate + "(" + argsString + treeStr + ", " + totalStr + ")).\n";
+		stringToPrint.append(",\n   !.\n").append(targetPredicate).append("(").append(argsString).append(treeStr).append(", ").append(totalStr).append(") :- waitHere(\"This should not fail\", ").append(targetPredicate).append("(").append(argsString).append(treeStr).append(", ").append(totalStr).append(")).\n");
 		for (int i = 1; i <= numberOfTrees; i++) { 
-			stringToPrint += "\ngetScore_" + targetPredicate + getTreeSuffix(i) + "(" + argsString + treeStr + ", 0.0) :- " + i + " > " + treeStr + ", !.";
-			stringToPrint += "\ngetScore_" + targetPredicate + getTreeSuffix(i) + "(" + argsString + treeStr + ", " + totalStr + i + ") :- " + 
-							targetPredicate + "_tree" + i + "(" + argsString + totalStr + "), " + stepLengthPredicate(i) + "(" + stepStr + "), " + 
-							totalStr + i + " is " + totalStr +" * " + stepStr +  ".\n";
+			stringToPrint.append("\ngetScore_").append(targetPredicate).append(getTreeSuffix(i)).append("(").append(argsString).append(treeStr).append(", 0.0) :- ").append(i).append(" > ").append(treeStr).append(", !.");
+			stringToPrint.append("\ngetScore_").append(targetPredicate).append(getTreeSuffix(i)).append("(").append(argsString).append(treeStr).append(", ").append(totalStr).append(i).append(") :- ").append(targetPredicate).append("_tree").append(i).append("(").append(argsString).append(totalStr).append("), ").append(stepLengthPredicate(i)).append("(").append(stepStr).append("), ").append(totalStr).append(i).append(" is ").append(totalStr).append(" * ").append(stepStr).append(".\n");
 		}
-		return stringToPrint;
-	}
-	public String getTargetPredicate() {
-		return targetPredicate;
+		return stringToPrint.toString();
 	}
 
 	public void setTargetPredicate(String targetPredicate) {
@@ -967,7 +896,7 @@ public class LearnBoostedRDN {
 	/**
 	 * @return the yapSettingsFile
 	 */
-	public String getYapSettingsFile() {
+	private String getYapSettingsFile() {
 		return yapSettingsFile;
 	}
 

@@ -24,8 +24,6 @@ public class RegressionTree extends ClauseBasedTree {
 	// Meta information about each clause. For e.g. # +ve examples
 	// Used for one class classification
 
-	private ArrayList<ClauseMetaInformation> clauseMeta; 
-
 	static final String NOT_PREFIX = "\\+";
 
 	public RegressionTree(WILLSetup setup) {
@@ -115,7 +113,7 @@ public class RegressionTree extends ClauseBasedTree {
 				} else {
 
 					HornClausebase factBase = setup.getContext().getClausebase();
-					List<BindingList> newBLs = new ArrayList<BindingList>();
+					List<BindingList> newBLs = new ArrayList<>();
 					for (BindingList bl : possibleBindings) {
 						Literal groundLit = bodyLit.applyTheta(bl);
 						Iterable<Literal> matchingFacts = factBase.getPossibleMatchingFacts(groundLit, null);
@@ -135,19 +133,5 @@ public class RegressionTree extends ClauseBasedTree {
 		}
 		return groundParents;
 	}
-	
-	public static class ClauseMetaInformation {
-		int numPos;
-		int numExs;
-		
-		public ClauseMetaInformation(String readFrom) {
-			String[] parts=readFrom.split(":");
-			numPos = Integer.parseInt(parts[0]);
-			numExs = Integer.parseInt(parts[1]);
-		}
-		
-		public String toString() {
-			return numPos + ":" + numExs;
-		}
-	}
+
 }

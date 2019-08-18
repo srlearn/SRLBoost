@@ -44,7 +44,7 @@ public class PropositionalizationModel {
 	
 	PropositionalizationModel() {
 		numTrees     = 0;
-		treeList     = new ArrayList<FeatureTree>();
+		treeList     = new ArrayList<>();
 	}
 	
 	void setTargetPredicate(String pred) {
@@ -124,11 +124,11 @@ public class PropositionalizationModel {
 			
 			String vec=reader.readLine();
 			if (! vec.isEmpty()) {
-				oneClassExamples = new ArrayList<FeatureVector>();
+				oneClassExamples = new ArrayList<>();
 				String[] examples = vec.split(",");
-				for (int i = 0; i < examples.length; i++) {
+				for (String example : examples) {
 					FeatureVector fvec = new FeatureVector();
-					fvec.parseString(examples[i]);
+					fvec.parseString(example);
 					oneClassExamples.add(fvec);
 				}
 			}

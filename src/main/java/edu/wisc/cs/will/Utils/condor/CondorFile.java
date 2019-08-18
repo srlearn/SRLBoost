@@ -104,7 +104,7 @@ public class CondorFile extends File {
                 CondorFileInputStream is = new CondorFileInputStream(this);
                 try {
                     is.close();
-                } catch (IOException iOException) {
+                } catch (IOException ignored) {
                 }
                 return true;
 

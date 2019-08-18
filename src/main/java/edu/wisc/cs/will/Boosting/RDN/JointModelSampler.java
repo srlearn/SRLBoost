@@ -404,6 +404,7 @@ public class JointModelSampler extends SRLInference {
 
 		int numberValues = setup.getMulticlassHandler().numConstantsForPredicate(target);
 
+		assert examples != null;
 		for (RegressionRDNExample rex : examples) {
 			if (!rex.predicateName.name.equals(target) && !rex.predicateName.name.equals(WILLSetup.multiclassPredPrefix + target)) {
 				Utils.error("Found example: '" + rex + "'\nwhile sampling for " + target);

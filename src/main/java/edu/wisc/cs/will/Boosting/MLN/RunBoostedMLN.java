@@ -115,7 +115,7 @@ public class RunBoostedMLN extends RunBoostedModels {
 				int currIterStep =  (i+iterStepSize) - fullModel.get(pred).getNumTrees();
 				Utils.println("% Learning " + currIterStep + " trees in this iteration for " + pred);
 				newModel = true;
-				learners.get(pred).learnNextModel(this, sampler, fullModel.get(pred), currIterStep); 
+				learners.get(pred).learnNextModel(sampler, fullModel.get(pred), currIterStep);
 			}
 		}
 		

@@ -100,7 +100,7 @@ public class SingleModelSampler extends SRLInference {
 			if (valueCounts.size() <= i) {
 				valueCounts.add(new double[totalVals]);
 			}
-			RegressionRDNExample eg = (RegressionRDNExample) ex.get(i);
+			RegressionRDNExample eg = ex.get(i);
 			int val = eg.getSampledValue();
 			valueCounts.get(i)[val] += 1;
 		}

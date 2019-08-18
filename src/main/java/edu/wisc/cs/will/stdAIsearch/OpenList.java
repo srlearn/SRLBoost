@@ -32,7 +32,7 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
     private void recordNodeCreation(T node) {
         task.nodesCreated++;
         task.nodesCreatedThisIteration++;
-        task.searchMonitor.recordNodeCreation(node);
+        task.searchMonitor.recordNodeCreation();
         if (task.closed != null && task.addNodesToClosedListWhenCreated) {
             task.closed.addNodeToClosed(node);
         }
@@ -43,7 +43,7 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
 
         task.nodesConsidered++;
         task.nodesConsideredThisIteration++;
-        task.searchMonitor.recordNodeExpansion(popped);
+        task.searchMonitor.recordNodeExpansion();
         if (task.verbosity > 1) {
             Utils.println("Popped '" + popped + "' (" + Utils.comma(task.nodesConsidered) + " nodes considered so far) from the OPEN list.");
         }

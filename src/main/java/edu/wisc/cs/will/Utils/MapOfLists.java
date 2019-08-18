@@ -1,7 +1,15 @@
 package edu.wisc.cs.will.Utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
 
 /** A Map that maps Keys to List of values.
  *
@@ -29,21 +37,6 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
 
     public boolean containsKey(Key key) {
         return map != null && map.containsKey(key);
-    }
-
-    public Value setValue(Key key, int index, Value element) {
-
-        if ( map == null ) {
-            map = createMap();
-        }
-
-        List<Value> result = map.get(key);
-        if ( result == null ) {
-            result = createValueList();
-            map.put(key, result);
-        }
-
-        return result.set(index, element);
     }
 
     public void removeValue(Key key, Value value) {

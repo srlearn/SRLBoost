@@ -79,7 +79,7 @@ public class RegressionValueOrVector {
 	}
 
 	private void setRegressionVector(double[] regressionVector) {
-		setHasVector(true);
+		setHasVector();
 		this.regressionVector = regressionVector;
 	}
 
@@ -87,9 +87,8 @@ public class RegressionValueOrVector {
 		return hasVector;
 	}
 
-	private void setHasVector(boolean hasVector) {
-		this.hasVector = hasVector;
+	private void setHasVector() {
+		this.hasVector = true;
 	}
-	
-	
+
 }

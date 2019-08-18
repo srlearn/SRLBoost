@@ -473,7 +473,8 @@ public class ConditionalModelPerPredicate implements Serializable {
 		if (old_head == null) {
 			Utils.error("Null old_head");
 		}
-		
+
+		assert old_head != null;
 		if (old_head.getArguments() == null) {
 			Utils.error("Null arguments");
 		}
@@ -571,15 +572,6 @@ public class ConditionalModelPerPredicate implements Serializable {
 
 	public void setSetup(WILLSetup setup) {
 		this.setup = setup;
-	}
-
-	public ClauseBasedTree getPrior_advice() {
-		return prior_advice;
-	}
-
-	public void setPrior_advice(RegressionTree prior_advice) {
-		this.prior_advice = prior_advice;
-		this.prior_advice.setBreakAfterFirstMatch(false);
 	}
 
 	String getLogPriorSentence() {

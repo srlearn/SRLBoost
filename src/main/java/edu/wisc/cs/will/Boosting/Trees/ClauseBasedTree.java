@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.Boosting.Trees;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
@@ -27,7 +25,7 @@ public class ClauseBasedTree  {
 
 	protected WILLSetup setup;
 	ArrayList<Clause> regressionClauses;
-	ArrayList<Clause> suppClauses;
+	private ArrayList<Clause> suppClauses;
 	private boolean breakAfterFirstMatch;
 	boolean addLeafId;
 
@@ -146,19 +144,6 @@ public class ClauseBasedTree  {
 		return BoostingUtils.getRegressionValueOrVectorFromTerm(val);
 	}
 
-	Clause createRegressionClause(Clause clause, double regressionValue) {
-		HandleFOPCstrings handler = setup.getHandler();
-		Literal head = clause.posLiterals.get(0);
-		head.addArgument(handler.getNumericConstant(regressionValue));
-		return clause;
-	}
-
-	void printTrees() {
-		for (Clause clause : regressionClauses) {
-			System.out.println(clause);
-		}
-	}
-
 	public void reparseRegressionTrees() {
 	
 		for (int i = 0; i < regressionClauses.size(); i++) {
@@ -186,7 +171,7 @@ public class ClauseBasedTree  {
 		wr.close();
 	}
 
-	void saveToStream(BufferedWriter wr) throws IOException {
+	private void saveToStream(BufferedWriter wr) throws IOException {
 		boolean oldAnon = setup.getHandler().underscoredAnonymousVariables;
 		setup.getHandler().underscoredAnonymousVariables=false;
 	
@@ -209,17 +194,11 @@ public class ClauseBasedTree  {
 		help_load(sentences);
 	}
 
-	void loadFromStream(BufferedReader rdr) throws IOException {
-		List<Sentence> sentences = setup.getInnerLooper().getParser().readFOPCreader(rdr, null);
-		help_load(sentences);
-	}
-
 	private void help_load(List<Sentence> sentences) {
 		for (Sentence sentence : sentences) {
 			List<Clause> clauses = sentence.convertToClausalForm();
 			if (clauses.size() == 1) {
 				Clause cl = clauses.get(0);
-				// TODO find a better way to check this
 				if (cl.getDefiniteClauseHead().predicateName.name.contains("invented")) {
 					addSupportingClause(cl);
 					setup.getInnerLooper().getContext().getClausebase().assertBackgroundKnowledge(cl);
@@ -240,7 +219,7 @@ public class ClauseBasedTree  {
 		this.setup = setup;
 	}
 
-	public void addClause(Clause regressionClause) {
+	void addClause(Clause regressionClause) {
 		regressionClauses.add(regressionClause);
 	}
 

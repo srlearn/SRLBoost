@@ -7,11 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.TreeMap;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
@@ -40,8 +38,6 @@ public class InferBoostedRDN {
 
 	private boolean printExamples = false;
 	private boolean writeQueryAndResults = true;
-	private boolean printExamplesForTuffy = false;
-	private boolean writeResultsAsRules = false;
 	private boolean useOldFileLocations = true;
 	private double  minRecallForAUCPR = 0;
 	private double minLCTrees = 20;
@@ -51,7 +47,7 @@ public class InferBoostedRDN {
 	private WILLSetup setup;
 	private JointRDNModel model;
 
-	public static final String RDNTreeStats = "RDNtreePathStats";
+	private static final String RDNTreeStats = "RDNtreePathStats";
 	public InferBoostedRDN(CommandLineArguments args, WILLSetup setup) {
 		this.cmdArgs = args;
 		this.setup = setup;
@@ -159,8 +155,7 @@ public class InferBoostedRDN {
 				if (!negativesSampled) {
 					subsampleNegatives(jointExamples);
 					cmdArgs.setModelFileVal(modelSuff);
-					allExamples = false;
-					processExamples(jointExamples, thresh, startCount, allExamples);
+					processExamples(jointExamples, thresh, startCount, false);
 				} else {
 					Utils.error("Negatives sampled already!!");
 				}
@@ -225,7 +220,7 @@ public class InferBoostedRDN {
 		if (cmdArgs.getTestNegsToPosRatioVal() < 0) {
 			return; // No subsampling.
 		}
-		Map<String,Integer> numpos = new HashMap<String,Integer>();
+		Map<String,Integer> numpos = new HashMap<>();
 		Map<String,Integer> numneg = new HashMap<>();
 		for (String  pred : jointExamples.keySet()) {
 			numpos.put(pred, 0);
@@ -290,13 +285,11 @@ public class InferBoostedRDN {
 	}
 	
 	private void reportResultsToCollectorFile(BufferedWriter collectorBW, String modelName, String category, ProbDistribution prob, double wgt, RegressionRDNExample example) throws IOException {
-
 		if (category == null) {
-			collectorBW.append("// Results of '" + (modelName == null ? "unnamedModel" : modelName) + "'.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
+			collectorBW.append("// Results of '").append(modelName == null ? "unnamedModel" : modelName).append("'.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
 			return;
 		}
-
-		collectorBW.append("modelPrediction(model(" + modelName + "), category(" + category + "), prob(" + prob + "), wgt(" + wgt + "), " + example + ").\n" + "\n");
+		collectorBW.append("modelPrediction(model(").append(modelName).append("), category(").append(category).append("), prob(").append(String.valueOf(prob)).append("), wgt(").append(String.valueOf(wgt)).append("), ").append(String.valueOf(example)).append(").\n").append("\n");
 	}
 
 	private String getTreeStatsFile(boolean getLocalFile) {
@@ -394,7 +387,7 @@ public class InferBoostedRDN {
 		if (trees == cmdArgs.getMaxTreesVal()) {
 
 			// Print examples and some 'context' for possible use by other MLN software.
-			if (printExamplesForTuffy || writeQueryAndResults) {
+			if (writeQueryAndResults) {
 				printExamples(examples, target, usingAllEgs);
 			}
 
@@ -537,7 +530,7 @@ public class InferBoostedRDN {
 				if (pex.isOriginalTruthValue()) { posCounter++; } else { negCounter++; }
 				if (collectorFile != null) { reportResultsToCollectorFile(collectBuffer, RunBoostedRDN.nameOfCurrentModel, pex.isOriginalTruthValue() ? "pos" : "neg", prob, wgtOnEx, pex); }
 			}
-			if (collectBuffer != null) { collectBuffer.close(); }
+			collectBuffer.close();
 			if (collectorFile != null) { sortLinesInPredictedProbsFile(RunBoostedRDN.nameOfCurrentModel, fileName, fileNameSorted); }
 		} catch (IOException e) {
 			Utils.reportStackTrace(e);
@@ -553,7 +546,7 @@ public class InferBoostedRDN {
 		Utils.ensureDirExists(fileToWrite);
 		List<Literal> lits = setup.getInnerLooper().getParser().readLiteralsInFile(fileToRead, false, false);
 		CompareProbsInModelPredictions comparator = new CompareProbsInModelPredictions();
-		Collections.sort(lits, comparator);
+		lits.sort(comparator);
 		Utils.writeObjectsToFile(fileToWrite, lits, ". // #COUNT", "// Results of '" + modelName + "' sorted by the predicted probability.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
 	}
 	
@@ -567,7 +560,7 @@ public class InferBoostedRDN {
 	 */
 	public static class ValueComparator implements Comparator<String> {
 		Map<String, Double> base;
-		public ValueComparator(Map<String, Double> input) {
+		ValueComparator(Map<String, Double> input) {
 			base = input;
 		}
 		@Override
@@ -587,8 +580,8 @@ public class InferBoostedRDN {
 	 */
 	private void printTreeStats(List<RegressionRDNExample> examples, String target) {
 		String treeStats = getTreeStatsFile(Utils.isRunningWindows());
-		Map<String, Integer> idCounts = new HashMap<String, Integer>();
-		Map<String, Double> idProbs = new HashMap<String, Double>();
+		Map<String, Integer> idCounts = new HashMap<>();
+		Map<String, Double> idProbs = new HashMap<>();
 		long totalExamples = 0;
 		for (RegressionRDNExample regressionRDNExample : examples) {
 			String id = regressionRDNExample.leafId;
@@ -612,13 +605,13 @@ public class InferBoostedRDN {
 			GzippedBufferedWriter bw = new GzippedBufferedWriter(treeStats);
 			
 			// Sort by probabilities(lowest comes first)
-			Map<String, Double> sortedMap = new TreeMap<String, Double>(new ValueComparator(idProbs));
+			Map<String, Double> sortedMap = new TreeMap<>(new ValueComparator(idProbs));
 			sortedMap.putAll(idProbs);
 			writeTreeStatsToCSV(idCounts, sortedMap, treeStats.replace(".txt", ".csv"));
 			
 			// Print counts & probs
 			// Reverse probabilities as we want highest first here.
-			List<String> reversedIds = new ArrayList<String>(sortedMap.keySet());
+			List<String> reversedIds = new ArrayList<>(sortedMap.keySet());
 			Collections.reverse(reversedIds);
 			
 			for (String id : reversedIds) {
@@ -663,7 +656,7 @@ public class InferBoostedRDN {
 		
 	}
 	
-	public static void writeTreeStatsToCSV(Map<String, Integer> idCounts , Map<String, Double> sortedMap, String csvFile) throws IOException {
+	private static void writeTreeStatsToCSV(Map<String, Integer> idCounts, Map<String, Double> sortedMap, String csvFile) throws IOException {
 		BufferedWriter treeCSV = new BufferedWriter(new CondorFileWriter(csvFile));
 		treeCSV.write("Max Prob. of eg dropped,Cumulative Fraction of eg dropped, Fraction of eg, Count of eg");
 		treeCSV.newLine();
@@ -750,29 +743,8 @@ public class InferBoostedRDN {
 			}
 			try {
 				queryFile.write(prefix + pex.toString() + "\n");
-				if (writeResultsAsRules) {
-					double logWt = Utils.getLogWeightForProb(prob);
-					resultsFile.write(getMLNclauseForProbabilisticEvidence(pex, logWt) + "\n");
-				} else {
-					resultsFile.write(prefix + pex.toString()+ " " + printProb + "\n");
-				}
-				
-				if (collectRelatedFacts) {
-					// Print related facts for this example.
-					Set<Literal> facts = new HashSet<Literal>();				
-					int i=0;
-					for (Term arg : pex.getArguments()) {
-						if (bit_mask.get(i)) { 
-							facts.addAll(BoostingUtils.getRelatedFacts(arg, pars, setup.getInnerLooper()));
-						}
-						i++;
-					}
-					resultsFile.write("/*\n");
-					for (Literal fact : facts) {
-						resultsFile.write(fact +".\n");
-					}
-					resultsFile.write("*/\n");
-				}
+				resultsFile.write(prefix + pex.toString()+ " " + printProb + "\n");
+
 			} catch (IOException e) {
 				Utils.reportStackTrace(e);
 				Utils.error("Something went wrong: " + e);
@@ -811,15 +783,11 @@ public class InferBoostedRDN {
 		return result;
 	}
 
-	// TODO(@hayesall): Why is this here?
-	private boolean writeAllResultsToCSVfile = true;
-
 	/**
 	 * Should be called with only single-value examples.
 	 */
 	private String updateScore(List<RegressionRDNExample> examples, CoverageScore score, double threshold) {
 		// TODO(@hayesall): maxToPrintOnAve should be removed.
-		// TODO(@hayesall): where is the result of writeAllResultsToCSVfile used?
 
 		double sum = 0;
 		double count = 0;
@@ -849,13 +817,11 @@ public class InferBoostedRDN {
 					Utils.println("% Pos #" + Utils.truncate(score.getTruePositives() + score.getFalseNegatives(), 0) + ": '" + regressionExample + "' prob = " + Utils.truncate(probability, 6));
 				}
 
-				if (writeAllResultsToCSVfile) {
-					sb.append("pos,")
-							.append(probability)
-							.append(", ")
-							.append(regressionExample)
-							.append("\n");
-				}
+				sb.append("pos,")
+						.append(probability)
+						.append(", ")
+						.append(regressionExample)
+						.append("\n");
 
 				// Compute the weighted sum:
 				sum += probability * weightOnExample;
@@ -872,13 +838,11 @@ public class InferBoostedRDN {
 					Utils.println("% Neg #" + Utils.truncate(score.getTrueNegatives() + score.getFalsePositives(), 0) + ": '" + regressionExample + "' prob = " + Utils.truncate(probability, 6));
 				}
 
-				if (writeAllResultsToCSVfile) {
-					sb.append("neg, ")
-							.append(probability)
-							.append(", ")
-							.append(regressionExample)
-							.append("\n");
-				}
+				sb.append("neg, ")
+						.append(probability)
+						.append(", ")
+						.append(regressionExample)
+						.append("\n");
 
 				// Compute the weighted sum:
 				sum += (1 - probability) * weightOnExample;
@@ -892,9 +856,7 @@ public class InferBoostedRDN {
 			}
 		}
 
-		if (writeAllResultsToCSVfile) {
-			Utils.writeStringToFile(sb.toString(), new CondorFile(getNameOfCSVFile()));
-		}
+		Utils.writeStringToFile(sb.toString(), new CondorFile(getNameOfCSVFile()));
 
 		// TODO(@JWS) Use geometric mean if this is over the training set.
 		//		For test (or tuning) it is fine to use the expected value.
@@ -908,13 +870,6 @@ public class InferBoostedRDN {
 		return "//" + testSetReport1 + "testsetLikelihood(sum(" + Utils.truncate(sum, 3) + "), countOfExamples(" + Utils.truncate(count, 2) + "), mean(" + Utils.truncate(sum / count, 6) + ")).\n\n"
 				+ "//" + testSetReport2 + "\nweightedSumPos(" + Utils.truncate(countOfPos, 3) + ").\nweightedSumNeg(" + Utils.truncate(countOfNeg, 3) + ").\n";
 
-	}
-
-	private String getMLNclauseForProbabilisticEvidence(RegressionRDNExample pex, double logWgt) {
-		if (logWgt < 0) { // Keep wgts positive.
-			return "predicted_" + pex.toString() + ".\n" + -logWgt + " predicted_" + pex.toString() + " => not " + pex.toString() + ".";
-		}
-		return     "predicted_" + pex.toString() + ".\n" +  logWgt + " predicted_" + pex.toString() + " => "     + pex.toString() + ".";
 	}
 }
 

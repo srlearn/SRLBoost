@@ -44,12 +44,10 @@ public class FeatureTree extends ClauseBasedTree {
 			RegressionValueOrVector wt = getRegressionClauseWt(clause, ex);
 			if (wt != null) {
 				if (wt.isHasVector()) {
-					// Not implemented
 					Utils.error("Can not handle multi class examples: " + ex);
 					return result;
 				}
 				result.append(1);
-				// TODO(@TVK): wt.getSingleRegressionValue());
 				if (result.usepath) {
 					result.pathFeatures.add("" + (int)wt.getSingleRegressionValue());
 					return result;

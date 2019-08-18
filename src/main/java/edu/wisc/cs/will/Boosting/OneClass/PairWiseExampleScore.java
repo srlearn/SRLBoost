@@ -46,7 +46,7 @@ public class PairWiseExampleScore {
 	public double calculateKernelScore(List<Example> trueBranch,
 								 List<Example> falseBranch, int depth) {
 	
-		double score = 0;
+		double score;
 		
 		double changeInKDE = 0;
 		double changeInDist = 0;
@@ -187,7 +187,7 @@ public class PairWiseExampleScore {
 		return 1 - (1/examples.size());
 	}
 	public static List<Example> removeFromCopy(List<Example> allEgs, List<Example> subtractEg) {
-		List<Example> copy  = new ArrayList<Example>(allEgs);
+		List<Example> copy  = new ArrayList<>(allEgs);
 		copy.removeAll(subtractEg);
 		return copy;
 	}
