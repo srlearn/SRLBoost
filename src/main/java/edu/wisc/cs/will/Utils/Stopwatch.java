@@ -37,36 +37,6 @@ public class Stopwatch {
     }
 
     /*
-     * Stops the watch, returning time accumulated so far.
-     * @return Total time accumulated in milliseconds.
-     */
-    public long stop() {
-        if (startTime != -1) {
-            totalTime += System.currentTimeMillis() - startTime;
-            startTime = -1;
-        }
-        return totalTime;
-    }
-
-    /*
-     * Stop watch, resets the accumulated time.
-     *
-     * If called while the stopwatch is running, this will start the watch again.
-     * Otherwise, it will reset the accumulated time.
-     *
-     * @return Total time accumulated prior to reset in milliseconds.
-     */
-    public long reset() {
-        boolean wasRunning = (startTime != -1);
-        long time = stop();
-        totalTime = 0;
-        if (wasRunning) {
-            start();
-        }
-        return time;
-    }
-
-    /*
      * Returns the total time accumulated so far, in seconds.
      *
      * If called while the stopwatch is running, this will return the time without

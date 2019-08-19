@@ -127,13 +127,6 @@ public class HiddenLiteralSamples {
 		return rep.toString();
 	}
 
-	public Set<String> getPredicates() {
-		if (worldStates.size() == 0) {
-			return new HashSet<>();
-		}
-		return worldStates.get(0).getPredicates();
-	}
-
 	public HiddenLiteralSamples getMostLikelyState() {
 		
 		HiddenLiteralSamples marginalSample = new HiddenLiteralSamples();

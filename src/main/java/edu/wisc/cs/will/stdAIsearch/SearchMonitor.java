@@ -97,7 +97,7 @@ public class SearchMonitor implements Serializable {
 		return taskBeingMonitored;
 	}
 	
-	public void clearAnySavedInformation(boolean insideIterativeDeepening) {}
+	public void clearAnySavedInformation() {}
 
    /*
 	* Methods for reading a Object cached to disk.

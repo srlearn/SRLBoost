@@ -115,7 +115,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	}
 
 
-	public void clearAnySavedInformation(boolean withinInterativeDeepening) {
+	public void clearAnySavedInformation() {
 		// Do NOT clear the Gleaner's when this is called, since we want them to persist across searches.
 		// Users can always create a new marker if they want a fresh Gleaner.
 	}

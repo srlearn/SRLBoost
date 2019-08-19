@@ -39,9 +39,6 @@ import edu.wisc.cs.will.Utils.Utils;
 
 public class ConditionalModelPerPredicate implements Serializable {
 
-	// Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
-	protected final static int debugLevel = 1;
-
 	private static final long serialVersionUID = 9130108889576097786L;
 
 	/*
@@ -564,10 +561,6 @@ public class ConditionalModelPerPredicate implements Serializable {
 			theory = new ArrayList<>();
 		}
 		theory.addAll(bkClauses);	
-	}
-
-	public WILLSetup getSetup() {
-		return setup;
 	}
 
 	public void setSetup(WILLSetup setup) {

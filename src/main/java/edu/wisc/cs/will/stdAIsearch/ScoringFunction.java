@@ -6,12 +6,10 @@ import edu.wisc.cs.will.Utils.Utils;
  * @author shavlik
  */
 public abstract class ScoringFunction {
-	protected StateBasedSearchTask task;
 
 	protected ScoringFunction() {}
 
 	public void setSearchTask(StateBasedSearchTask task) {
-		this.task = task;
 	}
 
 	public abstract double scoreThisNode(SearchNode node) throws SearchInterrupted;

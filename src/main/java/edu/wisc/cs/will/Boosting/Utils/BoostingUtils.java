@@ -1,34 +1,19 @@
 package edu.wisc.cs.will.Boosting.Utils;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import edu.wisc.cs.will.Boosting.Advice.AdviceReader;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
-import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
-import edu.wisc.cs.will.Boosting.Trees.RegressionMLNModel;
-import edu.wisc.cs.will.Boosting.Trees.RegressionTree;
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.ConsCell;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.NumericConstant;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.PredicateSpec;
-import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.ILP.LearnOneClause;
-import edu.wisc.cs.will.ResThmProver.DefaultProof;
-import edu.wisc.cs.will.ResThmProver.Proof;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
@@ -110,58 +95,7 @@ public class BoostingUtils {
 		}
 		return pars;
 	}
-	
 
-	public static Set<Literal> getRelatedFacts(Term input, List<PredicateNameAndArity> allPredicates,
-										LearnOneClause learnClause) {
-		Set<Literal> relatedFacts = new HashSet<>();
-		HandleFOPCstrings handler = learnClause.getStringHandler();
-
-		// For each predicate
-		for (PredicateNameAndArity predicateArity : allPredicates) {
-			// not_predicate()  always would return true and should be ignored.
-			// TODO Find a better way to handle this case
-			if (predicateArity.getPredicateName().name.contains("not_")) {
-				continue;
-			}
-
-			List<Term> args = new ArrayList<>();
-			// For each argument 
-			for (int i = 0; i < predicateArity.getArity(); i++) {
-				args.add(handler.getGeneratedVariable(handler.convertToVarString("Arg" + i), true));
-			}
-
-			// Now try putting the term as an argument at every location.
-			for (int i = 0; i < args.size(); i++) {
-				Term bkup = args.get(i);
-				Literal query = handler.getLiteral(predicateArity.getPredicateName(), args);
-
-				BindingList bl = new BindingList();
-				bl.addBinding((Variable)bkup, input);
-
-				Literal boundQuery = query.applyTheta(bl);
-				BindingList proofBindings;
-				Proof proof = new DefaultProof(learnClause.getContext(), boundQuery );
-
-				// Every call to prove() will return the next possible
-				// SLD resolution's BindingList, or null if there 
-				// are no more resolutions.
-
-				while (  ( proofBindings = proof.prove() ) != null ) {
-					// Here proofBindings will contains the bindings 
-					// for all the free variables if the proof succeeded.
-					// If you just need the binding of the variable, you have them.
-					// If you want the full literal, just apply the bindings to the boundQuery.
-					Literal boundResult = boundQuery.applyTheta(proofBindings);
-					if (!boundResult.containsVariables()) {
-						relatedFacts.add(boundResult);
-					}
-				}
-			}
-		}
-
-		return relatedFacts;
-	}
 
 	public static double sigmoid(double numRegExp, double denoRegExp) {
 		return 1/ (Math.exp(denoRegExp - numRegExp) + 1);

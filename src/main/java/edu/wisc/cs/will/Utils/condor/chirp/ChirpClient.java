@@ -73,13 +73,6 @@ public class ChirpClient {
 	}
 
 	/*
-	 * Same as the three-argument `open`, but the server selects a default initial UNIX mode.
-	 */
-	public int open(String path, String flags) throws IOException {
-		return open(path, flags, 511);
-	}
-
-	/*
 	 * Close a file.
 	 * @param fd The file descriptor to close.
 	 */
@@ -150,37 +143,11 @@ public class ChirpClient {
 	}
 
 	/*
-	 * Rename a file.
-	 * @param name The old name.
-	 * @param new_name The new name.
-	 */
-	public void rename(String name, String new_name) throws IOException {
-		simple_command("rename "+ChirpWord(name)+" "+ChirpWord(new_name)+"\n");
-	}
-
-	/*
 	 * Create a directory.
 	 * @param name The directory name.
 	 */
 	public void mkdir(String name) throws IOException {
 		simple_command("mkdir " + ChirpWord(name) + " " + 511 + "\n");
-	}
-
-	public int version() throws IOException {
-		return simple_command("version\n");
-	}
-
-	public String lookup( String path ) throws IOException {
-		String url = null;
-		int response = simple_command("lookup "+ChirpWord(path)+"\n");
-		if(response>0) {
-			byte [] buffer = new byte[response];
-			int actual = fullRead(buffer,0,response);
-			if(actual!=response) throw new ChirpError("server disconnected");
-			url = new String(buffer,0,response,encoding);
-		}
-		returnOrThrow(response);
-		return url;
 	}
 
 	private int simple_command(String cmd) throws IOException {

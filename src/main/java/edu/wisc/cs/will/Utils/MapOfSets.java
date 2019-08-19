@@ -25,14 +25,6 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
     public MapOfSets() {
     }
 
-    public int size() {
-        return map == null ? 0 : map.size();
-    }
-
-    public boolean isEmpty() {
-        return map == null || map.isEmpty();
-    }
-
     public boolean containsKey(Key key) {
         return map != null && map.containsKey(key);
     }
@@ -72,12 +64,6 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
 
             set.addAll(values);
 
-        }
-    }
-
-    public void clear() {
-        if ( map == null) {
-            map.clear();
         }
     }
 

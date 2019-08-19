@@ -5,14 +5,10 @@ package edu.wisc.cs.will.stdAIsearch;
  */
 public abstract class EndTest {
 
-	protected StateBasedSearchTask task;
-
-	public EndTest(StateBasedSearchTask task) {
-		this.task = task;
+	public EndTest() {
 	}
 
 	public void setSearchTask(StateBasedSearchTask task) {
-		this.task = task;
 	}
 
 	// Clear any state saved between searches using the same instance.

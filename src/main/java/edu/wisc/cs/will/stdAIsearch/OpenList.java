@@ -25,10 +25,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
         }
     }
 
-    public void setSearchTask(StateBasedSearchTask task) {
-        this.task = task;
-    }
-
     private void recordNodeCreation(T node) {
         task.nodesCreated++;
         task.nodesCreatedThisIteration++;

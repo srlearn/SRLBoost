@@ -211,10 +211,6 @@ public class ClauseBasedTree  {
 		}
 	}
 
-	public WILLSetup getSetup() {
-		return setup;
-	}
-
 	public void setSetup(WILLSetup setup) {
 		this.setup = setup;
 	}

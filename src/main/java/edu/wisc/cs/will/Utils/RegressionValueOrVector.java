@@ -21,13 +21,7 @@ public class RegressionValueOrVector {
 	public RegressionValueOrVector(double[] dist) {
 		setRegressionVector(dist);
 	}
-	
-	public RegressionValueOrVector(RegressionValueOrVector copy) {
-		this.hasVector  = copy.hasVector;
-		this.regressionVector = copy.regressionVector.clone();
-		this.singleRegressionValue = copy.singleRegressionValue;
-	}
-	
+
 	public void multiply(double scalar) {
 		if (isHasVector()) {
 			regressionVector = VectorStatistics.scalarProduct(regressionVector, scalar); 

@@ -44,10 +44,6 @@ public class HiddenLiteralState {
 
 	private double statePseudoProbability  = 1;
 
-	private HiddenLiteralState(Map<String, List<RegressionRDNExample>> jointExamples, Map<String, List<Integer>> assignment) {
-		predNameToLiteralMap = new HashMap<>(jointExamples);
-		predNameToAssignMap = new HashMap<>(assignment);
-	}
 	HiddenLiteralState(Map<String, List<RegressionRDNExample>> jointExamples) {
 		predNameToLiteralMap = new HashMap<>(jointExamples);
 		initAssignment();
@@ -78,20 +74,7 @@ public class HiddenLiteralState {
 			}
 		}
 	}
-	
-	
-	public String toPrettyString() {
-		StringBuilder sb = new StringBuilder();
-		for (String predName : predNameToLiteralMap.keySet()) {
-			for (int i = 0; i < predNameToLiteralMap.get(predName).size(); i++) {
-				sb.append(predNameToLiteralMap.get(predName).get(i).toPrettyString(""));
-				sb.append(":");
-				sb.append(predNameToAssignMap.get(predName).get(i));
-				sb.append("\n");
-			}
-		}
-		return sb.toString();
-	}
+
 
 	@Override
 	public int hashCode()  {
@@ -125,10 +108,6 @@ public class HiddenLiteralState {
 		return rep.toString();
 	}
 
-	public Set<String> getPredicates() {
-		return predNameToLiteralMap.keySet();
-	}
-	
 	void buildLiteralToAssignMap() {
 		literalRepToAssignMap = new HashMap<>();
 		for (String predName : predNameToLiteralMap.keySet()) {

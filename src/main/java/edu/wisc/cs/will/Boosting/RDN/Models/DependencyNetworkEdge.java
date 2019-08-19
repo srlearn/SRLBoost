@@ -30,16 +30,8 @@ public class DependencyNetworkEdge {
 		return start;
 	}
 
-	public void setStart(DependencyNode start) {
-		this.start = start;
-	}
-
 	public DependencyNode getEnd() {
 		return end;
-	}
-
-	public void setEnd(DependencyNode end) {
-		this.end = end;
 	}
 
 	private String styleForDOT() {

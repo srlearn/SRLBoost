@@ -29,10 +29,6 @@ public class DependencyExampleNode extends DependencyNode {
 		return example;
 	}
 
-	public void setExample(Literal example) {
-		this.example = example;
-	}
-
 	@Override
 	public String labelForDOT() {
 		return example.toString();

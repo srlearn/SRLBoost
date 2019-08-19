@@ -39,12 +39,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.Utils.condor.CompressedInputStream;
 import edu.wisc.cs.will.Utils.condor.CompressedOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 import edu.wisc.cs.will.Utils.condor.CondorUtilities;
 import java.io.BufferedWriter;
@@ -240,9 +238,6 @@ public class Utils {
     public static void print(String str) {
     	print(str, false);
     }
-    public static void print(MessageType type, String str) {
-    	if ( isMessageTypeEnabled(type)) print(str, false);
-    }
 
     public static String comma(int value) { // Always use separators (e.g., "100,000").
     	return String.format("%,d", value);    	
@@ -409,23 +404,6 @@ public class Utils {
         if (map == null) { return 0; }
         return map.size();
     }
-    public static int getSizeSafely(String str) {
-        if (str == null) { return 0; }
-        return str.length();
-    }
-    public static int getSizeSafely(Iterator<?> collection) {
-    	if (collection == null) { return 0; }
-    	int counter = 0;
-    	while(collection.hasNext()) {
-    		collection.next();
-    		counter++;
-    	}
-    	return counter;
-    }
-    public static int getSizeSafely(Integer integer) { // This version helps if we lookup in a <Object,Integer> map; i.e., default to 0 if not there. 
-        if (integer == null) { return 0; }
-        return integer;
-    }
 
     // TODO(@hayesall): Utils/MapOfSets.java uses this?
     static String getStringWithLinePrefix(String string, String prefix) {
@@ -561,9 +539,7 @@ public class Utils {
     public static boolean waitHere(String msg) {
     	return waitHere(msg, false, null);
     }
-    public static boolean waitHere(String msg, String skipWaitString) {
-        return waitHere(msg, false, skipWaitString);
-    }
+
     public static void waitHereErr(String msg) {
     	if ( msg != null && !msg.isEmpty()) {
     		printlnErr(msg);
@@ -669,13 +645,6 @@ public class Utils {
         }
 
         System.exit(0);
-    }
-
-    /*
-     * Prints a warning header on standard output.
-     */
-    public static void warning() {
-        println("\n***** Warning *****\n"); // Don't print to warning stream since no message.
     }
 
     /* Prints a warning header on standard output that includes the given message.
@@ -1023,73 +992,6 @@ public class Utils {
     		return String.format("%."  +  decimals      + "g", d);
     	}
         return     String.format("%,." +  decimals      + "f", d);
-    }
-
-    /*
-     * Truncates a double and returns it as a string with at least one and at
-     * most "decimals" decimal places. Notice that this does not ROUND (i.e, if
-     * the first of the dropped digits was '5' or higher, could add 1 to the
-     * last digit returned .. One complication of trying to implement rounding
-     * is that one needs to deal with "carrying" (eg, 0.99995 becoming 1.0000).
-     * Might want to check out to see if Java now handles this better, say in
-     * NumberFormat or Formatter. If requested, puts space in front of positive
-     * numbers - so printouts align.
-     * 
-     * @param d A number.
-     * @param decimals The number of decimal places in the string version.
-     * @param addSpaceBeforePosNumbers Whether to add space before positive numbers (so they are in alignment with the '-' sign before negative numbers).
-     * @return A string containing the number formatted as described above.
-     */
-    public static String truncate(double d, int decimals, boolean addSpaceBeforePosNumbers) { // This should always produce at least one decimal (by official documentation some years ago).
-        String str = String.format("$,d", d);
-        int index = str.indexOf(".");
-
-        // Patch for the above bug.  (Doesn't add "decimals" 0's, but that's ok.)
-        if (index < 0)  return str.concat(".0");
-
-        int indexE = indexOfIgnoreCase(str, index);
-        if (indexE > 0) // In scientific notation.
-        {
-            String result = str.substring(0, Math.min(indexE, index + decimals + 1)) + "e" + Integer.valueOf(str.substring(indexE + 1));
-
-            if (d < 0 || !addSpaceBeforePosNumbers)
-                return result;
-            else
-                return " " + result;
-        }
-        final String substring = str.substring(0, Math.min(str.length(), index + decimals + 1));
-        if (d < 0 || !addSpaceBeforePosNumbers)
-            return substring;
-        else
-            return " " + substring;
-    }
-
-    /*
-     * A version of java.lang.String.indexOf(String, int) that ignores case.
-     * (Since there isn't an CASELESS indexOf, adapt the existing code.)
-     * 
-     * @param str The string to search.
-     * @param fromIndex The index to start at.
-     * @return The index of the start of query, or -1 if the query was not
-     *         found.
-     */
-    private static int indexOfIgnoreCase(String str, int fromIndex) {
-        int qlength = "e".length();
-        int max = (str.length() - qlength);
-
-        test: for (int i = (Math.max(fromIndex, 0)); i <= max; i++) {
-            int k = 0, j = i, n = qlength;
-            char schar, qchar;
-            while (n-- > 0) {
-                schar = str.charAt(j++);
-                qchar = "e".charAt(k++);
-                if ((schar != qchar)
-                        && (Character.toLowerCase(schar) != Character.toLowerCase(qchar)))
-                    continue test;
-            }
-            return i;
-        }
-        return -1;
     }
 
     /*

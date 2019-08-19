@@ -60,20 +60,6 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         }
     }
 
-    public boolean contains(Key key, Value o) {
-        if ( map == null ) {
-            return false;
-        }
-        else {
-            List<Value> list;
-            return (((list = map.get(key)) != null) && list.contains(o));
-        }
-    }
-
-    public void clear() {
-        if ( map != null ) map.clear();
-    }
-
     public void addAllValues(Key key, Collection<? extends Value> c) {
         if ( map == null ) {
             map = createMap();
@@ -105,16 +91,6 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
 
     public List<Value> getValues(Key key) {
         return map == null ? null : map.get(key);
-    }
-
-    public List<Value> remove(Key key) {
-        if ( map == null ) {
-            return null;
-        }
-        else {
-            List<Value> list;
-            return ((list = map.remove(key)) != null) ? list : null;
-        }
     }
 
     public Set<Key> keySet() {

@@ -5,15 +5,13 @@ package edu.wisc.cs.will.stdAIsearch;
  * @author shavlik
  */
 public abstract class ClosedList {
-	protected StateBasedSearchTask task;
-	
+
 	// TODO(?): have a max size on this (and then randomly discard some percent if full? see linkedHashMap)
 
 	protected ClosedList() {}
 
-	public void setSearchTask(StateBasedSearchTask task) {
-		this.task = task;
-	}	
+	public void setSearchTask() {
+	}
 	
 	public void clearAnySavedInformation() { }
 

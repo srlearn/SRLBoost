@@ -183,7 +183,7 @@ public class LearnBoostedRDN {
 			for (int modelNumber = 0; modelNumber < RunBoostedRDN.numbModelsToMake; modelNumber++) { // This code assumes modelNumber=0 is learned first.
 				// Build data set for this model in this iteration.
 				long bddstart = System.currentTimeMillis();						
-				List<RegressionRDNExample> newDataSet = buildDataSet(targetPredicate, sampler, getGradientFile(i));
+				List<RegressionRDNExample> newDataSet = buildDataSet(targetPredicate, sampler);
 				long bbend = System.currentTimeMillis();
 				Utils.println("Time to build dataset: " + Utils.convertMillisecondsToTimeSpan(bbend-bddstart));
 				RegressionTree tree;
@@ -228,17 +228,12 @@ public class LearnBoostedRDN {
 		}
 	}
 
-	private String getGradientFile(int i) {
-		return setup.getOuterLooper().getWorkingDirectory() + "/gradients_" + i + ".txt";
-	}
-
 	public void loadCheckPointModel(ConditionalModelPerPredicate rdn) {
 		String saveModelName = BoostingUtils.getModelFile(cmdArgs, targetPredicate, true);
 		String chkPointFile = BoostingUtils.getCheckPointFile(saveModelName);
 		File willFile = getWILLsummaryFile();
 		File chkFile = new File(chkPointFile);
 		if (chkFile.exists() && chkFile.length() > 0) {
-//		if (Utils.fileExists(chkPointFile)) {
 			Utils.println("Loading checkpoint model from " + chkPointFile);
 			rdn.loadModel(chkPointFile, setup, -1);
 			Utils.println("Found " + rdn.getNumTrees() + " trees in checkpoint");
@@ -513,7 +508,7 @@ public class LearnBoostedRDN {
 		egs = all_exs;
 	}
 
-	private List<RegressionRDNExample> buildDataSet(String targetPredicate, SRLInference sampler, String gradFile) {
+	private List<RegressionRDNExample> buildDataSet(String targetPredicate, SRLInference sampler) {
 		List<RegressionRDNExample> all_exs = new ArrayList<>();
 		double scaleFactor = 1e8; // Used in EM to scale up the gradients
 

@@ -13,7 +13,7 @@ public class ProofDone extends EndTest {
 	private HornSearchNode goalNodeFound;
 
 	ProofDone(HornClauseProver task) {
-		super(task);
+		super();
 	}
 	
 	public boolean endSearch(SearchNode currentNode) {

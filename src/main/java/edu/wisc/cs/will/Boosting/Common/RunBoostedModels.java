@@ -19,10 +19,7 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
  */
 public abstract class RunBoostedModels {
 
-	protected CommandLineArguments cmdArgs; 
-	public CommandLineArguments getCmdArgs() {
-		return cmdArgs;
-	}
+	protected CommandLineArguments cmdArgs;
 
 	public void setCmdArgs(CommandLineArguments cmdArgs) {
 		this.cmdArgs = cmdArgs;

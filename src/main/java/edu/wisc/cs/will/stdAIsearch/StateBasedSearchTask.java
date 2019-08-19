@@ -173,7 +173,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
         strategy.setSearchTask(this);
         if (scorer != null) { scorer.setSearchTask(this); } // It isn't required that there be a node-scorer.
         childrenGenerator.setSearchTask(this);
-        if (closed != null) { closed.setSearchTask(this); } // It isn't required that there be a closed list.
+        if (closed != null) { closed.setSearchTask(); } // It isn't required that there be a closed list.
 
         if (open == null) { open = new OpenList(this); }
     }
@@ -264,9 +264,9 @@ public class StateBasedSearchTask<T extends SearchNode> {
     private void resetAll(boolean withinInterativeDeepening) {
         clearAnySavedBasicSearchInformation(withinInterativeDeepening); // Explicitly call this rather than counting on subclasses to call super().
         clearAnySavedInformation();
-        if (initializer       != null) { searchMonitor.clearAnySavedInformation(withinInterativeDeepening); } // Clear any remnants of any previous searches.
+        if (initializer       != null) { searchMonitor.clearAnySavedInformation(); } // Clear any remnants of any previous searches.
         if (terminator        != null) { terminator.clearAnySavedInformation(withinInterativeDeepening);    }
-        if (searchMonitor     != null) { searchMonitor.clearAnySavedInformation(withinInterativeDeepening); }
+        if (searchMonitor     != null) { searchMonitor.clearAnySavedInformation(); }
         if (strategy          != null) { strategy.clearAnySavedInformation();      }
         if (scorer            != null) { scorer.clearAnySavedInformation();        }
         if (childrenGenerator != null) { childrenGenerator.clearAnySavedInformation(withinInterativeDeepening); }
