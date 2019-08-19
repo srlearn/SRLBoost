@@ -1,21 +1,29 @@
-# BoostSRL Reference Implementation
+# SRLearn
 
-This is a reference implementation for BoostSRL, shortly before the 1.0 release.
-This contains Shuo Yang's soft-rfgb implementation, but none of the other new features.
+A package for learning Statistical Relational Models with Gradient Boosting.
 
-- [Tushar's Documentation](http://pages.cs.wisc.edu/~tushar/Boostr/)
+*It's basically BoostSRL but half the size.*
 
-## Getting Started
+## Windows Quickstart
 
-Packaging is done using Maven, and requires Java 1.8 or higher.
-
-```bash
-$ jenv exec mvn package
-```
-
-There is not a `-help` flag implemented, but running it with one will crash the program and 
-print help information when it does.
+1. Open Windows Terminal in Administrator mode, and use [Chocolatey](https://chocolatey.org/) to install Maven and a Java Development Kit.
 
 ```bash
-$ java -jar target/boostsrl-0.9.0-jar-with-dependencies.jar -help 
+$ choco install openjdk
+$ choco install maven
 ```
+
+2. Clone and build the package.
+
+```bash
+$ git clone https://github.com/hayesall/SRLearn.git
+$ cd .\SRLearn\
+$ mvn package
+```
+
+3. Run a basic example:
+
+```bash
+`$ java -jar .\target\srlearn-jar-with-dependencies.jar -l .\data\Toy-Cancer\train\ -target cancer
+```
+``
