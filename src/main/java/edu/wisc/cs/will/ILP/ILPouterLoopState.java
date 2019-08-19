@@ -259,10 +259,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
         return currentFold;
     }
 
-    void setCurrentFold(int currentFold) {
-        this.currentFold = currentFold;
-    }
-
     protected String getPrefix() {
         return prefix;
     }
@@ -281,10 +277,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
 
     boolean isFlipFlopPosAndNegExamples() {
         return flipFlopPosAndNegExamples;
-    }
-
-    void setFlipFlopPosAndNegExamples(boolean flipFlopPosAndNegExamples) {
-        this.flipFlopPosAndNegExamples = flipFlopPosAndNegExamples;
     }
 
     Set<Example> getNegExamplesUsedAsSeeds() {

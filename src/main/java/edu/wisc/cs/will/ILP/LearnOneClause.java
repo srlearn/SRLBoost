@@ -9,11 +9,9 @@ import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForMLN;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForRDN;
 import edu.wisc.cs.will.ILP.Regression.RegressionVectorInfoHolderForRDN;
-import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.ResThmProver.HornClausebase;
-import edu.wisc.cs.will.Utils.NamedReader;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
@@ -270,34 +268,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	/*
 	 * Constructs a new LearnOneClause search.
      */
-	public LearnOneClause(String workingDir,                String prefix,
-			  			  String posExamplesFileName,       String negExamplesFileName,
-			  			  String backgroundClausesFileName, String factsFileName,
-			              SearchStrategy strategy,          ScoreSingleClause scorer,
-                          SearchMonitor monitor) throws IOException {
-		this(workingDir, prefix,
-			 new NamedReader(new CondorFileReader(posExamplesFileName), posExamplesFileName),
-			 new NamedReader(new CondorFileReader(negExamplesFileName), negExamplesFileName),
-			 new NamedReader(new CondorFileReader(backgroundClausesFileName), backgroundClausesFileName),
-			 new NamedReader(new CondorFileReader(factsFileName), factsFileName),
-			 strategy, scorer, null, monitor, new DefaultHornClauseContext(), false);
-	}
-
-	/*
-	 * Constructs a new LearnOneClause search.
-     */
-	public LearnOneClause(String             workingDir,              String prefix,
-			  			  Reader             posExamplesReader,       Reader            negExamplesReader,
-						  Reader             backgroundClausesReader, Reader            factsReader,
-				  		  SearchStrategy     strategy,                ScoreSingleClause scorer,
-                          PruneILPsearchTree pruner,                  SearchMonitor     monitor,
-                          HandleFOPCstrings  stringHandler) {
-        this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundClausesReader, factsReader, strategy, scorer, pruner, monitor, new DefaultHornClauseContext(stringHandler), false);
-    }
-
-    /*
-	 * Constructs a new LearnOneClause search.
-     */
     public LearnOneClause(String            workingDir,              String prefix,
                           Reader            posExamplesReader,       Reader negExamplesReader,
                           Reader            backgroundClausesReader, Reader factsReader,
@@ -341,7 +311,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (backgroundClausesReader != null) { context.assertSentences(readBackgroundTheory(backgroundClausesReader, null)); }
 
 		Initializer              init        = new InitializeILPsearchSpace();
-		EndTest                  endTest     = null;
 		ChildrenClausesGenerator nodeGen     = new ChildrenClausesGenerator();
 		VisitedClauses           c           = new VisitedClauses(maxSizeOfClosed);
 		initalizeStateBasedSearchTask(init, null, monitor, strategy, scorer, nodeGen, c);
@@ -984,14 +953,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         }
     }
 
-	void resetModes(List<PredicateNameAndArity> modes) { // This doesn't impact the TARGET modes.
-		bodyModes = new LinkedHashSet<>(Utils.getSizeSafely(modes));
-		stringHandler.setKnownModes(modes);
-		for (PredicateNameAndArity pName : modes) if (!examplePredicates.contains(pName)) {
-			if (!bodyModes.contains(pName)) { bodyModes.add(pName); } // Note: we are not allowing recursion here since P is either a head or a body predicate.
-		}
-	}
-	
 	private boolean acceptableMode() {
 		// Added (11/11/10) by JWS.  When learning TREE-structured theories and only considering ONE literal at a node, no need to consider P and not_P since the branches involve both cases.
 		// TODO(@hayesall): method always returns true.
@@ -1327,83 +1288,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return collectExamplesCovered(getNegExamples(),node);
 	}
 
-	/* Evaluates each example in inputExamples against the clause, putting it into trueExamples or falseExamples, as appropriate.
-     *
-     * Both trueExamples and falseExamples can be null.  If either one is null, that type of example will
-     * just not be recorded.  If both are null, nothing will actually be done.
-     *
-     * It is safe for inputExamples to be the same collection as either coveredExamples or uncoveredExamples.
-     * If it is, inputExamples will be modified appropriately.  Otherwise, inputExamples will not be modified.
-     *
-     * @param clause Clause to evaluate.
-     * @param inputExamples Examples to evaluate against.
-     * @param trueExamples Collection to add provable examples to.
-     * @param falseExamples Collection to add unprovable Examples to.
-     */
-	private void proveExamples(Clause clause, Collection<Example> inputExamples, Collection<Example> trueExamples, Collection<Example> falseExamples) {
-        if (inputExamples == null || (trueExamples == null && falseExamples == null)) {
-            return;
-        }
 
-        if (!clause.isDefiniteClause()) {
-            throw new IllegalArgumentException("This code only handles definite clauses (only one positive literal): " + clause);
-        }
-
-        boolean setsOverlap = (inputExamples == trueExamples || inputExamples == falseExamples);
-
-        for (Iterator<Example> it = inputExamples.iterator(); it.hasNext();) {
-            Example example = it.next();
-
-            boolean isTrue = proveExample(clause, example);
-
-            if ( setsOverlap ) {
-                // If the inputExamples list is the same as either of the true examples
-                // or the false examples, we need to play some games to make sure
-                // the lists are updated correctly.
-                if ( inputExamples == trueExamples && !isTrue) {
-                    // The input and true examples are the same but the example is
-                    // false.  Remove it from the inputExamples and put it
-                    // in the false examples.
-                    it.remove();
-
-                    if ( falseExamples != null ) {
-                        falseExamples.add(example);
-                    }
-                }
-                else if ( inputExamples == falseExamples && isTrue) {
-                    // The input and false examples  are the same but the example is
-                    // true.  Remove it from the inputExamples and put it
-                    // in the true examples.
-                    it.remove();
-
-                    if ( trueExamples != null ) {
-                        trueExamples.add(example);
-                    }
-                }
-
-                // If things fall through to here, the examples will just be left in
-                // the input set, which also matches the set it should be in, so
-                // nothing needs to be done here.
-            }
-            else {
-                if ( isTrue ) {
-                    // examples is true and the sets are disjoint
-                    if ( trueExamples != null ) {
-                        trueExamples.add(example);
-                    }
-                }
-                else {
-                    // examples is false and the sets are disjoint
-                    if ( falseExamples != null ) {
-                        falseExamples.add(example);
-                    }
-                }
-            }
-        }
-    }
-
-
-    /* Attempts to prove a single example given clause <code>clause</code> and returns
+	/* Attempts to prove a single example given clause <code>clause</code> and returns
     * the bindings if finds a proof.
     * If an error occurs, this method silently catches the error and returns
     * false.
@@ -1472,60 +1358,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         }
         return false;
     }
-
-	/* Returns the coverage score for sets of examples.
-	 *
-	 * Calculates the weighted coverage of a Theory on a set of examples.
-	 * An example is considered covered by the Theory if any of the
-	 * clauses in the Theory cover the example.
-	 *
-	 * @param theory Theory to prove.
-	 * @param positiveExamples Set of positive examples.
-	 * @param negativeExamples Set of negative examples.
-	 * @return Sum of the weights of all covered examples in examples.
-	 */
-	CoverageScore getWeightedCoverage(Theory theory, Collection<Example> positiveExamples, Collection<Example> negativeExamples) {
-    	CoverageScore coverageScore;
-		if (regressionTask) { Utils.error("Do not call 'getWeightedCoverage' when regressionTask = true."); }
-		coverageScore = new CoverageScore();
-		coverageScore.setFalseNegativeMEstimate(getMEstimatePos());
-		coverageScore.setFalsePositiveMEstimate(getMEstimateNeg());
-
-		HashSet<Example> truePositives  = new LinkedHashSet<>(); //   Covered positives.
-		HashSet<Example> falsePositives = new LinkedHashSet<>(); //   Covered negatives.
-		HashSet<Example> trueNegatives  = new LinkedHashSet<>(); // Uncovered negatives.
-		HashSet<Example> falseNegatives = new LinkedHashSet<>(); // Uncovered positives.
-
-		if ( positiveExamples != null ) {
-			falseNegatives.addAll(positiveExamples);
-		}
-
-		if ( negativeExamples != null ) {
-			trueNegatives.addAll(negativeExamples);
-		}
-
-		if ( theory.getClauses() != null ) {
-			Utils.println(    "  initially:  |falseNegatives| = " + Utils.comma(falseNegatives) + " and |trueNegatives| = " +  Utils.comma(trueNegatives) + ".");
-			for (Clause clause : theory.getClauses()){
-				Utils.println("     getWeightedCoverage: apply this clause " + clause);
-				proveExamples(clause, falseNegatives, truePositives, falseNegatives);
-				proveExamples(clause, trueNegatives, falsePositives, trueNegatives);
-				Utils.println("  currently:  |falseNegatives| = " + Utils.comma(falseNegatives) + " and |trueNegatives| = " +  Utils.comma(trueNegatives) + ".");
-			}
-		}
-
-		double tp = Example.getWeightOfExamples(truePositives);
-		double fp = Example.getWeightOfExamples(falsePositives);
-		double tn = Example.getWeightOfExamples(trueNegatives);
-		double fn = Example.getWeightOfExamples(falseNegatives);
-
-		coverageScore.setTruePositives(  coverageScore.getTruePositives()  + tp);
-		coverageScore.setFalsePositives( coverageScore.getFalsePositives() + fp);
-		coverageScore.setTrueNegatives(  coverageScore.getTrueNegatives()  + tn);
-		coverageScore.setFalseNegatives( coverageScore.getFalseNegatives() + fn);
-
-		return coverageScore;
-	}
 
 	public void setDumpGleanerEveryNexpansions(int dumpGleanerEveryNexpansions) {
 		this.dumpGleanerEveryNexpansions = dumpGleanerEveryNexpansions;
@@ -1773,7 +1605,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 			return new RegressionExample(stringHandler, lit, outputValue, "Read from file.", null, annotationTerm);
 		}
 		if (!confirmExample(lit)) { return null; }
-		return new Example(stringHandler, lit, "Read from file.", null, annotationTerm);
+		return new Example(stringHandler, lit, "Read from file.", null);
 	}
 
 	private String combineLabels(String str2) {
@@ -2138,11 +1970,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         return negExamples == null ? 0 : negExamples.size();
     }
 
-	// TODO - should index modes by arity as well ...
-	boolean checkForBodyMode(PredicateName pName, int arity) {
-		return bodyModes != null && bodyModes.contains(new PredicateNameAndArity(pName, arity));
-	}
-
 	private void setThresholder(ThresholdManager thresholder) {
 		this.thresholdHandler = thresholder;
 	}
@@ -2197,10 +2024,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         return relevanceEnabled == null ? false : relevanceEnabled;
     }
 
-    void setRelevanceEnabled(boolean relevanceEnabled) {
-        this.relevanceEnabled = relevanceEnabled;
-    }
-
 	AdviceProcessor getAdviceProcessor() {
         return adviceProcessor;
     }
@@ -2225,27 +2048,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         }
     }
 
-    /* Reads a relevance file and enables relevance if relevanceEnabled is unset.
-     *
-     * relevanceEnabled is tri-valued, either true, false, or unset.  If relevanceEnabled is
-     * true or false, this method does not change the relevanceEnabled value.  However,
-     * if it is unset, it will be set to true.
-     * <P>
-     * Note: This method must be called prior to initialization of the
-     * LearnOneClause.
-     * @throws IllegalStateException An IllegalStateException will be thrown if LearnOneClause is already initialized.
-     */
-	void setRelevanceFile(File relevanceFile) throws FileNotFoundException, IllegalStateException {
-        if ( relevanceFile != null ) {
-
-            BufferedReader relevanceReader = new BufferedReader( new CondorFileReader(relevanceFile));
-
-			String relevanceDirectoryName = relevanceFile.getParent();
-            setRelevanceFile(relevanceReader, relevanceDirectoryName);
-        }
-    }
-
-    /* Reads a relevance file and enables relevance if relevanceEnabled is unset.
+	/* Reads a relevance file and enables relevance if relevanceEnabled is unset.
      *
      * relevanceEnabled is tri-valued, either true, false, or unset.  If relevanceEnabled is
      * true or false, this method does not change the relevanceEnabled value.  However,
@@ -2383,13 +2186,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         return currentRelevanceStrength;
     }
 
-    void setCurrentRelevanceStrength(RelevanceStrength currentRelevanceStrength) {
-        if ( currentRelevanceStrength == null ) {
-            currentRelevanceStrength = RelevanceStrength.getDefaultRelevanceStrength();
-        }
-        this.currentRelevanceStrength = currentRelevanceStrength;
-    }
-
 	ActiveAdvice getActiveAdvice() {
         return activeAdvice;
     }
@@ -2432,63 +2228,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return false;
 	}
 
-	ILPSearchAction fireOnionLayerStarting(TuneParametersForILP onion, ILPparameterSettings onionLayer) {
-        ILPSearchAction action = ILPSearchAction.PERFORM_LOOP;
-
-        Object[] listeners = searchListenerList.getListenerList();
-        for (int i = 0; i < listeners.length; i+=2) {
-            Class c = (Class)listeners[i];
-            if ( ILPSearchListener.class.isAssignableFrom(c)) {
-                ILPSearchListener listener = (ILPSearchListener)listeners[i+1];
-
-                ILPSearchAction aAction = listener.onionLayerStarting(onion, onionLayer);
-                action = ILPSearchAction.getHigherPrecedenceAction(action, aAction);
-            }
-        }
-        return action;
-    }
-
-    void fireOnionLayerFinished(TuneParametersForILP onion, ILPparameterSettings onionLayer) {
-        Object[] listeners = searchListenerList.getListenerList();
-        for (int i = 0; i < listeners.length; i+=2) {
-            Class c = (Class)listeners[i];
-            if ( ILPSearchListener.class.isAssignableFrom(c)) {
-                ILPSearchListener listener = (ILPSearchListener)listeners[i+1];
-
-                listener.onionLayerFinished(onion, onionLayer);
-            }
-        }
-    }
-
-    ILPSearchAction fireCrossValidationFoldStarting(ILPCrossValidationLoop cvLoop, int fold) {
-        ILPSearchAction action = ILPSearchAction.PERFORM_LOOP;
-
-        Object[] listeners = searchListenerList.getListenerList();
-        for (int i = 0; i < listeners.length; i+=2) {
-            Class c = (Class)listeners[i];
-            if ( ILPSearchListener.class.isAssignableFrom(c)) {
-                ILPSearchListener listener = (ILPSearchListener)listeners[i+1];
-
-                ILPSearchAction aAction = listener.crossValidationFoldStarting(cvLoop, fold);
-                action = ILPSearchAction.getHigherPrecedenceAction(action, aAction);
-            }
-        }
-        return action;
-    }
-
-    void fireCrossValidationFoldFinished(ILPCrossValidationLoop cvLoop, int fold) {
-        Object[] listeners = searchListenerList.getListenerList();
-        for (int i = 0; i < listeners.length; i+=2) {
-            Class c = (Class)listeners[i];
-            if ( ILPSearchListener.class.isAssignableFrom(c)) {
-                ILPSearchListener listener = (ILPSearchListener)listeners[i+1];
-
-                listener.crossValidationFoldFinished(cvLoop, fold);
-            }
-        }
-    }
-
-    ILPSearchAction fireOuterLoopStarting(ILPouterLoop outerLoop) {
+	ILPSearchAction fireOuterLoopStarting(ILPouterLoop outerLoop) {
         ILPSearchAction action = ILPSearchAction.PERFORM_LOOP;
 
         Object[] listeners = searchListenerList.getListenerList();

@@ -61,16 +61,8 @@ public class ElementPath implements Comparable<ElementPath>{
         return index;
     }
 
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
     public ElementPath getParent() {
         return parent;
-    }
-
-    public void setParent(ElementPath parent) {
-        this.parent = parent;
     }
 
     @Override

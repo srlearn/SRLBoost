@@ -24,16 +24,7 @@ public abstract class AllOfFOPC {
 
     public abstract String    toString(                             int precedenceOfCaller, BindingList bindingList);
 	public abstract String    toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList);
-	  
-	public String toString(int precedence, List<Term> items) {
-		StringBuilder result = new StringBuilder();
-		boolean firstTime = true;
-		for(Term t : items) {
-			if (firstTime) { firstTime = false; } else { result.append(", "); }
-			result.append(t.toString(precedence));
-		}
-		return result.toString();
-	}
+
 	public String toPrettyString() {
 		return toPrettyString("", defaultPrecedence); // Use some average value?
 	}

@@ -59,21 +59,6 @@ public class SentencePruner {
             this.sentence = sentence;
         }
 
-        public HornClauseContext getContext() {
-            return context;
-        }
-
-        public void setContext(HornClauseContext context) {
-            this.context = context;
-        }
-
-        public List<? extends PruningRule> getRules() {
-            return rules;
-        }
-
-        public void setRules(List<PruningRule> rules) {
-            this.rules = rules;
-        }
     }
 
     private static class SentencePrunerListener implements ElementPositionListener<SentencePrunerData> {

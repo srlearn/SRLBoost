@@ -18,21 +18,7 @@ public class PrettyPrinter {
 
     private static final int MIN_PRECEDENCE = 0;
 
-    public static String print(Sentence s) {
-
-        return print(s, "", new PrettyPrinterOptions());
-    }
-
-    public static String print(Term s) {
-
-        return print(s, "", new PrettyPrinterOptions());
-    }
-
     public static String print(Sentence s, String prefix, PrettyPrinterOptions options) {
-        return print(s, prefix, prefix, options, null);
-    }
-
-    public static String print(Term s, String prefix, PrettyPrinterOptions options) {
         return print(s, prefix, prefix, options, null);
     }
 
@@ -91,46 +77,6 @@ public class PrettyPrinter {
         appendWithPrefix(stringBuilder, r.getResultString(), additionalLinesPrefix);
 
         stringBuilder.append(data.options.getSentenceTerminator());
-
-
-        return stringBuilder.toString();
-    }
-
-    public static String print(BindingList bindingList, String firstLinePrefix, String additionalLinesPrefix, PrettyPrinterOptions options) {
-        FOPCPrettyPrinterData data = new FOPCPrettyPrinterData();
-
-        data.variableBindings = new BindingList();
-
-        if (options != null) {
-            data.options = options;
-        }
-
-        data.pushIndent(Math.max(additionalLinesPrefix.length(), firstLinePrefix.length()));
-
-        StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append(firstLinePrefix);
-        stringBuilder.append("{");
-
-
-        boolean first = true;
-        for (Entry<Variable, Term> entry : bindingList.theta.entrySet()) {
-
-            if (!first) {
-                stringBuilder.append(",  ");
-
-            }
-
-            PPResult var = entry.getKey().accept(PRETTY_PRINTER_VISITOR, data);
-
-            PPResult bind = entry.getValue().accept(PRETTY_PRINTER_VISITOR, data);
-
-            stringBuilder.append(var.resultString).append(" =>").append(bind.resultString);
-
-            first = false;
-        }
-
-        stringBuilder.append("}");
 
 
         return stringBuilder.toString();

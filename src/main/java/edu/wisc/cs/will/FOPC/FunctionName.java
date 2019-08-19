@@ -11,7 +11,6 @@ import java.util.Map;
  */
 public class FunctionName extends AllOfFOPC {
 	public  String  name;
-	boolean isaSkolem = false;
 	private Map<List<Constant>,Constant> extensionalSemantics;
 	boolean printUsingInFixNotation = false;
 	private Map<Integer,List<String>> namedArgumentOrdering = null;  // When getting rid of named arguments, this is the order argument should be placed (if null, then use alphabetic ordering).

@@ -35,10 +35,6 @@ public class Pruner {
 		return (bindings != null);
 	}
 
-	public String toPrettyString() {
-		return "Can prune '" + prunableLiteral + "' if " + ifPresentLiteral + " is present (and cannot be derived " + warnIfPresentLiteralCount + " or more times).";
-	}
-
 	public String toString() {
 		if (warnIfPresentLiteralCount > 0) { return "pruner("+ prunableLiteral + ", " + ifPresentLiteral + ", " + warnIfPresentLiteralCount + ")"; }
 		return "pruner("+ prunableLiteral + ", " + ifPresentLiteral + ")";

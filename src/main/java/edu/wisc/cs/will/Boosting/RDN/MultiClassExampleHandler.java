@@ -119,7 +119,7 @@ public class MultiClassExampleHandler {
 		
 		List<Term> newArgs = addToArgumentList(rex.getArguments(), constList, predicateToClassArgIndex.get(pname));
 
-		return new Example(rex.getStringHandler(), predNameObj, newArgs, rex.provenance, rex.extraLabel, rex.getAnnotationTerm());
+		return new Example(rex.getStringHandler(), predNameObj, newArgs, rex.provenance, rex.extraLabel);
 	}
 
 	private List<Term> addToArgumentList(List<Term> arguments,

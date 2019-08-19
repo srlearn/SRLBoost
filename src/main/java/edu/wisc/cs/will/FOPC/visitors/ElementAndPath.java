@@ -25,10 +25,6 @@ public class ElementAndPath {
         return path;
     }
 
-    public void setPath(ElementPath path) {
-        this.path = path;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {

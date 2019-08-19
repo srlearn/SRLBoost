@@ -64,10 +64,6 @@ public class TreeStructuredTheory extends Theory {
 		return headLiteral;
 	}
 
-	public TreeStructuredTheoryNode getRoot() {
-		return root;
-	}
-
 	public void setRoot(TreeStructuredTheoryNode root) {
 		this.root = root;
 	}

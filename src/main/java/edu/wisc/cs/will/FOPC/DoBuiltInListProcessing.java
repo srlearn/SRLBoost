@@ -12,7 +12,6 @@ import edu.wisc.cs.will.Utils.Utils;
  * @author shavlik
  */
 public class DoBuiltInListProcessing extends AllOfFOPC {
-	DoBuiltInMath mathHandler = null;
 
 	private FunctionName conscell; // Should really have ConsCell instances, but check for this as a function name as well.
 	private FunctionName first;

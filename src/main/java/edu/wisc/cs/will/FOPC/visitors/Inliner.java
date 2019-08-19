@@ -34,7 +34,7 @@ public class Inliner {
      * the supportClauses map.
      */
     public static Sentence getInlinedSentence(Sentence sentence, HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
-        return sentence.accept(INLINER_VISITOR, new InlineData(context, null, supportClauses));
+        return sentence.accept(INLINER_VISITOR, new InlineData(context, null));
     }
 
     private static class InlinerVisitor extends DefaultFOPCVisitor<InlineData> {
@@ -223,12 +223,9 @@ public class Inliner {
 
         Set<PredicateNameAndArity> doNotInlineSet;
 
-        MapOfLists<PredicateNameAndArity, Clause> supportClauses;
-
-        InlineData(HornClauseContext context, Collection<? extends DefiniteClause> additionalInlinableClauses, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
+        InlineData(HornClauseContext context, Collection<? extends DefiniteClause> additionalInlinableClauses) {
             this.context = context;
             this.additionalInlinableClauses = additionalInlinableClauses;
-            this.supportClauses = supportClauses;
         }
 
         InlineData(InlineData parent) {

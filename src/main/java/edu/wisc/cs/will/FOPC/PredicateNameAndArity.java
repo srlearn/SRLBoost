@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -12,13 +11,6 @@ public class PredicateNameAndArity {
 
     public PredicateNameAndArity(PredicateName predicateName, int arity) {
         this.predicateName = predicateName;
-        this.arity = arity;
-    }
-    
-    public PredicateNameAndArity(HandleFOPCstrings stringHandler, String pNameAndAritySpec) {
-		PredicateName pName = stringHandler.getPredicateName(pNameAndAritySpec.substring(0, pNameAndAritySpec.indexOf('/')));
-		int arity = Integer.parseInt(pNameAndAritySpec.substring(pNameAndAritySpec.indexOf('/') + 1));
-		this.predicateName = pName;
         this.arity = arity;
     }
 
@@ -58,32 +50,6 @@ public class PredicateNameAndArity {
 
     public int getArity() {
         return arity;
-    }
-
-    public void setArity(int arityNew) {
-        arity = arityNew;
-    }
-
-    private Type getType(int argumentIndex) {
-        List<PredicateSpec> ps = predicateName.getTypeOnlyList(arity);
-        if (ps != null && ps.size() > 0) {
-            return ps.get(0).getTypeSpecList().get(argumentIndex).isaType;
-        }
-        else {
-            return null;
-        }
-    }
-
-    /* Returns the types of all arguments.
-     * 
-     * @return List of types, one for each argument.
-     */
-    public List<Type> getTypes() {
-        List<Type> types = new ArrayList<>(arity);
-        for (int i = 0; i < arity; i++) {
-            types.add(getType(i));
-        }
-        return types;
     }
 
     /* Returns all of the Predicate specification attached to the predicate/arity.

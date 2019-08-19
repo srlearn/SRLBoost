@@ -76,29 +76,6 @@ public class BindingList extends AllOfFOPC {
         return new HashMap<>(realSize);
     }
 
-    public Map<Variable, Term> getTheta() {
-        return theta == null ? Collections.EMPTY_MAP : theta;
-    }
-
-	// We can't do any in-place replacements at the top-level here since a given list can be combined with several other lists.
-	public List<Literal> applyTheta(List<Literal> literals1, List<Literal> literals2) {
-		if (Sentence.debugLevel > 2) { Utils.println("Apply theta = " + theta + "\n to literals " + literals1 + " and " + literals2); }
-		if (theta == null || theta.size() == 0) { // No need to change any of the literals if no variable bindings.
-			if (literals1 == null) { return literals2; }
-			if (literals2 == null) { return literals1; }
-			
-			List<Literal> literals1Copy = new ArrayList<>(literals1);
-			literals1Copy.addAll(literals2);
-			return literals1Copy;
-		}
-		if (literals1 == null) { return applyTheta(literals2); }
-		if (literals2 == null) { return applyTheta(literals1); }
-
-		List<Literal> literals1copy = applyTheta(literals1); // applyTheta will do a top-level COPY (even if not needed).
-		literals1copy.addAll(applyTheta(literals2));
-		return literals1copy;
-	}
-
 	public List<Literal> applyTheta(List<Literal> literals) { // Note that the above code assumes this will make a top-level copy (but the above wont call this if theta is empty or the list is).
 		if (literals == null) { return null; }
 		if (theta    == null || theta.size() == 0) { return literals; } // No need to apply the empty list of bindings.
@@ -168,15 +145,6 @@ public class BindingList extends AllOfFOPC {
 		term.stringHandler.setUseStrictEqualsForFunctions(hold);
 		return null;
 	}
-	
-	// Provide a way to do a lookup without needing to create a HashMap.
-	public static Term lookup(Variable var, List<Binding> bindings) {
-		if (bindings == null) { return null; }
-		for (Binding b : bindings) {
-			if (b.var == var) { return b.term; }
-		}
-		return null;
-	}
 
 	boolean addBindingFailSoftly(Variable var, Term term) {
 		if (help_addBinding(var, term, false)) { return true; }
@@ -218,7 +186,7 @@ public class BindingList extends AllOfFOPC {
 	// Collect all the bindings in the HashMap.
 	public List<Binding> collectBindingsInList() {
 		if (Utils.getSizeSafely(theta) < 1) { return null; }  // Might want to instead return the empty list?
-		List<Binding> results = new ArrayList<Binding>(theta.size());
+		List<Binding> results = new ArrayList<>(theta.size());
 		for (Variable var : theta.keySet()) {
 			results.add(new Binding(var, theta.get(var)));
 		}
@@ -271,9 +239,5 @@ public class BindingList extends AllOfFOPC {
 	public int countVarOccurrencesInFOPC(Variable v) {
 		return (theta.containsKey(v) ? 1 : 0);
 	}
-
-    public boolean isEmpty() {
-        return theta == null || theta.isEmpty();
-    }
 
 }

@@ -20,7 +20,7 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 	protected Term(HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
 	}
-	
+
 	public TypeSpec getTypeSpec() {
 		return typeSpec;
 	}
@@ -106,8 +106,8 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 	public Collection<Variable> collectAllVariables() {
 		return collectFreeVariables(null);
 	}
-    
-    
+
+
 
     public Clause getNegatedQueryClause() throws IllegalArgumentException {
         // We are going to just wrap the term in a literal for now.  The prover

@@ -80,7 +80,7 @@ public class AdviceProcessor {
 
     /* Returns the active advice for the given examples and relevanceStrength without asserting/retracting.
      */
-    ActiveAdvice getActiveAdvice(RelevanceStrength relevanceStrength, List<? extends Example> positiveExamples, List<? extends Example> negativeExamples) {
+    private ActiveAdvice getActiveAdvice(RelevanceStrength relevanceStrength, List<? extends Example> positiveExamples, List<? extends Example> negativeExamples) {
         ActiveAdvice activeAdvice = new ActiveAdvice(stringHandler);
 
         processRelevantClauses(activeAdvice, relevanceStrength, positiveExamples, negativeExamples);
@@ -949,42 +949,6 @@ public class AdviceProcessor {
 
             if ( debugLevel >= 1 ) Utils.print("% [AdviceProcessor] Added Relevant Mode Advice: " + rfi + "\n");
         }
-    }
-
-    int getAnonymousClauseIndex() {
-        return anonymousClauseIndex;
-    }
-
-    void setAnonymousClauseIndex(int anonymousClauseIndex) {
-        this.anonymousClauseIndex = anonymousClauseIndex;
-    }
-
-    List<RelevantClauseInformation> getRelevantClausesForExample(Example example) {
-        List<RelevantClauseInformation> result = new ArrayList<>();
-
-        if (relevantClauses != null) {
-            for (RelevantClauseInformation RelevantClauseInformationCopy : relevantClauses) {
-                if (RelevantClauseInformationCopy.example.equals(example)) {
-                    result.add(RelevantClauseInformationCopy);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    List<RelevantFeatureInformation> getRelevantFeatureForExample(Example example) {
-        List<RelevantFeatureInformation> result = new ArrayList<>();
-
-        if (relevantFeatures != null) {
-            for (RelevantFeatureInformation relevantFeatureInformation : relevantFeatures) {
-                if (relevantFeatureInformation.example.equals(example)) {
-                    result.add(relevantFeatureInformation);
-                }
-            }
-        }
-
-        return result;
     }
 
     boolean isOutputArgumentsEnabled() {

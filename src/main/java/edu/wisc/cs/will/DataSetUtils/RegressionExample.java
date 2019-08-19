@@ -33,12 +33,12 @@ public class RegressionExample extends Example  implements Serializable {
 		this(stringHandler, literal, outputValue, provenance, extraLabel, null);
 	}
 	public RegressionExample(HandleFOPCstrings stringHandler, Literal literal, double outputValue, String provenance, String extraLabel, Term annotationTerm) {
-		super(stringHandler, literal, provenance, extraLabel, annotationTerm);
+		super(stringHandler, literal, provenance, extraLabel);
 		this.setOutputValue(outputValue);
 	}
 
 	public RegressionExample(RegressionExample copy) {
-		super(copy.getStringHandler(), copy, copy.provenance, copy.extraLabel, copy.getAnnotationTerm());
+		super(copy.getStringHandler(), copy, copy.provenance, copy.extraLabel);
 		this.hasRegressionVector = copy.hasRegressionVector;
 		this.originalRegressionOrProbValue = copy.originalRegressionOrProbValue;
 		if (copy.isHasRegressionVector()) {

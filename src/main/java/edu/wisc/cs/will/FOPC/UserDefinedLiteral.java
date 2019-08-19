@@ -38,12 +38,6 @@ import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 public interface UserDefinedLiteral {
 
 
-    /* Returns the arity of the predicate this object defines.
-     *
-     * @return Arity of defined predicate.
-     */
-    int getArity();
-
     /* Handles the processing of the procedurally defined predicate.
      *
      * @param caller Literal to be evaluated.  This literal is guaranteed to be

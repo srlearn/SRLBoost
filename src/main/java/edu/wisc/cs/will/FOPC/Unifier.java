@@ -41,12 +41,8 @@ public class Unifier extends AllOfFOPC implements Serializable {
 			return null;  // We need to be be sure we differentiate a FAILED unification from one with no variable bindings.  NULL means failed and an empty list means success w/o needing any bindings.
 		}
 	}
-	
-	public BindingList unify(Term term1, Term term2) {
-		return unify(term1, term2, new BindingList());
-	}
 
-    public BindingList unify(Sentence s1, Sentence s2, BindingList bl) {
+	public BindingList unify(Sentence s1, Sentence s2, BindingList bl) {
         return SentenceUnifier.unify(s1,s2,bl);
     }
 

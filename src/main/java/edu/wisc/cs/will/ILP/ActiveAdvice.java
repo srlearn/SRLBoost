@@ -283,22 +283,6 @@ public class ActiveAdvice {
         return supportClauses;
     }
 
-    boolean hasActiveAdvice(RelevanceStrength strongestStrength, RelevanceStrength weakestStrength) {
-        for (ModeInfo modeInfo : adviceModes) {
-            if (modeInfo.strength.isEqualOrWeaker(strongestStrength) && modeInfo.strength.isStronger(weakestStrength)) {
-                return true;
-            }
-        }
-
-        for (RelevanceInfo ri : adviceFeaturesAndStrengths.values()) {
-            if (ri.strength.isEqualOrStronger(strongestStrength) && ri.strength.isStronger(weakestStrength)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private boolean areClausesEqualUptoHeadAndVariableRenaming(Clause clause1, Clause clause2) {
 
         Literal newHead1 = clause1.getStringHandler().getLiteral("head", clause1.getDefiniteClauseHead().getArguments());

@@ -16,10 +16,6 @@ public class SentenceUnifier {
         return s1.accept(SENTENCE_UNIFIER_VISITOR, data);
     }
 
-    public static BindingList unify(Sentence s1, Sentence s2) {
-        return unify(s1, s2, new BindingList());
-    }
-
     private static class SentenceUnifierData {
         Sentence that;
         BindingList bl;

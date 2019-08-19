@@ -38,27 +38,22 @@ public class Example extends Literal implements Serializable {
 	private Term   annotationTerm  = null;  // This term (presumably a StringConstant) can be used (if set) instead of the example itself when reporting examples.
 	public String extraLabel; // Examples can be labeled wrt some other information and when this information is present, it is used to report how the examples at some node are distributed wrt these labels.
 
-	public Example(HandleFOPCstrings stringHandler, PredicateName predicateName, List<Term> arguments, String provenance, String extraLabel, Term annotationTerm) {
+	public Example(HandleFOPCstrings stringHandler, PredicateName predicateName, List<Term> arguments, String provenance, String extraLabel) {
 		this.stringHandler  = stringHandler;
 		this.predicateName  = predicateName; // Handle signs by placing examples in POS or NEG lists.
 		this.provenance     = provenance;
 		this.extraLabel     = extraLabel;
 		setArguments(arguments);
 	}
-	public Example(HandleFOPCstrings stringHandler, Literal literal, String provenance) {
-		this(stringHandler, literal, provenance, null);
-	}
+
 	public Example(HandleFOPCstrings stringHandler, Literal literal, String provenance, String extraLabel) {
-		this(stringHandler, literal, provenance, extraLabel, null);
-	}
-	public Example(HandleFOPCstrings stringHandler, Literal literal, String provenance, String extraLabel, Term annotationTerm) {
-		this(stringHandler, literal.predicateName, literal.getArguments(), provenance, extraLabel, annotationTerm);
+		this(stringHandler, literal.predicateName, literal.getArguments(), provenance, extraLabel);
 	}	
 	public Example(Literal literal) {
-		this(literal.getStringHandler(), literal.predicateName, literal.getArguments(), null, null, null);
+		this(literal.getStringHandler(), literal.predicateName, literal.getArguments(), null, null);
 	}
 	public Example(Function f) {
-		this(f.getStringHandler(), f.getStringHandler().getPredicateName(f.functionName.name), f.getArguments(), null, null, null);
+		this(f.getStringHandler(), f.getStringHandler().getPredicateName(f.functionName.name), f.getArguments(), null, null);
 	}
 	
 	/* (non-Javadoc)
@@ -69,7 +64,7 @@ public class Example extends Literal implements Serializable {
 		List<Term> arguments = getArguments();
 		List<Term> newArgs = (arguments == null ? null : new ArrayList<>(arguments.size()));
 		if (arguments != null) for (Term t : arguments) { newArgs.add(t.applyTheta(theta)); }
-		return new Example(stringHandler, predicateName, newArgs, provenance, extraLabel, annotationTerm); // Be sure to USE ALL LOCAL arguments.
+		return new Example(stringHandler, predicateName, newArgs, provenance, extraLabel); // Be sure to USE ALL LOCAL arguments.
 	}
 
     @Override

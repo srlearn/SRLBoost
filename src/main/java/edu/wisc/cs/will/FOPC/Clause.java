@@ -206,10 +206,6 @@ public class Clause extends Sentence implements DefiniteClause {
         return posLiterals.get(0).getArity();
     }
 
-	public BindingList unify(Clause that) {
-        return unify(that,null);
-    }
-
     public BindingList unify(Clause that, BindingList bindingList) {
         if ( this.getPosLiteralCount() != that.getPosLiteralCount() || this.getNegLiteralCount() != that.getNegLiteralCount() ) {
             return null;
@@ -608,16 +604,7 @@ public class Clause extends Sentence implements DefiniteClause {
         return this;
     }
 
-	public String toPrettyString(int precedenceOfCaller) {
 
-        if (renameVariablesWhenPrinting) {
-            return toPrettyString("", precedenceOfCaller, new BindingList());
-        }
-		return toPrettyString("", precedenceOfCaller, null);
-    }
-
-
-    
     @Override
 	public String toPrettyString(String lineStarter, int precedenceOfCaller, BindingList bindingList) { // Allow the 'lineStarter' to be passed in, e.g., the caller might want this to be quoted text.
 		boolean useStdLogicNotation = stringHandler.printUsingStdLogicNotation();

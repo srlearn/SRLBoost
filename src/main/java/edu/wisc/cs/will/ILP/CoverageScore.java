@@ -3,15 +3,11 @@ package edu.wisc.cs.will.ILP;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.Serializable;
-import java.util.Comparator;
 
 /*
  * @author twalker
  */
 public class CoverageScore implements Serializable {
-
-    final static Comparator<CoverageScore> ascendingAccuracyComparator = new AccuracyComparator(true);
-    final static Comparator<CoverageScore> ascendingF1Comparator = new F1Comparator(true);
 
     private double truePositives  = 0;
     private double falsePositives = 0;
@@ -24,21 +20,6 @@ public class CoverageScore implements Serializable {
 
     /* Creates a new instance of CoverageScore */
     public CoverageScore() {
-    }
-
-    /* Creates a new instance of CoverageScore.
-     *
-     * @param tp True Positives (possibly weighted).
-     * @param fp False Positives (possibly weighted).
-     * @param tn True Negatives (possibly weighted).
-     * @param fn False Negatives (possibly weighted).
-     * @param falseNegativeMEstimate False negative mEstimate used when calculating precision/recall/F score.
-     * @param falsePositiveMEstimate False positive mEstimate used when calculating precision/recall/F score.
-     */
-    CoverageScore(double tp, double fp, double tn, double fn, double falseNegativeMEstimate, double falsePositiveMEstimate) {
-        setCounts(tp, fp, tn, fn);
-        this.falseNegativeMEstimate = falseNegativeMEstimate;
-        this.falsePositiveMEstimate = falsePositiveMEstimate;
     }
 
     public void setCounts(double tp, double fp, double tn, double fn) {
@@ -56,26 +37,12 @@ public class CoverageScore implements Serializable {
         return Utils.getRecall(truePositives + truePositiveMEstimate, falseNegatives + falseNegativeMEstimate);
     }
 
-    public double getAccuracy() {
+    private double getAccuracy() {
         return Utils.getAccuracy(truePositives + truePositiveMEstimate, falsePositives + falsePositiveMEstimate, trueNegatives + trueNegativeMEstimate, falseNegatives + falseNegativeMEstimate);
     }
 
     public double getF1() {
         return Utils.getF1(truePositives + truePositiveMEstimate, falsePositives + falsePositiveMEstimate, falseNegatives + falseNegativeMEstimate);
-    }
-
-    double getFBeta(double beta) {
-        return Utils.getFBeta(beta, truePositives + trueNegativeMEstimate, falsePositives + falsePositiveMEstimate, falseNegatives + falseNegativeMEstimate);
-    }
-
-    String toShortString() {
-        boolean nonInteger = (trueNegatives != Math.floor(trueNegatives) || truePositives != Math.floor(truePositives) || falseNegatives != Math.floor(falseNegatives) || falsePositives != Math.floor(falsePositives));
-
-        if (nonInteger) {
-            return String.format("%% [TP=%.2f, FP=%.2f, TN=%.2f, FN=%.2f, A=%.2f, P=%.2f, R=%.2f, F1=%.2f]", truePositives, falsePositives, trueNegatives, falseNegatives, getAccuracy(), getPrecision(), getRecall(), getF1());
-        } else {
-            return String.format("%% [TP=%d, FP=%d, TN=%d, FN=%d, A=%.2f, P=%.2f, R=%.2f, F1=%.2f]", (int) truePositives, (int) falsePositives, (int) trueNegatives, (int) falseNegatives, getAccuracy(), getPrecision(), getRecall(), getF1());
-        }
     }
 
     String toLongString() {
@@ -180,80 +147,4 @@ public class CoverageScore implements Serializable {
         this.falseNegatives = falseNegatives;
     }
 
-    double getFalsePositiveMEstimate() {
-        return falsePositiveMEstimate;
-    }
-
-    void setFalsePositiveMEstimate(double falsePositiveMEstimate) {
-        this.falsePositiveMEstimate = falsePositiveMEstimate;
-    }
-
-    double getFalseNegativeMEstimate() {
-        return falseNegativeMEstimate;
-    }
-
-    void setFalseNegativeMEstimate(double falseNegativeMEstimate) {
-        this.falseNegativeMEstimate = falseNegativeMEstimate;
-    }
-
-    public static class AccuracyComparator implements Comparator<CoverageScore> {
-        private int ascending = 1;
-
-        AccuracyComparator(boolean ascending) {
-            this.ascending = ascending ? 1 : -1;
-        }
-
-        public int compare(CoverageScore o1, CoverageScore o2) {
-            double v1 = o1.getAccuracy();
-            double v2 = o2.getAccuracy();
-
-            if ( Double.isNaN(v1) && !Double.isNaN(v2)) {
-                return -1 * ascending;
-            }
-            else if (!Double.isNaN(v1) && Double.isNaN(v2) ) {
-                return ascending;
-            }
-            if ( Double.isNaN(v1) && Double.isNaN(v2) ) {
-                return 0;
-            }
-            else {
-                return (int)Math.signum(v1-v2) * ascending;
-            }
-        }
-    }
-
-    public static class FBetaComparator implements Comparator<CoverageScore> {
-        private int ascending;
-        private double beta;
-
-        FBetaComparator(double beta, boolean ascending) {
-            this.beta = beta;
-            this.ascending = ascending ? 1 : -1;
-        }
-
-        public int compare(CoverageScore o1, CoverageScore o2) {
-            double v1 = o1.getFBeta(beta);
-            double v2 = o2.getFBeta(beta);
-
-            if ( Double.isNaN(v1) && !Double.isNaN(v2)) {
-                return -1 * ascending;
-            }
-            else if (!Double.isNaN(v1) && Double.isNaN(v2) ) {
-                return ascending;
-            }
-            if ( Double.isNaN(v1) && Double.isNaN(v2) ) {
-                return 0;
-            }
-            else {
-                return (int)Math.signum(v1-v2) * ascending;
-            }
-        }
-    }
-
-    public static class F1Comparator extends FBetaComparator {
-
-        F1Comparator(boolean ascending) {
-            super(1, ascending);
-        }
-    }
 }

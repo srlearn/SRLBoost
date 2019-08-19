@@ -19,16 +19,11 @@ public class WorldState {
 	public Constant getWorld() {
 		return world;
 	}
-	public void setWorld(Constant world) {
-		this.world = world;
-	}
+
 	public Constant getState() {
 		return state;
 	}
-	public void setState(Constant state) {
-		this.state = state;
-	}
-	
+
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		final int prime = 31;

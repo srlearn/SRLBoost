@@ -23,16 +23,11 @@ public enum RelevanceStrength {
 	RelevanceStrength() { }
 	
 	public static RelevanceStrength getWeakestRelevanceStrength()         { return STRONGLY_IRRELEVANT; }
-	public static RelevanceStrength getMildestNegativeRelevanceStrength() { return WEAKLY_IRRELEVANT;   }
-	public static RelevanceStrength getMildestPositiveRelevanceStrength() { return WEAKLY_RELEVANT_NEG; }
+
 	public static RelevanceStrength getDefaultRelevanceStrength()         { return RELEVANT;            }
 	public static RelevanceStrength getNeutralRelevanceStrength()         { return NEUTRAL;             }
-	
 
-	public static RelevanceStrength getStrongestRelevanceStrength(boolean returnPossibleAnswer) { 
-		return (returnPossibleAnswer ? POSSIBLE_ANSWER : STRONGLY_RELEVANT_NEG);  // Special case for dealing with POSSIBLE ANSWERS.
-	}
-	
+
 	public static RelevanceStrength getRelevanceStrengthFromString(String str) {
 		try {
 			return RelevanceStrength.valueOf(str);

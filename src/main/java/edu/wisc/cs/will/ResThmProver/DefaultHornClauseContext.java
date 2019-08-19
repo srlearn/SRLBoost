@@ -34,13 +34,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
     	this.stringHandler = (stringHandler != null ? stringHandler : new HandleFOPCstrings());  // Make sure we have one.
     }
 
-    public DefaultHornClauseContext(HandleFOPCstrings stringHandler, FileParser parser) {
-        this.stringHandler = (stringHandler != null ? stringHandler : new HandleFOPCstrings());
-        this.parser        = parser;
-
-        checkSetup();
-    }
-
     public DefaultHornClauseContext(HornClausebase clausebase) {
         if (clausebase == null) {
             throw new IllegalStateException("Clausebase must be non-null.");

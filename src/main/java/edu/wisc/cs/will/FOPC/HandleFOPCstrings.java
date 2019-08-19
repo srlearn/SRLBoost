@@ -202,7 +202,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		mathHandler         = new DoBuiltInMath(this);
 		listHandler         = new DoBuiltInListProcessing(this);
 		mathHandler.listHandler = listHandler;
-		listHandler.mathHandler = mathHandler;
 		trueIndicator       = this.getStringConstant("true");
 		falseIndicator      = this.getStringConstant("false");
 		trueLiteral         = this.getLiteral(standardPredicateNames.trueName);
@@ -1761,7 +1760,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 			return getStringConstant(typeSpec, (usingStdLogicNotation() ? "Skolem" : "skolem") + countOfSkolemFunctions++);  // If no arguments, only need a constant.
 		}
 		FunctionName fName = getFunctionName("skolem" + countOfSkolemFunctions++);
-		fName.isaSkolem = true;
 		List<Term> arguments = new ArrayList<>(outerUniversalVars.size());
 		arguments.addAll(outerUniversalVars);
 		Function result = this.getFunction(fName, arguments, null);
@@ -1871,7 +1869,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
     public  ClauseOptimiser getClauseOptimizer() {
         if ( clauseOptimizer == null ) {
-            clauseOptimizer = new ClauseOptimiser(this);
+            clauseOptimizer = new ClauseOptimiser();
         }
         return clauseOptimizer;
     }

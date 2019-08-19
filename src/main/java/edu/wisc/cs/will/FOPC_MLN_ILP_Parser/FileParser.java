@@ -2457,7 +2457,7 @@ public class FileParser {
 		throw new ParsingException("Expecting the file name of a file to import, but read: '" + reportLastItemRead() + "'.");
 	}
 	
-	private void checkForDefinedImportAndPrecomputeVars(String parameterName) {	// Simply check them all.  TODO - clean up.
+	private void checkForDefinedImportAndPrecomputeVars() {	// Simply check them all.  TODO - clean up.
 		// Precomputes  NOTE: all the parameters checked here must contain "precompute" or "import" or they wont be reached.
 		String vStr;
 		vStr = stringHandler.getParameterSetting("precomputePrefix");
@@ -2596,7 +2596,7 @@ public class FileParser {
             }
 		}
 		peekEOL(true);
-		if (parameterName.contains("precompute") || parameterName.contains("import")) { checkForDefinedImportAndPrecomputeVars(parameterName); }
+		if (parameterName.contains("precompute") || parameterName.contains("import")) { checkForDefinedImportAndPrecomputeVars(); }
 	}
 
 	/*

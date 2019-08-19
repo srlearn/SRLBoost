@@ -8,7 +8,7 @@ public abstract class EndTest {
 	public EndTest() {
 	}
 
-	public void setSearchTask(StateBasedSearchTask task) {
+	void setSearchTask() {
 	}
 
 	// Clear any state saved between searches using the same instance.

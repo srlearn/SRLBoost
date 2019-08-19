@@ -32,18 +32,10 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 public class CreateSyntheticExamples {
 	protected final static int debugLevel = 0; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-
-	public static List<WorldState> createWorldStatesWithNoPosExamples(HandleFOPCstrings   stringHandler,
-																	  FileParser parser,
-																	  HornClauseProver    prover,
-			  														  List<Example>       posExamples) throws SearchInterrupted {
-		return createWorldStatesWithNoPosExamples(stringHandler, parser, prover, posExamples, null);
-	}
-	private static List<WorldState> createWorldStatesWithNoPosExamples(HandleFOPCstrings stringHandler,
+	public static List<WorldState> createWorldStatesWithNoPosExamples(HandleFOPCstrings stringHandler,
 																	   FileParser parser,
 																	   HornClauseProver prover,
-																	   List<Example> posExamples,
-																	   String worldStateName) throws SearchInterrupted {
+																	   List<Example> posExamples) throws SearchInterrupted {
 		List<Sentence> collectorList = parser.readFOPCstream("findAll(worldState(X,Y), worldState(X,Y), All).");
 		Literal allWorldStatesQuery = (Literal) ((UniversalSentence) collectorList.get(0)).body;
 		BindingList bl = prover.proveSimpleQueryAndReturnBindings(allWorldStatesQuery);
@@ -224,7 +216,7 @@ public class CreateSyntheticExamples {
 				for (List<Term> args : allPossibilities) {
 					counter++;
 					if (counter % 1000 == 0) { Utils.println("%   Have considered " + Utils.comma(counter) + " possible negative examples for " + worldState + "."); }
-					Example  example  = new Example(stringHandler, target.predicateName, null, provenanceString + (usingWorldStates ? " (" + worldState + ")." : "."), "createdNeg", null);
+					Example  example  = new Example(stringHandler, target.predicateName, null, provenanceString + (usingWorldStates ? " (" + worldState + ")." : "."), "createdNeg");
 					List<Term> arguments2 = new ArrayList<>(numbArgs);
 					for (int argCounter = 0; argCounter < numbArgs; argCounter++) {
 						if      (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)) { arguments2.add(worldState.getWorld()); }

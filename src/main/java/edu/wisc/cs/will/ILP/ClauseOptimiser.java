@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.Utils.Utils;
@@ -18,10 +17,7 @@ public class ClauseOptimiser {
 
     private final static int debugLevel = -1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-    private HandleFOPCstrings stringHandler;
-
-    public ClauseOptimiser(HandleFOPCstrings stringHandler) {
-        this.stringHandler = stringHandler;
+    public ClauseOptimiser() {
     }
 
     List<List<Literal>> bodyToBodies(Literal head, List<Literal> body) {

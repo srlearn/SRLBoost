@@ -2,7 +2,6 @@ package edu.wisc.cs.will.FOPC;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author shavlik
@@ -10,9 +9,6 @@ import java.util.Set;
 public abstract class Constant extends Term {
 
 	protected Constant() { } // Compiler complains without this (for subtypes).
-	protected Constant(HandleFOPCstrings stringHandler) { // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.
-		this.stringHandler = stringHandler;
-	}
 
 	public Constant applyTheta(Map<Variable,Term> theta) {
 		return this;

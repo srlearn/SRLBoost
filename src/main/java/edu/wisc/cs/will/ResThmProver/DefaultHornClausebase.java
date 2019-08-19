@@ -74,10 +74,6 @@ public class DefaultHornClausebase implements HornClausebase {
         initializeClausebase(stringHandler, null, null, null);
     }
 
-    DefaultHornClausebase(HandleFOPCstrings stringHandler, Collection<? extends Sentence> rules, Collection<? extends Sentence> facts, ProcedurallyDefinedPredicateHandler userProcedurallyDefinedPredicateHandler) {
-        initializeClausebase(stringHandler, rules, facts, userProcedurallyDefinedPredicateHandler);
-    }
-
     private void initializeClausebase(HandleFOPCstrings stringHandler, Collection<? extends Sentence> rules, Collection<? extends Sentence> facts, ProcedurallyDefinedPredicateHandler userProcHandler) {
         this.stringHandler = stringHandler;
         this.userProcedurallyDefinedPredicateHandler = userProcHandler;

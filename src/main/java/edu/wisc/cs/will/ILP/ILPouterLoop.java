@@ -143,13 +143,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 	// The following assist N-fold cross validation.
 	// private int numberOfFolds = 1;
 
-	// private Gleaner[] gleaners;
-	// private Theory[] theories;
-    // private String currentGleanerFileName = null;
-	private List<Example> evalSetPosExamples = new ArrayList<>(1);
-	private List<Example> evalSetNegExamples = new ArrayList<>(1);
-
-	// These two allow one to randomly select a subset of the modes for each cycle.  (Added by JWS 6/24/10.)
+    // These two allow one to randomly select a subset of the modes for each cycle.  (Added by JWS 6/24/10.)
 	private Set<PredicateNameAndArity> holdBodyModes;
 	public double randomlySelectWithoutReplacementThisManyModes = -1; // If in (0, 1), then is a FRACTION of the modes. If negative, then do not sample.	
 
@@ -164,10 +158,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                 getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 2, "bk.txt")),
                 getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 3, "facts.txt")),
                 strategy, scorer, monitor, context, useRRR, deferLoadingExamples);
-    }
-
-    public ILPouterLoop(String workingDir, String prefix, String[] args, SearchMonitor monitor, HornClauseContext context) throws IOException {
-        this(workingDir, prefix, args, monitor, context, false);
     }
 
     public ILPouterLoop(String workingDir, String prefix, String[] args, SearchMonitor monitor, HornClauseContext context, boolean deferLoadingExamples) throws IOException {
@@ -1301,30 +1291,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		return result.simplify();
 	}
 
-	String reportSearchStats() {
-		String result = "% Created a total of "    + Utils.comma(getTotal_nodesCreated())
-				+ " clauses and expanded " + Utils.comma(getTotal_nodesConsidered())
-				+ " of them.\n"
-				+ "% The collection of best clauses per cycle covers "
-				+ Utils.comma(getNumberOfPosExamplesCovered()) + " (out of " + Utils.comma(isFlipFlopPosAndNegExamples() ? getNumberOfNegExamples() : getNumberOfPosExamples()) + ") pos and "
-				+ Utils.comma(getNumberOfNegExamplesCovered()) + " (out of " + Utils.comma(isFlipFlopPosAndNegExamples() ? getNumberOfPosExamples() : getNumberOfNegExamples()) + ") neg examples.";
-
-		if (getTotal_nodesNotAddedToOPENsinceMaxScoreTooLow()     > 0) { result += "\n% A total of " + Utils.comma(getTotal_nodesNotAddedToOPENsinceMaxScoreTooLow())     + " search nodes were not added to OPEN because their maximum score could not exceed the best score found so far."; }
-		if (getTotal_nodesRemovedFromOPENsinceMaxScoreNowTooLow() > 0) { result += "\n% A total of " + Utils.comma(getTotal_nodesRemovedFromOPENsinceMaxScoreNowTooLow()) + " search nodes were removed from OPEN because their maximum score could not exceed the best score found so far."; }
-		if (getTotal_countOfPruningDueToVariantChildren()         > 0) { result += "\n% A total of " + Utils.comma(getTotal_countOfPruningDueToVariantChildren())         + " search nodes were pruned because they were variant children."; }
-		if (innerLoopTask.pruner != null) {
-			if (innerLoopTask.pruner.nodesPrunedDueToIntervalAnalysis     > 0) { result += "\n% A total of " + Utils.comma(innerLoopTask.pruner.nodesPrunedDueToIntervalAnalysis)     + " nodes pruned due to interval analysis."; }
-			if (innerLoopTask.pruner.nodesPrunedDueToSingleClauseAnalysis > 0) { result += "\n% A total of " + Utils.comma(innerLoopTask.pruner.nodesPrunedDueToSingleClauseAnalysis) + " nodes pruned due to within-clause analysis.";}
-		}
-
-		return result;
-	}
-
-	ILPouterLoopState getOuterLoopState() {
-        return outerLoopState;
-    }
-
-	void setOuterLoopState(ILPouterLoopState outerLoopState) {
+    private void setOuterLoopState(ILPouterLoopState outerLoopState) {
         this.outerLoopState = outerLoopState;
     }
 
@@ -1427,18 +1394,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         return result;
     }
 
-    /* Removes the checkpoint file for the current fold.
-     * 
-     */
-	void deleteCheckpoint()  {
-        String filename = getCheckpointFileName();
-        File f = new CondorFile(filename);
-
-        if ( f.exists() ) {
-            f.delete();
-        }
-    }
-
     private void clearSeedPosExamplesUsed() {
         outerLoopState.clearSeedPosExamplesUsed();
     }
@@ -1483,11 +1438,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         return innerLoopTask.proveExample(clause, ex);
     }
 
-	CoverageScore getWeightedCoverage(Theory theory, Collection<Example> positiveExamples, Collection<Example> negativeExamples) {
-        return innerLoopTask.getWeightedCoverage(theory, positiveExamples, negativeExamples);
-    }
-
-	private void setupAdvice() {
+    private void setupAdvice() {
         if ( innerLoopTask.isRelevanceEnabled() && getActiveAdvice() == null) {
             createdActiveAdvice = innerLoopTask.getAdviceProcessor().processAdvice(innerLoopTask.getCurrentRelevanceStrength(), getPosExamples(), getNegExamples());
             setActiveAdvice(createdActiveAdvice);
@@ -1590,14 +1541,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         return outerLoopState.getTotal_countOfPruningDueToVariantChildren();
     }
 
-    Theory getLearnedTheory() {
-        if (learningTreeStructuredTheory) {
-            return outerLoopState.getTreeBasedTheory();
-        }
-        return outerLoopState.getStdILPtheory();
-    }
-
-	private Theory getStdILPtheory() {
+    private Theory getStdILPtheory() {
         return outerLoopState.getStdILPtheory();
     }
 
@@ -1749,9 +1693,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         return outerLoopState != null && outerLoopState.isFlipFlopPosAndNegExamples();
     }
 
-    void setAnnotationForCurrentRun(String annotationForRun) {
-    	this.annotationForRun = annotationForRun;
-    }
     String getAnnotationForCurrentRun() {
     	return annotationForRun;
     }
@@ -1785,18 +1726,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		}
 		Utils.ensureDirExists(gleanerFileName);
         return gleanerFileName;
-    }
-
-    String getResultFileNameForFold(int fold) {
-        String foldText = fold == -1 ? "" : "_fold" + fold;
-        return getWorkingDirectory() + "/" + getExtendedPrefix() + foldText + ".results.gz";
-    }
-
-	String getExtendedPrefix() {
-            String flipFlop = isFlipFlopPosAndNegExamples() ? "_ff" : "";
-            String rrr = isRRR() ? "_rrr" : "";
-
-            return getPrefix() + rrr + flipFlop;
     }
 
     /* Sets the PosExamples to use for the search.
@@ -1835,24 +1764,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         return innerLoopTask.getNegExamples();
     }
 
-    List<Example> getEvalSetPosExamples() {
-        return evalSetPosExamples;
-    }
 
-
-    void setEvalSetPosExamples(List<Example> evaSetPosExamples) {
-        this.evalSetPosExamples = evaSetPosExamples;
-    }
-
-    List<Example> getEvalSetNegExamples() {
-        return evalSetNegExamples;
-    }
-
-    void setEvalSetNegExamples(List<Example> evalSetNegExamples) {
-        this.evalSetNegExamples = evalSetNegExamples;
-    }
-
-	private Set<Example> getNegExamplesUsedAsSeeds() {
+    private Set<Example> getNegExamplesUsedAsSeeds() {
         return outerLoopState.getNegExamplesUsedAsSeeds();
     }
 

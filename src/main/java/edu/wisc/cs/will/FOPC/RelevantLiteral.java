@@ -35,38 +35,6 @@ public class RelevantLiteral {
 		this.strength = strength;		
 	}
 
-	// See if this instance's relevance strength is at least this strong.
-	public boolean atLeastThisRelevant(RelevanceStrength strength) {
-		return this.strength.compareTo(strength) >= 0;
-	}	
-	
-	// See if this instance's relevance strength is no more than this strong.
-	public boolean atMostThisRelevant(RelevanceStrength strength) {
-		return this.strength.compareTo(strength) <= 0;
-	}
-	
-	   public PredicateNameAndArity getPredicateNameAndArity() {
-           return new PredicateNameAndArity(pName, arity);
-       }
-	
-	// The accessor methods.
-	public PredicateName getPName() {
-		return pName;
-	}
-
-	public int getArity() {
-		return arity;
-	}
-	public void setArity(int arity) {
-		this.arity = arity;
-	}
-	public int getArgument() {
-		return argument;
-	}
-	public void setArgument(int argument) {
-		this.argument = argument;
-	}
-
 	public String toString() {
 		return "Relevant: " + pName + "/" + arity + " strength=" + strength;
 	}

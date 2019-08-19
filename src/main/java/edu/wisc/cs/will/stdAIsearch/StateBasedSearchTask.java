@@ -168,7 +168,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
         this.closed            = closed;
 
         initializer.setSearchTask(this);
-        if (terminator != null) { terminator.setSearchTask(this); } // It isn't required there be a terminator (eg, max nodes might terminate the search).
+        if (terminator != null) { terminator.setSearchTask(); } // It isn't required there be a terminator (eg, max nodes might terminate the search).
         searchMonitor.setSearchTask(this);
         strategy.setSearchTask(this);
         if (scorer != null) { scorer.setSearchTask(this); } // It isn't required that there be a node-scorer.
