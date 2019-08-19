@@ -1,22 +1,12 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.MLN.MLNInference;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyNetwork;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode;
-import edu.wisc.cs.will.Boosting.RDN.Models.GroundDependencyNetwork;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode.PredicateType;
+import edu.wisc.cs.will.Boosting.RDN.Models.GroundDependencyNetwork;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
@@ -26,6 +16,10 @@ import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
 
 /*
  * The class sets the probability of examples, given a joint RDN model (i.e. RDN model

@@ -1,15 +1,8 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.*;
 
 public class IsaHetrarchy {	
 	/*

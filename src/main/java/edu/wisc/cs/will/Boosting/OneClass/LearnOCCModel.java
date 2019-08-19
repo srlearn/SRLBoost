@@ -1,9 +1,5 @@
 package edu.wisc.cs.will.Boosting.OneClass;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
@@ -15,6 +11,10 @@ import edu.wisc.cs.will.FOPC.TreeStructuredTheory;
 import edu.wisc.cs.will.ILP.ILPouterLoop;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * @author tkhot

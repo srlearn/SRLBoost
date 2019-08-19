@@ -1,11 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.Sentence;
@@ -13,6 +7,12 @@ import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.Precompute;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 class BoostingPrecomputeManager {
 

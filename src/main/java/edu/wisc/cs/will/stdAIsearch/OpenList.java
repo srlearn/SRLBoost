@@ -1,8 +1,9 @@
 package edu.wisc.cs.will.stdAIsearch;
 
+import edu.wisc.cs.will.Utils.Utils;
+
 import java.util.Iterator;
 import java.util.LinkedList;
-import edu.wisc.cs.will.Utils.Utils;
 
 /*
  * Keep an ordered list of search nodes being considered.

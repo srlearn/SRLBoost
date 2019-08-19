@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.Utils;
 
+import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-
-import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
 /*
  * This class should be used instead of the BufferedWriter for writing to files. 

@@ -1,18 +1,12 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.io.BufferedWriter;
-import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.wisc.cs.will.ILP.InlineManager;
 import edu.wisc.cs.will.Utils.Utils;
+import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
 
 
 public class TreeStructuredTheory extends Theory {

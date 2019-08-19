@@ -1,14 +1,14 @@
 package edu.wisc.cs.will.FOPC;
 
+import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
+import edu.wisc.cs.will.Utils.Utils;
+
 import java.io.IOException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.List;
-
-import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
-import edu.wisc.cs.will.Utils.Utils;
+import java.util.Map;
 
 public class Variable extends Term {
 

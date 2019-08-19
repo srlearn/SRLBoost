@@ -1,20 +1,20 @@
 package edu.wisc.cs.will.Boosting.OneClass;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.wisc.cs.will.Boosting.RDN.MultiClassExampleHandler;
+import edu.wisc.cs.will.Boosting.RDN.MultiClassExampleHandler.ConstantLookupList;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
-import edu.wisc.cs.will.Boosting.RDN.MultiClassExampleHandler.ConstantLookupList;
 import edu.wisc.cs.will.Boosting.Trees.FeatureTree;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * @author tkhot

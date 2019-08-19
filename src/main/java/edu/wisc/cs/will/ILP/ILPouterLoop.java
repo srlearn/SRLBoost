@@ -28,7 +28,10 @@ import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
-import edu.wisc.cs.will.stdAIsearch.*;
+import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
+import edu.wisc.cs.will.stdAIsearch.SearchResult;
+import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
 
 import java.io.*;
 import java.util.*;
@@ -160,27 +163,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                 strategy, scorer, monitor, context, useRRR, deferLoadingExamples);
     }
 
-    public ILPouterLoop(String workingDir, String prefix, String[] args, SearchMonitor monitor, HornClauseContext context, boolean deferLoadingExamples) throws IOException {
-        this(workingDir, prefix,
-                getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 0, "pos.txt")),
-                getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 1, "neg.txt")),
-                getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 2, "bk.txt")),
-                getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 3, "facts.txt")),
-                monitor, context);
-
-        if (args.length >= 5) {
-            this.innerLoopTask.setRelevanceFile(args[4]);
-        }
-    }
-
     public ILPouterLoop(String workingDir, String prefix, Reader posExamplesReader, Reader negExamplesReader, Reader backgroundReader, Reader factsReader,
-						SearchMonitor monitor, HornClauseContext context) {
-    	this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundReader, factsReader,
-    		 new BestFirstSearch(), new ScoreSingleClauseByAccuracy(), monitor, context, false, false);
-    }
-
-
-	public ILPouterLoop(String workingDir, String prefix, Reader posExamplesReader, Reader negExamplesReader, Reader backgroundReader, Reader factsReader,
 					    SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, HornClauseContext context, boolean useRRR, boolean deferLoadingExamples) {
 
        outerLoopState = new ILPouterLoopState();

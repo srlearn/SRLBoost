@@ -1,24 +1,9 @@
 package edu.wisc.cs.will.FOPC.visitors;
 
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.LiteralOrFunction;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Unifier;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.MapOfLists;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 
 /*
  * @author twalker
@@ -33,7 +18,7 @@ public class Inliner {
      * clauses mark as inlined but can't be inlined for some reason) will be placed into
      * the supportClauses map.
      */
-    public static Sentence getInlinedSentence(Sentence sentence, HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
+    public static Sentence getInlinedSentence(Sentence sentence, HornClauseContext context) {
         return sentence.accept(INLINER_VISITOR, new InlineData(context, null));
     }
 

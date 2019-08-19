@@ -8,17 +8,8 @@ public class SearchInterrupted extends Exception {
 
 	private static final long serialVersionUID = 1L;
 
-	public SearchInterrupted() {}
-
 	public SearchInterrupted(String message) {
 		super(message);
 	}
 
-	public SearchInterrupted(Throwable cause) {
-		super(cause);
-	}
-
-	public SearchInterrupted(String message, Throwable cause) {
-		super(message, cause);
-	}
 }

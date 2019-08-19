@@ -1,9 +1,5 @@
 package edu.wisc.cs.will.Boosting.Trees;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.NumberGroundingsCalculator;
@@ -13,6 +9,10 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /*
  * @author tkhot

@@ -1,7 +1,8 @@
 package edu.wisc.cs.will.Boosting.Utils;
 
-import java.util.ArrayList;
 import edu.wisc.cs.will.ILP.CoverageScore;
+
+import java.util.ArrayList;
 
 /*
  * @author Tushar Khot

@@ -38,7 +38,7 @@ public class ActiveAdvice {
     void addAdviceClause(AdviceProcessor ap, String name, RelevantClauseInformation rci, List<Clause> clauses) throws IllegalArgumentException {
 
         if (ap.isInliningEnabled()) {
-            rci = rci.getInlined(ap.getContext(), supportClauses);
+            rci = rci.getInlined(ap.getContext());
         }
 
         // When removing double negation by failures
@@ -179,7 +179,7 @@ public class ActiveAdvice {
 
 
         if (ap.isInliningEnabled()) {
-            body = Inliner.getInlinedSentence(body, ap.getContext(), supportClauses);
+            body = Inliner.getInlinedSentence(body, ap.getContext());
         }
         //rci.toString();
 

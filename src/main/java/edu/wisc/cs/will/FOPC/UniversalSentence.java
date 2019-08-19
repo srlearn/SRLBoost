@@ -1,12 +1,8 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.*;
 
 /*
  * @author shavlik

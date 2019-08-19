@@ -688,23 +688,7 @@ public class StreamTokenizerTAW {
 	return ttype = c;
     }
 
-    /*
-     * Causes the next call to the <code>nextToken</code> method of this
-     * tokenizer to return the current value in the <code>ttype</code>
-     * field, and not to modify the value in the <code>nval</code> or
-     * <code>sval</code> field.
-     *
-     * @see     java.io.StreamTokenizer#nextToken()
-     * @see     java.io.StreamTokenizer#nval
-     * @see     java.io.StreamTokenizer#sval
-     * @see     java.io.StreamTokenizer#ttype
-     */
-    public void pushBack() {
-        if (ttype != TT_NOTHING)   /* No-op if nextToken() not called */
-	    pushedBack = true;
-    }
-
-    /*
+	/*
      * Return the current line number.
      *
      * @return  the current line number of this stream tokenizer.

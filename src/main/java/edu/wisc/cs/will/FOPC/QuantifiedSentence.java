@@ -1,9 +1,9 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.Collection;
-
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.Collection;
 
 /*
  * @author shavlik

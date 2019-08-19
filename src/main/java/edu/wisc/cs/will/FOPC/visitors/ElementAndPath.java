@@ -1,8 +1,8 @@
 package edu.wisc.cs.will.FOPC.visitors;
 
-import java.util.Objects;
-
 import edu.wisc.cs.will.FOPC.SentenceOrTerm;
+
+import java.util.Objects;
 
 /*
  *

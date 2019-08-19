@@ -1,8 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import java.io.Serializable;
-import java.util.Arrays;
-
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
@@ -10,6 +7,9 @@ import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Regression Example used for learning RDNs

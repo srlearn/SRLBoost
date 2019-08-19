@@ -1,11 +1,11 @@
 package edu.wisc.cs.will.FOPC.visitors;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.Filter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * @author twalker

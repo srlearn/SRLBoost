@@ -1,11 +1,11 @@
 package edu.wisc.cs.will.FOPC;
 
+import edu.wisc.cs.will.Utils.Utils;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.io.Serializable;
-
-import edu.wisc.cs.will.Utils.Utils;
 
 public class PredicateSpec extends AllOfFOPC implements Serializable {
 	private List<Term>     signature;

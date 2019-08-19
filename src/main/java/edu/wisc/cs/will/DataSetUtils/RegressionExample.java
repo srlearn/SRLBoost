@@ -1,14 +1,14 @@
 package edu.wisc.cs.will.DataSetUtils;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.ILP.SingleClauseNode;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegressionExample extends Example  implements Serializable {
 

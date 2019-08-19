@@ -1,8 +1,8 @@
 package edu.wisc.cs.will.stdAIsearch;
 
-import java.util.List;
-
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.List;
 
 
 // TODO sampling search (eg, walksat)
@@ -171,7 +171,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
         if (terminator != null) { terminator.setSearchTask(); } // It isn't required there be a terminator (eg, max nodes might terminate the search).
         searchMonitor.setSearchTask(this);
         strategy.setSearchTask(this);
-        if (scorer != null) { scorer.setSearchTask(this); } // It isn't required that there be a node-scorer.
+        if (scorer != null) { scorer.setSearchTask(); } // It isn't required that there be a node-scorer.
         childrenGenerator.setSearchTask(this);
         if (closed != null) { closed.setSearchTask(); } // It isn't required that there be a closed list.
 

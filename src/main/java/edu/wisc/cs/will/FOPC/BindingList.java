@@ -1,14 +1,9 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /*
  * @author shavlik

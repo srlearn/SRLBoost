@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.FOPC;
 
+import edu.wisc.cs.will.Utils.Utils;
+
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.io.Serializable;
-
-import edu.wisc.cs.will.Utils.Utils;
 
 public class Unifier extends AllOfFOPC implements Serializable {
 	protected static final int debugLevel = 0;  // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).

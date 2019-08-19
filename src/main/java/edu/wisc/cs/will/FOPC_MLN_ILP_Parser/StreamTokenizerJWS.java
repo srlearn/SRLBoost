@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.FOPC_MLN_ILP_Parser;
 
+import edu.wisc.cs.will.Utils.Utils;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StreamTokenizer;
-
-import edu.wisc.cs.will.Utils.Utils;
 
 /*
  * @author shavlik

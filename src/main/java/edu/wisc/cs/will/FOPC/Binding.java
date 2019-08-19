@@ -1,8 +1,8 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.Map;
-
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.Map;
 
 /*
  * @author shavlik

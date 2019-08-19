@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.FOPC;
 
+import edu.wisc.cs.will.Utils.Utils;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import edu.wisc.cs.will.Utils.Utils;
 
 public abstract class TreeStructuredTheoryNode extends AllOfFOPC {
 	

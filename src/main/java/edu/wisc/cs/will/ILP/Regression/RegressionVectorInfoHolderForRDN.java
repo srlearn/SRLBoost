@@ -118,16 +118,6 @@ public class RegressionVectorInfoHolderForRDN extends RegressionInfoHolderForRDN
         	  falseStats = falseStats.add(((RegressionVectorInfoHolderForRDN)totalFalseStats).falseStats);
           }
 	}
-	
-	
-	public double[] meanVectorAtSuccess() {
-		return ((BranchVectorStats)trueStats).getLambdaVector();
-	}
-	public double[] meanVectorAtFailure() {
-		return ((BranchVectorStats)falseStats).getLambdaVector();
-	}
-	
-	
-	
+
 
 }

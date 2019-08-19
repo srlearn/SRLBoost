@@ -37,17 +37,6 @@ public class Stopwatch {
     }
 
     /*
-     * Returns the total time accumulated so far, in seconds.
-     *
-     * If called while the stopwatch is running, this will return the time without
-     * stopping the stopwatch.
-     * @return Total time so far in seconds.
-     */
-    public double getTotalTimeInSeconds() {
-        return getTotalTimeInMilliseconds() / 1000.0;
-    }
-
-    /*
      * Returns the total time accumulated so far, in milliseconds.
      *
      * If called while the stopwatch is running, this will return the time without

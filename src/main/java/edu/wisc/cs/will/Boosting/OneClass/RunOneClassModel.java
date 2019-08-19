@@ -1,11 +1,11 @@
 package edu.wisc.cs.will.Boosting.OneClass;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /*
  * @author tkhot

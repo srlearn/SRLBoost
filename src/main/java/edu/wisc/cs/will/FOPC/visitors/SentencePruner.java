@@ -1,11 +1,11 @@
 package edu.wisc.cs.will.FOPC.visitors;
 
-import java.util.List;
-
 import edu.wisc.cs.will.FOPC.PruningRule;
 import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
+
+import java.util.List;
 
 /*
  * @author twalker
@@ -27,7 +27,7 @@ public class SentencePruner {
             try {
                 sentence.accept(v, data);
             }
-            catch (StopVisitingException ignored) {
+            catch (RuntimeException ignored) {
             }
 
             newSentence = data.sentence;
@@ -69,7 +69,7 @@ public class SentencePruner {
                 Sentence newSentence = pruningRule.pruneElement(data.context, data.sentence, data.getCurrentPosition(), s);
                 if (newSentence != data.sentence) {
                     data.sentence = newSentence;
-                    throw new StopVisitingException();
+                    throw new RuntimeException();
                 }
             }
 
@@ -81,7 +81,7 @@ public class SentencePruner {
                 Sentence newSentence = pruningRule.pruneElement(data.context, data.sentence, data.getCurrentPosition(), t);
                 if (newSentence != data.sentence) {
                     data.sentence = newSentence;
-                    throw new StopVisitingException();
+                    throw new RuntimeException();
                 }
             }
 

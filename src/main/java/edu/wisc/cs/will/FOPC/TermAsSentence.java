@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.List;
-
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /*
  * @author shavlik

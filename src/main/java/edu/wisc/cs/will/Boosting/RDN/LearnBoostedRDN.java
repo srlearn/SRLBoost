@@ -1,17 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
@@ -28,14 +16,20 @@ import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Theory;
 import edu.wisc.cs.will.FOPC.TreeStructuredTheory;
 import edu.wisc.cs.will.ILP.ILPouterLoop;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+import edu.wisc.cs.will.Utils.ProbDistribution;
+import edu.wisc.cs.will.Utils.Utils;
+import edu.wisc.cs.will.Utils.VectorStatistics;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
-import edu.wisc.cs.will.Utils.ProbDistribution;
-import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.VectorStatistics;
+import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 /*
  * @author Tushar Khot

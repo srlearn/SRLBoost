@@ -1,7 +1,5 @@
 package edu.wisc.cs.will.Boosting.Common;
 
-import java.io.File;
-
 import edu.wisc.cs.will.Boosting.MLN.RunBoostedMLN;
 import edu.wisc.cs.will.Boosting.OneClass.RunOneClassModel;
 import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
@@ -12,6 +10,8 @@ import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+
+import java.io.File;
 
 /**
  * Generic code to call MLN-Boost and RDN-Boost

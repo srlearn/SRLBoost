@@ -1,16 +1,11 @@
 package edu.wisc.cs.will.FOPC.visitors;
 
+import edu.wisc.cs.will.FOPC.*;
+import edu.wisc.cs.will.ResThmProver.HornClauseContext;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 
 /*
  * @author twalker

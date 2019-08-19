@@ -1,14 +1,6 @@
 package edu.wisc.cs.will.FOPC.visitors;
 
-import edu.wisc.cs.will.FOPC.ConsCell;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.ListAsTerm;
-import edu.wisc.cs.will.FOPC.LiteralAsTerm;
-import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.SentenceAsTerm;
-import edu.wisc.cs.will.FOPC.StringConstant;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.FOPC.*;
 
 /**
  * @author twalker

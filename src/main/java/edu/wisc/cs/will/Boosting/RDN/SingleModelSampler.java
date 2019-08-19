@@ -1,8 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.DataSetUtils.Example;
@@ -10,6 +7,9 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SingleModelSampler extends SRLInference {
 

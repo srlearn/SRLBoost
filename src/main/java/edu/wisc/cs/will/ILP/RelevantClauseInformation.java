@@ -230,10 +230,10 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return newGAC;
     }
 
-    RelevantClauseInformation getInlined(HornClauseContext context, MapOfLists<PredicateNameAndArity, Clause> supportClauses) {
+    RelevantClauseInformation getInlined(HornClauseContext context) {
 
 
-        Sentence newSentence = Inliner.getInlinedSentence(sentence, context, supportClauses);
+        Sentence newSentence = Inliner.getInlinedSentence(sentence, context);
 
         RelevantClauseInformation rci = copy();
         rci.setSentence(newSentence);

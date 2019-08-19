@@ -1,17 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
@@ -19,38 +7,22 @@ import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.DataSetUtils.CreateSyntheticExamples;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings.VarIndicator;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.PredicateSpec;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
-import edu.wisc.cs.will.ILP.ChildrenClausesGenerator;
-import edu.wisc.cs.will.ILP.Gleaner;
-import edu.wisc.cs.will.ILP.ILPouterLoop;
-import edu.wisc.cs.will.ILP.LearnOneClause;
-import edu.wisc.cs.will.ILP.ScoreOCCNode;
-import edu.wisc.cs.will.ILP.ScoreRegressionNode;
-import edu.wisc.cs.will.ILP.ScoreSingleClause;
-import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
-import edu.wisc.cs.will.ResThmProver.DefaultHornClausebase;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.ResThmProver.HornClauseProver;
-import edu.wisc.cs.will.ResThmProver.HornClausebase;
-import edu.wisc.cs.will.ResThmProver.LazyGroundClauseIndex;
-import edu.wisc.cs.will.ResThmProver.LazyGroundNthArgumentClauseIndex;
-import edu.wisc.cs.will.ResThmProver.LazyHornClausebase;
-import edu.wisc.cs.will.ResThmProver.VariantClauseAction;
+import edu.wisc.cs.will.ILP.*;
+import edu.wisc.cs.will.ResThmProver.*;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.stdAIsearch.BestFirstSearch;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 /*
  *

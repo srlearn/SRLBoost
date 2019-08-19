@@ -1,8 +1,8 @@
 package edu.wisc.cs.will.stdAIsearch;
 
-import java.util.List;
-
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.List;
 
 /*
  * Implements a best-first search where the next node that is examined is the

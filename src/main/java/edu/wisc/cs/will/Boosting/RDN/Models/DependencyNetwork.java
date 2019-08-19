@@ -1,11 +1,11 @@
 package edu.wisc.cs.will.Boosting.RDN.Models;
 
+import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
-
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 
 /*
  * @author tkhot

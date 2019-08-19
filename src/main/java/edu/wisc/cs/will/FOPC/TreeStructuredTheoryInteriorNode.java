@@ -1,12 +1,12 @@
 package edu.wisc.cs.will.FOPC;
 
+import edu.wisc.cs.will.ILP.SingleClauseNode;
+import edu.wisc.cs.will.Utils.Utils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import edu.wisc.cs.will.ILP.SingleClauseNode;
-import edu.wisc.cs.will.Utils.Utils;
 
 public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 

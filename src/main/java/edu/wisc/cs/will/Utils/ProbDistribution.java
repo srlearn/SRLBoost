@@ -1,8 +1,8 @@
 package edu.wisc.cs.will.Utils;
 
-import java.util.Arrays;
-
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
+
+import java.util.Arrays;
 
 /*
  * @author tkhot

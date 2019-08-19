@@ -1,11 +1,11 @@
 package edu.wisc.cs.will.FOPC;
 
+import edu.wisc.cs.will.ResThmProver.HornClauseContext;
+import edu.wisc.cs.will.Utils.Utils;
+import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+
 import java.util.List;
 import java.util.Set;
-
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.Utils.Utils;
 
 /*
  * This handler manages built-in's like equals, different, <, >, <=, >=, etc.

@@ -25,15 +25,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
 
     private List<ProofListener> proofListenerList = null;
 
-
-    public DefaultHornClauseContext() {
-        this.stringHandler = new HandleFOPCstrings();
-    }
-
-    public DefaultHornClauseContext(HandleFOPCstrings stringHandler) {
-    	this.stringHandler = (stringHandler != null ? stringHandler : new HandleFOPCstrings());  // Make sure we have one.
-    }
-
     public DefaultHornClauseContext(HornClausebase clausebase) {
         if (clausebase == null) {
             throw new IllegalStateException("Clausebase must be non-null.");
@@ -112,30 +103,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
                 }
             }
         }
-    }
-
-    /* Attempts to prove the clause <code>goal</code>.
-     *
-     * The goal should a single line string containing the a conjunct of literals
-     * to prove.
-     *
-     * The theorem prover will attempt to prove the statement, given the currently
-     * asserted fact base.
-     *
-     * @param goal A single line string containing a conjunct of literals to prove, given the
-     * current asserted fact base.
-     *
-     * @return If the goal is successful, returns the BindingList for the first
-     * sucessful proof found.
-     *
-     * @throws IllegalArgumentException Throws an IllegalArgumentException if the goal is
-     * not parsable or if the
-     */
-    @Override
-    public BindingList prove(String goal) throws IllegalArgumentException {
-            SLDQuery sldQuery = parseGoal(goal);
-
-            return prove(sldQuery);
     }
 
     @Override

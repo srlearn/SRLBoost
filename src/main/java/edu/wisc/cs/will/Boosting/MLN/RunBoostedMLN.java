@@ -1,25 +1,20 @@
 package edu.wisc.cs.will.Boosting.MLN;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
-import edu.wisc.cs.will.Boosting.RDN.InferBoostedRDN;
-import edu.wisc.cs.will.Boosting.RDN.JointModelSampler;
-import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
-import edu.wisc.cs.will.Boosting.RDN.LearnBoostedRDN;
-import edu.wisc.cs.will.Boosting.RDN.ConditionalModelPerPredicate;
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
+import edu.wisc.cs.will.Boosting.RDN.*;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.FOPC.AllOfFOPC;
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /*
  * MLN-Boost specific code for learning and inference

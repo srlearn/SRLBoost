@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
+import edu.wisc.cs.will.Utils.Utils;
+
 import java.util.Collection;
 import java.util.Map;
-
-import edu.wisc.cs.will.Utils.Utils;
 
 /*
  * @author shavlik

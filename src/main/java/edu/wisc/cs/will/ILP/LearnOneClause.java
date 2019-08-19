@@ -2028,50 +2028,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         return adviceProcessor;
     }
 
-    /* Reads a relevance file and enables relevance if relevanceEnabled is unset.
-     *
-     * relevanceEnabled is tri-valued, either true, false, or unset.  If relevanceEnabled is
-     * true or false, this method does not change the relevanceEnabled value.  However,
-     * if it is unset, it will be set to true.
-     * <P>
-     * Note: This method must be called prior to initialization of the
-     * LearnOneClause.
-     * @throws IllegalStateException An IllegalStateException will be thrown if LearnOneClause is already initialized.
-     */
-	void setRelevanceFile(String relevanceFileName) throws FileNotFoundException, IllegalStateException {
-        if ( relevanceFileName != null ) {
-
-        	File relevanceFile = Utils.ensureDirExists(relevanceFileName);
-            BufferedReader relevanceReader = new BufferedReader( new CondorFileReader(relevanceFile));
-
-            setRelevanceFile(relevanceReader, relevanceFile.getParent());
-        }
-    }
-
-	/* Reads a relevance file and enables relevance if relevanceEnabled is unset.
-     *
-     * relevanceEnabled is tri-valued, either true, false, or unset.  If relevanceEnabled is
-     * true or false, this method does not change the relevanceEnabled value.  However,
-     * if it is unset, it will be set to true.
-     * <P>
-     * Note: This method must be called prior to initialization of the
-     * LearnOneClause instance.
-     * @throws IllegalStateException An IllegalStateException will be thrown if LearnOneClause is already initialized.
-     */
-	private void setRelevanceFile(Reader relevanceReader, String readerDirectoryName) throws IllegalStateException {
-        if (initialized) {
-            throw new IllegalStateException("Relevance files can not be added after LearnOneClause is initialized.");
-        }
-        else if (relevanceReader != null) {
-            context.assertSentences(readBackgroundTheory(relevanceReader, readerDirectoryName));
-            Utils.println("% Have read the relevance files.\n");
-            if (relevanceEnabled == null) {
-                relevanceEnabled = true;
-            }
-        }
-    }
-
-    void addModeConstraint(ModeConstraint modeConstraint) {
+	void addModeConstraint(ModeConstraint modeConstraint) {
         if ( modeConstraints == null ) {
             modeConstraints = new ArrayList<>();
         }

@@ -9,7 +9,7 @@ public abstract class ScoringFunction {
 
 	protected ScoringFunction() {}
 
-	public void setSearchTask(StateBasedSearchTask task) {
+	void setSearchTask() {
 	}
 
 	public abstract double scoreThisNode(SearchNode node) throws SearchInterrupted;

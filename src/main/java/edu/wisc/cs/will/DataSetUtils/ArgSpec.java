@@ -1,7 +1,8 @@
 package edu.wisc.cs.will.DataSetUtils;
 
-import edu.wisc.cs.will.FOPC.TypeSpec;
 import edu.wisc.cs.will.FOPC.Term;
+import edu.wisc.cs.will.FOPC.TypeSpec;
+
 import java.io.Serializable;
 
 /*

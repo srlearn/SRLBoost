@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.Utils.condor.chirp;
 
+import edu.wisc.cs.will.Utils.condor.CondorFileReader;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
-
-import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 
 /*
 ChirpConfig represents the client configuration information needed

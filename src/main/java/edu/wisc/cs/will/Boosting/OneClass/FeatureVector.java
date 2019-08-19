@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.Boosting.OneClass;
 
+import edu.wisc.cs.will.Utils.Utils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import edu.wisc.cs.will.Utils.Utils;
 
 /*
  * @author tkhot

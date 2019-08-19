@@ -64,19 +64,4 @@ public class BranchVectorStats extends BranchStats {
 		
 		return newVecStats;
 	}
-	double[] getLambdaVector() {
-
-		if (sumOfNumGroundingSquared == 0) {
-			return new double[sumOfOutputAndNumGroundingVec.length];
-		}
-		if (sumOfNumGroundingSquaredWithProb == 0) {
-			Utils.waitHere("Computations not correct for vector-based probabilities");
-			Utils.waitHere("Groundings squared with prob is 0??");
-		}
-		double[] lambda =  VectorStatistics.scalarProduct(sumOfOutputAndNumGroundingVec, 
-				1/sumOfNumGroundingSquared);
-		return lambda;
-	}
-
-
 }

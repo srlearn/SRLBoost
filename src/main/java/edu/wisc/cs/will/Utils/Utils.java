@@ -11,42 +11,16 @@
 
 package edu.wisc.cs.will.Utils;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
+import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
+import edu.wisc.cs.will.Utils.condor.*;
+
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
-
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.Utils.condor.CompressedInputStream;
-import edu.wisc.cs.will.Utils.condor.CompressedOutputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
-import edu.wisc.cs.will.Utils.condor.CondorUtilities;
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
 import java.util.regex.Pattern;
 
 /*
@@ -349,9 +323,6 @@ public class Utils {
      */
 	public static void writeMe(String msg) {
 		error("writeMe: " + msg);
-	}
-	public static void writeMe() {
-		error("writeMe");
 	}
 
     /*
@@ -1211,63 +1182,6 @@ public class Utils {
         return result;
 	}
 
-	public static boolean isaInteger(String string) {
-		try {
-			Integer.parseInt(string);
-			return true;
-		} catch (NumberFormatException e) { return false; }
-	}
-
-   /* Returns a pretty String starting with prefix, ending with suffix, and contain a comma separated list of the collection items.
-    *
-    * @param <T> Type of the collection. Any object will do.
-    * @param prefix Can be null if no prefix is wanted.
-    * @param suffix Can be null if no suffix is wanted.
-    * @param items Items to print.  Uses item.toString() to print each.
-    * @return String in the form "&ltprefix>&gt[s]&ltitem>&gt[, &ltitem&gt ... ][ and &ltitem&gt ] &ltsuffix&gt".
-    */
-    public static <T> String getPrettyString(String prefix, String suffix, Collection<T> items) {
-        StringBuilder sb = new StringBuilder();
-
-        if (prefix != null) {
-            sb.append(prefix);
-        }
-
-        else if (items.size() == 1) {
-            sb.append(items.iterator().next());
-        }
-        else {
-            // Slide in an s if the prefix doesn't end in a space.
-            // This assume a certain gramatical form, which may be wrong,
-            // but oh well...
-
-            int count = 0;
-            for (T item : items) {
-                if (count > 0 ) {
-                    if (count == items.size() - 1) {
-                        if ( items.size() > 2) {
-                            sb.append(",");
-                        }
-                        sb.append(" and ");
-                    }
-                    else {
-                        sb.append(", ");
-                    }
-                }
-                sb.append(item);
-                count++;
-            }
-        }
-        if (suffix != null && !suffix.startsWith(" ")) {
-            sb.append(" ");
-        }
-        if (suffix != null) {
-            sb.append(suffix);
-        }
-
-        return sb.toString();
-    }
-
     /* Returns the maximum of a list of doubles */
     public static double max(double ... values) {
         double max = Double.NEGATIVE_INFINITY;
@@ -1276,29 +1190,6 @@ public class Utils {
             for (double value : values) {
                 if (value > max) {
                     max = value;
-                }
-            }
-        }
-
-        return max;
-    }
-
-    /* Returns the maximum of a list of object based on a comparitor.
-     *
-     * @param <T> Type of object to be compared.
-     * @param comparator Comparator to use for the comparison.
-     * @param objects Objects to compare.
-     * @return Returns the object with the highest rank according to the comparator.
-     * If multiple object have the same rank, the earliest on in the list will be
-     * returned.
-     */
-    public static <T> T argmax(Comparator<T> comparator, T ... objects) {
-        T max = null;
-
-        if ( objects != null ) {
-            for (T object : objects) {
-                if (object != null && (max == null || comparator.compare(object, max) > 0)) {
-                    max = object;
                 }
             }
         }
@@ -1744,10 +1635,6 @@ public class Utils {
         }
 
         return waitHereEnabled;
-    }
-
-    public static boolean isVerbositySet() {
-        return verbose != null;
     }
 
     /* Return whether the properties indicate that we are a developer.

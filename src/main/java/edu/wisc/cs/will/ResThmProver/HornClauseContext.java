@@ -34,26 +34,6 @@ public interface HornClauseContext {
     void assertSentences(Iterable<? extends Sentence> sentences) throws IllegalArgumentException;
 
     /*
-     * Attempts to prove the clause <code>goal</code>.
-     *
-     * The goal should a single line string containing the a conjunct of literals
-     * to prove.
-     *
-     * The theorem prover will attempt to prove the statement, given the currently
-     * asserted fact base.
-     *
-     * @param goal A single line string containing a conjunct of literals to prove, given the
-     * current asserted fact base.
-     *
-     * @return If the goal is successful, returns the BindingList for the first
-     * sucessful proof found.
-     *
-     * @throws IllegalArgumentException Throws an IllegalArgumentException if the goal is
-     * not parsable or if the
-     */
-    BindingList prove(String goal) throws IllegalArgumentException;
-
-    /*
      * Attempts to prove the SLDQuery <code>goal</code>.
      *
      * The SLDQuery should be a legal SLD query.  This includes sentences which evaluate

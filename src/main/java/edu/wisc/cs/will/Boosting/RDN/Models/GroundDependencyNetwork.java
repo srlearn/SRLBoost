@@ -1,21 +1,16 @@
 package edu.wisc.cs.will.Boosting.RDN.Models;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.wisc.cs.will.Boosting.RDN.ConditionalModelPerPredicate;
 import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
-import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyExampleNode.ExampleType;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyNetworkEdge.EdgeType;
+import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
+import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.FOPC.BindingList;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.*;
 
 public class GroundDependencyNetwork extends DependencyNetwork {
 

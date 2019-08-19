@@ -1,69 +1,23 @@
 package edu.wisc.cs.will.FOPC_MLN_ILP_Parser;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StreamTokenizer;
-import java.io.StringReader;
+import edu.wisc.cs.will.FOPC.*;
+import edu.wisc.cs.will.FOPC.HandleFOPCstrings.VarIndicator;
+import edu.wisc.cs.will.FOPC.PredicateName.FunctionAsPredType;
+import edu.wisc.cs.will.ResThmProver.VariantClauseAction;
+import edu.wisc.cs.will.Utils.*;
+import edu.wisc.cs.will.Utils.condor.CompressedInputStream;
+import edu.wisc.cs.will.Utils.condor.CondorFile;
+import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
+
+import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.wisc.cs.will.FOPC.AllOfFOPC;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.ConnectedSentence;
-import edu.wisc.cs.will.FOPC.ConnectiveName;
-import edu.wisc.cs.will.FOPC.ConsCell;
-import edu.wisc.cs.will.FOPC.Constant;
-import edu.wisc.cs.will.FOPC.ExistentialSentence;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.FunctionName;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings.VarIndicator;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.LiteralAsTerm;
-import edu.wisc.cs.will.FOPC.LiteralToThreshold;
-import edu.wisc.cs.will.FOPC.NamedTermList;
-import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateName.FunctionAsPredType;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.RelevanceStrength;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.StringConstant;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.TermAsLiteral;
-import edu.wisc.cs.will.FOPC.TermAsSentence;
-import edu.wisc.cs.will.FOPC.Type;
-import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.UniversalSentence;
-import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.ResThmProver.VariantClauseAction;
-import edu.wisc.cs.will.Utils.MessageType;
-import edu.wisc.cs.will.Utils.NamedInputStream;
-import edu.wisc.cs.will.Utils.NamedReader;
-import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.WILLthrownError;
-import edu.wisc.cs.will.Utils.condor.CompressedInputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
-import static edu.wisc.cs.will.Utils.MessageType.PARSER_VERBOSE_FILE_INCLUDES;
-import static edu.wisc.cs.will.Utils.MessageType.PARSER_VERBOSE_LIBRARY_LOADING;
-import static edu.wisc.cs.will.Utils.MessageType.PARSER_VERBOSE_MODE_LOADING;
-import static edu.wisc.cs.will.Utils.MessageType.STRING_HANDLER_VARIABLE_INDICATOR;
+import static edu.wisc.cs.will.Utils.MessageType.*;
 
 
 // TODO(?): clean up so that the currentDirectory is always intelligently set (and rest after reading a file).
@@ -2818,17 +2772,6 @@ public class FileParser {
 			Utils.println("%   READ constrains: " + predicate + "/" + arity + " at arg #" + position + " to type '" + type + "'." + (pruneIfNoEffect ? "  If the pruning has no impact, prune this literal.": ""));
 		}
 		peekEOL(true); // Suck up an optional EOL.
-	}
-
-	private void processTypesInFunction(Function f) {
-		if (f.numberArgs() < 1) { return; }
-		for (Term arg : f.getArguments()) {
-			if (arg instanceof Function) {
-				processTypesInFunction((Function) arg);
-			} else {
-				Utils.println(" arg = " + arg + " type=" + arg.getTypeSpec());
-			}
-		}
 	}
 
 	/* Process a specification of a determinate literal.

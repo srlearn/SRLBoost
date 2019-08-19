@@ -1,7 +1,8 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.Comparator;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.Comparator;
 
 /*
  * @author shavlik

@@ -1,23 +1,15 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.ChildrenClausesGenerator;
 import edu.wisc.cs.will.ILP.InlineManager;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
 
 /*
  * @author shavlik

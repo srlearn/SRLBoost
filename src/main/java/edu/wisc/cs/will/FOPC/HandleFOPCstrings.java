@@ -1,19 +1,12 @@
 package edu.wisc.cs.will.FOPC;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.ClauseOptimiser;
 import edu.wisc.cs.will.ResThmProver.VariantClauseAction;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.*;
+
 import static edu.wisc.cs.will.ResThmProver.VariantClauseAction.WARN_AND_REMOVE_VARIANTS;
 import static edu.wisc.cs.will.Utils.MessageType.STRING_HANDLER_CREATION;
 import static edu.wisc.cs.will.Utils.MessageType.STRING_HANDLER_VARIABLE_INDICATOR;
