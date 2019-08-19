@@ -1,28 +1,23 @@
 package edu.wisc.cs.will.ILP;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.FOPCInputStream;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.Utils;
+import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /*
  * Gleaner maintains the best clause (per 'marker') in each bin of recall ranges.
@@ -78,14 +73,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		this(null, null, null, 5000);
 	}
 
-   public Gleaner(GleanerFileNameProvider fileNameProvider) {
-		this(fileNameProvider, null, null, 5000);
-	}
-
-	public Gleaner(StateBasedSearchTask owner, HandleFOPCstrings stringHandler) {
-		this(null, owner, stringHandler, 5000);
-		
-	}
 	public Gleaner(GleanerFileNameProvider fileNameProvider, StateBasedSearchTask owner, HandleFOPCstrings stringHandler, int reportingPeriod) {
       resetAllMarkers();
       this.fileNameProvider   = fileNameProvider;
@@ -97,21 +84,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	
 	public void setStringHandler(HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
-	}
-	
-	/*
-	 * Save the state of an ILP run so it can later be restarted.
-	 * 
-	 * If running RRR, just need to save the contents of the Gleaner bins and the number of random restarts tried.
-	 * Can checkpoint after each random restart (no need to be so fine-grained as to checkpoint after each step of the local search).
-	 * 
-	 * If doing heuristic search, can save after each seed is processed.  Otherwise one would need to save the OPEN and CLOSED lists, which might be large
-	 * (code for doing this could be written w/o too much trouble, but it doesn't seem necessary).  As with RRR, need to save the Gleaner bins.
-	 * Plus need to save the number of outer loop cycles completed and the positive and negative seeds used so far.
-	 * 
-	 */
-	public void checkpoint() {
-		// TODO(@hayesall): `Gleaner.checkpoint()` should be removed.
 	}
 
 

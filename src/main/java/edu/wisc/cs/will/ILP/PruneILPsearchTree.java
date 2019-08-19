@@ -1,19 +1,10 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.List;
-
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.Constant;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.Pruner;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Unifier;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.List;
 
 /*
  * This pruner handles cases of predicates that are isaInterval's. Extensions to

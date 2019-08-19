@@ -1,23 +1,12 @@
 package edu.wisc.cs.will.ILP;
 
+import edu.wisc.cs.will.DataSetUtils.Example;
+import edu.wisc.cs.will.FOPC.*;
+import edu.wisc.cs.will.ResThmProver.HornClauseContext;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.ConnectedSentence;
-import edu.wisc.cs.will.FOPC.ConnectiveName;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.RelevanceStrength;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 
 /*
  * @author twalker
@@ -87,11 +76,6 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
      */
     public RelevanceStrength getRelevanceStrength() {
         return relevanceStrength;
-    }
-
-    @Override
-    public boolean prove(HornClauseContext context) {
-        return relevanceFromPositiveExample;
     }
 
     public PredicateNameAndArity getPredicateNameAndArity() {

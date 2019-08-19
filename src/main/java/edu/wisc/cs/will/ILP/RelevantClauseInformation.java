@@ -1,54 +1,14 @@
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.AllOfFOPC;
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.ConnectedSentence;
-import edu.wisc.cs.will.FOPC.ConnectiveName;
-import edu.wisc.cs.will.FOPC.ConsCell;
-import edu.wisc.cs.will.FOPC.Constant;
-import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
-import edu.wisc.cs.will.FOPC.visitors.ElementPositionVisitor;
-import edu.wisc.cs.will.FOPC.visitors.ElementPath;
+import edu.wisc.cs.will.FOPC.*;
+import edu.wisc.cs.will.FOPC.visitors.*;
 import edu.wisc.cs.will.FOPC.visitors.ElementPositionVisitor.ElementPositionData;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.visitors.Inliner;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.visitors.PredicateCollector;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.PrettyPrinter;
-import edu.wisc.cs.will.FOPC.PrettyPrinterOptions;
-import edu.wisc.cs.will.FOPC.RelevanceStrength;
-import edu.wisc.cs.will.FOPC.visitors.DuplicateDeterminateRemover;
-import edu.wisc.cs.will.FOPC.LiteralOrFunction;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.StringConstant;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.FOPC.visitors.DoubleNegationByFailureRemover;
-import edu.wisc.cs.will.FOPC.visitors.ElementPositionListener;
-import edu.wisc.cs.will.FOPC.visitors.SentencePruner;
-import edu.wisc.cs.will.FOPC.visitors.VariableCounter;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /*
  * @author twalker
@@ -232,32 +192,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
             newGAC.setConstantsSplit(this.isConstantsSplit() || that.isConstantsSplit());
             newGAC.setRelevanceFromPositiveExample(true);
         }
-
-        return newGAC;
-    }
-
-    public RelevantClauseInformation getNegation() {
-
-        Sentence newSentence;
-        Set<ElementPath> newConstantPositions = new HashSet<>();
-
-        if (sentence instanceof ConnectedSentence && ((ConnectedSentence) sentence).getConnective() == ConnectiveName.NOT) {
-            newSentence = ((ConnectedSentence) sentence).getSentenceA();
-
-            for (ElementPath elementPath : this.constantPositions) {
-                newConstantPositions.add(elementPath.removeFirstElement());
-            }
-        }
-        else {
-            newSentence = getStringHandler().getConnectedSentence(ConnectiveName.NOT, sentence);
-            for (ElementPath elementPath : this.constantPositions) {
-                newConstantPositions.add(elementPath.prepend(0));
-            }
-        }
-
-        RelevantClauseInformation newGAC = new RelevantClauseInformation(example, newSentence, getTypeSpecList());
-        newGAC.constantPositions = newConstantPositions;
-
 
         return newGAC;
     }
@@ -567,32 +501,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     void setRelevanceStrength(RelevanceStrength relevanceStrength) {
         this.relevanceStrength = relevanceStrength;
-    }
-
-    @Override
-    public boolean prove(HornClauseContext context) {
-
-        Map<Term, Term> termToVariableMap = new LinkedHashMap<>();
-
-        Literal newExample = GENERALIZER_SENTENCE_VISITOR.generalize(example, null, termToVariableMap);
-        Sentence newSentence = GENERALIZER_SENTENCE_VISITOR.generalize(getSentence(), constantPositions, termToVariableMap);
-
-        BindingList bl = new BindingList();
-        Unifier.UNIFIER.unify(example, newExample, bl);
-        newSentence = newSentence.applyTheta(bl);
-
-        List<Clause> clauses = newSentence.convertToClausalForm();
-
-        boolean result = false;
-
-        for (Clause clause : clauses) {
-            if (context.prove(clause) != null) {
-                result = true;
-                break;
-            }
-        }
-
-        return result;
     }
 
     private void markConstants() {

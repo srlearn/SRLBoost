@@ -17,52 +17,23 @@
 package edu.wisc.cs.will.ILP;
 
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Reader;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Theory;
-import edu.wisc.cs.will.FOPC.TreeStructuredTheory;
-import edu.wisc.cs.will.FOPC.TreeStructuredTheoryInteriorNode;
-import edu.wisc.cs.will.FOPC.TreeStructuredTheoryLeaf;
-import edu.wisc.cs.will.FOPC.TreeStructuredTheoryNode;
-import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
-import edu.wisc.cs.will.ResThmProver.DefaultHornClauseContext;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.MessageType;
-import edu.wisc.cs.will.Utils.NamedReader;
-import edu.wisc.cs.will.Utils.Stopwatch;
-import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.VectorStatistics;
-import edu.wisc.cs.will.stdAIsearch.BestFirstSearch;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
-import edu.wisc.cs.will.stdAIsearch.SearchResult;
-import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
+import edu.wisc.cs.will.Utils.*;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
+import edu.wisc.cs.will.stdAIsearch.*;
+
+import java.io.*;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 /*
@@ -184,29 +155,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 
 	private ActiveAdvice createdActiveAdvice = null;
 
-	public ILPouterLoop(String workingDir, String[] args, SearchStrategy strategy, ScoreSingleClause scorer) throws IOException {
-		this(workingDir, null, args, strategy, scorer, new Gleaner(), new DefaultHornClauseContext(new HandleFOPCstrings()), false, false);
-	}
-    public ILPouterLoop(String workingDir, String[] args) throws IOException {
-        this(workingDir, null, args, new Gleaner(), new HandleFOPCstrings());
-    }
-    public ILPouterLoop(String workingDir, String[] args, HandleFOPCstrings stringHandler) throws IOException {
-        this(workingDir, null, args, new Gleaner(), stringHandler);
-    }
-
-    public ILPouterLoop(String workingDir, String[] args, HornClauseContext context) throws IOException {
-        this(workingDir, null, args, new Gleaner(), context);
-    }
-
-    public ILPouterLoop(String workingDir, String prefix, String[] args, SearchMonitor monitor, HandleFOPCstrings stringHandler) throws IOException {
-        this(workingDir, prefix, args, monitor, new DefaultHornClauseContext(stringHandler));
-    }
-
-    public ILPouterLoop(String workingDir, String prefix, String[] args, SearchMonitor monitor, HandleFOPCstrings stringHandler, boolean deferLoadingExamples) throws IOException {
-        this(workingDir, prefix, args, monitor, new DefaultHornClauseContext(stringHandler), deferLoadingExamples);
-    }
-
-    public ILPouterLoop(String workingDir, String prefix, String[] args, 
+	public ILPouterLoop(String workingDir, String prefix, String[] args,
     					SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, 
     	                HornClauseContext context, boolean useRRR, boolean deferLoadingExamples) throws IOException {
         this(workingDir, prefix, 
@@ -227,20 +176,15 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                 getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 1, "neg.txt")),
                 getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 2, "bk.txt")),
                 getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 3, "facts.txt")),
-                monitor, context, deferLoadingExamples);
+                monitor, context);
 
         if (args.length >= 5) {
             this.innerLoopTask.setRelevanceFile(args[4]);
         }
     }
 
-    public ILPouterLoop(String workingDir, String prefix, Reader posExamplesReader, Reader negExamplesReader, Reader backgroundReader, Reader factsReader, SearchMonitor monitor, HandleFOPCstrings stringHandler) {
-                        this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundReader, factsReader, monitor, new DefaultHornClauseContext(stringHandler, new FileParser(stringHandler, workingDir)), false);
-    }
-
-    // TODO(@hayesall): Most of these `ILPouterLoop` variations can be removed: it mostly depends on the `deferLoadingExamples` boolean.
     public ILPouterLoop(String workingDir, String prefix, Reader posExamplesReader, Reader negExamplesReader, Reader backgroundReader, Reader factsReader,
-		    			SearchMonitor monitor, HornClauseContext context, boolean deferLoadingExamples) {
+						SearchMonitor monitor, HornClauseContext context) {
     	this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundReader, factsReader,
     		 new BestFirstSearch(), new ScoreSingleClauseByAccuracy(), monitor, context, false, false);
     }
@@ -601,7 +545,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                         innerLoopTask.performRRRsearch(learningTreeStructuredTheory ? savedBestNode : null);
                     } else {
                         SearchResult sr = innerLoopTask.performSearch(learningTreeStructuredTheory ? savedBestNode : null);
-                        innerLoopTask.needToCheckTheAdviceProcessor = false; // No need to do this at least until this "outer looper" is done.
 					}
 
                     // Want limits on (and statistics about) the full ILP search as well.
@@ -1943,11 +1886,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
        return getMaximumClockTimeInMillisec() == Long.MAX_VALUE ? Long.MAX_VALUE : Math.max(0, getMaximumClockTimeInMillisec() - getClockTimeUsedInMillisec());
     }
 
-    public HornClauseContext getContext() {
-        return innerLoopTask.getContext();
-    }
-
-    public void setMaxAcceptableNodeScoreToStop(double score) {
+	public void setMaxAcceptableNodeScoreToStop(double score) {
     	outerLoopState.maxAcceptableNodeScoreToStop = score;
     }
 

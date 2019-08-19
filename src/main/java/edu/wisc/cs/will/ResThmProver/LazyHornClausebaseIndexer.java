@@ -1,13 +1,9 @@
 package edu.wisc.cs.will.ResThmProver;
 
-import java.util.Collection;
-
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.Collection;
 
 /*
  * @author twalker

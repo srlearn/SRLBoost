@@ -1,13 +1,13 @@
 package edu.wisc.cs.will.ILP;
 
-import java.io.Serializable;
-import java.util.List;
-
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.TreeStructuredTheoryInteriorNode;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.VectorStatistics;
+
+import java.io.Serializable;
+import java.util.List;
 
 /*
  * @author shavlik
@@ -42,10 +42,6 @@ public class TreeStructuredLearningTask implements Serializable {
 		return node;
 	}
 
-	public void setNode(TreeStructuredTheoryInteriorNode node) {
-		this.node = node;
-	}
-	
 	SingleClauseNode getCreatingNode() {
 		return creatingNode;
 	}

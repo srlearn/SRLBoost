@@ -1,15 +1,15 @@
 package edu.wisc.cs.will.ResThmProver;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 // TODO(@hayesall): Lots of duplicated code with `LazyGroundNthArgumentClauseIndex`
 

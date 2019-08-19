@@ -1,6 +1,7 @@
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.FOPC.Theory;
+
 import java.io.Serializable;
 
 /*
@@ -21,38 +22,12 @@ public class CrossValidationFoldResult implements Serializable {
         this.gleaner = gleaner;
     }
 
-    public Gleaner getGleaner() {
-        return gleaner;
-    }
-
-    public void setGleaner(Gleaner gleaner) {
-        this.gleaner = gleaner;
-    }
-
     public Theory getTheory() {
         return theory;
     }
 
-    public void setTheory(Theory theory) {
-        if (this.theory != theory) {
-
-            this.theory = theory;
-
-            invalidateCoverageScores();
-        }
-    }
-
-    private void invalidateCoverageScores() {
-        trainingCoverageScore = null;
-        evaluationCoverageScore = null;
-    }
-
     public int getFold() {
         return fold;
-    }
-
-    public void setFold(int fold) {
-        this.fold = fold;
     }
 
     CoverageScore getTrainingCoverageScore() {

@@ -1,22 +1,13 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateSpec;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Type;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
+
+import java.util.*;
 
 /*
  * @author shavlik
@@ -28,7 +19,7 @@ public class SingleClauseRootNode extends SingleClauseNode {
 	Set<Variable>  requiredBodyVariablesInTarget = null;
 
 	SingleClauseRootNode(StateBasedSearchTask task, Literal head, List<ArgSpec> argSpecs, List<Term> variables,
-						 PredicateSpec enabler, List<Type> typesPresentInHead, Map<Type, List<Term>> typesMapInHead) throws SearchInterrupted {
+                         List<Type> typesPresentInHead, Map<Type, List<Term>> typesMapInHead) throws SearchInterrupted {
 		super(task);
 		target               = head;
 		targetArgSpecs       = argSpecs;
@@ -37,8 +28,7 @@ public class SingleClauseRootNode extends SingleClauseNode {
 		literalAdded = head; // The root has with the empty body (i.e., it is an implicit 'true').  So we'll store the head literal here.
 		depthOfArgs = new HashMap<>(head.numberArgs());
 		markDepthOfLeafTerms(head.getArguments(), 0); // The depth of all the 'leaf' terms in the root (i.e., the head) is zero.
-		this.enabler = enabler;
-		typesPresent = typesPresentInHead;
+        typesPresent = typesPresentInHead;
 		typesMap     = typesMapInHead;
 		if (argSpecs != null) {
 			for (ArgSpec argSpec : argSpecs) {

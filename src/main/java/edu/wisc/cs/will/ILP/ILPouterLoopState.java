@@ -1,18 +1,13 @@
 package edu.wisc.cs.will.ILP;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Theory;
 import edu.wisc.cs.will.FOPC.TreeStructuredTheory;
 import edu.wisc.cs.will.FOPC.TreeStructuredTheoryInteriorNode;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.io.Serializable;
+import java.util.*;
 
 /*
  *

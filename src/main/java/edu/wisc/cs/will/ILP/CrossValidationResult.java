@@ -1,8 +1,5 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.Utils.Utils;
-import java.util.Comparator;
-
 /*
  * @author twalker
  */
@@ -126,110 +123,6 @@ public class CrossValidationResult {
         }
     }
 
-    private double getAverageTrainingAccuracy() {
-        CoverageScore score = getAverageTrainingCoverageScore();
-
-        if (score == null) {
-            return Double.NaN;
-        }
-        else {
-            return score.getAccuracy();
-        }
-    }
-
-    double getAverageTestingAccuracy() {
-        CoverageScore score = getAverageEvaluationCoverageScore();
-
-        if (score == null) {
-            return Double.NaN;
-        }
-        else {
-            return score.getAccuracy();
-        }
-    }
-
-    double getAverageAccuracy() {
-        double v = getAverageTestingAccuracy();
-
-        if (Double.isNaN(v)) {
-            v = getAverageTrainingAccuracy();
-        }
-
-        return v;
-    }
-
-    double getAverageTrainingPrecision() {
-        CoverageScore score = getAverageTrainingCoverageScore();
-
-        if (score == null) {
-            return Double.NaN;
-        }
-        else {
-            return score.getPrecision();
-        }
-    }
-
-    double getAverageTestingPrecision() {
-        CoverageScore score = getAverageEvaluationCoverageScore();
-
-        if (score == null) {
-            return Double.NaN;
-        }
-        else {
-            return score.getPrecision();
-        }
-    }
-
-    double getAverageTrainingRecall() {
-        CoverageScore score = getAverageTrainingCoverageScore();
-
-        if (score == null) {
-            return Double.NaN;
-        }
-        else {
-            return score.getRecall();
-        }
-    }
-
-    double getAverageTestingRecall() {
-        CoverageScore score = getAverageEvaluationCoverageScore();
-
-        if (score == null) {
-            return Double.NaN;
-        }
-        else {
-            return score.getRecall();
-        }
-    }
-
-    double getAverageTestingFBeta() {
-    	return getAverageTestingFBeta(1.0); 
-    }
-    private double getAverageTestingFBeta(double beta) {
-        CoverageScore score = getAverageEvaluationCoverageScore();
-
-        if (score == null) {
-            return Double.NaN;
-        }
-		return score.getFBeta(beta);
-    }
-
-    double getAverageFBeta() {
-    	return getAverageFBeta(1.0); 
-    }
-    private double getAverageFBeta(double beta) {
-        CoverageScore score = getAverageEvaluationCoverageScore();
-
-        if (score == null) {
-            score = getAverageTrainingCoverageScore();
-        }
-
-        if ( score == null ) {
-            return Double.NaN;
-        }
-		return score.getFBeta(beta);
-    }
-
     private int getNumberOfFolds() {
         return numberOfFolds;
     }
@@ -257,64 +150,6 @@ public class CrossValidationResult {
     public String toString() {
         return toShortString();
     }
-
-    /* Returns the FoldResults with the best Accuracy across all examples.
-     *
-     * The coverage score used to compare the fold results is based upon all
-     * of the examples in the positive and negative sets.  If you would like
-     * to get the best overall, you can pass a more specific comparator into
-     * the getBestOrverallFold(Comparator&ltILPCVFoldResult&gt foldComparator)
-     * method.
-     *
-     * @return FoldResults with the best Accuracy across all examples.
-     */
-    CrossValidationFoldResult getBestOverallFoldByAccuracy() {
-        return getBestOverallFold(CoverageScore.ascendingAccuracyComparator);
-    }
-
-    CrossValidationFoldResult getBestOverallFoldByF1() {
-        return getBestOverallFold(CoverageScore.ascendingF1Comparator);
-    }
-    
-    /* Returns the best FoldResults across all examples as determined by the comparator.
-     *
-     * The comparator must be a CoverageScore comparator.  The CoverageScore
-     * class many of the common comparison, such as accuracy, precision, etc.
-     *
-     * The coverage score used to compare the fold results is based upon all
-     * of the examples in the positive and negative sets.  If you would like
-     * to get the best overall, you can pass a more specific comparator into
-     * the getBestOrverallFold(Comparator&ltILPCVFoldResult&gt foldComparator)
-     * method.
-     *
-     * @param coverageScoreComparator CoverageScore comparator used to order the
-     * fold results.  The coverage score compared is based upon all examples,
-     * not just the evaluation test.
-     * 
-     * @return FoldResults with the best coverage score across all examples as determined by the comparator.
-     */
-    private CrossValidationFoldResult getBestOverallFold(final Comparator<CoverageScore> coverageScoreComparator) {
-
-        Comparator<CrossValidationFoldResult> foldComparator = (o1, o2) -> coverageScoreComparator.compare(o1.getAllExamplesCoverageScore(), o2.getAllExamplesCoverageScore());
-
-        return getBestOrverallFold(foldComparator);
-    }
-
-    /* Returns the best FoldResults as determined by the comparator.
-     *
-     * This method allows for maximum configurability with regards to how to
-     * compare folds.  See getBestOverallFoldByAccuracy() and
-     * getBestOverallFold(final Comparator<CoverageScore> coverageScoreComparator)
-     * for simplier calling patterns.
-     *
-     * @param foldComparator Comparator used to order the fold results.
-     * @return FoldResults with the best score as determined by the comparator.
-     */
-    private CrossValidationFoldResult getBestOrverallFold(Comparator<CrossValidationFoldResult> foldComparator) {
-
-        return Utils.argmax(foldComparator, foldResults);
-    }
-
 
 
 }

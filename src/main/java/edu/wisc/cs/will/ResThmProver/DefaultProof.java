@@ -51,20 +51,7 @@ public class DefaultProof implements Proof {
         
     }
 
-    public BindingList getBindings() {
-        if ( searchResult == null ) {
-            prove();
-        }
-
-        if ( searchResult.goalFound() ) {
-            return new BindingList(((ProofDone) prover.terminator).collectQueryBindings());
-        }
-        else {
-            return null;
-        }
-    }
-
-    public boolean isProofComplete() {
+    private boolean isProofComplete() {
         if ( searchResult == null ) {
             return false;
         }
@@ -72,20 +59,6 @@ public class DefaultProof implements Proof {
             return !searchResult.goalFound() || prover.open.isEmpty();
         }
     }
-
-    public boolean isTrue() {
-        if ( searchResult == null ) {
-            prove();
-        }
-
-        return searchResult.goalFound();
-    }
-
-    public HornClauseProver getProver() {
-        return prover;
-    }
-
-
 
 
 }

@@ -1,31 +1,15 @@
 package edu.wisc.cs.will.ILP;
 
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.LiteralToThreshold;
-import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.RelevanceStrength;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
+import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
+import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.util.*;
 
 // TODO(@hayesall): The `createThresholds` method needs desperate attention.
 

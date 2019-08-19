@@ -1,28 +1,18 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Constant;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateSpec;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Type;
-import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.Initializer;
 import edu.wisc.cs.will.stdAIsearch.OpenList;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /*
  * @author shavlik
@@ -127,7 +117,7 @@ public class InitializeILPsearchSpace extends Initializer {
 							Utils.println(" new typesMap = " + newTypesMap);
 						}
 						// Check for duplicates here if more than one seed.
-						SingleClauseRootNode targetAsSearchNode2 = new SingleClauseRootNode(ilpTask, newTarget, newSpecs, varsNeeded, pSpec, typesPresent, newTypesMap);
+						SingleClauseRootNode targetAsSearchNode2 = new SingleClauseRootNode(ilpTask, newTarget, newSpecs, varsNeeded, typesPresent, newTypesMap);
 						if (task.scorer != null) { open.insertByScoreIntoOpenList(targetAsSearchNode2); }
 						else                     { open.addToEndOfOpenList(       targetAsSearchNode2); }
 
@@ -144,7 +134,7 @@ public class InitializeILPsearchSpace extends Initializer {
 				// If this code is ever written, should ONLY constrain the specified arguments using one or all of the seeds.
 				Utils.warning("TODO: Should handle this case by altering the target in the 'must be constant' arguments.  Or maybe an '@' type was meant?");
 			}
-			SingleClauseRootNode targetAsSearchNode = new SingleClauseRootNode(ilpTask, target, specs, variables, pSpec, typesPresent, typesMap);
+			SingleClauseRootNode targetAsSearchNode = new SingleClauseRootNode(ilpTask, target, specs, variables, typesPresent, typesMap);
 			if (task.scorer != null) { open.insertByScoreIntoOpenList(targetAsSearchNode); }
 			else                     { open.addToEndOfOpenList(       targetAsSearchNode); } // We want any specific heads to be tried first.
 			Utils.println(MessageType.ILP_INNERLOOP, "% Most-general root: " + targetAsSearchNode + "  score = " + Utils.truncate(targetAsSearchNode.score, 3));

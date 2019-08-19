@@ -1,22 +1,13 @@
 package edu.wisc.cs.will.ILP;
 
+import edu.wisc.cs.will.FOPC.*;
+import edu.wisc.cs.will.ResThmProver.HornClausebase;
+import edu.wisc.cs.will.Utils.Utils;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.ResThmProver.HornClausebase;
-import edu.wisc.cs.will.Utils.Utils;
 
 public class InlineManager {
 
@@ -318,11 +309,7 @@ public class InlineManager {
         return stringHandler;
     }
 
-    public void setStringHandler(HandleFOPCstrings stringHandler) {
-        this.stringHandler = stringHandler;
-    }
-
-    public HornClausebase getHornClauseKnowledgeBase() {
+	public HornClausebase getHornClauseKnowledgeBase() {
         return hornClauseKnowledgeBase;
     }
 

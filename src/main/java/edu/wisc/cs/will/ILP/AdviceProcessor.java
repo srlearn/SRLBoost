@@ -1,36 +1,7 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.AllOfFOPC;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.PrettyPrinter;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.PrettyPrinterOptions;
-import edu.wisc.cs.will.FOPC.PruneDuplicatesIfTrueRule;
-import edu.wisc.cs.will.FOPC.PruneIfTrueRule;
-import edu.wisc.cs.will.FOPC.PruningRule;
-import edu.wisc.cs.will.FOPC.RelevanceStrength;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.SentenceAsTerm;
-import edu.wisc.cs.will.FOPC.StringConstant;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.ILP.ActiveAdvice.ModeInfo;
 import edu.wisc.cs.will.ResThmProver.AssertRetractListener;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
@@ -38,6 +9,9 @@ import edu.wisc.cs.will.ResThmProver.HornClausebase;
 import edu.wisc.cs.will.Utils.LinkedMapOfSets;
 import edu.wisc.cs.will.Utils.MapOfSets;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /*
  * @author twalker

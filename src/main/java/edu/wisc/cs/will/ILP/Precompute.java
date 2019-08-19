@@ -1,33 +1,18 @@
 package edu.wisc.cs.will.ILP;
 
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.io.File;
-import java.io.FileNotFoundException;
-
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.ConsCell;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.LiteralAsTerm;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.ResThmProver.HornClausebase;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
+import edu.wisc.cs.will.Utils.condor.CondorFile;
+import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.util.*;
 
 /*
  * @author shavlik

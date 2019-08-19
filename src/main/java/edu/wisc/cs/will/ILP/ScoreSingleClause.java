@@ -13,8 +13,6 @@ public abstract class ScoreSingleClause extends ScoringFunction {
 
 	ScoreSingleClause() {}
 
-	public void setSearchTask() {}
-	
 	public double computeBonusScoreForThisNode(SearchNode nodeRaw) throws SearchInterrupted { // ADD this to the normal score.
 		// If a clause ends with a DETERMINATE literal, we want to allow it to be expanded
 		// since the determinate literal by itself is of no help.

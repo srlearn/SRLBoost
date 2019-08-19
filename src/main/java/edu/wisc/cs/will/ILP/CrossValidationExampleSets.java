@@ -1,11 +1,11 @@
 package edu.wisc.cs.will.ILP;
 
+import edu.wisc.cs.will.DataSetUtils.Example;
+import edu.wisc.cs.will.Utils.Permute;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.Utils.Permute;
 
 /*
  * @author twalker

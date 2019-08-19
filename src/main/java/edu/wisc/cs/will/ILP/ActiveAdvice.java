@@ -1,39 +1,17 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.ConnectedSentence;
-import edu.wisc.cs.will.FOPC.ConnectiveName;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.visitors.DefiniteClauseCostAggregator;
 import edu.wisc.cs.will.FOPC.visitors.DuplicateDeterminateRemover;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.visitors.Inliner;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.PrettyPrinter;
-import edu.wisc.cs.will.FOPC.PrettyPrinterOptions;
-import edu.wisc.cs.will.FOPC.RelevanceStrength;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Variable;
 import edu.wisc.cs.will.Utils.LinkedMapOfSets;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.MapOfSets;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.*;
 
 
 /*
@@ -251,10 +229,6 @@ public class ActiveAdvice {
 
     private void addClause(Clause clause, RelevanceStrength strength) {
         clauses.put(clause.getDefiniteClauseHead().getPredicateNameAndArity(), new ClauseInfo(clause, strength));
-    }
-
-    public Set<ClauseInfo> getClause(PredicateNameAndArity predicateNameAndArity) {
-        return clauses.getValues(predicateNameAndArity);
     }
 
     public MapOfSets<PredicateNameAndArity, ClauseInfo> getClauses() {

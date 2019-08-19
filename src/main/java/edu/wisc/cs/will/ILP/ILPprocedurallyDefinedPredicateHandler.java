@@ -1,16 +1,10 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.List;
-
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.ProcedurallyDefinedPredicateHandler;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.List;
 
 /*
  * @author shavlik

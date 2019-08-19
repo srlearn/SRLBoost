@@ -1,25 +1,12 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
-import edu.wisc.cs.will.FOPC.Clause;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.LiteralOrFunction;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.visitors.ReplaceLiteralsVisitor;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfSets;
+
+import java.util.*;
 
 /*
  * @author twalker

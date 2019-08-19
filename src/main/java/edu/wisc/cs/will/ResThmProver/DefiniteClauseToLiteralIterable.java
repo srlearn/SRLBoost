@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.ResThmProver;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Literal;
+
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class DefiniteClauseToLiteralIterable implements Iterable<Literal> {
 

@@ -1,6 +1,7 @@
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
+
 import java.io.Serializable;
 
 /* Provides a stopping condition for cross-validation based upon the maximum obtainable average coverage score on a partially completely cross-validation run.

@@ -1,15 +1,11 @@
 package edu.wisc.cs.will.ResThmProver;
 
-import java.util.Collection;
-import java.util.List;
-
-import edu.wisc.cs.will.FOPC.Binding;
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
+
+import java.util.Collection;
+import java.util.List;
 
 /*
  * @author shavlik

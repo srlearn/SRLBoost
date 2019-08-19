@@ -1,53 +1,9 @@
 package edu.wisc.cs.will.ILP;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-import javax.swing.event.EventListenerList;
-
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
-import edu.wisc.cs.will.DataSetUtils.ArgSpec;
-import edu.wisc.cs.will.DataSetUtils.CreateSyntheticExamples;
-import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.DataSetUtils.RegressionExample;
-import edu.wisc.cs.will.DataSetUtils.TypeManagement;
-import edu.wisc.cs.will.DataSetUtils.WorldState;
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.Constant;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.LiteralToThreshold;
-import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.PredicateSpec;
-import edu.wisc.cs.will.FOPC.ProcedurallyDefinedPredicateHandler;
-import edu.wisc.cs.will.FOPC.RelevanceStrength;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.SentenceAsTerm;
-import edu.wisc.cs.will.FOPC.StringConstant;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Theory;
-import edu.wisc.cs.will.FOPC.Type;
-import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.FOPC.UniversalSentence;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.DataSetUtils.*;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForMLN;
@@ -59,19 +15,14 @@ import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.ResThmProver.HornClausebase;
 import edu.wisc.cs.will.Utils.NamedReader;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.CompressedFileReader;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
-import edu.wisc.cs.will.stdAIsearch.BestFirstSearch;
-import edu.wisc.cs.will.stdAIsearch.EndTest;
-import edu.wisc.cs.will.stdAIsearch.Initializer;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
-import edu.wisc.cs.will.stdAIsearch.SearchResult;
-import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
-import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
-import java.io.PrintStream;
+import edu.wisc.cs.will.stdAIsearch.*;
+
+import javax.swing.event.EventListenerList;
+import java.io.*;
+import java.util.*;
  
 /*
  * @author shavlik
@@ -154,8 +105,6 @@ import java.io.PrintStream;
 
 public class LearnOneClause extends StateBasedSearchTask {
 	protected final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
-	
-	boolean             needToCheckTheAdviceProcessor     = true;    // Added (7/18/10) by JWS so that we can have advice persist across all the calls of outer looper to this (ie, the inner looper).
 
 	boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
 
@@ -317,45 +266,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 
     private boolean initialized = false;
 
+
 	/*
-	 * Constructs a new LearnOneClause search.
-	 */
-	public LearnOneClause(String workingDir, // Location where 'imports' can be found, results can be written, etc.
-						  String prefix,     // Common prefix of files used.
-						  String posExamplesFileName,       String negExamplesFileName,
-						  String backgroundClausesFileName, String factsFileName,
-			              SearchStrategy strategy,          ScoreSingleClause scorer) throws IOException {
-		this(workingDir, prefix, posExamplesFileName, negExamplesFileName, backgroundClausesFileName, factsFileName, strategy, scorer, null);
-	}
-
-
-    public LearnOneClause(String directory, String task) throws IOException {
-		this(directory, task,
-			 new NamedReader(new CompressedFileReader(directory + "/" + task + "_pos.txt"), directory + "/" + task + "_pos.txt"),
-			 new NamedReader(new CompressedFileReader(directory + "/" + task + "_neg.txt"), directory + "/" + task + "_neg.txt"),
-			 new NamedReader(new CompressedFileReader(directory + "/" + task + "_bk.txt"), directory + "/" + task + "_bk.txt"),
-			 new NamedReader(new CompressedFileReader(directory + "/" + task + "_facts.txt"), directory + "/" + task + "_facts.txt"),
-  			 new BestFirstSearch(),             // Search strategy.
-  			 new ScoreSingleClauseByAccuracy(), // Scorer.
-  			 null,                              // Could also pass in a pruner.
-  			 new Gleaner(),
-  			 new HandleFOPCstrings());
-	}
-
-    public LearnOneClause(String directory, String task, HornClauseContext context) throws IOException {
-		this(directory, task,
-			 new NamedReader(new CompressedFileReader(directory + "/" + task + "_pos.txt"), directory + "/" + task + "_pos.txt"),
-			 new NamedReader(new CompressedFileReader(directory + "/" + task + "_neg.txt"), directory + "/" + task + "_neg.txt"),
-			 new NamedReader(new CompressedFileReader(directory + "/" + task + "_bk.txt"), directory + "/" + task + "_bk.txt"),
-			 new NamedReader(new CompressedFileReader(directory + "/" + task + "_facts.txt"), directory + "/" + task + "_facts.txt"),
-  			 new BestFirstSearch(),             // Search strategy.
-  			 new ScoreSingleClauseByAccuracy(), // Scorer.
-  			 null,                              // Could also pass in a pruner.
-  			 new Gleaner(),
-  			 context, false);
-	}
-
-    /*
 	 * Constructs a new LearnOneClause search.
      */
 	public LearnOneClause(String workingDir,                String prefix,
@@ -371,56 +283,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 			 strategy, scorer, null, monitor, new DefaultHornClauseContext(), false);
 	}
 
-	// A minimal version (e.g., if one wants this class' structures but doesn't want to do ILP).
-	public LearnOneClause(String workingDir, String prefix, String backgroundClausesFileName, String factsFileName) throws IOException {
-		this(workingDir, prefix, null, null,
-			 (backgroundClausesFileName == null ? null : new NamedReader(new CondorFileReader(backgroundClausesFileName), backgroundClausesFileName)),
-			 (factsFileName             == null ? null : new NamedReader(new CondorFileReader(factsFileName), factsFileName)),
-			 new BestFirstSearch(), new ScoreSingleClauseByAccuracy(), null, new Gleaner(), new DefaultHornClauseContext(), false);
-		minNumberOfNegExamples = 0;
-	}
-
-	// A minimal version + string handler to allow changing flags such as keepQuoteMarks.
-	public LearnOneClause(String workingDir, String prefix,String backgroundClausesFileName, String factsFileName, HandleFOPCstrings stringHandler) throws IOException {
-		this(workingDir, prefix, null, null,
-			 (backgroundClausesFileName != null ? new NamedReader(new CondorFileReader(backgroundClausesFileName), backgroundClausesFileName) : null),
-			 (factsFileName             != null ? new NamedReader(new CondorFileReader(factsFileName), factsFileName)             : null),
-			 new BestFirstSearch(), new ScoreSingleClauseByAccuracy(), null, new Gleaner(), stringHandler);
-		minNumberOfNegExamples = 0;
-	}
-
-	// A minimal version + string handler to allow changing flags such as keepQuoteMarks.
-	public LearnOneClause(String workingDir, String prefix,String backgroundClausesFileName, String factsFileName, HornClauseContext context) throws IOException {
-		this(workingDir, prefix, null, null,
-			 (backgroundClausesFileName != null ? new NamedReader(new CondorFileReader(backgroundClausesFileName),backgroundClausesFileName) : null),
-			 (factsFileName             != null ? new NamedReader(new CondorFileReader(factsFileName), factsFileName)             : null),
-			 new BestFirstSearch(), new ScoreSingleClauseByAccuracy(), null, new Gleaner(), context, false);
-		minNumberOfNegExamples = 0;
-	}
-
-    /*
-	 * Constructs a new LearnOneClause search.
-     */
-	public LearnOneClause(String workingDir,              String prefix,
-			  			  Reader posExamplesReader,       Reader negExamplesReader,
-						  Reader backgroundClausesReader, Reader factsFile,
-	          			  SearchStrategy strategy,        ScoreSingleClause scorer,
-                          SearchMonitor monitor) {
-		this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundClausesReader, factsFile, strategy, scorer, null, monitor, new DefaultHornClauseContext(), false);
-	}
-
-    /*
-	 * Constructs a new LearnOneClause search.
-     */
-	public LearnOneClause(String workingDir,              String prefix,
-			  			  Reader posExamplesReader,       Reader negExamplesReader,
-						  Reader backgroundClausesReader, Reader factsFile,
-	          			  SearchStrategy strategy,        ScoreSingleClause scorer,
-                          SearchMonitor monitor,          HandleFOPCstrings stringHandler) {
-		this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundClausesReader, factsFile, strategy, scorer, null, monitor, stringHandler);
-	}
-
-    /*
+	/*
 	 * Constructs a new LearnOneClause search.
      */
 	public LearnOneClause(String             workingDir,              String prefix,
@@ -443,29 +306,8 @@ public class LearnOneClause extends StateBasedSearchTask {
                           boolean           deferLoadingExamples) {
         this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundClausesReader, factsReader, strategy, scorer, null, monitor, context, deferLoadingExamples);
     }
-    public LearnOneClause(String            workingDir,              String prefix,
-            			  Reader            posExamplesReader,       Reader negExamplesReader,
-            			  Reader            backgroundClausesReader, Reader factsReader,
-            			  SearchStrategy    strategy,                ScoreSingleClause scorer,
-            			  SearchMonitor     monitor,                 HornClauseContext context) {
-    	this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundClausesReader, factsReader, strategy, scorer, null, monitor, context, false);
-    }
 
-	// TODO(?): Special interface for ILP 2010 experiment runs
-	public LearnOneClause(String testsetDir, String lesson, HandleFOPCstrings stringHandler, boolean usingILPData) throws IOException {
-		this(testsetDir, lesson,
-				new BufferedReader(new CondorFileReader(testsetDir + "/" + lesson + (usingILPData ? "_pos.txt"   : "_posAll.txt"))),
-				new BufferedReader(new CondorFileReader(testsetDir + "/" + lesson + (usingILPData ? "_neg.txt"   : "_negAll.txt"))),
-				new BufferedReader(new CondorFileReader(testsetDir + "/" + lesson + (usingILPData ? "_bk.txt"    : "_bkOne.txt"))),
-				new BufferedReader(new CondorFileReader(testsetDir + "/" + lesson + (usingILPData ? "_facts.txt" : "factsAll.txt"))),
-				new BestFirstSearch(),             // Search strategy.
-				new ScoreSingleClauseByAccuracy(), // Scorer.
-				null,                              // Could also pass in a pruner.
-				new Gleaner(),
-				stringHandler);
-	}
-
-    public LearnOneClause(String             workingDir,              String            prefix,
+	public LearnOneClause(String             workingDir,              String            prefix,
                           Reader             posExamplesReader,       Reader            negExamplesReader,
                           Reader             backgroundClausesReader, Reader            factsReader,
                           SearchStrategy     strategy,                ScoreSingleClause scorer,
@@ -655,7 +497,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       usingWorldStates                                      = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("errorToHaveModesWithoutInputVars");
 		if (vStr != null) {                       // Error if a mode of the form 'predicateName(-human,#age)' is provided since such literals are uncoupled from a clause and hence lead to search inefficiency (so only expert users should override this boolean).
-			boolean errorToHaveModesWithoutInputVars = Boolean.parseBoolean(vStr);
+			Boolean.parseBoolean(vStr);
 		}
 		vStr = stringHandler.getParameterSetting("allowPosSeedsToBeReselected");
 		if (vStr != null) {                       allowPosSeedsToBeReselected                           = Boolean.parseBoolean(vStr); }
@@ -702,7 +544,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       clausesMustNotCoverFractNegSeeds    = Double.parseDouble(vStr); }
 		vStr = stringHandler.getParameterSetting("fractionOfTimesUphillMoveCreated");
 		if (vStr != null) {                       // Occasionally, generalize a node by DROPPING one existing literal.
-			double fractionOfTimesUphillMoveCreated = Double.parseDouble(vStr);
+			Double.parseDouble(vStr);
 		}
 		vStr = stringHandler.getParameterSetting("probOfDroppingChild");
 		if (vStr != null) {                       probOfDroppingChild                 = Double.parseDouble(vStr); }
@@ -729,7 +571,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       maxConstantBindingsPerLiteral   = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("maxPredOccursPerInputVars");
 		if (vStr != null) {                       // Maximum number of times a given predicate can occur PER SETTING of the input variables (can be overwritten on a per-predicate basis).
-			int maxPredOccursPerInputVars = Integer.parseInt(vStr);
+			Integer.parseInt(vStr);
 		}
 		vStr = stringHandler.getParameterSetting("beamWidthRRR");
 		if (vStr != null) {                       beamWidthRRR                    = Integer.parseInt(vStr); }
@@ -1766,11 +1608,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		totalWeightOnNegSeeds = Example.getWeightOfExamples(seedNegExamples);
 	}
 
-	// Note: this is NOT used to prove examples.  See SingleClauseNode.proveExample() for that.
-	protected boolean prove(Literal negatedFact) throws SearchInterrupted {
-		return getProver().proveSimpleQuery(negatedFact);
-	}
-
 	private BindingList proveAndReturnBindings(List<Literal> negatedConjunctiveQuery) throws SearchInterrupted {
 		if (negatedConjunctiveQuery == null) {
 			Utils.error("Called for null query");
@@ -2052,7 +1889,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 				variablesInTargets = new ArrayList<>(1);
 			}
 
-			boolean targetExists = addToTargetModes(targetPred);
+			addToTargetModes(targetPred);
 		}
 	}
 
@@ -2542,11 +2379,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return targets;
 }
 
-	public void setTargets(List<Literal> targets) {
-		this.targets = targets;
-	}
-
-    RelevanceStrength getCurrentRelevanceStrength() {
+	RelevanceStrength getCurrentRelevanceStrength() {
         return currentRelevanceStrength;
     }
 

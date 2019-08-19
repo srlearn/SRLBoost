@@ -1,10 +1,10 @@
 package edu.wisc.cs.will.ILP;
 
-import java.io.Serializable;
-import java.util.Set;
-
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.io.Serializable;
+import java.util.Set;
 
 /*
  * @author shavlik

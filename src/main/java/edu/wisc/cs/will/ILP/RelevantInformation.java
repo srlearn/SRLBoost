@@ -2,7 +2,6 @@ package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.RelevanceStrength;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 
 /*
  * @author twalker
@@ -15,8 +14,6 @@ public interface RelevantInformation {
 
     boolean isEquivalentUptoVariableRenaming(RelevantInformation info);
     RelevantInformation getGeneralizeRelevantInformation();
-
-    boolean prove(HornClauseContext context);
 
     String toString(String prefix);
 

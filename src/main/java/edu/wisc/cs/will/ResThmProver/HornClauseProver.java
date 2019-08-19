@@ -1,34 +1,13 @@
 package edu.wisc.cs.will.ResThmProver;
 
+import edu.wisc.cs.will.FOPC.*;
+import edu.wisc.cs.will.Utils.Utils;
+import edu.wisc.cs.will.stdAIsearch.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.ConsCell;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArityFilter;
-import edu.wisc.cs.will.FOPC.ProcedurallyDefinedPredicateHandler;
-import edu.wisc.cs.will.FOPC.SLDQuery;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Theory;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
-import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.stdAIsearch.DepthFirstSearch;
-import edu.wisc.cs.will.stdAIsearch.ScoringFunction;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
-import edu.wisc.cs.will.stdAIsearch.SearchResult;
-import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
-import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
 
 /*
  * @author shavlik
@@ -61,22 +40,11 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 
     private PredicateNameAndArityFilter  spyEntries;
 
-	public HornClauseProver(HandleFOPCstrings stringHandler) {		
-		this(stringHandler, null, null);
-	}
 	public HornClauseProver(HandleFOPCstrings stringHandler, Theory rules, Collection<? extends Sentence> facts) {
         this(new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), new DepthFirstSearch(), null);
 	}
-	public HornClauseProver(HandleFOPCstrings stringHandler, Theory rules, Collection<? extends Sentence> facts, SearchStrategy searchStrategy) {
-		this(new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), searchStrategy, null);
-	}
-	public HornClauseProver(HandleFOPCstrings stringHandler, Theory rules, Collection<? extends Sentence> facts, SearchStrategy searchStrategy, ScoringFunction scorer) {
-		this(new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), searchStrategy, scorer);
-	}
-	public HornClauseProver(HandleFOPCstrings stringHandler, Theory rules, Collection<? extends Sentence> facts, ProcedurallyDefinedPredicateHandler userProcedurallyDefinedPredicateHandler) {
-		this(new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts, userProcedurallyDefinedPredicateHandler), new DepthFirstSearch(), null);
-	}
-    public HornClauseProver(HandleFOPCstrings stringHandler, HornClausebase factbase) {
+
+	public HornClauseProver(HandleFOPCstrings stringHandler, HornClausebase factbase) {
         this(factbase, new DepthFirstSearch(), null);
 	}
 	public HornClauseProver(HornClausebase factbase, boolean redoable) {
@@ -103,7 +71,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         predefinedPredicateNamesUsedByChildCollector = stringHandler.standardPredicateNames.buildinPredicates;
 
 		InitHornProofSpace     myInitializer = new InitHornProofSpace(this);
-		ProofDone              endTest       = new ProofDone(this);
+		ProofDone              endTest       = new ProofDone();
 		SearchMonitor          monitor       = new SearchMonitor(this); // new ProofMonitor(this); // Use this for more info.
 		HornClauseProverChildrenGenerator hornClauseProverChildrenGenerator = new HornClauseProverChildrenGenerator(this, context);
 
@@ -189,23 +157,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		}
 		return null;
 	}
-	
-	public BindingList query(FileParser parser, String sentencesAsString) throws SearchInterrupted {
-		char lastChar = sentencesAsString.charAt(sentencesAsString.length() - 1);
-		
-		// Add a terminating period if one isn't there.  Should be safe even if no final period is needed - though add the extra space in case the final item is an integer (alternatively, could use ';'). 
-		if (lastChar != '.' && lastChar != ';') { sentencesAsString += " ."; }
-		List<Sentence> sentences = parser.readFOPCstream(sentencesAsString);
-		if (sentences.size() == 1) { return query(sentences.get(0)); }
-		Utils.error("Queries must be conjunctive.  You provided: " + sentencesAsString); return null;
-	}
-	public BindingList query(Sentence sentence) throws SearchInterrupted {
-		List<Literal> negLiterals = convertSentenceToConjunctiveQuery(sentence, getStringHandler());
-		
-		if (negLiterals.size() == 1) { return proveSimpleQueryAndReturnBindings((negLiterals.get(0))); }
-		return proveConjunctiveQueryAndReturnBindings(negLiterals);
-	}
-	
+
 	public List<Term> getAllUniqueGroundings(Literal query) throws SearchInterrupted {
 		Function   queryAsFunction = query.convertToFunction(getStringHandler());
 		Variable   var             = getStringHandler().getNewUnamedVariable();
@@ -221,33 +173,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		if (debugLevel > 1) { Utils.println("% Have found " + Utils.comma(allResults == null ? 0 : allResults.length()) + " unique groundings of '" + query + "'.\n"); }
 		if (allResults == null) { return null; }
 		return allResults.convertConsCellToList();
-	}
-		
-	private List<Literal> convertSentenceToConjunctiveQuery(Sentence sentence, HandleFOPCstrings stringHandler) {
-		// Need to negate the query since we're doing proofs by negation.
-		List<Clause> clauses = sentence.convertForProofByNegation();
-
-		if (clauses == null)     { Utils.error("Cannot convert '" + sentence + "' to a negated conjuntive query for use in resolution theorem proving."); }
-		assert clauses != null;
-		if (clauses.size() != 1) { Utils.error("Should only get ONE clause from '" + sentence + "' but got: " + clauses); }
-		return convertSentenceToListOfNegativeLiterals(sentence);
-	}
-
-	private List<Literal> convertSentenceToListOfNegativeLiterals(Sentence sentence) {
-		// Need to negate the query since we're doing proofs by negation.
-		List<Clause> clauses = sentence.convertForProofByNegation();
-
-		if (clauses == null)     { Utils.error("Cannot convert '" + sentence + "' to a negated conjuntive query for use in resolution theorem proving."); }
-		assert clauses != null;
-		if (clauses.size() != 1) { Utils.error("Should only get ONE clause from '" + sentence + "' but got: " + clauses); }
-		Clause clause = clauses.get(0);
-		List<Literal> posLiterals = clause.posLiterals;
-		List<Literal> negLiterals = clause.negLiterals;
-	
-		if (posLiterals != null && posLiterals.size() > 0) {
-			Utils.println(" Can only handle conjunctive queries where all the literals are unnegated. Please try again.");
-		}
-		return negLiterals;
 	}
 
 	public HornClausebase getClausebase() {

@@ -3,7 +3,6 @@ package edu.wisc.cs.will.ILP;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.RelevanceStrength;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 
 import java.util.Objects;
 
@@ -19,12 +18,6 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
     private PredicateNameAndArity predicateNameAndArity;
 
     private RelevanceStrength relevanceStrength;
-
-    public RelevantFeatureInformation(Example example, PredicateNameAndArity predicateNameAndArity, RelevanceStrength relevanceStrength) {
-        this.example = example;
-        this.predicateNameAndArity = predicateNameAndArity;
-        this.relevanceStrength = relevanceStrength;
-    }
 
     @Override
     public String toString() {
@@ -66,19 +59,8 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
         return relevanceStrength;
     }
 
-    @Override
-    public boolean prove(HornClauseContext context) {
-
-        return relevanceFromPositiveExample;
-
-    }
-
     public PredicateNameAndArity getPredicateNameAndArity() {
         return predicateNameAndArity;
-    }
-
-    public void setPredicateNameAndArity(PredicateNameAndArity predicateNameAndArity) {
-        this.predicateNameAndArity = predicateNameAndArity;
     }
 
     @Override

@@ -1,8 +1,8 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.Set;
-
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
+
+import java.util.Set;
 
 /*
  *

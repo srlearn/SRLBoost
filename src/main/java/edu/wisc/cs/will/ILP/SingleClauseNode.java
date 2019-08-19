@@ -1,15 +1,5 @@
 package edu.wisc.cs.will.ILP;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
@@ -17,17 +7,7 @@ import edu.wisc.cs.will.Boosting.Utils.NumberGroundingsCalculator;
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.Constant;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateSpec;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Type;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.ILP.Regression.BranchStats;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
@@ -35,6 +15,9 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
+
+import java.io.Serializable;
+import java.util.*;
 
 /*
  * @author shavlik
@@ -48,7 +31,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	private double  posCoverage     = -1.0;     //   Also, each child node only stores the extensions to the clause body.
 	double  negCoverage     = -1.0; // Everything is done with WEIGHTED examples (including the seeds).
 	int     numberOfNewVars = 0;    // There is a max number of new (i.e., output) variables in a clause.  This is the total all the way to the root.
-	PredicateSpec enabler; // This is the mode that was used to create this node.  Used (at least) when dropping a literal in a clause (so can tell if the later literals are still 'legally' present).  Not clear it is worth the space just for that, but might be useful somewhere down the road.
 	List<Type>                 typesPresent = null; // Keep track of the different types of terms added by this node.  If there is a need to reduce the size of nodes, could compute this when needed from the map below.
 	List<AnnotatedLiteral>   dontReconsider = null; // If something is discarded at some point, don't reconsider it further down the search tree.  DON'T COPY (in buildNewAncestor) THIS WHEN REMOVING AN INTERMEDIATE LITERAL SINCE THAT INTERMEDIATE LITERAL MIGHT BE THE REASON FOR AN ENTRY (SO NEED TO RECREATE THE ONES THAT SHOULD HAVE BEEN KEPT).
 	int                predicateOccurrences = 0;    // Count of how often this literal's predicate has occurred (this is a CUMULATIVE count from this node, assuming this predicate was added here, to the root).
@@ -69,16 +51,15 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		super(task);
 	}
 	public SingleClauseNode(SearchNode parentNode, Literal literalAdded) {
-		this(parentNode, literalAdded, null, null, null, null, null);
+		this(parentNode, literalAdded, null, null, null, null);
 	}
 	public SingleClauseNode(SearchNode parentNode, Literal literalAdded, PredicateSpec enabler) {
-		this(parentNode, literalAdded, null, enabler, null, null, null);
+		this(parentNode, literalAdded, null, null, null, null);
 	}
-	public SingleClauseNode(SearchNode parentNode, Literal literalAdded, Map<Term,Integer> argDepths, PredicateSpec enabler, List<Type> typesPresent, Map<Type,List<Term>> typesMap, Map<Term,Type> typesOfNewTerms) {
+	public SingleClauseNode(SearchNode parentNode, Literal literalAdded, Map<Term, Integer> argDepths, List<Type> typesPresent, Map<Type, List<Term>> typesMap, Map<Term, Type> typesOfNewTerms) {
 		super(parentNode);
 		depthOfArgs          = argDepths;
 		this.literalAdded    = literalAdded;
-		this.enabler         = enabler;
 		this.typesPresent    = typesPresent;
 		this.typesMap        = typesMap;
 		this.typesOfNewTerms = typesOfNewTerms;

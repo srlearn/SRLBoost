@@ -1,46 +1,18 @@
 package edu.wisc.cs.will.ResThmProver;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import edu.wisc.cs.will.FOPC.Binding;
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.DefiniteClause;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.NumericConstant;
-import edu.wisc.cs.will.FOPC.ObjectAsTerm;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.PrettyPrinter;
-import edu.wisc.cs.will.FOPC.PrettyPrinterOptions;
-import edu.wisc.cs.will.FOPC.ProcedurallyDefinedPredicateHandler;
-import edu.wisc.cs.will.FOPC.Sentence;
-import edu.wisc.cs.will.FOPC.SentenceAsTerm;
-import edu.wisc.cs.will.FOPC.StringConstant;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.FOPC.*;
+import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.ChildrenNodeGenerator;
 import edu.wisc.cs.will.stdAIsearch.OpenList;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.*;
 
 /*
  * @author shavlik
  *
  */
 public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<HornSearchNode> {
-
-    public static final int debugLevel = 0;
 
     protected HornClauseContext context;
 
@@ -125,8 +97,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      * this number occasionally if this become a problem.
      */
     static long proofCounter = 0;
-
-    static long cutMarkerCounter = 0;
 
     private PrettyPrinterOptions prettyPrintOptions;
 

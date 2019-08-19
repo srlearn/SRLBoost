@@ -1,15 +1,11 @@
 package edu.wisc.cs.will.ResThmProver;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.FOPC.Term;
+
+import java.util.*;
 
 /* This is an index of definite clauses (either Clauses or Literal or a mix of both) with ground heads.
  *

@@ -1,35 +1,12 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-
-import edu.wisc.cs.will.FOPC.BindingList;
-import edu.wisc.cs.will.FOPC.Clause;
-import edu.wisc.cs.will.FOPC.ConnectedSentence;
-import edu.wisc.cs.will.FOPC.Constant;
-import edu.wisc.cs.will.FOPC.Function;
-import edu.wisc.cs.will.FOPC.FunctionName;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
-import edu.wisc.cs.will.FOPC.PredicateSpec;
-import edu.wisc.cs.will.FOPC.StringConstant;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Type;
-import edu.wisc.cs.will.FOPC.TypeSpec;
-import edu.wisc.cs.will.FOPC.Unifier;
-import edu.wisc.cs.will.FOPC.Variable;
+import edu.wisc.cs.will.FOPC.*;
+import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.ChildrenNodeGenerator;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
-import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.*;
 
 /*
  * @author shavlik
@@ -491,7 +468,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 							Map<Term,Integer> argDepths = new HashMap<>(args.size());
 							if (depthsOfTerms == null) { depthsOfTerms = new HashMap<>(4); }
 							setTermDepths(args, depthsOfTerms, newVariables, maxDepthOfInputVars, argDepths);							
-							SingleClauseNode newNode      = new SingleClauseNode(parent, pred, argDepths, specs, newTypesInChild, newTypesInChildMap, typesOfNewTerms);  // Create the new search node.
+							SingleClauseNode newNode      = new SingleClauseNode(parent, pred, argDepths, newTypesInChild, newTypesInChildMap, typesOfNewTerms);  // Create the new search node.
 							if (newNode.pruneMe) { continue; } // TODO - should we count these?  If this node marks itself (e.g., it might be an unnecessary constrainer), then do not add to OPEN.
 							SingleClauseNode newNodePrime = newNode; // This might get changed below.
 							if (thisTask.pruner != null && thisTask.pruner.prune(newNode))  {

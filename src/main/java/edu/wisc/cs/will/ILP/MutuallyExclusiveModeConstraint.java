@@ -1,12 +1,12 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 import edu.wisc.cs.will.Utils.Utils;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /*
  * @author twalker

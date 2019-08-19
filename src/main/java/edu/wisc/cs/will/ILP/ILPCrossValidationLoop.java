@@ -1,29 +1,20 @@
 package edu.wisc.cs.will.ILP;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.StreamCorruptedException;
+import edu.wisc.cs.will.DataSetUtils.Example;
+import edu.wisc.cs.will.FOPC.Theory;
+import edu.wisc.cs.will.Utils.Stopwatch;
+import edu.wisc.cs.will.Utils.Utils;
+import edu.wisc.cs.will.Utils.condor.CondorFile;
+import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
+import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
+import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
+
+import java.io.*;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import edu.wisc.cs.will.DataSetUtils.Example;
-import edu.wisc.cs.will.FOPC.Theory;
-import edu.wisc.cs.will.Utils.Stopwatch;
-import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 
 /* Cross Validation.
  *
@@ -128,22 +119,6 @@ public class ILPCrossValidationLoop {
      */
     public ILPCrossValidationLoop(ILPouterLoop outerLoop, int numberOfFolds, CrossValidationExampleSets ilpCrossValidationExampleSets) {
         this(outerLoop, numberOfFolds, ilpCrossValidationExampleSets, 0, numberOfFolds - 1);
-    }
-
-    /* Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds
-     * and sets this loop to run fold <code>firstFoldToRun</code> through <code>lastFoldToRun</code>.
-     *
-     * This constructor will create a full cross-validation run.  When executeCrossValidation() is called, only
-     * folds from firstFoldToRun to lastFoldToRun will be run.  Folds are indexed from 0.
-     *
-     * The allPosExample and allNegExample sets will be obtained from the outerLoop, permuted randomly,
-     * and split into the appropriate number of folds.
-     *
-     * @param outerLoop OuterLoop to use during the search.  This should be the same for all folds.
-     * @param numberOfFolds Number of folds to run.
-     */
-    public ILPCrossValidationLoop(ILPouterLoop outerLoop, int numberOfFolds, int firstFoldToRun, int lastFoldToRun) {
-        this(outerLoop, numberOfFolds, null, firstFoldToRun, lastFoldToRun);
     }
 
     /* Creates an ILPCrossValidationLoop with <code>numberOfFolds</code> folds

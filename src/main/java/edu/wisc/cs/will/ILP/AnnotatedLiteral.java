@@ -1,16 +1,11 @@
 package edu.wisc.cs.will.ILP;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
+import edu.wisc.cs.will.FOPC.*;
 
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
-import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.Term;
-import edu.wisc.cs.will.FOPC.Type;
-import edu.wisc.cs.will.FOPC.Variable;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /*
  * @author shavlik
