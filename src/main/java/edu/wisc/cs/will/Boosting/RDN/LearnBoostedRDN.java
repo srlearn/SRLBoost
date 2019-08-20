@@ -768,7 +768,6 @@ public class LearnBoostedRDN {
 			stringToPrint +=   "% testNegPosRatio                     = " + Utils.truncate(cmdArgs.getTestNegsToPosRatioVal(),  3)                       + "\n";
 			stringToPrint +=   "% # of pos examples                   = " + Utils.comma(setup.getOuterLooper().getNumberOfPosExamples())                 + "\n";
 			stringToPrint +=   "% # of neg examples                   = " + Utils.comma(setup.getOuterLooper().getNumberOfNegExamples())                 + "\n";
-			// Utils.waitHere("dumpTheoryToFiles: \n" + stringToPrint);
 			Utils.writeStringToFile(stringToPrint + "\n", file); 
 		}
 		if (i >= 0) {
