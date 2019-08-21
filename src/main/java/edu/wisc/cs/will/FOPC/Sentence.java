@@ -29,10 +29,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	 * The Sentence class represents a well-formed formula (wff) in FOPC.
 	 */
 	protected Sentence() {}
-	protected Sentence(HandleFOPCstrings stringHandler) {
-		this.stringHandler = stringHandler;
-	}
-	
+
 	public HandleFOPCstrings getStringHandler() {
 		return stringHandler;
 	}
@@ -52,11 +49,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
     
 	public abstract boolean containsTermAsSentence();
 
-    public final Sentence copy2() {
-        return copy2(false, new BindingList());
-    }
-
-    public final Sentence copy2(boolean recursiveCopy) {
+	public final Sentence copy2(boolean recursiveCopy) {
         return copy2(recursiveCopy, new BindingList());
     }
 
@@ -226,16 +219,6 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
             return null;
         }
     }
-
-	public List<Clause> convertForProofByNegation() {
-		Sentence   negated    = negate().moveNegationInwards();
-		if (debugLevel > 2) { Utils.println("    convertForProofByNegation: query='" + this + "'  negated='" + negated + "'"); }
-		if (negated instanceof Literal)             { return                              negated.convertToListOfClauses(); }
-		if (negated instanceof ConnectedSentence)   { return                              negated.convertToListOfClauses(); }
-		if (negated instanceof ExistentialSentence) { return ((ExistentialSentence) negated).body.convertToListOfClauses(); }
-		Utils.error("Should not reach here?");
-		return null;
-	}
 
 	public abstract Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables);
 	public abstract Collection<Variable> collectAllVariables();

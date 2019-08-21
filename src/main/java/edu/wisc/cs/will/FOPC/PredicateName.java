@@ -62,7 +62,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
     private   MapOfSets<Integer,PredicateNameAndArity> operationalExpansion = null;
 	
 	public    boolean printUsingInFixNotation = false;
-	public    Literal preThresholdedLiteral   = null; // If this predicate names was automatically created, store its 'parent' literal here.
 	transient private HandleFOPCstrings stringHandler;  // The stringHandler needed to de-serialize the Predicate.
 
 	protected PredicateName(String name, HandleFOPCstrings stringHandler) { // This is protected because getPredicateName(String name) should be used instead.

@@ -2429,9 +2429,11 @@ public class FileParser {
 
 		// Imports
 		vStr = stringHandler.getParameterSetting("importPrefix");
-		if (vStr != null) {                       stringHandler.import_file_prefix  = vStr; }
+		if (vStr != null) {
+		}
 		vStr = stringHandler.getParameterSetting("importPostfix");
-		if (vStr != null) {                       stringHandler.import_file_postfix = vStr; }
+		if (vStr != null) {
+        }
 		vStr = stringHandler.getParameterSetting("importVar1"); // Will replace instances of IMPORT_VAR1 in files names for imported files.
 		if (vStr != null) {                       stringHandler.import_assignmentToTempVar1 = Matcher.quoteReplacement(vStr); }
 		vStr = stringHandler.getParameterSetting("importVar2");

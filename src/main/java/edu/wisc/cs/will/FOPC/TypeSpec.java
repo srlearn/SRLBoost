@@ -87,19 +87,6 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 		this.stringHandler = stringHandler;
 		this.mode          = unspecifiedMode;
 		this.isaType       = isaType;
-	}	
-	public TypeSpec(int modeAsInt, Type isaType, HandleFOPCstrings stringHandler) {
-		this.stringHandler = stringHandler;
-		this.mode          = modeAsInt;
-		this.isaType       = isaType;
-	}
-	
-
-	public void setMode(int mode) {
-		this.mode = mode;
-	}	
-	public void setType(String typeAsString) {
-		this.isaType = new Type(typeAsString, stringHandler);
 	}
 
 	/*

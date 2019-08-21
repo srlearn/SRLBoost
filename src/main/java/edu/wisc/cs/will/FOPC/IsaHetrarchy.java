@@ -139,7 +139,7 @@ public class IsaHetrarchy {
 		String stdName     = (stringHandler.getStringsAreCaseSensitive() ? name : name.toLowerCase()); // Hash case-independently if that is how strings are handled..
 		Type   hashedValue = isaTypeHash.get(stdName);
 		if (hashedValue != null) { return hashedValue; }
-		Type result = new Type(name, stringHandler); // Store using the first version seen.
+		Type result = new Type(name); // Store using the first version seen.
 		isaTypeHash.put(stdName, result);
 		return result;		
 	}
@@ -178,16 +178,6 @@ public class IsaHetrarchy {
 		Utils.error("Cannot remove '" + child + "' from the reverse ISA of '" + parent + "'.");
 	}
 
-	// See if child ISA parent.
-	public boolean isa(String child, String parent) {
-		return isa(getIsaType(child), getIsaType(parent));
-	}
-	public boolean isa(Type child, String parent) {
-		return isa(child, getIsaType(parent));
-	}
-	public boolean isa(String child, Type parent) {
-		return isa(getIsaType(child), parent);
-	}
 	public boolean isa(Type child, Type parent) {
 		return isa(child, parent, 0);
 	}

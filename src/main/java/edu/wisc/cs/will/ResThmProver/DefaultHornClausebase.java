@@ -66,10 +66,6 @@ public class DefaultHornClausebase implements HornClausebase {
 
     private int duplicateRuleCount = 0;
 
-    DefaultHornClausebase(HandleFOPCstrings stringHandler, Collection<? extends Sentence> rules, Collection<? extends Sentence> facts) {
-        initializeClausebase(stringHandler, rules, facts, null);
-    }
-
     public DefaultHornClausebase(HandleFOPCstrings stringHandler) {
         initializeClausebase(stringHandler, null, null, null);
     }

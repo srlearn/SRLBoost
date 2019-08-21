@@ -35,8 +35,7 @@ public abstract class TreeStructuredTheoryNode extends AllOfFOPC {
 	public abstract String                   printRelationalTree(String newLineStarter, int precedenceOfCaller, int depth, BindingList bindingList);
 	public abstract List<Clause>             collectPathsToRoots(TreeStructuredTheory treeTheory);
 	public abstract TreeStructuredTheoryNode applyTheta(Map<Variable,Term> bindings);	
-	public abstract Collection<Variable>     collectFreeVariables(Collection<Variable> boundVariables); 
-	public abstract Collection<Variable>     collectAllVariables();
+	public abstract Collection<Variable>     collectFreeVariables(Collection<Variable> boundVariables);
 
 	protected static int counter=0;
 	public abstract String writeDotFormat();
