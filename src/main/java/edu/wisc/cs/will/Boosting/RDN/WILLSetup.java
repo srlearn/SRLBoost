@@ -226,6 +226,7 @@ public final class WILLSetup {
 		if (cmdArgs.isLearnOCC() && cmdArgs.getDropPos() > 0) {
 			double dropPos = cmdArgs.getDropPos();
 			// Move some pos to neg
+			// TODO(@hayesall): document the `dropPos` argument.
 			for (String pred : backupPosExamples.keySet()) {
 				List<Example> posEg = backupPosExamples.get(pred);
 				for (int i = 0; i < posEg.size(); i++) {
@@ -1314,7 +1315,6 @@ public final class WILLSetup {
 			context.getStringHandler().variantRuleHandling = VariantClauseAction.WARN_AND_REMOVE_VARIANTS;
 
 			stringHandler.keepQuoteMarks                       = true;
-			stringHandler.useFastHashCodeForLiterals           = false;
 			stringHandler.dontComplainIfMoreThanOneTargetModes = true;
 			Utils.println("\n% Calling ILPouterLoop from createRegressionOuterLooper.");
 			setOuterLooper(new ILPouterLoop(directory, prefix, newArgList, strategy, scorer, new Gleaner(), context, false, isaRegressionTaskRightAway));
