@@ -1389,7 +1389,6 @@ public final class WILLSetup {
 			getOuterLooper().setLearnMLNTheory(true);
 		}
 		if (cmdArgs.isUseProbabilityWeights()) {
-			getInnerLooper().useProbabilityWeights = true;
 		}
 
 		// Since WILL focuses on seeds to filter out candidate clauses, we need a good number here because some seeds will go on the "false" branch.  Want to have enough so that on average can find the maximally acceptable skew for the true/false branches.  Or maybe OK to miss these to save time by having a smaller set of seeds?
