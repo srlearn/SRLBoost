@@ -294,8 +294,7 @@ public class ThresholdManager {
 	   		PredicateName newPname    = stringHandler.getPredicateName(literalToThreshold.predicateName + "_WILL_temporaryInBetween");
 	   		Literal       extendedLit = stringHandler.getLiteral(newPname, extendedArguments);
             int arity = extendedArguments.size();
-	   		newPname.preThresholdedLiteral = literalToThreshold;
-	   		if (debugLevel > -10) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%  Mode created (will be in-lined later):\n%     " + extendedLit); }
+            if (debugLevel > -10) { Utils.println(MessageType.ILP_THESHOLDING_VERBOSE, "%  Mode created (will be in-lined later):\n%     " + extendedLit); }
 	   		if (printStream != null) printStream.println("mode: " + extendedLit + ".");
 			stringHandler.recordMode(extendedLit);
 			

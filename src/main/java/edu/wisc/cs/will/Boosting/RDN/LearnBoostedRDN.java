@@ -73,26 +73,30 @@ public class LearnBoostedRDN {
 	public void learnNextModel(SRLInference sampler, ConditionalModelPerPredicate rdn, int numMoreTrees) {
 
 		Utils.println("\n% Learn model for: " + targetPredicate);
-		long start = (debugLevel > 0 ? System.currentTimeMillis() : 0);
+		long start = System.currentTimeMillis();
+
 		// Call facts and examples the first time.
 		setup.prepareFactsAndExamples(targetPredicate);
-		if (debugLevel > 1) { Utils.println("%  Have prepared facts.");}
+
+		Utils.println("% Have prepared facts.");
+
 		if (cmdArgs.isNoTargetModesInitially() && rdn.getNumTrees() == 0) {
 			setup.removeAllTargetsBodyModes();
 		}
-		learnRDN(targetPredicate, rdn,sampler, numMoreTrees);
-		if (debugLevel > 0) { 
-			long end = System.currentTimeMillis();
-			learningTimeTillNow += (end-start);
-			if (rdn.getNumTrees() == maxTrees) {
-				Utils.println("% Time taken to learn model for '" + targetPredicate + "': " + Utils.convertMillisecondsToTimeSpan(end - start, 3) + ".");
-			}
+
+		learnRDN(targetPredicate, rdn, sampler, numMoreTrees);
+
+		long end = System.currentTimeMillis();
+		learningTimeTillNow += (end - start);
+		if (rdn.getNumTrees() == maxTrees) {
+			Utils.println("% Time taken to learn model for '" + targetPredicate + "': " + Utils.convertMillisecondsToTimeSpan(end - start, 3) + ".");
 		}
 	}
 
-
-	private void learnRDN(String pred, ConditionalModelPerPredicate rdn, SRLInference sampler, int numMoreTrees) { // Thought we needed the 'caller' but we don't - leave it here, though, in case we do end up needing it.
+	private void learnRDN(String pred, ConditionalModelPerPredicate rdn, SRLInference sampler, int numMoreTrees) {
+		// Thought we needed the 'caller' but we don't - leave it here, though, in case we do end up needing it.
 		String saveModelName = BoostingUtils.getModelFile(cmdArgs, pred, true);
+
 		if(rdn.getNumTrees() == 0) {
 			rdn.setTargetPredicate(pred);
 			rdn.setTreePrefix(pred + (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()));
@@ -389,16 +393,21 @@ public class LearnBoostedRDN {
 		String yapTreeLearner = cmdArgs.getTreelearnerVal();
 		String command        = yapPath + " -l  " + yapTreeLearner + " -- " + infile + " " +  getYapSettingsFile() + " " + outfile ;
 		// Call yap here
-		Process p;
+		//Process p;
+
+		System.out.println("Running yap command: " + command);
+
 		try {
-			System.out.println("Running yap command:" + command);
-			p = Runtime.getRuntime().exec(command);
-			InputStream is = p.getInputStream();
+			Runtime rt = Runtime.getRuntime();
+			Process exec = rt.exec(new String[] {
+				command
+			});
+			InputStream is = exec.getInputStream();
 			int c;
 			while((c=is.read()) != -1) {
 				System.out.print((char)c);
 			}
-			p.waitFor();
+			exec.waitFor();
 		} catch (IOException | InterruptedException e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Problem in runYapTreeLearner.");

@@ -17,9 +17,6 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 	transient protected HandleFOPCstrings stringHandler; // Add another field to everything so it can access this, and hence access things like lowercaseMeansVariable.
 
 	protected Term() {} // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.
-	protected Term(HandleFOPCstrings stringHandler) {
-		this.stringHandler = stringHandler;
-	}
 
 	public TypeSpec getTypeSpec() {
 		return typeSpec;
@@ -103,13 +100,8 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
         return visitor.visitOtherTerm(this, data);
     }
 
-	public Collection<Variable> collectAllVariables() {
-		return collectFreeVariables(null);
-	}
 
-
-
-    public Clause getNegatedQueryClause() throws IllegalArgumentException {
+	public Clause getNegatedQueryClause() throws IllegalArgumentException {
         // We are going to just wrap the term in a literal for now.  The prover
         // probably won't know how to handle this yet, but that should be an easy enough
         // change to make.
@@ -117,11 +109,7 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
         return stringHandler.getClause(null, Collections.singletonList(stringHandler.getTermAsLiteral(this)));
     }
 
-	public boolean                       isEquivalentUptoVariableRenaming(Term that) {
-        return this.isEquivalentUptoVariableRenaming(that, new BindingList()) != null;
-    }
-
-    public abstract BindingList          isEquivalentUptoVariableRenaming(Term that, BindingList bindings);
+	public abstract BindingList          isEquivalentUptoVariableRenaming(Term that, BindingList bindings);
 
 	
    /* Methods for reading a Object cached to disk.

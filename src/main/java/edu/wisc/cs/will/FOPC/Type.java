@@ -13,11 +13,9 @@ import java.util.Map;
  */
 public class Type extends AllOfFOPC implements Serializable {
 	public String typeName;
-    public HandleFOPCstrings stringHandler;
 
-    protected Type(String typeName, HandleFOPCstrings stringHandler) {
+    protected Type(String typeName) {
         this.typeName = typeName;
-        this.stringHandler = stringHandler;
     }
 
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
@@ -26,16 +24,8 @@ public class Type extends AllOfFOPC implements Serializable {
 	public String toString(int precedenceOfCaller, BindingList bindingList) {
 		return typeName;
 	}
-    
-    public boolean isa(Type parentType) {
-        return stringHandler.isaHandler.isa(this, parentType);
-    }
 
-    public boolean isa(String parentType) {
-        return stringHandler.isaHandler.isa(this, parentType);
-    }
-
-   /* Substitutes the Type with a SerializableType while Serializing.
+    /* Substitutes the Type with a SerializableType while Serializing.
     */
    private Object writeReplace() throws ObjectStreamException {
        return new SerializableType(typeName);

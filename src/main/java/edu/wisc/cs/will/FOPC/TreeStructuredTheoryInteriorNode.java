@@ -189,13 +189,8 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 													(treeForTrue  == null ? null : treeForTrue.applyTheta(bindings)), 
 													(treeForFalse == null ? null : treeForFalse.applyTheta(bindings)));
 	}
-	
-	@Override
-	public Collection<Variable> collectAllVariables() {
-		return collectFreeVariables(null);
-	}
-	
-	@Override
+
+    @Override
 	public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
 		Collection<Variable> freeA = (nodeTest     == null ? null : nodeTest.collectFreeVariables(    boundVariables));
 		Collection<Variable> freeB = (treeForTrue  == null ? null : treeForTrue.collectFreeVariables( boundVariables));

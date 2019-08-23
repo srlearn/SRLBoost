@@ -30,8 +30,13 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public    final static int exceptionCountMax  = 100; // the warning an excessive number of times.
 
 	private         static int countOfStringHandlers = 0;
-	
-	int     prologCounter = 0, prologCounterB = 0, prologCounterC = 0, prologCounterD = 0, prologCounterE = 0; // These are special variables accessible by setCounter/1 and incrCounter/2 and incrCounter/3 from Prolog.  Meant for advanced use only.
+
+	// These are special variables accessible by setCounter/1 and incrCounter/2 and incrCounter/3 from Prolog.  Meant for advanced use only.
+	int prologCounter = 0;
+	int prologCounterB = 0;
+	int prologCounterC = 0;
+	int prologCounterD = 0;
+	int prologCounterE = 0;
 
 	public  boolean dontPrintUnlessImportant = false;
 
@@ -49,8 +54,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public String  precompute_assignmentToTempVar2 = "UNASSIGNED_precompute_assignmentToTempVar2";
 	public String  precompute_assignmentToTempVar3 = "UNASSIGNED_precompute_assignmentToTempVar3";
 
-	public String  import_file_prefix  = ""; // Allow overriding of these.
-	public String  import_file_postfix = ".txt";
 	public String  import_assignmentToTempVar1 = "UNASSIGNED_import_assignmentToTempVar1";
 	public String  import_assignmentToTempVar2 = "UNASSIGNED_import_assignmentToTempVar2";
 	public String  import_assignmentToTempVar3 = "UNASSIGNED_import_assignmentToTempVar3";
@@ -124,7 +127,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// Be very careful if you want to change these!
 	private boolean useStrictEqualsForLiterals  = false; // If 'true,' only say literals are equal if they are '=='.
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
-	public  boolean useFastHashCodeForLiterals  = true;
 	boolean useFastHashCodeForClauses   = true;
 
     private Map<String,Integer> nameCounter    = new HashMap<>(4);  // Unique name counter for anonymous names...
@@ -160,14 +162,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public HandleFOPCstrings() {
 		this(false);
 	}
-	public HandleFOPCstrings(VarIndicator variableIndicator) {
-		this();
-		setVariableIndicator(variableIndicator);
-	}
-	public HandleFOPCstrings(VarIndicator variableIndicator, boolean okToBeSecondStringHandler) {
-		this(okToBeSecondStringHandler);
-		setVariableIndicator(variableIndicator);
-	}
+
 	public HandleFOPCstrings(boolean okToBeSecondStringHandler) {
 		if (!okToBeSecondStringHandler) { Utils.println(STRING_HANDLER_CREATION, "\n% Creating string handler #" + Utils.comma(++countOfStringHandlers) + ".\n"); }
 		if (countOfStringHandlers > 1)  { Utils.warning(STRING_HANDLER_CREATION, "Do you really want to make string handler #" + Utils.comma(countOfStringHandlers) + "?"); }
@@ -446,13 +441,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public ConnectedSentence getConnectedSentence(Sentence A, ConnectiveName connective, Sentence B) {
 		return new ConnectedSentence(this, A, connective, B);
 	}
-    public Sentence getConnectedSentence(List<? extends Sentence> sentences, ConnectiveName connective) {
-        Sentence sentence = sentences.get(0);
-        for (int i = 1; i < sentences.size(); i++) {
-            sentence = getConnectedSentence(sentence, connective, sentences.get(i));
-        }
-        return sentence;
-    }
 
 	public ConsCell getConsCell() {
 		return new ConsCell(this);
@@ -501,22 +489,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return new ExistentialSentence(this, variables, body);
 	}
 
-    public Function getFunction(String functionName, List<Term> arguments, TypeSpec typeSpec) {
-		return new Function(this, getFunctionName(functionName), arguments, typeSpec);
-	}
-
 	public Function getFunction(FunctionName functionName, List<Term> arguments, TypeSpec typeSpec) {
 		return new Function(this, functionName, arguments, typeSpec);
 	}
 
-	public Function getFunction(FunctionName functionName, Term argument, TypeSpec typeSpec) {
-		List<Term> arguments = new ArrayList<>(1);
-		arguments.add(argument);
-		return new Function(this, functionName, arguments, typeSpec);
-	}
-	public Function getFunction(FunctionName functionName, TypeSpec typeSpec) {
-		return new Function(this, functionName, typeSpec);
-	}
 	public Function getFunction(FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
         if ( functionName.name.equalsIgnoreCase("consCell")) {
             return new ConsCell(this, functionName, arguments, argumentNames, typeSpec);
@@ -548,23 +524,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
         return newFunction;
     }
 
-    public Function getFunction(FunctionName functionName, Term ... arguments) {
-        return getFunction(functionName, Arrays.asList(arguments), null);
-    }
-    public Function getFunction(String functionName, Term ... arguments) {
-        return getFunction(functionName, Arrays.asList(arguments), null);
-    }
-
-    public Function getFunction(String functionName, List<Term> arguments) {
-        return getFunction( getFunctionName(functionName), arguments, null);
-   }
 	public ListAsTerm getListAsTerm(List<Term> objects) {
 		return new ListAsTerm(this, objects);
 	}
 
-	public Literal getLiteral() {
-		return new Literal(this);
-	}
 	public Literal getLiteral(PredicateName pred) {
 		return new Literal(this, pred);
 	}
@@ -574,9 +537,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public Literal getLiteral(PredicateName pred, List<Term> arguments, List<String> argumentNames) {
 		return new Literal(this, pred, arguments, argumentNames);
 	}
-	public Literal getLiteral(String pred, List<Term> arguments, List<String> argumentNames) {
-		return new Literal(this, getPredicateName(pred), arguments, argumentNames);
-	}
+
 	public Literal getLiteral(PredicateName pred, Term argument) {
 		return new Literal(this, pred, argument);
 	}
@@ -588,16 +549,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 		return getLiteral(existingLiteral.predicateName, newArguments, existingLiteral.getArgumentNames());
     }
-    public Literal getLiteral(PredicateName pred, Term... arguments) {
-        if (arguments == null) {
-            return getLiteral(pred);
-        }
-        else {
-            List<Term> terms = Arrays.asList(arguments);
-            return getLiteral(pred, terms);
-        }
-    }
-    public Literal getLiteral(String predicateName, Term... arguments) {
+
+	public Literal getLiteral(String predicateName, Term... arguments) {
         PredicateName pn = getPredicateName(predicateName);
         if (arguments == null) {
             return getLiteral(pn);
@@ -640,9 +593,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return new UniversalSentence(this, variables, body);
 	}
 
-	Literal wrapInNot(Function f) {
-		return wrapInNot(f.convertToLiteral(this));
-	}
 	public Literal wrapInNot(Literal innerLit) {
 		PredicateName notPname = standardPredicateNames.negationByFailure;
 
@@ -1303,7 +1253,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	}
 	public StringConstant getStringConstant(TypeSpec spec, String name) {
 		// If false, will not clean and will always wrap in quote marks EVEN IF NO QUOTES ORIGINALLY.
-		boolean defaultValue_cleanStringConstants = true;
 		return getStringConstant(spec, name, true);
 	}
 	public StringConstant getStringConstant(TypeSpec spec, String name, boolean cleanString) {
@@ -1780,9 +1729,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		if (hasBeenSet != null) { Double.parseDouble(hasBeenSet); }
 		return strength.defaultCost();
 	}
-	public Set<RelevantLiteral> getCollectionOfRelevantLiterals() {
-		return relevantLiterals;
-	}
 
 	private Map<String,SetParamInfo> hashOfSetParameters = new HashMap<>(4);
 	// If doing joint inference, one target would be evidence for other predicate
@@ -1790,7 +1736,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public boolean dontComplainIfMoreThanOneTargetModes = false;
 
 	public void recordSetParameter(String paramName, String paramValue, String fileName, int lineno) {
-		hashOfSetParameters.put(paramName, new SetParamInfo(paramName, paramValue, fileName, lineno));
+		hashOfSetParameters.put(paramName, new SetParamInfo(paramValue));
 	}
 	public String getParameterSetting(String paramName) {
 		SetParamInfo lookup = hashOfSetParameters.get(paramName);
@@ -1849,18 +1795,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		useStrictEqualsForFunctions = value;
 	}
 
-	List<Variable> getThisManyVars(int count) {
-		if (count < 1) { return null; }
-		List<Variable> results = new ArrayList<>(count);
-		resetVarCounters();
-		for (int i = 0; i < count; i++) {
-			results.add(getNewGeneratedVariable(true));
-		}
-		resetVarCounters();
-		return results;
-	}
-
-    public  ClauseOptimiser getClauseOptimizer() {
+	public  ClauseOptimiser getClauseOptimizer() {
         if ( clauseOptimizer == null ) {
             clauseOptimizer = new ClauseOptimiser();
         }
@@ -1912,11 +1847,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
         return knownModes;
     }
 
-    public void setKnownModes(List<PredicateNameAndArity> knownModes) {
-        this.knownModes = knownModes;
-    }
-
-    public void addKnownMode(PredicateNameAndArity predicateName) {
+	public void addKnownMode(PredicateNameAndArity predicateName) {
         if ( knownModes == null ) {
             knownModes = new ArrayList<>();
         }
@@ -1951,17 +1882,11 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	int     getStarMode()          { return starModeMap; }
 
 	static class SetParamInfo {
-        String parameterName; // Don't really need to store this, but might as well for completeness.
-        String parameterValue;
-        protected String fileName;
-        int    lineNumber;
+		String parameterValue;
 
-        SetParamInfo(String parameterName, String parameterValue, String fileName, int lineNumber) {
-            this.parameterName  = parameterName;
-            this.parameterValue = parameterValue;
-            this.fileName       = fileName;
-            this.lineNumber     = lineNumber;
-        }
+		SetParamInfo(String parameterValue) {
+			this.parameterValue = parameterValue;
+		}
     }
 
 	public void setStringsAreCaseSensitive(boolean matchingShouldBeCaseSensitive) {

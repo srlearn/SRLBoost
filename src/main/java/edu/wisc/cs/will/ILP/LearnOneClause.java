@@ -131,7 +131,6 @@ public class LearnOneClause extends StateBasedSearchTask {
     public 	  PairWiseExampleScore occScorer			= null;
 	boolean 			  sampleForScoring  = false;
 	int				  maxExamplesToSampleForScoring = 300;
-	public 	  boolean			  useProbabilityWeights = false;
 	boolean             constantsAtLeaves = true;  // Are leaves CONSTANTS or linear models?  TODO - implement linear models, using (say) regularized least squares.
 	int                 normToUse         = 2;     // Other norms implemented: NONE
 	

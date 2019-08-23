@@ -1,9 +1,7 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.ChildrenClausesGenerator;
 import edu.wisc.cs.will.ILP.InlineManager;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
 
@@ -28,8 +26,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		this.inlineHandler = inlineHandler;
 	}
 
-	private boolean                    negated             = false; // Is this really the 'negated' version of what we want?  (Might happen because we flip-flopped the positive and negative training examples.)
-	private boolean                    cannotNegateEasily  = false;
 	private List<Clause>               clauses;
 	private List<Clause>               supportClauses;  // These clauses are needed to support evaluation of the theory.  Let's keep these in a list, in case the order matters.
 	private Collection<Sentence>       sentences;       // The original sentences.  Note: one sentence can become many clauses, so not a one-to-one match (could do so if needed).
@@ -63,10 +59,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		this.stringHandler        = stringHandler;
 		collectNeededNames();
 	}
-	public Theory(HandleFOPCstrings stringHandler, boolean negated) {
-		this(stringHandler);
-		this.negated = negated;
-	}
+
 	public Theory(HandleFOPCstrings stringHandler, Collection<? extends Sentence> standardSentences) {
 		this(stringHandler, standardSentences, null);
 	}
@@ -78,57 +71,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		
 		originalClauses = clauses;
 	}
-    public Theory(HandleFOPCstrings stringHandler, List<Clause> clauses, boolean negated) { // This boolean mainly added so this constructor is different than the one below.
-		this.stringHandler = stringHandler;
-        sentences    = null;
-		addAllMainClauses(clauses, null);
-		this.negated = negated;
-		collectNeededNames();
-	}
-    public Theory(HornClauseContext context) {
-        this(context.getStringHandler());
-    }
-    
-    public Theory(HandleFOPCstrings stringHandler, List<Theory> theories) { // TODO - need to merge stringHandlers ...
-        this.stringHandler = stringHandler;
-    	if (theories == null) { Utils.waitHere("Should not call with an empty list."); return; }
 
-		collectNeededNames();
-    	sentences                  = new ArrayList<>(4);
-    	clauses                    = new ArrayList<>(4);
-    	supportClauses             = new ArrayList<>(4);
-    	originalClauses            = new ArrayList<>(4);
-    	unsimplifiedClauses        = new ArrayList<>(4);
-    	unsimplifiedSupportClauses = new ArrayList<>(4);
-		negated                    = false; // Don't allow combined theories to be negated (what if ALL are negated?  Still ok unless some cannot be negated ...).
-    	reportUnsimplifiedClauses  = theories.get(0).reportUnsimplifiedClauses;
-    	somethingSimplified        = theories.get(0).isSomethingSimplified();
-    	theoryFlipFlopped          = false;
-    	if (theories.get(0).isNegated() && !theories.get(0).theoryFlipFlopped) {
-    		rewriteFlipFloppedTheory();
-    		if (cannotNegateEasily) { Utils.waitHere("Have a negated theory but cannot flip-flop it."); }
-    	}
-    	cannotNegateEasily         = theories.get(0).cannotNegateEasily();
-    	
-    	for (Theory t : theories) {
-    		if (t.sentences                  != null) { sentences.addAll(                 reparseSentences(t.sentences)); }
-    		if (t.clauses                    != null) { clauses.addAll(                   reparseClauses(  t.clauses));   }
-    		if (t.supportClauses             != null) { supportClauses.addAll(            reparseClauses(  t.supportClauses));  }
-    		if (t.originalClauses            != null) { originalClauses.addAll(           reparseClauses(  t.originalClauses)); }
-    		if (t.unsimplifiedClauses        != null) { unsimplifiedClauses.addAll(       reparseClauses(  t.unsimplifiedClauses));        }
-    		if (t.unsimplifiedSupportClauses != null) { unsimplifiedSupportClauses.addAll(reparseClauses(  t.unsimplifiedSupportClauses)); }
-
-    	//	} // NOTE: if it matters, reparse each theory with the original or a completely new stringHandler.
-    		if (t.negated && !t.theoryFlipFlopped) {
-        		t.rewriteFlipFloppedTheory();
-        		if (t.cannotNegateEasily) { Utils.waitHere("Have a negated theory but cannot flip-flop it."); }
-        	}
-    		reportUnsimplifiedClauses = (reportUnsimplifiedClauses || t.reportUnsimplifiedClauses);
-    		somethingSimplified       = (somethingSimplified       || t.somethingSimplified);
-    	}
-	}
-    
-    private void collectNeededNames() {
+	private void collectNeededNames() {
     	sameAsPname      = stringHandler.getPredicateName("sameAs");
     	sameAsPnameIL    = stringHandler.getPredicateName("sameAsIL"); // NOTE: this is some leakage of the BL project into WILL.
     	differentPname   = stringHandler.getPredicateName("different");
@@ -146,20 +90,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	notFname             = stringHandler.standardPredicateNames.negationByFailureAsFunction;
     }
 
-    // Fix this code if/when needed
-    private Collection<Sentence> reparseSentences(Collection<Sentence> sentences) {
-		return sentences;
-    }
-
-    private List<Clause> reparseClauses(List<Clause> clauses) {
-		return clauses;
-    }
-
-	public boolean isEmpty() {
-    	return Utils.getSizeSafely(clauses) < 1;
-    }
-    
-    // This assumes any desired inlining etc. has already been done.
+	// This assumes any desired inlining etc. has already been done.
 	public Theory simplify() {
 		collectAnyRemainingInliners();  // if (Utils.getSizeSafely(clauses) > 0) Utils.waitHere("check collectAnyRemainingInliners printouts above, if any");
     	if (unsimplifiedClauses != null) { Utils.warning("Have already simplified the clauses.");  return this; }
@@ -539,55 +470,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		return result;
 	}
 
-	private boolean cannotNegateEasily() {
-		return cannotNegateEasily;
-	}
-	
-	private Clause getMainClauseForNegatedExamples() {
-		// First check that the main clauses are all definite clauses and have the same predicate name.
-		if (clauses == null || stringHandler == null) { return null; }
-		
-		PredicateName  pName = null;
-		int            arity = -1;
-		List<Term>     body  = null;
-		for (Clause c : clauses) {
-			if (!c.isDefiniteClause()) {
-				Utils.warning("Cannot negate a theory that is not made up of DEFINITE clauses.");
-				cannotNegateEasily = true;
-				return null; 
-			}
-			Literal pLit = c.posLiterals.get(0);
-			// If there is more than one clause, they may have different argument types, so for simplicity, use new arguments in all positions and let the constraining happen at unification time.
-			if (pName == null) { 
-				pName = pLit.predicateName; 
-				arity = pLit.numberArgs(); 
-				if (clauses.size() < 2) {
-					body = pLit.getArguments();
-				} else {
-					body = new ArrayList<>(arity);
-					body.addAll(Objects.requireNonNull(stringHandler.getThisManyVars(arity)));
-				}
-			} else if (pName != pLit.predicateName) { 
-				Utils.warning("Cannot negate a theory with different head clauses: " + pName + " vs. " + pLit.predicateName); 
-				cannotNegateEasily = true;
-				return null; 
-			} else if (arity != pLit.numberArgs())  { 
-				Utils.warning("Cannot negate a theory with different arities of its head clauses: " + pName + "/" + arity + " vs. " + pLit.predicateName + "/" + pLit.numberArgs());
-				cannotNegateEasily = true;
-				return null; 
-			}
-		}
-		cannotNegateEasily = false;
-		List<Literal> pLits = new ArrayList<>(4);
-		List<Literal> nLits = new ArrayList<>(4);
-		Literal       head  = stringHandler.getLiteral(pName, body);
-		pLits.add(head);
-		assert pName != null;
-		Function   not_head  = stringHandler.getFunction(stringHandler.getFunctionName(FileParser.will_notPred_prefix + pName.name), body, null);
-		nLits.add(stringHandler.wrapInNot(not_head));
-		return stringHandler.getClause(pLits, nLits);
-	}
-
 	private void addTheseSentences(Collection<? extends Sentence> standardSentences, InlineManager checkForInlinersAndSupportingClauses) {
 		if (standardSentences == null) { return; }
 		if (clauses   == null) { clauses   = new ArrayList<>(standardSentences.size()); }
@@ -660,59 +542,19 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     public List<Clause> getClauses() {
         return clauses;
     }
-	public boolean isNegated() {
-		return negated;
-	}
-	public void setNegated(boolean negated) {
-		this.negated = negated;
-	}
-	
-	private boolean theoryFlipFlopped = false; // Only want to flip-flop once.	
-	private void rewriteFlipFloppedTheory() {
-		rewriteFlipFloppedTheory(true);
-	}
-		private void rewriteFlipFloppedTheory(boolean complainIfAlreadyFlipper) {
-		if (!negated)          { return; }
-		if (theoryFlipFlopped) { if (complainIfAlreadyFlipper) { Utils.waitHere("Have already flipped this theory!\n " + toString()); } return; }
-		theoryFlipFlopped = true;
-		if (clauses == null) { return; } // No clauses were learned.
-		Clause newMainClause = getMainClauseForNegatedExamples();
-		if (newMainClause == null) { Utils.waitHere("Why does newMainClause = null?"); return; }
-		for (Clause clause : clauses) {
-			Clause    newClause    = clause.copy(false);
-			Literal        head    = newClause.posLiterals.get(0);
-			PredicateName pName    = head.predicateName;
-			PredicateName pNameNew = stringHandler.getPredicateName(FileParser.will_notPred_prefix + pName);
-			pNameNew.addTemporary(head.numberArgs()); // We might need to later further rename this.
-			head.predicateName = pNameNew;
-			if (supportClauses == null) { supportClauses = new ArrayList<>(4); }
-			supportClauses.add(newClause);
-		}
-		clauses.clear();
-		clauses.add(newMainClause);
-	}
-	
+
 	public List<Clause> getSupportClauses() {
 		return supportClauses;
 	}
 	void setSupportClauses(List<Clause> supportClauses) {
 		this.supportClauses = supportClauses;
 	}
-	public Collection<Sentence> getSentences() {
-		return sentences;
-	}
-	public void setSentences(Collection<Sentence> sentences) {
-		this.sentences = sentences;
-	}
+
 	public void setClauses(List<Clause> clauses) {
 		this.clauses= null;  
 		addAllMainClauses(clauses, inlineHandler);
 	}
-	
-	public boolean haveTheory() {
-		return Utils.getSizeSafely(clauses) > 0;
-	}
-	
+
 	public String toPrettyString() {
         BindingList bl = null;
         if ( renameVariablesWhenPrinting ) {
@@ -833,10 +675,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 				f.functionName = stringHandler.getFunctionName(prefixForSupportClause + f.functionName + postfixForSupportClause);
 			}
 		}
-	}
-
-	private boolean isSomethingSimplified() {
-		return somethingSimplified;
 	}
 
 	@Override

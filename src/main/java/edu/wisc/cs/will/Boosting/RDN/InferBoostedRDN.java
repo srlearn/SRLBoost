@@ -677,8 +677,7 @@ public class InferBoostedRDN {
 	private void printExamples(List<RegressionRDNExample> examples, String target, boolean usingAllEgs) {
 
 		// Will collect the 'context' around a fact.  Turn off until we think this is needed.  It is a slow calculation.
-		boolean collectRelatedFacts = false;
-		
+
 		// PredicateModes pmodes = new PredicateModes(setup.getInnerLooper());
 		List<PredicateNameAndArity> pars = setup.getListOfPredicateAritiesForNeighboringFacts();
 

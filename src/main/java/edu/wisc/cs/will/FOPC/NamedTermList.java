@@ -20,18 +20,12 @@ public class NamedTermList {
 	public List<Term> getTerms() {
 		return terms;
 	}
-	public void setTerms(List<Term> terms) {
-		this.terms = terms;
-	}
 
 	public List<String> getNames() {
 		return names;
 	}
-	public void setNames(List<String> names) {
-		this.names = names;
-	}
 
-    @Override
+	@Override
     public String toString() {
 
         StringBuilder stringBuilder = new StringBuilder();

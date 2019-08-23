@@ -71,13 +71,7 @@ public class TreeStructuredTheoryLeaf extends TreeStructuredTheoryNode {
 		return new TreeStructuredTheoryLeaf(weightedCountOfPositiveExamples, weightedCountOfNegativeExamples, variance, leafValue == null ? null : leafValue.applyTheta(bindings), extraLabel);
 	}
 
-	@Override
-	public Collection<Variable> collectAllVariables() {
-		if (leafValue == null) { return null; }
-		return leafValue.collectAllVariables();
-	}
-
-	@Override
+    @Override
 	public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
 		if (leafValue == null) { return null; }
 		return leafValue.collectFreeVariables(boundVariables);

@@ -5,7 +5,6 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -18,9 +17,8 @@ import java.util.Set;
  */
 public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 	protected static final int debugLevel = 0;  // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
-	
-	protected Unifier           unifier = new Unifier();
-    private   HornClauseContext context;
+
+	private   HornClauseContext context;
 
 	Set<PredicateName>                predefinedPredicateNamesUsedByChildCollector; // Those in those list are handled by collectChildrenActual.
 
@@ -39,10 +37,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
     private int                       traceLevel = 0;
 
     private PredicateNameAndArityFilter  spyEntries;
-
-	public HornClauseProver(HandleFOPCstrings stringHandler, Theory rules, Collection<? extends Sentence> facts) {
-        this(new DefaultHornClausebase(stringHandler, (rules == null ? null : rules.getClauses()), facts), new DepthFirstSearch(), null);
-	}
 
 	public HornClauseProver(HandleFOPCstrings stringHandler, HornClausebase factbase) {
         this(factbase, new DepthFirstSearch(), null);

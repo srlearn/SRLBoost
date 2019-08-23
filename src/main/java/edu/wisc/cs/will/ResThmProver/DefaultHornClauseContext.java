@@ -2,7 +2,6 @@ package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
-import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +21,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
     private HornClausebase clausebase;
 
     private Unifier unifier;
-
-    private List<ProofListener> proofListenerList = null;
 
     public DefaultHornClauseContext(HornClausebase clausebase) {
         if (clausebase == null) {
@@ -106,55 +103,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
     }
 
     @Override
-    public BindingList prove(SLDQuery goal) throws IllegalArgumentException {
-            try {
-                HornClauseProver prover = new HornClauseProver(stringHandler, getClausebase());
-
-                fireProving(goal);
-
-                return prover.prove(goal);
-            } catch (Throwable t) {
-                Utils.warning("Error proving goal '" + goal + "!");
-    			Utils.reportStackTrace(t);
-                // Just catch everything and return null...
-                return null;
-            }
-    }
-
-    private SLDQuery parseGoal(String goal) throws IllegalArgumentException {
-        if (!goal.endsWith(".")) {
-            goal = goal + ".";
-        }
-
-        List<Sentence> sentences = getFileParser().readFOPCstream(goal);
-
-        if ( sentences.isEmpty() ) {
-            return getStringHandler().getClause();
-        }
-
-        if (sentences.size() != 1) {
-            throw new IllegalArgumentException("Goal '" + goal + "' did not parse into a single conjunct of literals.");
-        }
-
-
-        List<Clause> clauses = sentences.get(0).convertToClausalForm();
-
-        List<Literal> literalsToProve = new ArrayList<>();
-
-        for (Clause clause : clauses) {
-            if (clause.getNegLiteralCount() != 0) {
-                throw new IllegalArgumentException("Negated literal '" + clause + "' found in goal '" + goal + "'.  Goal should be conjunct of positive literals.");
-            }
-
-            if (clause.posLiterals != null) {
-                literalsToProve.addAll(clause.posLiterals);
-            }
-        }
-
-        return getStringHandler().getClause(null, literalsToProve);
-    }
-
-    @Override
     public HornClausebase getClausebase() {
         if (clausebase == null) {
             this.clausebase = new DefaultHornClausebase(stringHandler);
@@ -191,11 +139,4 @@ public class DefaultHornClauseContext implements HornClauseContext {
         return "DefaultHornClauseContext [\n" + getClausebase() + "]";
     }
 
-    private void fireProving(SLDQuery query) {
-        if ( proofListenerList != null ) {
-            for (ProofListener proofListener : proofListenerList) {
-                proofListener.proving(query);
-            }
-        }
-    }
 }
