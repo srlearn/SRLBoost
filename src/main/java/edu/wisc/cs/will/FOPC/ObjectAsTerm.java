@@ -36,7 +36,7 @@ public class ObjectAsTerm extends Term {
     }
 
 
-	
+
     @Override
     public Sentence asSentence() {
         return null;

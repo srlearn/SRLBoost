@@ -35,7 +35,6 @@ public class NumericConstant extends Constant implements Serializable {
         this.setTypeSpec(typeSpec);
     }
 
-    @Override
     public String getName() {
         switch (getType()) {
             case isaInteger:

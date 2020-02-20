@@ -14,8 +14,6 @@ public abstract class DependencyNode {
 		children = new ArrayList<>();
 	}
 
-	public abstract String labelForDOT();
-	public abstract String colorForDOT() ;
 	public abstract String  textForDOT();
 	public abstract boolean ignoreNodeForDOT();
 

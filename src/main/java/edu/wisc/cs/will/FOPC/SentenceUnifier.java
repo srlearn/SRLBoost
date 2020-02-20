@@ -33,7 +33,7 @@ public class SentenceUnifier {
 
     private static class SentenceUnifierVisitor implements  SentenceVisitor<BindingList, SentenceUnifierData> {
 
-        public BindingList visitOtherSentence(Sentence otherSentence, SentenceUnifierData data) {
+        public BindingList visitOtherSentence(Sentence otherSentence) {
             Utils.warning("Unifying Quantified sentences not supported.");
             return null;
         }

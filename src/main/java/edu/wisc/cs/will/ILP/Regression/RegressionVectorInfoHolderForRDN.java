@@ -1,6 +1,3 @@
-/**
- * 
- */
 package edu.wisc.cs.will.ILP.Regression;
 
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
@@ -87,7 +84,7 @@ public class RegressionVectorInfoHolderForRDN extends RegressionInfoHolderForRDN
 
 	@Override
 	public void addFailureExample(Example eg, long numGrndg, double weight) {
-		double output[] =  ((RegressionRDNExample) eg).getOutputVector();
+		double[] output =  ((RegressionRDNExample) eg).getOutputVector();
 		//double prob   = ((RegressionRDNExample)eg).getProbOfExample();
 		// TODO (TVK) : use vectors for probability weighting
 		((BranchVectorStats)falseStats).addNumVectorOutput(numGrndg, output, weight);
@@ -105,7 +102,7 @@ public class RegressionVectorInfoHolderForRDN extends RegressionInfoHolderForRDN
           if (caller.getPosCoverage() < 0.0) { caller.computeCoverage(); }
           for (Example posEx : task.getPosExamples()) {
               double weight = posEx.getWeightOnExample();
-              double output[] =  ((RegressionRDNExample) posEx).getOutputVector();
+              double[] output =  ((RegressionRDNExample) posEx).getOutputVector();
             	//double prob   = ((RegressionRDNExample)posEx).getProbOfExample();
               
               if (!caller.posExampleAlreadyExcluded(posEx)) {

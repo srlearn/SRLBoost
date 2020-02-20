@@ -42,7 +42,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
 
     private String           prefix;
     private boolean          RRR;
-    private boolean          flipFlopPosAndNegExamples = false; // BUGGY? Can be used to flip-flop the positive and negative examples before training.
 
     private Set<Example>     seedPosExamplesUsed;
     private Set<Example>     seedNegExamplesUsed;
@@ -276,6 +275,8 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     }
 
     boolean isFlipFlopPosAndNegExamples() {
+        // BUGGY? Can be used to flip-flop the positive and negative examples before training.
+        boolean flipFlopPosAndNegExamples = false;
         return flipFlopPosAndNegExamples;
     }
 

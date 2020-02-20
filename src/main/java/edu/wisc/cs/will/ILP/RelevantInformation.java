@@ -12,7 +12,6 @@ public interface RelevantInformation {
     boolean isRelevanceFromPositiveExample();
     void setRelevanceFromPositiveExample(boolean positive);
 
-    boolean isEquivalentUptoVariableRenaming(RelevantInformation info);
     RelevantInformation getGeneralizeRelevantInformation();
 
     String toString(String prefix);

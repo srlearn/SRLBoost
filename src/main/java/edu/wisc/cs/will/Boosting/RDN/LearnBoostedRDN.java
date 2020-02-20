@@ -45,8 +45,6 @@ public class LearnBoostedRDN {
 	private List<RegressionRDNExample> egs    = null;
 	private String  targetPredicate          = null;
 	private int     maxTrees                 = 10;
-	private double  minGradientForSame       = 0.0002;
-	private double  minPercentageSameForStop = 0.8;
 	private String  yapSettingsFile;
 	private boolean resampleExamples        = true;
 	private boolean stopIfFewChanges        = false;
@@ -415,9 +413,11 @@ public class LearnBoostedRDN {
 	}
 
 	private boolean doEarlyStop(List<RegressionRDNExample> old_eg_set, SingleModelSampler sampler) {
+		double minGradientForSame = 0.0002;
 		if (stopIfFewChanges && old_eg_set != null) {
 			int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
 			if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set)); }
+			double minPercentageSameForStop = 0.8;
 			return ((double) numOfEgSame / (double) old_eg_set.size()) > minPercentageSameForStop;
 		} else {
 			if(old_eg_set != null) {

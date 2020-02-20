@@ -2,7 +2,6 @@ package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.*;
 
-import java.util.Collection;
 import java.util.List;
 
 /*
@@ -60,30 +59,11 @@ public interface HornClausebase {
      */
     void assertBackgroundKnowledge(DefiniteClause definiteClause) throws IllegalArgumentException;
 
-    /* Asserts a list of definite clauses into the background knowledge.
-     *
-     * The sentences in the list must be either clause which are definite or Literals.
-     *
-     * @param definiteClauses Clauses to assert into the background knowledge.
-     * @throws IllegalArgumentException Throws an IllegalArgumentException if any of the
-     * sentences are not single definite clauses and can not be converted to definite clauses.
-     */
-    void assertBackgroundKnowledge(Collection<? extends Sentence> definiteClauses) throws IllegalArgumentException;
-
     /* Asserts a fact into the clause base.
      *
      * @param fact Fact to assert into the facts.
      */
     void assertFact(Literal fact);
-
-    /* Asserts a fact into the clause base.
-     *
-     * @param facts Facts to assert into the clause base.
-     * @throws IllegalArgumentException Throws a IllegalArgumentException if any of the Sentences
-     * in facts collection is not a single definite clause with no body and can't be converted
-     * into one.
-     */
-    void assertFacts(Collection<? extends Sentence> facts) throws IllegalArgumentException;
 
     /*
      * Retracts the first occurrence of the specified definiteClause.
@@ -123,16 +103,6 @@ public interface HornClausebase {
     boolean retractAllClauseWithHead(DefiniteClause clauseHead);
 
     void retractAllClausesForPredicate(PredicateNameAndArity predicateNameAndArity);
-
-    /* Checks to see if there are any possible matching definite clauses in either the background knowledge or the facts.
-     * 
-     * This method check both facts and background knowledge.
-     * 
-     * @param predName Predicate name to lookup.
-     * @param arity Arity of predicate.
-     * @return True if the background knowledge or facts contains possible matching facts or rules.
-     */
-    boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity);
 
     /* Returns a Collection of definite clauses whose head might match the specified clauseHead.
      *
@@ -227,11 +197,6 @@ public interface HornClausebase {
      * @return Collection of Sentences that may match predicateName/arity, possible null.
      */
     Iterable<Literal> getPossibleMatchingFacts(Literal clauseHead, BindingList currentBinding);
-    
-    /*
-     * Removes the clause from facts and assertions. Does not find possible matching assertions or facts.
-     */
-    void removeClause(DefiniteClause clauseToRemove);
 
     boolean recorded(DefiniteClause definiteClause);
 

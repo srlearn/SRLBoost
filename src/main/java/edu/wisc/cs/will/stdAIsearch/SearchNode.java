@@ -50,12 +50,6 @@ public abstract class SearchNode implements Serializable {
 	// The next two are only needed when dealing with CLOSED lists.
 	// Remember that if two search nodes are equal, then their hash codes also need to be equal.
 
-	public int hashCode() {
-		// Use the built-in hash code, but leave this here as a reminder to override if needed
-		// (if two different nodes are equal, then they will need to have the same hash code [I think]).
-		return super.hashCode();
-	}
-	
 	public boolean equals(Object otherNode) {
 		// Leave this here as a reminder to override if needed.
 		return super.equals(otherNode); 
@@ -79,10 +73,6 @@ public abstract class SearchNode implements Serializable {
 
     public SearchNode getParentNode() {
         return parentNode;
-    }
-
-    public void setParentNode(SearchNode parentNode) {
-        this.parentNode = parentNode;
     }
 
 	public void setDontAddMeToOPEN(boolean dontAddMeToOPEN) {

@@ -135,8 +135,7 @@ public class DefaultHornClausebase implements HornClausebase {
         }
     }
 
-    @Override
-    public void assertBackgroundKnowledge(Collection<? extends Sentence> sentences) {
+    private void assertBackgroundKnowledge(Collection<? extends Sentence> sentences) {
         for (Sentence sentence : sentences) {
             if (sentence instanceof DefiniteClause) {
                 DefiniteClause definiteClause = (DefiniteClause) sentence;
@@ -163,8 +162,7 @@ public class DefaultHornClausebase implements HornClausebase {
         }
     }
 
-    @Override
-    public void assertFacts(Collection<? extends Sentence> sentences) {
+    private void assertFacts(Collection<? extends Sentence> sentences) {
         for (Sentence sentence : sentences) {
             List<Clause> clauses = sentence.convertToClausalForm();
             if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
@@ -211,7 +209,7 @@ public class DefaultHornClausebase implements HornClausebase {
         }
     }
 
-    public void removeClause(DefiniteClause clauseToRemove) {
+    private void removeClause(DefiniteClause clauseToRemove) {
         assertions.remove(clauseToRemove);
         backgroundKnowledge.remove(clauseToRemove.getDefiniteClauseAsClause());
         if (clauseToRemove.isDefiniteClauseFact()) {
@@ -464,8 +462,7 @@ public class DefaultHornClausebase implements HornClausebase {
         return getIndexerForFacts().getPossibleMatchingAssertions(clauseHead, currentBinding);
     }
 
-    @Override
-    public boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity) {
+    private boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity) {
         Collection<DefiniteClause> possibleMatches = getIndexerForAllAssertions().getPossibleMatchingAssertions(predName, arity);
         return (possibleMatches != null && possibleMatches.size() > 0);
     }

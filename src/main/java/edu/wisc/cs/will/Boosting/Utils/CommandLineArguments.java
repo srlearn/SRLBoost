@@ -25,7 +25,7 @@ public class CommandLineArguments {
 	 */
 
 	private static final String argPrefix = "-";
-	public static final String learn = "l";
+	private static final String learn = "l";
 
 	// Divide inference examples into this many bins.  THIS IS NEEDED WHEN THE SIZE OF A TESTSET IS TOO LARGE.
 	public static int modN = 10;
@@ -106,7 +106,7 @@ public class CommandLineArguments {
 	private static final String outName = "outSuffix";
 	public String outFileSuffix = null;
 
-	public static final String infer = "i";
+	private static final String infer = "i";
 	private boolean inferVal=false;
 
 	private static final String useYap = "y";
@@ -133,7 +133,7 @@ public class CommandLineArguments {
 	private static final String yapBias = "yapBias";
 	private String yapBiasVal = "";
 
-	public static final String targetPred = "target";
+	private static final String targetPred = "target";
 	private Set<String> targetPredVal = null;
 
 	private static final String hiddenPredFlag = "hiddenPred";
@@ -143,7 +143,6 @@ public class CommandLineArguments {
 	private Set<String> loadPredModelVal = null;
 
 	private static final String saveModel = "save";
-	private boolean saveModelVal=false;
 
 	private static final String maxTrees = "trees";
 	private int maxTreesVal=10;
@@ -509,7 +508,7 @@ public class CommandLineArguments {
 				continue;
 			}
 			if (argMatches(args[i], saveModel)) {
-				saveModelVal=true;
+				boolean saveModelVal = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					saveModelVal = Utils.parseBoolean(args[++i]);
 				}

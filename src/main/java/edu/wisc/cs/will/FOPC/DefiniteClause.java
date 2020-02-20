@@ -91,8 +91,4 @@ public interface DefiniteClause {
      */
     BindingList unifyDefiniteClause(DefiniteClause otherClause, BindingList bindingList);
 
-    /* Returns the arity of the head of the clause.
-     */
-    int getArity();
-
 }

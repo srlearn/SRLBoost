@@ -140,7 +140,7 @@ public class PrettyPrinter {
         private PrettyPrinterVisitor() {
         }
 
-        public PPResult visitOtherSentence(Sentence otherSentence, FOPCPrettyPrinterData data) {
+        public PPResult visitOtherSentence(Sentence otherSentence) {
             return new PPResult(otherSentence.toString(), false, Integer.MAX_VALUE);
         }
 

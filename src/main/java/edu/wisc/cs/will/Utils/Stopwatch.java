@@ -8,7 +8,6 @@ package edu.wisc.cs.will.Utils;
 public class Stopwatch {
 
     private long startTime = -1;
-    private long totalTime = 0;
 
     /*
      * Creates a new instance of Stopwatch and starts the watch.
@@ -44,6 +43,7 @@ public class Stopwatch {
      * @return Total time so far in milliseconds.
      */
     public long getTotalTimeInMilliseconds() {
+        long totalTime = 0;
         long time = totalTime;
         if (startTime != -1) {
             time += System.currentTimeMillis() - startTime;

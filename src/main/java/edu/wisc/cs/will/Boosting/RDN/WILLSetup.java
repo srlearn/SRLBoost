@@ -811,7 +811,6 @@ public final class WILLSetup {
 
 		if (allowRecursion || posEg.keySet().size() > 1 || negEg.keySet().size() > 1) {
 			// JWS added the negEq check since we need to work with only NEG examples (ie, on an unlabeled testset).
-			getInnerLooper().resetCachedClauseGroundings();
 			prepareFactsForJoint(posEg, negEg, predicate, only_mod_pred, forLearning);
 		}
 		prepareExamplesForTarget(posEg.get(predicate), negEg.get(predicate), predicate, forLearning);
@@ -827,7 +826,6 @@ public final class WILLSetup {
 					recomputeFacts(pred);
 				}
 			}
-			getInnerLooper().resetCachedClauseGroundings();
 		}
 		long end = System.currentTimeMillis();
 		if (debugLevel > 1) { 

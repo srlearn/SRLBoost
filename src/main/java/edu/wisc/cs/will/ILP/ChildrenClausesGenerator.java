@@ -40,7 +40,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 	ChildrenClausesGenerator() {
 	}
 	
-	protected void initialize() { 
+	void initialize() {
 		existingTermsOfTypeMap = new HashMap<>(4);
 		literalsTriedSoFar     = new HashMap<>(64);
 		constantsToUse         = new StringConstant[numberofConstantsToCreate];
@@ -897,7 +897,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		countOfPruningDueToVariantChildren = 0;
 	}
 
-    public LearnOneClause getTask() {
+    private LearnOneClause getTask() {
         return (LearnOneClause) task;
     }
 

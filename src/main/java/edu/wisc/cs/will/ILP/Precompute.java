@@ -89,7 +89,7 @@ public class Precompute {
 
         List<Literal> precomputedLiterals = new ArrayList<>();
 
-        HornClauseProver prover = new HornClauseProver(clausebase.getStringHandler(), clausebase);
+        HornClauseProver prover = new HornClauseProver(clausebase);
         prover.maxSearchDepth = java.lang.Integer.MAX_VALUE;
         prover.setMaxNodesToConsider(java.lang.Integer.MAX_VALUE); // Should we limit these?
         prover.setMaxNodesToCreate(java.lang.Integer.MAX_VALUE);

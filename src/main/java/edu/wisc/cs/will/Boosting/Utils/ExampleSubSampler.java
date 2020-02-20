@@ -20,8 +20,7 @@ public class ExampleSubSampler {
     private boolean sampleByRegressionSquare = false;
     private boolean influenceTrimming = false;
     private boolean histogramSampling = false;
-    private boolean removeTopNExamples = false;
-    private double  influenceAlpha = 0.8;
+	private double  influenceAlpha = 0.8;
     
 	public ExampleSubSampler(WILLSetup setup) {
 		this.willSetup = setup;
@@ -47,7 +46,7 @@ public class ExampleSubSampler {
 			histogramSampling = Boolean.parseBoolean(lookup);
 		}
 		if ((lookup =  willSetup.getHandler().getParameterSetting("removeTopEg")) != null) {
-			removeTopNExamples = Boolean.parseBoolean(lookup);
+			boolean removeTopNExamples = Boolean.parseBoolean(lookup);
 		}
 	}
 	

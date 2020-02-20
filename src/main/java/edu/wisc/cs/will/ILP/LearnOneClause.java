@@ -17,6 +17,7 @@ import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.stdAIsearch.*;
+import edu.wisc.cs.will.DataSetUtils.WorldState;
 
 import javax.swing.event.EventListenerList;
 import java.io.*;
@@ -242,8 +243,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
     private Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
 
-    private Boolean relevanceEnabled = true;  // When null or false, relevance is disabled.
-
 	private List<ModeConstraint> modeConstraints = null;
 
     private final AdviceProcessor adviceProcessor;
@@ -267,21 +266,12 @@ public class LearnOneClause extends StateBasedSearchTask {
 	/*
 	 * Constructs a new LearnOneClause search.
      */
-    public LearnOneClause(String            workingDir,              String prefix,
-                          Reader            posExamplesReader,       Reader negExamplesReader,
-                          Reader            backgroundClausesReader, Reader factsReader,
-                          SearchStrategy    strategy,                ScoreSingleClause scorer,
-                          SearchMonitor     monitor,                 HornClauseContext context,
-                          boolean           deferLoadingExamples) {
-        this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundClausesReader, factsReader, strategy, scorer, null, monitor, context, deferLoadingExamples);
-    }
-
-	public LearnOneClause(String             workingDir,              String            prefix,
-                          Reader             posExamplesReader,       Reader            negExamplesReader,
-                          Reader             backgroundClausesReader, Reader            factsReader,
-                          SearchStrategy     strategy,                ScoreSingleClause scorer,
-                          PruneILPsearchTree pruner,                  SearchMonitor     monitor,
-                          HornClauseContext  context,                 boolean           deferLoadingExamples) {
+	public LearnOneClause(String workingDir, String prefix,
+						  Reader posExamplesReader, Reader negExamplesReader,
+						  Reader backgroundClausesReader, Reader factsReader,
+						  SearchStrategy strategy, ScoreSingleClause scorer,
+						  SearchMonitor monitor,
+						  HornClauseContext context, boolean deferLoadingExamples) {
 
         taskName = "LearnOneClause";
         this.stringHandler = (context == null ? null : context.getStringHandler());
@@ -344,15 +334,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			}
 
             context.assertSentences(librarySentences);
-		}
-
-		if (debugLevel > 2) {
-			boolean hold = stringHandler.printVariableCounters;
-			Utils.println("\n%  The Background Rules:\n");
-            for (Clause clause : context.getClausebase().getBackgroundKnowledge()) {
-                Utils.println("%  " + clause.toPrettyString("%     ", Integer.MAX_VALUE));
-            }
-			stringHandler.printVariableCounters = hold;
 		}
 
 		Utils.println("\n%  Read the facts.");
@@ -558,10 +539,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 	public int num_hits = 0;
 	public int num_misses = 0;
-	
-	public void resetCachedClauseGroundings() {
-		// TODO(@hayesall): Empty method that is called somewhere. Remove.
-	}
 
 	public void setMEstimateNeg(double mEstimateNeg) {
 		if (mEstimateNeg < 0.0) Utils.error("The 'm' for neg examples covered needs to be a non-negative number.  You provided: " + mEstimateNeg);
@@ -710,7 +687,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
                 // Always save the synthetic negatives, at least for now.
                    setNegExamples(CreateSyntheticExamples.createImplicitNegExamples(worldStatesContainingNoPositiveExamples, true, "from a world-state containing no known positive examples", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames)); // TODO use a variable to set the maximum.
-                if (debugLevel > 0) { Utils.println("% Now have |negExamples| = " + Utils.comma(getNegExamples()) + ", of which " + Utils.comma(Utils.getSizeSafely(getNegExamples()) - oldNegCount) + " were created from world states containing no positive examples."); }
             }
             // See if we still need to create any random examples.
             if (!creatingConjunctiveFeaturesOnly && !regressionTask && Utils.getSizeSafely(getNegExamples()) < minNumberOfNegExamples) {
@@ -721,8 +697,6 @@ public class LearnOneClause extends StateBasedSearchTask {
                 // Always save the synthetic negatives, at least for now.
                    List<Example> negativeExamples = CreateSyntheticExamples.createImplicitNegExamples(null, usingWorldStates, "a randomly generated negative example", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames);  // Need to have set targetModes and create all the the above instances before calling this.
                    setNegExamples(negativeExamples);
-
-                   if (debugLevel > 0) { Utils.println("% Now have |negExamples| = " + Utils.getSizeSafely(getNegExamples()) + ", of which " + Utils.comma(Utils.getSizeSafely(getNegExamples()) - oldNegCount) + " were created randomly."); }
             }
             if (!regressionTask && oldNumbNegs != Utils.getSizeSafely(getNegExamples())) { createdSomeNegExamples = true; }
         }
@@ -736,23 +710,14 @@ public class LearnOneClause extends StateBasedSearchTask {
 			this.pruner = null;
 		}
 		if (!creatingConjunctiveFeaturesOnly && minNumberOfNegExamples > 0 && getNegExamples() == null) { Utils.severeWarning("Have ZERO negative examples!  Variable 'minNumberOfNegExamples' is currently set to " + minNumberOfNegExamples + "."); }
-			Utils.println("\n% Read " + Utils.comma(getPosExamples()) + " pos examples and " + Utils.comma(getNegExamples()) + " neg examples.");//  Also read (or created) " + Utils.comma(getBackgroundKnowledge()) + " ILP background rules and " + Utils.comma(getFacts()) + " facts.");
-			if (debugLevel > 1) {
-				Utils.println("% The Target Modes:");
-				if (targetModes != null) for (PredicateNameAndArity tName : targetModes) { tName.getPredicateName().reportPossibleInstantiations(); }
-				Utils.println("% The Body Modes:");
-				if (bodyModes != null)   for (PredicateNameAndArity bName : bodyModes)   { bName.getPredicateName().reportPossibleInstantiations(); }
-			}
+			Utils.println("\n% Read " + Utils.comma(getPosExamples()) + " pos examples and " + Utils.comma(getNegExamples()) + " neg examples.");
 
 			processThresholds();
 
         facts = null; // Release the temporarily stored facts so we aren't wasting memory.
         long iend = System.currentTimeMillis();
         Utils.println("% Time to init learnOneClause: " + Utils.convertMillisecondsToTimeSpan(iend-istart));
-        }		
-
-		// If nodes are sampled due to a decision-forest-like algorithm, then this might be incorrect.
-		reportModesToFile(Utils.createFileNameString(getDirectoryName(), getPrefix() + "_modesInUse" + Utils.defaultFileExtensionWithPeriod));
+        }
 	}
 
     private boolean lookForPruneOpportunities(Boolean useCachedFiles, FileParser parser, String fileName) { // Be sure to do this AFTER any precomputing is done.
@@ -807,9 +772,6 @@ public class LearnOneClause extends StateBasedSearchTask {
                                 }
                                 String newStringLine = "prune: " + prunableLiteral + ", " + clauseHead + ", warnIf(2)."; // Use '2' here, since if more than one rule, the inference is incorrect.
                                 parseThisString.append(newStringLine).append("\n");
-                                if (debugLevel > 2) {
-                                    Utils.println("\n% Inferring: '" + newStringLine + "'\n%   From: " + clause.toString(Integer.MAX_VALUE) + "."); // TODO clean up so no need for this MAX_VALUE here.
-                                }
                                 if (useCachedFiles) {
                                     printStream.println("\n" + newStringLine + " % From: " + clause.toString(Integer.MAX_VALUE) + "."); // TODO clean up so no need for this MAX_VALUE here.
                                 }
@@ -896,7 +858,6 @@ public class LearnOneClause extends StateBasedSearchTask {
             }
             if (clause != ignoreThisClause) {
 				aBinding.theta.clear();
-				assert query != null;
 				if (Unifier.UNIFIER.unify(clause.posLiterals.get(0), query, aBinding) != null) {
                     return clause;
                 }
@@ -968,10 +929,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         stringHandler.removeKnownMode(pName);
     }
 
-    private void reportModesToFile(String fileName) {
-		// TODO(@hayesall): Dead function, remove references.
-	}
-
     private int countOfSearchesPerformedWithCurrentModes = 0;  // Trevor - if you wish to see getSearchParametersString, feel free to add some reportFirstNsearches variable.  Jude
 
     @Override
@@ -994,7 +951,7 @@ public class LearnOneClause extends StateBasedSearchTask {
             }
 
             // Limit number of reports.
-            if (++countOfSearchesPerformedWithCurrentModes < 2 || debugLevel > 2) { Utils.print(getSearchParametersString()); }
+            if (++countOfSearchesPerformedWithCurrentModes < 2) { Utils.print(getSearchParametersString()); }
 			result = super.performSearch();
 
 			if ( createdActiveAdvice != null ) {
@@ -1015,7 +972,6 @@ public class LearnOneClause extends StateBasedSearchTask {
     }
 
     SearchResult performSearch(SingleClauseNode bestNodeFromPreviousSearch) throws SearchInterrupted {
-    	if (debugLevel > 2) { Utils.println("\n% performSearch() called."); }
         if (!initialized) { initialize(); }
         ((InitializeILPsearchSpace) initializer).setBestNodeFromPreviousSearch(bestNodeFromPreviousSearch);
         return performSearch();
@@ -1159,7 +1115,6 @@ public class LearnOneClause extends StateBasedSearchTask {
      */
 	private void checkMinPosCoverage() {
         // Check the min pos coverage values...
-    	if (totalPosWeight > 0 && debugLevel > 0) { Utils.println("%     totalPosWeight = " + totalPosWeight + "  minPosCoverage = " + minPosCoverage); }
 		if (totalPosWeight > 0 && minPosCoverage > totalPosWeight) {  // Anything odd happen here if totalPosWeight < 1?
 			Utils.warning("% Should not set minPosCoverage (" + Utils.truncate(minPosCoverage) + ") to more than the total weight on the positive examples (" + Utils.truncate(totalPosWeight) + ").  Will use the maximum possible value.");
 		}
@@ -1220,7 +1175,6 @@ public class LearnOneClause extends StateBasedSearchTask {
      * @throws IllegalArgumentException Throws an IllegalArgumentException if the parameter is out of range.
      */
 	private void checkMinPrecision() throws IllegalArgumentException {
-    	if (debugLevel > 0) { Utils.println("%     maxPossiblePrecision = " +  maxPossiblePrecision() + "  minPrecision = " + minPosCoverage); }
         if (minPrecision < 0) {
         	minPrecision = 0.0;
         	Utils.warning("Should not set minPrecision (" + Utils.truncate(minPrecision) + ") to a negative value.  Will use 0.");
@@ -1269,7 +1223,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			}
 			stillInRRRphase1  = true;
 			thisBodyLengthRRR = minBodyLengthRRR + Utils.random1toN(maxBodyLengthRRR - minBodyLengthRRR);
-			if (debugLevel > 1) { Utils.println("\n***********\nPerform RRR iteration #" + i + " with the initial body length = " + thisBodyLengthRRR + " (in the ILP inner loop, created a total of " + Utils.comma(hold_nodesCreated) + " clauses so far and explored " + Utils.comma(hold_nodesExpanded) + ")\n***********"); }
 			performSearch(bestNodeFromPreviousSearch);  // No need to do a open.clear() since performSearch() does that.
 			hold_nodesExpanded += nodesConsidered;
 			hold_nodesCreated  += nodesCreated;
@@ -1497,7 +1450,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			if (examplePredicates.get(i).equals(lit.getPredicateNameAndArity()) && 
 				matchingSignatures(examplePredicateSignatures.get(i), stringHandler.getSignature(lit.getArguments()))) { return true; }
 		}
-		if (debugLevel > 1) { Utils.println("matchesExistingTargetSpec false for: " + lit + "  sig = " + stringHandler.getSignature(lit.getArguments()) + "  " + Utils.limitLengthOfPrintedList(examplePredicates)); }
 		return false;
 	}
 
@@ -1597,11 +1549,11 @@ public class LearnOneClause extends StateBasedSearchTask {
 				}
 				assert internalLit != null;
 				if (!confirmExample(internalLit)) { return null; }
-				return new RegressionExample(stringHandler, internalLit, outputValue, "Read from file.", combineLabels(sc == null ? null : sc.getName()), annotationTerm);
+				return new RegressionExample(stringHandler, internalLit, outputValue, "Read from file.", combineLabels(sc == null ? null : sc.getName()));
 			}
 			lit.setWeightOnSentence(1.0);
 			if (!confirmExample(lit)) { return null; }
-			return new RegressionExample(stringHandler, lit, outputValue, "Read from file.", null, annotationTerm);
+			return new RegressionExample(stringHandler, lit, outputValue, "Read from file.", null);
 		}
 		if (!confirmExample(lit)) { return null; }
 		return new Example(stringHandler, lit, "Read from file.", null);
@@ -2020,7 +1972,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 	}
 
 	boolean isRelevanceEnabled() {
-        return relevanceEnabled == null ? false : relevanceEnabled;
+		// When null or false, relevance is disabled.
+		Boolean relevanceEnabled = true;
+		return relevanceEnabled == null ? false : relevanceEnabled;
     }
 
 	AdviceProcessor getAdviceProcessor() {

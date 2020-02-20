@@ -197,12 +197,7 @@ public class Clause extends Sentence implements DefiniteClause {
 
     }
 
-	public int getArity() {
-        if (!isDefiniteClause()) throw new IllegalStateException("Clause '" + this + "' is not a definite clause.");
-        return posLiterals.get(0).getArity();
-    }
-
-    public BindingList unify(Clause that, BindingList bindingList) {
+    private BindingList unify(Clause that, BindingList bindingList) {
         if ( this.getPosLiteralCount() != that.getPosLiteralCount() || this.getNegLiteralCount() != that.getNegLiteralCount() ) {
             return null;
         }
@@ -369,7 +364,7 @@ public class Clause extends Sentence implements DefiniteClause {
     	return collectFreeVariables(boundVariables, false, false);
     }
 
-    public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables, boolean skipPosLiterals, boolean skipNegLiterals) {
+    private Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables, boolean skipPosLiterals, boolean skipNegLiterals) {
 		List<Variable>  result = null;
 		
 		if (!skipPosLiterals && posLiterals != null) for (Literal lit : posLiterals) {

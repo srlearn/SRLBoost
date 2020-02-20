@@ -2,11 +2,11 @@ package edu.wisc.cs.will.DataSetUtils;
 
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.Term;
 import edu.wisc.cs.will.ILP.SingleClauseNode;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,11 +28,8 @@ public class RegressionExample extends Example  implements Serializable {
 	private double[] outputVector = null;
 	
 	public String leafId = "";
-	
+
 	public RegressionExample(HandleFOPCstrings stringHandler, Literal literal, double outputValue, String provenance, String extraLabel) {
-		this(stringHandler, literal, outputValue, provenance, extraLabel, null);
-	}
-	public RegressionExample(HandleFOPCstrings stringHandler, Literal literal, double outputValue, String provenance, String extraLabel, Term annotationTerm) {
 		super(stringHandler, literal, provenance, extraLabel);
 		this.setOutputValue(outputValue);
 	}
@@ -67,7 +64,7 @@ public class RegressionExample extends Example  implements Serializable {
 
 	public double getOutputValue() {
 		if (hasRegressionVector) {
-			Utils.error("Retrieving scalar output value for " + this.toString() + "\n but has regression vector: " + getOutputVector());
+			Utils.error("Retrieving scalar output value for " + this.toString() + "\n but has regression vector: " + Arrays.toString(getOutputVector()));
 		}
 		return outputValue;
 	}

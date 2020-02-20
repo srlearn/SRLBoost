@@ -21,15 +21,15 @@ public class ActiveAdvice {
 
     private static final CNFClauseCollector CLAUSE_COLLECTOR = new CNFClauseCollector();
 
-    private HandleFOPCstrings stringHandler;
+    private final HandleFOPCstrings stringHandler;
 
-    private MapOfSets<PredicateNameAndArity, ModeInfo> adviceModes = new MapOfSets<>();
+    private final MapOfSets<PredicateNameAndArity, ModeInfo> adviceModes = new MapOfSets<>();
 
-    private MapOfSets<PredicateNameAndArity, ClauseInfo> clauses = new LinkedMapOfSets<>();
+    private final MapOfSets<PredicateNameAndArity, ClauseInfo> clauses = new LinkedMapOfSets<>();
 
-    private MapOfLists<PredicateNameAndArity, Clause> supportClauses = new MapOfLists<>();
+    private final MapOfLists<PredicateNameAndArity, Clause> supportClauses = new MapOfLists<>();
 
-    private Map<PredicateNameAndArity, RelevanceInfo> adviceFeaturesAndStrengths = new LinkedHashMap<>();
+    private final Map<PredicateNameAndArity, RelevanceInfo> adviceFeaturesAndStrengths = new LinkedHashMap<>();
 
     ActiveAdvice(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
@@ -187,7 +187,7 @@ public class ActiveAdvice {
             body = DuplicateDeterminateRemover.removeDuplicates(body);
         }
 
-        MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<PredicateNameAndArity, Clause>();
+        MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<>();
 
         List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body);
 
@@ -377,13 +377,13 @@ public class ActiveAdvice {
 
     public static class ModeInfo {
 
-        PredicateNameAndArity predicate;
+        final PredicateNameAndArity predicate;
 
-        List<Term> signature;
+        final List<Term> signature;
 
-        List<TypeSpec> specs;
+        final List<TypeSpec> specs;
 
-        RelevanceStrength strength;
+        final RelevanceStrength strength;
 
         double cost = Double.NaN;
 
@@ -419,9 +419,9 @@ public class ActiveAdvice {
 
     static class RelevanceInfo {
 
-        PredicateNameAndArity predicate;
+        final PredicateNameAndArity predicate;
 
-        RelevanceStrength strength;
+        final RelevanceStrength strength;
 
         RelevanceInfo(PredicateNameAndArity predicate, RelevanceStrength strength) {
             this.predicate = predicate;
@@ -433,7 +433,7 @@ public class ActiveAdvice {
 
         private Clause clause;
 
-        RelevanceStrength strength;
+        final RelevanceStrength strength;
 
         ClauseInfo(Clause clause, RelevanceStrength strength) {
             this.setClause(clause);
@@ -463,7 +463,7 @@ public class ActiveAdvice {
             return hash;
         }
 
-        public void setClause(Clause clause) {
+        void setClause(Clause clause) {
 			this.clause = clause;
 		}
 

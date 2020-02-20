@@ -18,8 +18,6 @@ import java.util.*;
 public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence> {
 	private static final int debugLevel = 0;
 
-	private boolean reportUnsimplifiedClauses = true;
-	
 	private InlineManager              inlineHandler       = null;
 
 	public void setInlineHandler(InlineManager inlineHandler) {
@@ -361,9 +359,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// TODO(@hayesall): Deleting this `unifier` object raises a warning that there may be side effects elsewhere.
-    private Unifier          unifier        = new Unifier();
-    private StringConstant[] constantsToUse = null; // These are used to replace variables when matching for pruning.
+	private StringConstant[] constantsToUse = null; // These are used to replace variables when matching for pruning.
     private BindingList      cachedBindingListForPruning; // Used if any pruning is being considered.
     private Clause           numberedBodyForPruning;      // Also used when pruning.
     
@@ -581,6 +577,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Supporting Clauses:\n\n"); }
 			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
+		boolean reportUnsimplifiedClauses = true;
 		if (!reportUnsimplifiedClauses) { return str.toString(); }
 		firstTime = true;
 		counter   = 1;

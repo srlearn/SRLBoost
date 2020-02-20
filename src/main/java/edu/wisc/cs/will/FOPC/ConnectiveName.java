@@ -3,7 +3,6 @@ package edu.wisc.cs.will.FOPC;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -103,7 +102,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 
     /* Substitutes the ConnectiveName with a SerializableConnectiveName while Serializing.
      */
-    private Object writeReplace() throws ObjectStreamException {
+    private Object writeReplace() {
         return new SerializableConnectiveName(name);
     }
     
@@ -151,7 +150,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
             this.stringHandler = fOPCInputStream.getStringHandler();
         }
 
-        public Object readResolve() throws ObjectStreamException {
+        public Object readResolve() {
             // Canonicalize the object via the string handler...
             return stringHandler.getConnectiveName(name);
         }

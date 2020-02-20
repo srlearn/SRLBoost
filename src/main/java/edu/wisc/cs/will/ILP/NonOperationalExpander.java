@@ -199,15 +199,6 @@ class NonOperationalExpander {
             existingExpansionsMap.put(fromNonOperational.getPredicateNameAndArity(), new ExistingExpansion(toOperational.getPredicateNameAndArity(), getFreeTermSet(toOperational)));
         }
 
-        public HornClauseContext getContext() {
-            if (parent != null) {
-                return parent.getContext();
-            }
-            else {
-                return context;
-            }
-        }
-
         private Set<TermAndIndex> getFreeTermSet(LiteralOrFunction literal) {
             Set<TermAndIndex> set = new HashSet<>();
 

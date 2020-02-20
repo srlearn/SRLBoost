@@ -29,13 +29,11 @@ public class DependencyExampleNode extends DependencyNode {
 		return example;
 	}
 
-	@Override
-	public String labelForDOT() {
+	private String labelForDOT() {
 		return example.toString();
 	}
 
-	@Override
-	public String colorForDOT() {
+	private String colorForDOT() {
 		switch(type) {
 		case QUERY: return "gray52";
 		case VARIABLIZED: return "gray62";

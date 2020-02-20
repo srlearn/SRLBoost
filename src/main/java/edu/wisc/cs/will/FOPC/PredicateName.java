@@ -6,7 +6,6 @@ import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -374,48 +373,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		if (typeDeSpeced == null) { typeDeSpeced = new HashSet<>(4); }
 		typeDeSpeced.add(arity);
 	}
-	
-	public void reportPossibleInstantiations() {
-		Utils.println(reportPossibleInstantiationsAsString());
-	}
-	private String reportPossibleInstantiationsAsString() {
-		StringBuilder result = new StringBuilder();
-		if (typeSpecList == null) {
-			result.append("  There are no possible instantiations of predicate '").append(name).append("'.\n");
-			return result.toString();
-		}
-		result.append("%  Possible instantiations of predicate '").append(name).append("':\n");
-		for (PredicateSpec args : getTypeList()) {
-			result.append("%    ").append(name).append(" sig=").append(args.getSignature()).append(" types=").append(args.getTypeSpecList()).append("\n");
-			result.append("%    ").append(name).append("(");
-			result.append(help_reportPossibleInstantiationsAsString(args.getSignature(), 0, args.getTypeSpecList()));
-			result.append(")\n");
-		}
-		return result.toString();
-	}
-
-	private String help_reportPossibleInstantiationsAsString(List<Term> arguments, int counter, List<TypeSpec> typeInfoList) {
-		StringBuilder result = new StringBuilder();
-		boolean firstTime = true;
-		if(arguments != null) for (Term term : arguments) {
-			if (firstTime) { firstTime = false; } else {
-				result.append(", "); }
-			if (term instanceof Constant) {
-				result.append(typeInfoList.get(counter).toString());
-				counter++;
-			} else if (Function.isaConsCell(term)) { // Probably won't have lists inside modes, but in case there ever is, handle them properly.
-				result.append(term.toString());
-				counter++;
-			} else if (term instanceof Function) {
-				Function f = (Function) term;
-				result.append(f.functionName).append("(");
-				result.append(help_reportPossibleInstantiationsAsString(f.getArguments(), counter, typeInfoList));
-				result.append(")");
-				counter += f.countLeaves();
-			} else { Utils.error("Can only handle constants and functions here: typeInfoList = " + typeInfoList + " and term = " + term + " in signature = " + arguments); }
-		}
-		return result.toString();
-	}
 
 	/**
 	 * This is used to say that this predicate/arity should appear at most max times in a learned rule.
@@ -760,7 +717,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
     /* Replaces the stream object with a cached one if available.
      *
      */
-    private Object readResolve() throws ObjectStreamException {
+    private Object readResolve() {
         return stringHandler.getPredicateName(this);
     }
 

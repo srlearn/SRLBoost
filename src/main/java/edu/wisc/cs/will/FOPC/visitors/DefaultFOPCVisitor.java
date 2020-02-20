@@ -26,7 +26,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
         this.buildSentence = buildSentence;
     }
 
-    public Sentence visitOtherSentence(Sentence otherSentence, Data data) {
+    public Sentence visitOtherSentence(Sentence otherSentence) {
         return !buildSentence ? null : otherSentence;
     } 
 

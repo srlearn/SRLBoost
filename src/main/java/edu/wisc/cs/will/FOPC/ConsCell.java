@@ -61,8 +61,7 @@ public class ConsCell extends Function implements Iterable<Term> {
     }
 
     // Needed for proper copying.  I.e., need a ConsCell and not a Function.
-    @Override
-    public Function getBareCopy() {
+    private Function getBareCopy() {
         if (this == stringHandler.getNil()) {
             return this;
         }
@@ -139,11 +138,11 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
     }
 
-    static <T extends Object> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items) {
+    static <T> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items) {
         return convertListToConsCell(stringHandler, items, null);
     }
 
-    private static <T extends Object> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items, TypeSpec typeSpec) {
+    private static <T> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items, TypeSpec typeSpec) {
         if (items == null) {
             return null;
         }
@@ -921,7 +920,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         return sb.toString();
     }
 
-    protected void appendToString(StringBuilder sb, int precedenceOfCaller, BindingList bindingList) {
+    private void appendToString(StringBuilder sb, int precedenceOfCaller, BindingList bindingList) {
         Term    term    = this;
         int     counter = 0; // Every N items, add a line feed.  TODO - have a flag to control this.
         boolean first   = true;

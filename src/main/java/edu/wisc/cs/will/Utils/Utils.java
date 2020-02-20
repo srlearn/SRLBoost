@@ -99,24 +99,21 @@ public class Utils {
      * the appropriate value through the setter.
      */
     public enum Verbosity {
-        Developer(true,true,true,true,true),  // Print everything and waitHeres wait, severeError cause a throw.
-        DeveloperNoWait(true,true,false,true,false),      // Print everything, waitHeres don't wait, severeError cause a throw.
-        High(false,true,false,true,false),
-        Medium(false,true,false,false,false),   // Print everything, waitHeres don't wait, severeError just print error
-        Low(false,false,false,false,false);     // Print nothing.
+        Developer(true,true,true,true),  // Print everything and waitHeres wait, severeError cause a throw.
+        // Print everything, waitHeres don't wait, severeError cause a throw.
+        Medium(false,true,false,false)   // Print everything, waitHeres don't wait, severeError just print error
+        ;
 
         boolean developmentRun;
         boolean print;
         boolean waitHere;
         boolean severeWarningThrowsError;
-        boolean extraVerbose;
 
-        Verbosity(boolean developmentRun, boolean print, boolean waitHere, boolean severeWarningThrowsError, boolean extraVerbose) {
+        Verbosity(boolean developmentRun, boolean print, boolean waitHere, boolean severeWarningThrowsError) {
             this.developmentRun = developmentRun;
             this.print    = print;
             this.waitHere = waitHere;
             this.severeWarningThrowsError = severeWarningThrowsError;
-            this.extraVerbose = extraVerbose;
         }
     }
 
@@ -1934,18 +1931,9 @@ public class Utils {
     private static boolean writeToGzippedFile(String fileNameRaw, String stringToWrite) throws IOException {
 		String       fileName = replaceWildCards(fileNameRaw);   
 		ensureDirExists(fileName);
-        BufferedWriter writer = null;
-        try { // Assume the caller knows that this file is big enough to warrant compression.
-        	writer = new BufferedWriter( new OutputStreamWriter(new CompressedOutputStream(fileName, true)));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new CompressedOutputStream(fileName, true)))) { // Assume the caller knows that this file is big enough to warrant compression.
 
             writer.append(stringToWrite);
-        }
-        finally {
-            try {
-                if (writer != null) {
-                    writer.close();
-                }
-            } catch (IOException ignored) { }
         }
         return true;
     }

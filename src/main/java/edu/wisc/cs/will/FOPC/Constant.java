@@ -35,7 +35,7 @@ public abstract class Constant extends Term {
     public Sentence asSentence() {
         return null;
     }
-	
+
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		return super.hashCode();
@@ -58,6 +58,5 @@ public abstract class Constant extends Term {
 	public int countVarOccurrencesInFOPC(Variable v) {
 		return 0;
 	}
-	
-	public abstract String getName();
+
 }

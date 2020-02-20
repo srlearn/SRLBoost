@@ -54,19 +54,6 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
     }
 
     @Override
-    public boolean isEquivalentUptoVariableRenaming(RelevantInformation info) {
-
-        boolean result = false;
-
-        if (info instanceof RelevantModeInformation) {
-            RelevantModeInformation that = (RelevantModeInformation) info;
-            result = this.mode.equals(that.mode);
-        }
-
-        return result;
-    }
-
-    @Override
     public RelevantModeInformation getGeneralizeRelevantInformation() {
         return this;
     }

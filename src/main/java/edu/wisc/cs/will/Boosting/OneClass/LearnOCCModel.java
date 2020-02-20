@@ -135,7 +135,7 @@ public class LearnOCCModel {
 			if (cmdArgs.useCheckPointing()) {
 				createCheckPointForModel(propModel, saveModelName);
 			}
-			List<FeatureVector> posFeatures = new ArrayList<FeatureVector>();
+			List<FeatureVector> posFeatures = new ArrayList<>();
 			for (RegressionRDNExample rex : newDataSet) {
 				if (rex.getOriginalValue() == 1) {
 					FeatureVector fvec = propModel.getFeatureVector(rex);

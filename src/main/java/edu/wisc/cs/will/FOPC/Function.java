@@ -166,11 +166,7 @@ public class Function extends Term implements LiteralOrFunction {
     public Function applyTheta(BindingList bindings) {
         return (Function) super.applyTheta(bindings);
     }
-	
-	// Need for proper copying (e.g., ConsCell reused applyTheta for Function).
-	public Function getBareCopy() {
-		return stringHandler.getFunction(functionName, arguments, argumentNames, typeSpec);
-	}
+
 	public Function getBareCopy(List<Term> newArguments) {
 		return stringHandler.getFunction(functionName, newArguments, argumentNames, typeSpec);
 	}
@@ -455,25 +451,7 @@ public class Function extends Term implements LiteralOrFunction {
 		return false;
 	}
 
-    protected void appendToString(StringBuilder sb, int precedenceOfCaller, BindingList bindingList) {
-        Term arg0 = getArgument(0);
-        sb.append( arg0.toString(precedenceOfCaller, bindingList) );
-        Term arg1 = getArgument(1);
-
-        // Be robust to ConsCell's masquerading as Function's.
-        boolean arg2isNil = (isaConsCell(arg1) && ((Function) arg1).numberArgs() == 0);
-        if (!arg2isNil) {
-            if (isaConsCell(arg1)) {
-                sb.append(", ");
-                ((Function) arg1).appendToString(sb, precedenceOfCaller, bindingList);
-            }
-            else {
-                sb.append(" | ").append(getArgument(1).toString(precedenceOfCaller, bindingList));
-            }
-        }
-    }
-
-    @Override
+	@Override
     public <Return,Data> Return accept(TermVisitor<Return,Data> visitor, Data data) {
         return visitor.visitFunction(this, data);
     }
@@ -498,11 +476,7 @@ public class Function extends Term implements LiteralOrFunction {
         return numberArgs();
     }
 
-    public Function asFunction() {
-        return this;
-    }
-
-    public FunctionName getFunctionName() {
+	public FunctionName getFunctionName() {
         return functionName;
     }
 

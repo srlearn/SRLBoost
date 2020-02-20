@@ -30,7 +30,7 @@ public class DependencyPredicateNode extends DependencyNode {
 		setPredicate(name);
 	}
 	
-	public String labelForDOT() {
+	private String labelForDOT() {
 		StringBuilder arglist = new StringBuilder();
 		if (predicate != null && predicate.getTypeList() != null) {
 			for (PredicateSpec spec : predicate.getTypeList()) {
@@ -46,7 +46,7 @@ public class DependencyPredicateNode extends DependencyNode {
 		return predicate.toString()  + "(" + arglist + ")" + (order == -1 ? "" : "[" + order + "]");
 	}
 	
-	public String colorForDOT() { 
+	private String colorForDOT() {
 		switch(type) {
 			case QUERY: return "gray52";
 			case HIDDEN: return "gray62";

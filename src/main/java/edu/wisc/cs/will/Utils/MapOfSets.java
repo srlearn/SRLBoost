@@ -199,7 +199,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
                 if ( currentSubIterator != null && currentSubIterator.hasNext()) {
                     next = currentSubIterator.next();
                 }
-                else if ( currentSubIterator == null || currentSubIterator.hasNext() == false) {
+                else if ( currentSubIterator == null || !currentSubIterator.hasNext()) {
                     if ( allKeysIterator != null && allKeysIterator.hasNext() ) {
                         currentSubIterator = getValues(allKeysIterator.next()).iterator();
                     }

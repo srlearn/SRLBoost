@@ -14,13 +14,9 @@ import java.util.List;
  */
 public interface LiteralOrFunction {
 
-    Function asFunction();
-
     Literal asLiteral();
 
     PredicateName getPredicateName();
-
-    FunctionName getFunctionName();
 
     int getArity();
 

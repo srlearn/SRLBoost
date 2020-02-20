@@ -21,7 +21,7 @@ public abstract class ChildrenNodeGenerator<T extends SearchNode> {
 
 	protected ChildrenNodeGenerator() {}
 
-    public ChildrenNodeGenerator(StateBasedSearchTask<T> task) {
+    protected ChildrenNodeGenerator(StateBasedSearchTask<T> task) {
 		this.task = task;
 	}
 

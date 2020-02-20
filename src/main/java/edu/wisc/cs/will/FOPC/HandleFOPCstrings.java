@@ -207,28 +207,28 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		}
 
 		// Initialize some parameters used in libraries.
-		recordSetParameter("relevance0", "POSSIBLE_ANSWER",   "built-in default", -1); // Probably a bad choice to number with LOWER being better ...
-		recordSetParameter("relevance1", "STRONGLY_RELEVANT", "built-in default", -1);
-		recordSetParameter("relevance2", "WEAKLY_RELEVANT",   "built-in default", -1);
-		recordSetParameter("relevance3", "NEUTRAL",           "built-in default", -1);
-		recordSetParameter("mixAndMatchAdviceLiterals", "WEAKLY_RELEVANT",    "built-in default", -1);
-		recordSetParameter("atOrAboveTargetArguments", "IRRELEVANT",          "built-in default", -1);
-		recordSetParameter("belowTargetArguments",     "WEAKLY_RELEVANT",     "built-in default", -1);
-		recordSetParameter("typeInRelevance2",         "ISA_OBSERVED_FEATURE","built-in default", -1);
-		recordSetParameter("typeInRelevance1",         "STRONGLY_RELEVANT",   "built-in default", -1);
-		recordSetParameter("typeInRelevance0",         "POSSIBLE_ANSWER",     "built-in default", -1);
-		recordSetParameter("typeInRelevance",          "POSSIBLE_ANSWER",     "built-in default", -1); // TODO - this is in some megatest files for IL; can deleted once those are updated.
-		recordSetParameter("modeMax1",     "1", "built-in default", -1);
-		recordSetParameter("modeMax2",     "2", "built-in default", -1);
-		recordSetParameter("modeMax3",     "3", "built-in default", -1);
-		recordSetParameter("modeMax4",     "4", "built-in default", -1);
-		recordSetParameter("modeMax5",     "5", "built-in default", -1);
-		recordSetParameter("modeMaxInf", "100", "built-in default", -1); // Currently (6/09) not used in the libraries, but that might change.
-		recordSetParameter("thresholdsMax1",     "10", "built-in default", -1);
-		recordSetParameter("thresholdsMax2",    "100", "built-in default", -1);
-		recordSetParameter("thresholdsMax3",   "1000", "built-in default", -1);
-		recordSetParameter("thresholdsMax4",  "10000", "built-in default", -1);
-		recordSetParameter("thresholdsMax5", "100000", "built-in default", -1);
+		recordSetParameter("relevance0", "POSSIBLE_ANSWER"); // Probably a bad choice to number with LOWER being better ...
+		recordSetParameter("relevance1", "STRONGLY_RELEVANT");
+		recordSetParameter("relevance2", "WEAKLY_RELEVANT");
+		recordSetParameter("relevance3", "NEUTRAL");
+		recordSetParameter("mixAndMatchAdviceLiterals", "WEAKLY_RELEVANT");
+		recordSetParameter("atOrAboveTargetArguments", "IRRELEVANT");
+		recordSetParameter("belowTargetArguments",     "WEAKLY_RELEVANT");
+		recordSetParameter("typeInRelevance2",         "ISA_OBSERVED_FEATURE");
+		recordSetParameter("typeInRelevance1",         "STRONGLY_RELEVANT");
+		recordSetParameter("typeInRelevance0",         "POSSIBLE_ANSWER");
+		recordSetParameter("typeInRelevance",          "POSSIBLE_ANSWER"); // TODO - this is in some megatest files for IL; can deleted once those are updated.
+		recordSetParameter("modeMax1",     "1");
+		recordSetParameter("modeMax2",     "2");
+		recordSetParameter("modeMax3",     "3");
+		recordSetParameter("modeMax4",     "4");
+		recordSetParameter("modeMax5",     "5");
+		recordSetParameter("modeMaxInf", "100"); // Currently (6/09) not used in the libraries, but that might change.
+		recordSetParameter("thresholdsMax1",     "10");
+		recordSetParameter("thresholdsMax2",    "100");
+		recordSetParameter("thresholdsMax3",   "1000");
+		recordSetParameter("thresholdsMax4",  "10000");
+		recordSetParameter("thresholdsMax5", "100000");
 		cleanFunctionAndPredicateNames = hold;
 
 		setVariableIndicator(null); // Wait for the first user file to set things, and keep that as the default.
@@ -1142,7 +1142,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	// These are used when a mode only specifies the type and doesn't also include any Terms.  E.g., 'mode: p(+human)'   instead of     'mode: p(+human:x)'
 	public Constant getAnonymousTerm(TypeSpec spec)  {
-		return new StringConstant(this, null, false, doVariablesStartWithQuestionMarks(), usingStdLogicNotation(), spec);
+		return new StringConstant(this, null, false, spec);
 	}
 
 	public Term getVariableOrConstant(TypeSpec spec, String name) {
@@ -1288,7 +1288,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 			return hashedValue;
 		}
 
-		StringConstant result = new StringConstant(this, name, !cleanString, doVariablesStartWithQuestionMarks(), usingStdLogicNotation(), spec); // Use the first name encountered.
+		StringConstant result = new StringConstant(this, name, !cleanString, spec); // Use the first name encountered.
 		stringConstantHash.put(stdName, result);
 		return result;
 	}
@@ -1735,7 +1735,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// So it may have more than one mode for target. This prevents the error check.
 	public boolean dontComplainIfMoreThanOneTargetModes = false;
 
-	public void recordSetParameter(String paramName, String paramValue, String fileName, int lineno) {
+	public void recordSetParameter(String paramName, String paramValue) {
 		hashOfSetParameters.put(paramName, new SetParamInfo(paramValue));
 	}
 	public String getParameterSetting(String paramName) {

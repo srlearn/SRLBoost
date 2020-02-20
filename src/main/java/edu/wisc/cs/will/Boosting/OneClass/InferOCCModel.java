@@ -100,7 +100,7 @@ class InferOCCModel {
 				// Reverse order so that we can delete it.
 				neg=0;
 				for (int i = jointExamples.get(target).size()-1; i>=0 ; i--) {
-					RegressionRDNExample rex = (RegressionRDNExample)(jointExamples.get(target).get(i));
+					RegressionRDNExample rex = jointExamples.get(target).get(i);
 					if (!rex.isOriginalTruthValue()) {
 						// Remove this example, as we are subsampling.
 						if (rand.nextDouble() >= sampleProb) {

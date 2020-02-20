@@ -6,23 +6,23 @@ import java.util.Map;
  * @author shavlik
  */
 public abstract class AllOfFOPC {
-	protected final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
+	final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	final static int defaultPrecedence = Integer.MIN_VALUE;  // This plays it safe and uses a lot of parentheses.
 	public          static boolean renameVariablesWhenPrinting = false;
-	static boolean truncateStrings             = true; // Prevent printing very long strings if true.
+	static final boolean truncateStrings             = true; // Prevent printing very long strings if true.
 	public          static boolean printUsingAlchemyNotation   = false;
  
     /*
 	 * This class is a superclass of all FOPC constructs.
 	 */
-	public AllOfFOPC() {
+	AllOfFOPC() {
 	}
 
 	public abstract AllOfFOPC applyTheta(Map<Variable,Term> bindings);
 	public abstract int       countVarOccurrencesInFOPC(Variable v);
 
-    public abstract String    toString(                             int precedenceOfCaller, BindingList bindingList);
-	public abstract String    toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList);
+    protected abstract String    toString(int precedenceOfCaller, BindingList bindingList);
+	protected abstract String    toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList);
 
 	public String toPrettyString() {
 		return toPrettyString("", defaultPrecedence); // Use some average value?
@@ -35,7 +35,7 @@ public abstract class AllOfFOPC {
 		return toString(defaultPrecedence); // Use some average value?
 	}
 
-    public String toString(BindingList bindingList) {
+    String toString(BindingList bindingList) {
         return toString(defaultPrecedence, bindingList);
     }
 
@@ -43,7 +43,7 @@ public abstract class AllOfFOPC {
         if ( renameVariablesWhenPrinting ) {
             return toString(precedenceOfCaller, new BindingList());
         }
-		return toString(precedenceOfCaller, (BindingList)null);
+		return toString(precedenceOfCaller, null);
     }
 
     public String toPrettyString(String newLineStarter, int precedenceOfCaller) {

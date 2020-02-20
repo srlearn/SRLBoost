@@ -384,7 +384,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return predicateName;
     }
 
-    public FunctionName getFunctionName() {
+    private FunctionName getFunctionName() {
         return getStringHandler().getFunctionName(predicateName.name);
     }
 

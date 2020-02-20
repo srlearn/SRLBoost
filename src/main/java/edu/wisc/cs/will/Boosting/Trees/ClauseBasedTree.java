@@ -18,7 +18,7 @@ import java.util.List;
 
 public class ClauseBasedTree  {
 
-	protected WILLSetup setup;
+	WILLSetup setup;
 	ArrayList<Clause> regressionClauses;
 	private ArrayList<Clause> suppClauses;
 	private boolean breakAfterFirstMatch;
@@ -84,7 +84,7 @@ public class ClauseBasedTree  {
 	 * @param ex - the example to evaluate
 	 * @return the regression value for this clause. Return a NaN if the example doesn't satisfy the clause.
 	 */
-	protected RegressionValueOrVector getRegressionClauseWt(Clause clause, Example ex) {
+	RegressionValueOrVector getRegressionClauseWt(Clause clause, Example ex) {
 	
 		// If the last argument is a constant
 		Literal head = clause.posLiterals.get(0);

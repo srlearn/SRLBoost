@@ -196,12 +196,6 @@ public class TreeStructuredTheory extends Theory {
 			Utils.error("Problem writing DOTFile: " + fname);
 		}
 	}
-	
-	private int inventedPredNameCounter = 0;
-
-	PredicateName getInventedPredName() {
-		return stringHandler.getPredicateName("inventedPred" + (inventedPredNameCounter++) + stringHandler.getInventedPredicateNameSuffix());
-	}
 
 	public Set<Literal> getUniqueFlattenedLiterals() {
 		return uniqueFlattenedLiterals;

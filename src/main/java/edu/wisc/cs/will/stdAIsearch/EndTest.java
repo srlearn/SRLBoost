@@ -12,7 +12,7 @@ public abstract class EndTest {
 	}
 
 	// Clear any state saved between searches using the same instance.
-	public abstract void clearAnySavedInformation(boolean insideIterativeDeepening);
+	public abstract void clearAnySavedInformation();
 
 	public abstract boolean endSearch(SearchNode currentNode);
 }

@@ -153,15 +153,6 @@ public class HornSearchNode extends SearchNode {
     }
 
     @Override
-    public void setParentNode(SearchNode parentNode) {
-        if (parentNode != null && !(parentNode instanceof HornSearchNode)) {
-            throw new IllegalArgumentException("parentNode must be a HornSearchNode");
-        }
-
-        super.setParentNode(parentNode);
-    }
-	
-    @Override
 	public String toString() {
         return (getParentNode() == null ? "" : "parent -> ") + clause.toString();
 	}

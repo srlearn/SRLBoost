@@ -1223,7 +1223,7 @@ public class FileParser {
 				tokenizer.pushBack(1);
 			}
 		case '>':
-			if (checkAndConsume('=')) { return String.valueOf((char) tokenRead + "="); }
+			if (checkAndConsume('=')) { return (char) tokenRead + "="; }
 			return String.valueOf((char) tokenRead);
 		case StreamTokenizer.TT_WORD:
 			String tokenString = tokenizer.sval();
@@ -1574,7 +1574,7 @@ public class FileParser {
 		if (debugLevel > 1) { Utils.println(""); }
 		for (Term term : bodyTerms) {
 			Clause newC = stringHandler.getClause(typedHeadLiteral, true);
-			newC.negLiterals = new ArrayList<Literal>(1);
+			newC.negLiterals = new ArrayList<>(1);
 			if        (Function.isaConsCell(term)) {
 				List<Term> innerTerms = ((ConsCell) term).convertConsCellToList();
 				for (Term inner : innerTerms) {
@@ -2113,7 +2113,7 @@ public class FileParser {
 	private void initializeSentencesToPrecompute() {
 		sentencesToPrecompute = (List<Sentence>[]) new List<?>[getNumberOfPrecomputeFiles()];
 		sentencesToPrecomputeFileNameToUse = new String[getNumberOfPrecomputeFiles()];
-		for (int i = 0; i < getNumberOfPrecomputeFiles(); i++) { sentencesToPrecompute[i] = new ArrayList<Sentence>(4); sentencesToPrecomputeFileNameToUse[i] = null; }
+		for (int i = 0; i < getNumberOfPrecomputeFiles(); i++) { sentencesToPrecompute[i] = new ArrayList<>(4); sentencesToPrecomputeFileNameToUse[i] = null; }
 	}
 
 	/*
@@ -2487,11 +2487,11 @@ public class FileParser {
 			}
 		}
 		if (Utils.getSizeSafely(newParser.literalsToThreshold) > 0) {
-			if (literalsToThreshold == null) { literalsToThreshold = new HashSet<LiteralToThreshold>(4 + newParser.literalsToThreshold.size()); }
+			if (literalsToThreshold == null) { literalsToThreshold = new HashSet<>(4 + newParser.literalsToThreshold.size()); }
 			literalsToThreshold.addAll(newParser.literalsToThreshold);
 		}
 		if (Utils.getSizeSafely(newParser.loadedLibraries) > 0) {
-			if (loadedLibraries == null) { loadedLibraries = new HashSet<String>(4 + newParser.loadedLibraries.size()); }
+			if (loadedLibraries == null) { loadedLibraries = new HashSet<>(4 + newParser.loadedLibraries.size()); }
 			if (!dontPrintUnlessImportant) { Utils.println(PARSER_VERBOSE_LIBRARY_LOADING, "% Importing '" + newFileName + "' also loaded these libraries: " + newParser.loadedLibraries); }
 			loadedLibraries.addAll(newParser.loadedLibraries);
 		}
@@ -2510,13 +2510,13 @@ public class FileParser {
 		double resultAsNumber = processNumber(tokenRead);
 		if (Utils.isaNumber(resultAsNumber)) {
 			if (Math.floor(resultAsNumber) == resultAsNumber) { // See if really an integer.
-				stringHandler.recordSetParameter(parameterName, Integer.toString((int) resultAsNumber), fileName, tokenizer.lineno());
+				stringHandler.recordSetParameter(parameterName, Integer.toString((int) resultAsNumber));
 			} else {
-				stringHandler.recordSetParameter(parameterName, Double.toString(       resultAsNumber), fileName, tokenizer.lineno());
+				stringHandler.recordSetParameter(parameterName, Double.toString(       resultAsNumber));
 			}
 		} else {
 			String parameterValue = getPossiblyQuotedString(tokenRead);
-			stringHandler.recordSetParameter(parameterName, parameterValue, fileName, tokenizer.lineno());
+			stringHandler.recordSetParameter(parameterName, parameterValue);
 
 			// Handle parser strings here.
 			if        (parameterName.equalsIgnoreCase("parsingWithNamedArguments")) {
@@ -2632,7 +2632,7 @@ public class FileParser {
 
     	if (debugLevel > 0) { Utils.println("Read the type specification: " + typeName + " = " + constants); }
 		if (containsDotDotDot) {
-			List<Constant> expandedConstants = new ArrayList<Constant>(2 * constants.size());
+			List<Constant> expandedConstants = new ArrayList<>(2 * constants.size());
 			int previous = Integer.MIN_VALUE;
 			int size     = constants.size();
 			for (int i = 0; i < size; i++) {
@@ -2641,7 +2641,7 @@ public class FileParser {
 					previous = ((NumericConstant) c).value.intValue();
 					expandedConstants.add(c); // Duplicates are checked elsewhere - don't want to drop them here since that might mess up the use of '...' - e.g., "1, 2, 10, 15, ... 10".
 				}
-				else if (c instanceof StringConstant && ((StringConstant) c).equals(stringHandler.getStringConstant("..."))) { // getName().equalsIgnoreCase("...")) {
+				else if (c instanceof StringConstant && c.equals(stringHandler.getStringConstant("..."))) { // getName().equalsIgnoreCase("...")) {
 					if (i == size - 1) { throw new ParsingException("The '...' in a range must be followed by a number."); }
 					Constant nextConstant = constants.get(i + 1);
 					if (!(nextConstant instanceof NumericConstant))  { throw new ParsingException("The '...' in a range must be followed by an integer.  You provided: '" + nextConstant + "'."); }

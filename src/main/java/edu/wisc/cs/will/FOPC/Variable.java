@@ -4,7 +4,6 @@ import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -149,10 +148,6 @@ public class Variable extends Term {
         return null;
     }
 
-    @Override
-    public int hashCode() { // Need to have equal objects produce the same hash code.
-        return super.hashCode();
-    }
     // Are these two variables equals?  Must be the same instance by construction.  Note: this is more strict than asking if two variables unify.
 
     @Override
@@ -283,7 +278,7 @@ public class Variable extends Term {
     }
 
     public String toString(int precedenceOfCaller) {
-        return toString(precedenceOfCaller, (BindingList)null);
+        return toString(precedenceOfCaller, null);
     }
 
     @Override
@@ -353,7 +348,7 @@ public class Variable extends Term {
 
     /* Replace with the cached version from stringHandler.
      */
-    private Object readResolve() throws ObjectStreamException {
+    private Object readResolve() {
     	if (isaGeneratedVariable()) {
     		return stringHandler.getGeneratedVariable(typeSpec, getNameToUse(getName()), false);
     	}

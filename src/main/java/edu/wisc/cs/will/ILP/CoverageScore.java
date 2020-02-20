@@ -61,10 +61,10 @@ public class CoverageScore implements Serializable {
 
         sb.append(String.format("%% %" + ((21 + 3 * columnWidth) / 2) + "s\n", "Actual"));
         sb.append(String.format("%% %9s%" + columnWidth + "s%" + columnWidth + "s%" + columnWidth + "s\n", "", "Pos", "Neg", "Total"));
-        sb.append(String.format("%% %9s%" + columnWidth + (nonInteger ? ".2" : ".0") + "f%" + columnWidth + (nonInteger ? ".2" : ".0") +
-                "f%" + columnWidth + (nonInteger ? ".2" : ".0") + "f\n", "Model Pos", truePositives, falsePositives, truePositives + falsePositives));
-        sb.append(String.format("%% %9s%" + columnWidth + (nonInteger ? ".2" : ".0") + "f%" + columnWidth + (nonInteger ? ".2" : ".0") +
-                "f%" + columnWidth + (nonInteger ? ".2" : ".0") + "f\n", "Neg", falseNegatives, trueNegatives, falseNegatives + trueNegatives));
+        final String format = "%% %9s%" + columnWidth + (nonInteger ? ".2" : ".0") + "f%" + columnWidth + (nonInteger ? ".2" : ".0") +
+                "f%" + columnWidth + (nonInteger ? ".2" : ".0") + "f\n";
+        sb.append(String.format(format, "Model Pos", truePositives, falsePositives, truePositives + falsePositives));
+        sb.append(String.format(format, "Neg", falseNegatives, trueNegatives, falseNegatives + trueNegatives));
         sb.append(String.format("%% %9s%" + columnWidth + (nonInteger ? ".2" : ".0") + "f%" + columnWidth + (nonInteger ? ".2" : ".0") +
                 "f\n", "Total", truePositives + falseNegatives, falsePositives + trueNegatives));
 

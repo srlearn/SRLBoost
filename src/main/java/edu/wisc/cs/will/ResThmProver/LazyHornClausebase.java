@@ -81,40 +81,12 @@ public class LazyHornClausebase implements HornClausebase {
     }
 
     @Override
-    public void assertBackgroundKnowledge(Collection<? extends Sentence> sentences) {
-        for (Sentence sentence : sentences) {
-            if (sentence instanceof DefiniteClause) {
-                DefiniteClause definiteClause = (DefiniteClause) sentence;
-                assertBackgroundKnowledge(definiteClause);
-            }
-            else {
-                List<Clause> clauses = sentence.convertToClausalForm();
-                if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
-                    throw new IllegalArgumentException("Sentence '" + sentence + "' is not a definite clause.");
-                }
-                assertBackgroundKnowledge(clauses.get(0));
-            }
-        }
-    }
-
-    @Override
     public void assertFact(Literal literal) {
         if (checkFact(literal)) {
             if ( DEBUG >= 2 ) Utils.println("% [ LazyHornClausebase ]  Asserting fact " + literal + ".");
             assertions.add(literal.getPredicateNameAndArity(), literal);
             indexerForAllAssertions.indexAssertion(literal);
             fireAssertion(literal);
-        }
-    }
-
-    @Override
-    public void assertFacts(Collection<? extends Sentence> sentences) {
-        for (Sentence sentence : sentences) {
-            List<Clause> clauses = sentence.convertToClausalForm();
-            if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
-                throw new IllegalArgumentException("Sentence '" + sentence + "' is not a definite clause fact.");
-            }
-            assertFact(clauses.get(0).getDefiniteClauseFactAsLiteral());
         }
     }
 
@@ -148,7 +120,7 @@ public class LazyHornClausebase implements HornClausebase {
         }
     }
 
-    public void removeClause(DefiniteClause clauseToRemove) {
+    private void removeClause(DefiniteClause clauseToRemove) {
         PredicateNameAndArity pnaa = clauseToRemove.getDefiniteClauseHead().getPredicateNameAndArity();
         assertions.removeValue(pnaa, clauseToRemove);
         removeFromIndexes(clauseToRemove);
@@ -320,8 +292,7 @@ public class LazyHornClausebase implements HornClausebase {
         return list == null ? null : list.getFactIterable();
     }
 
-    @Override
-    public boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity) {
+    private boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity) {
         return assertions.containsKey( new PredicateNameAndArity(predName, arity));
     }
 

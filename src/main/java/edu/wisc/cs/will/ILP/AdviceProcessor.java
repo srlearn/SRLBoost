@@ -18,18 +18,18 @@ import java.util.Map.Entry;
  */
 public class AdviceProcessor {
 
-    public static int debugLevel = 0;
+    public static final int debugLevel = 0;
 
     /* Original Relevance statements, prior to generalization.
      *
      * This list contains the original relevance statements prior to generalization.
      * groundedRelevance is a bit of a misnomer, since the relevance may contain variables.
      */
-    private List<RelevantClauseInformation> relevantClauses = new ArrayList<>();
+    private final List<RelevantClauseInformation> relevantClauses = new ArrayList<>();
 
-    private List<RelevantFeatureInformation> relevantFeatures = new ArrayList<>();
+    private final List<RelevantFeatureInformation> relevantFeatures = new ArrayList<>();
 
-    private List<RelevantModeInformation> relevantModes = new ArrayList<>();
+    private final List<RelevantModeInformation> relevantModes = new ArrayList<>();
 
     private final HornClauseContext context;
 

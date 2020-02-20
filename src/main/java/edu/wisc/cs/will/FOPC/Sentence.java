@@ -319,7 +319,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
     }
 
     public <Return,Data> Return accept(SentenceVisitor<Return,Data> visitor, Data data) {
-        return visitor.visitOtherSentence(this, data);
+        return visitor.visitOtherSentence(this);
     }
 
 	/*

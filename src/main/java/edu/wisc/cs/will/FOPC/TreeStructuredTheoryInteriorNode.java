@@ -154,7 +154,6 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 		}
 		
 		int           numbNewLits = Utils.getSizeSafely(newLits);
-		PredicateName newPredName = (numbNewLits > 1 || clausesFalse != null ? treeTheory.getInventedPredName() : null);
 
 		assert newLits != null;
 		Literal           newHead = newLits.get(0);

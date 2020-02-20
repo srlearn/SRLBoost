@@ -455,8 +455,6 @@ public class ConditionalModelPerPredicate implements Serializable {
 		if (old_head == null) {
 			Utils.error("Null old_head");
 		}
-
-		assert old_head != null;
 		if (old_head.getArguments() == null) {
 			Utils.error("Null arguments");
 		}

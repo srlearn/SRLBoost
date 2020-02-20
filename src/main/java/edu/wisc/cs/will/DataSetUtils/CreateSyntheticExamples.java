@@ -281,7 +281,7 @@ public class CreateSyntheticExamples {
 	
 	private static Set<Term> getConstantsOfThisTypeInThisWorldState(HandleFOPCstrings stringHandler, ArgSpec spec, WorldState worldState, Iterable<Literal> facts, Set<PredicateNameAndArity> factPredicates) {
 		Type type = spec.typeSpec.isaType;
-		Set<Term> results = new HashSet<Term>(4);		
+		Set<Term> results = new HashSet<>(4);
 		
 		if (debugLevel > 0) { Utils.println("%    Collect constants of spec '" + spec + "' in world state '" + worldState + "'."); }
 		if (spec.typeSpec.mustBeThisValue()) { 
