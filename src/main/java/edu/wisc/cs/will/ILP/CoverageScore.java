@@ -16,7 +16,6 @@ public class CoverageScore implements Serializable {
     private final double falseNegativeMEstimate = 0;
     private final double truePositiveMEstimate  = 0;
     private final double falsePositiveMEstimate = 0;
-    private final double trueNegativeMEstimate  = 0;
 
     /* Creates a new instance of CoverageScore */
     public CoverageScore() {
@@ -38,6 +37,7 @@ public class CoverageScore implements Serializable {
     }
 
     private double getAccuracy() {
+        double trueNegativeMEstimate = 0;
         return Utils.getAccuracy(truePositives + truePositiveMEstimate, falsePositives + falsePositiveMEstimate, trueNegatives + trueNegativeMEstimate, falseNegatives + falseNegativeMEstimate);
     }
 
@@ -45,7 +45,7 @@ public class CoverageScore implements Serializable {
         return Utils.getF1(truePositives + truePositiveMEstimate, falsePositives + falsePositiveMEstimate, falseNegatives + falseNegativeMEstimate);
     }
 
-    String toLongString() {
+    private String toLongString() {
         StringBuilder sb = new StringBuilder();
 
         double maxValue = Utils.max(trueNegatives, truePositives, falseNegatives, falsePositives);
@@ -67,22 +67,6 @@ public class CoverageScore implements Serializable {
         sb.append(String.format(format, "Neg", falseNegatives, trueNegatives, falseNegatives + trueNegatives));
         sb.append(String.format("%% %9s%" + columnWidth + (nonInteger ? ".2" : ".0") + "f%" + columnWidth + (nonInteger ? ".2" : ".0") +
                 "f\n", "Total", truePositives + falseNegatives, falsePositives + trueNegatives));
-
-        if (falseNegativeMEstimate != 0 || truePositiveMEstimate != 0 || falsePositiveMEstimate != 0 || trueNegativeMEstimate != 0) {
-            sb.append("\n");
-            if (truePositiveMEstimate != 0) {
-                sb.append(String.format("%% True  Pos mEst  = %.4f\n", truePositiveMEstimate));
-            }
-            if (falsePositiveMEstimate != 0) {
-                sb.append(String.format("%% False Pos mEst  = %.4f\n", falsePositiveMEstimate));
-            }
-            if (trueNegativeMEstimate != 0) {
-                sb.append(String.format("%% True  Neg mEst  = %.4f\n", trueNegativeMEstimate));
-            }
-            if (falseNegativeMEstimate != 0) {
-                sb.append(String.format("%% False Neg mEst  = %.4f\n", falseNegativeMEstimate));
-            }
-        }
 
         sb.append("\n");
 

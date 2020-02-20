@@ -130,12 +130,8 @@ public class ConditionalModelPerPredicate implements Serializable {
 
 				RegressionValueOrVector thisValue = tree[i].getRegressionValue(ex);
 				thisValue.multiply(stepLength.get(counter));
-				
-				if (sum_grad == null) {
-					sum_grad = thisValue;
-				} else {
-					sum_grad.addValueOrVector(thisValue);
-				}
+
+				sum_grad = thisValue;
 			}
 			sum_grad.multiply(1/RunBoostedRDN.numbModelsToMake);
 			total_sum_grad.addValueOrVector(sum_grad);

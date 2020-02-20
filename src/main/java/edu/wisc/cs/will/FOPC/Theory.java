@@ -569,16 +569,15 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		int counter = 1;
 		for (Clause clause : clauses) {	
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter, null)).append(" // Clause #").append(counter++).append(".\n\n");
 		}
 		firstTime = true;
 		counter   = 1;
 		if (Utils.getSizeSafely(supportClauses) > 0) for (Clause clause : supportClauses) {	
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Supporting Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter, null)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
 		boolean reportUnsimplifiedClauses = true;
-		if (!reportUnsimplifiedClauses) { return str.toString(); }
 		firstTime = true;
 		counter   = 1;
 		boolean haveSimplified = somethingSimplified && (Utils.getSizeSafely(unsimplifiedClauses) +  Utils.getSizeSafely(unsimplifiedSupportClauses) > 0);
@@ -586,13 +585,13 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		else { return str.toString(); }
 		if (Utils.getSizeSafely(unsimplifiedClauses) > 0) for (Clause clause : unsimplifiedClauses) {
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Unsimplified Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter, null)).append(" // Clause #").append(counter++).append(".\n\n");
 		}	
 		firstTime = true;
 		counter   = 1;	
 		if (Utils.getSizeSafely(unsimplifiedSupportClauses) > 0) for (Clause clause : unsimplifiedSupportClauses) {	
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Unsimplified Supporting Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter, null)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
 		str.append("\n*/");
 		return str.toString();

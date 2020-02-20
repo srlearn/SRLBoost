@@ -57,11 +57,11 @@ public class BoostingUtils {
 	}
 
 	public static String getLabelForCurrentModel() {
-		return RunBoostedRDN.nameOfCurrentModel == null ? "" : "_" + RunBoostedRDN.nameOfCurrentModel;
+		return "";
 	}
 
 	public static String getLabelForResultsFileMarker() {
-		return RunBoostedRDN.resultsFileMarker  == null ? "" : "_" + RunBoostedRDN.resultsFileMarker;
+		return "";
 	}
 
 	public static String getModelFile(CommandLineArguments cmdArgs, String target, boolean includeExtension) {

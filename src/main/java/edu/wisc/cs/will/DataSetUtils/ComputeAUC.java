@@ -61,8 +61,7 @@ public class ComputeAUC {
 		
 		this.minRecallForPR = minRecallForPR;
 		// USE command line argument aucJarPath to provide a different jarLocation.
-		String defaultAUCjarLocation = "auc.jar";
-		String jarLocation = defaultAUCjarLocation;
+		String jarLocation = "auc.jar";
 		if (aucJarLocation != null) {
 			jarLocation = aucJarLocation + "/auc.jar";
 		}

@@ -133,42 +133,40 @@ public class AdviceProcessor {
         List<Clause> singlePieceClauses = generateActiveAdviceForRCIs(activeAdvice, generalizedPerPieceMap, "single_piece_advice", relevanceStrength, RelevanceStrength.STRONGLY_RELEVANT, RelevanceStrength.STRONGLY_RELEVANT_NEG);
         allClauses.addAll(singlePieceClauses);
 
-        if (debugLevel >= -1) {
-            if (allClauses.isEmpty()) {
-                Utils.print("% [AdviceProcessor]  Generated 0 clauses at relevance level " + relevanceStrength + ".");
-                Utils.print("\n");
-            }
-            else {
-                Utils.print("% [AdviceProcessor]  Generated " + allClauses.size() + " clause(s) at relevance level " + relevanceStrength + ":\n");
+        if (allClauses.isEmpty()) {
+            Utils.print("% [AdviceProcessor]  Generated 0 clauses at relevance level " + relevanceStrength + ".");
+            Utils.print("\n");
+        }
+        else {
+            Utils.print("% [AdviceProcessor]  Generated " + allClauses.size() + " clause(s) at relevance level " + relevanceStrength + ":\n");
 
-                boolean first = true;
-                for (Clause clause : allClauses) {
-                    if (!first) {
-                        Utils.print("\n");
+            boolean first = true;
+            for (Clause clause : allClauses) {
+                if (!first) {
+                    Utils.print("\n");
+                }
+                first = false;
+
+                RelevanceStrength strongestStrength = RelevanceStrength.getWeakestRelevanceStrength();
+                for (ModeInfo modeInfo : activeAdvice.getModeInfo(clause.getDefiniteClauseHead().getPredicateNameAndArity())) {
+                    RelevanceStrength rs = modeInfo.strength;
+                    if (rs.isStronger(strongestStrength)) {
+                        strongestStrength = rs;
                     }
-                    first = false;
-
-                    RelevanceStrength strongestStrength = RelevanceStrength.getWeakestRelevanceStrength();
-                    for (ModeInfo modeInfo : activeAdvice.getModeInfo(clause.getDefiniteClauseHead().getPredicateNameAndArity())) {
-                        RelevanceStrength rs = modeInfo.strength;
-                        if (rs.isStronger(strongestStrength)) {
-                            strongestStrength = rs;
-                        }
-                    }
-
-                    PrettyPrinterOptions ppo = new PrettyPrinterOptions();
-                    ppo.setMaximumLiteralsPerLine(1);
-                    ppo.setSentenceTerminator("");
-                    ppo.setMaximumIndentationAfterImplication(10);
-                    ppo.setNewLineAfterImplication(true);
-
-                    String s = PrettyPrinter.print(clause, "% [AdviceProcessor]   ", ppo);
-
-                    Utils.print(s + "  " + strongestStrength);
                 }
 
-                Utils.print("\n\n");
+                PrettyPrinterOptions ppo = new PrettyPrinterOptions();
+                ppo.setMaximumLiteralsPerLine(1);
+                ppo.setSentenceTerminator("");
+                ppo.setMaximumIndentationAfterImplication(10);
+                ppo.setNewLineAfterImplication(true);
+
+                String s = PrettyPrinter.print(clause, "% [AdviceProcessor]   ", ppo);
+
+                Utils.print(s + "  " + strongestStrength);
             }
+
+            Utils.print("\n\n");
         }
 
     }
@@ -1069,7 +1067,7 @@ public class AdviceProcessor {
         }
 
         @Override
-        public void clauseRetracted(HornClausebase context, DefiniteClause clause) {
+        public void clauseRetracted() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }

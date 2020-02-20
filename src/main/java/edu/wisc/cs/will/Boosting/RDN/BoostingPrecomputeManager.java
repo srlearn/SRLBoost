@@ -35,8 +35,8 @@ class BoostingPrecomputeManager {
 				String precomputeFileNameToUse = "recomputed" + Utils.defaultFileExtensionWithPeriod;
 
 				// The method below will check if the precompute file already exists, and if so, will simply return unless overwritten.
-				precomputer.processPrecomputeSpecifications(true,
-						setup.getContext().getClausebase(),
+				precomputer.processPrecomputeSpecifications(
+                        setup.getContext().getClausebase(),
 						precomputeThese, precomputeFileNameToUse);
 				addToFacts(precomputeFileNameToUse); // Load the precomputed file.
 			}

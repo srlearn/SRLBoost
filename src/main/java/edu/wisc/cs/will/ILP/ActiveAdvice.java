@@ -181,13 +181,9 @@ public class ActiveAdvice {
         if (ap.isInliningEnabled()) {
             body = Inliner.getInlinedSentence(body, ap.getContext());
         }
-        //rci.toString();
-
         if (ap.isRemoveDuplicateDeterminatesEnabled()) {
             body = DuplicateDeterminateRemover.removeDuplicates(body);
         }
-
-        MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<>();
 
         List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body);
 

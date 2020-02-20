@@ -32,22 +32,12 @@ public class Precompute {
     private Set<String> checked;
 
     public Precompute() {}
-    
-    private boolean precomputeFileAlreadyExists(String fileName) {
-    	return (new CondorFile(fileName)).exists() || (new CondorFile(fileName + ".gz")).exists();
-    }
 
-    public void processPrecomputeSpecifications(boolean overwritePrecomputeFileIfExists, HornClausebase clausebase, List<Sentence> sentencesToPrecompute, String fileName) {
-        List<Literal> results = null;
+    public void processPrecomputeSpecifications(HornClausebase clausebase, List<Sentence> sentencesToPrecompute, String fileName) {
         if (sentencesToPrecompute != null) {
-            File file = new CondorFile(fileName);
-            if (!alwaysRecreatePrecomputeFiles && !overwritePrecomputeFileIfExists && precomputeFileAlreadyExists(fileName)) {
-                // The caller should take care of this (and this check can be turned off at the caller).
-            }
-            else {
-                MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute = convertPrecomputeSpecificationToDefiniteClauseMap(sentencesToPrecompute);
-                results = createPrecomputedFile(clausesToPrecompute, clausebase, fileName);
-            }
+            new CondorFile(fileName);
+            MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute = convertPrecomputeSpecificationToDefiniteClauseMap(sentencesToPrecompute);
+            createPrecomputedFile(clausesToPrecompute, clausebase, fileName);
         }
     }
 

@@ -199,7 +199,7 @@ public class InferBoostedRDN {
 					}
 				}
 			}
-			double f1 = getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount, usingAllEgs);
+			getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount, usingAllEgs);
 		}
 	}
 
@@ -679,10 +679,10 @@ public class InferBoostedRDN {
 		// Will collect the 'context' around a fact.  Turn off until we think this is needed.  It is a slow calculation.
 
 		// PredicateModes pmodes = new PredicateModes(setup.getInnerLooper());
-		List<PredicateNameAndArity> pars = setup.getListOfPredicateAritiesForNeighboringFacts();
+		setup.getListOfPredicateAritiesForNeighboringFacts();
 
 		// Should be set somewhere else
-		List<Boolean> bit_mask = setup.getBitMaskForNeighboringFactArguments(target);
+		setup.getBitMaskForNeighboringFactArguments(target);
 
 		// Write all examples to a query.db file
 		// Results/Probs to results.db

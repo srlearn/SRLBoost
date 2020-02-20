@@ -99,9 +99,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
         }
 
         // Make sure we are working on the same fold...
-        if ( this.currentFold != otherState.currentFold ) {
-            throw new IncongruentSavedStateException("Current fold does not match. Expected = " + otherState.currentFold + ".  Found = " + this.currentFold);
-        }
 
         // Search Strategy
         if ( this.RRR != otherState.RRR ) {
@@ -203,7 +200,7 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     }
 
     int[] getPosSeedIndicesToUse() {
-        return posSeedIndicesToUse;
+        return null;
     }
 
     Theory getStdILPtheory() {
@@ -276,8 +273,7 @@ public class ILPouterLoopState implements Serializable, Cloneable {
 
     boolean isFlipFlopPosAndNegExamples() {
         // BUGGY? Can be used to flip-flop the positive and negative examples before training.
-        boolean flipFlopPosAndNegExamples = false;
-        return flipFlopPosAndNegExamples;
+        return false;
     }
 
     Set<Example> getNegExamplesUsedAsSeeds() {

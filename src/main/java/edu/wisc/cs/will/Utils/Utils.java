@@ -592,26 +592,6 @@ public class Utils {
         	compressFile(dribbleFileName);
         }
 
-        if (dribbleStream2 != null) {
-            dribbleStream2.close();
-        	compressFile(dribbleFileName2);
-        }
-
-        if (debugStream != null) {
-        	debugStream.close();
-        	compressFile(debugFileName);
-        }
-
-        if (warningStream != null) {
-        	warningStream.close();
-        	compressFile(warningFileName);
-        }
-
-        if (warningShadowStream != null) {
-        	warningShadowStream.close();
-        	compressFile(warningShadowFileName);
-        }
-
         System.exit(0);
     }
 
@@ -769,8 +749,6 @@ public class Utils {
     private  static final String warningShadowFileName = null;
 
     private static void warning_println(String str) {
-		if (warningStream       != null) { warningStream.println(str);       }
-		if (warningShadowStream != null) { warningShadowStream.println(str); }
     }
 
     /*
@@ -1352,7 +1330,7 @@ public class Utils {
 		String result = (hadQuotesOriginally ? str : changeMarkedCharsToUnderscores(str.trim()));
 		if (!hadQuotesOriginally && result != null && result.length() > 0 && result.charAt(0) == '_') {
 			// waitHere("Starts with underscore: '" + str + "' -> '" + result + "'.");
-			if (stringHandler.usingStdLogicNotation()) {
+			if (Objects.requireNonNull(stringHandler).usingStdLogicNotation()) {
 				result = "U" + result;
 			} else {
 				result = "u" + result;  // Leading underscores have special semantics, so don't let them survive cleaning.
@@ -1663,7 +1641,7 @@ public class Utils {
 
 		if (result) {
 			// Set the system property as well (canonicalize if already set)
-			System.setProperty(DEVELOPER_MACHINE_PROPERTY_KEY, Boolean.toString(result));
+			System.setProperty(DEVELOPER_MACHINE_PROPERTY_KEY, Boolean.toString(true));
 		}
 		return result;
     }

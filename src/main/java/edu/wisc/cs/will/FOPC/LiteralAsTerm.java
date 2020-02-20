@@ -37,7 +37,7 @@ public class LiteralAsTerm extends Term {
     @Override
 	public Term copy(boolean recursiveCopy) {
 		if (recursiveCopy) { 
-			Literal newLit = itemBeingWrapped.copy(recursiveCopy);
+			Literal newLit = itemBeingWrapped.copy(true);
 			return stringHandler.getLiteralAsTerm(newLit);
 		}
 		return stringHandler.getLiteralAsTerm(itemBeingWrapped);

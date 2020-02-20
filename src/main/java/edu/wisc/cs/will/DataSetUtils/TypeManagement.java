@@ -159,7 +159,7 @@ public class TypeManagement {
                 Type thisType = argTypes.get(counter);
                 if (thisType == null) {
                     if (args.size() > 1) {
-                        Utils.println(fact + " thisType = " + thisType);
+                        Utils.println(fact + " thisType = " + null);
                     }
                     counter++; // I added this Nov 2010 since it seems to be needed, though didn't run into any specific bug.
                     continue;  // This argument is a specific constant and not a type, so no type inference possible.

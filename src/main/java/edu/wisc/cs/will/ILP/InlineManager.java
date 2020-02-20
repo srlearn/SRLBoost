@@ -128,12 +128,8 @@ public class InlineManager {
 		for (Clause c2 : results) {
 			if (debugLevel > 3) { Utils.println("\n% Refactored clause: "); getStringHandler().reportVarsInFOPC(c2); }
 			Clause newClause = (Clause) getStringHandler().renameAllVariables(c2);
-			if (clausesVisited.alreadyInClosedList(getStringHandler(),newClause) != null) {
-
-			} else {
-				newResults.add(newClause);
-				clausesVisited.addClauseToClosed(getStringHandler(),newClause); // OK to add the 'main clause' here, since it would be odd to have the same clause as a main and supporting clause.
-			}
+			newResults.add(newClause);
+			clausesVisited.addClauseToClosed(getStringHandler(),newClause); // OK to add the 'main clause' here, since it would be odd to have the same clause as a main and supporting clause.
 			if (debugLevel > 1) { 
 				Utils.println("\n% OUT " + c2.toString(Integer.MAX_VALUE));
 				getStringHandler().reportVarsInFOPC(c);

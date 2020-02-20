@@ -836,15 +836,9 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (!allTheseArgsAppearinBody(getRequiredVariablesInBody()))    { return false; }
 		// TODO need a better design here. 
 		int counter = 0;
-		if (thisTask.requiredBodyPredicatesForAcceptableClauses != null) for (Literal lit : thisTask.requiredBodyPredicatesForAcceptableClauses) {
-			if (containsThisPredicate(lit.predicateName, lit.numberArgs())) {
-				counter++;
-			} // TODO - could speed up this code by seeing if impossible to meet the MIN specification, but probably not worth adding the extra code.
-			if (counter > thisTask.maxRequiredBodyPredicates) { return false; } // Too many found (should then TURN OFF this search path, but that is not yet implemented - TODO).
-		}
-		boolean accept = (counter >= thisTask.minRequiredBodyPredicates && counter <=  thisTask.maxRequiredBodyPredicates);
+		boolean accept = true;
 		if (LearnOneClause.debugLevel > 0 && !accept) {  Utils.println("%  Unacceptable rule because # of literals (" + counter + ") is not in [" + thisTask.minRequiredBodyPredicates+ ", " + thisTask.maxRequiredBodyPredicates + "].\n%    " + this); } 
-		return accept;
+		return true;
 	}
 	
 	private Collection<Variable> getRequiredVariablesInBody() {
@@ -1008,8 +1002,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		LearnOneClause  theILPtask = (LearnOneClause) task;
 		
 		if (!theILPtask.constantsAtLeaves) { Utils.error("Have not yet implemented constantsAtLeaves = false."); }
-		if ( theILPtask.normToUse != 2)    { Utils.error("Have not yet implemented normToUse = " + theILPtask.normToUse + "."); }
-		if (this.timedOut) { 
+		if (this.timedOut) {
 			Utils.println("Giving INF score for " + this.getClause() +
 					" as it timed out. The examples on true and false branch are incorrect.");
 			return Double.POSITIVE_INFINITY;  

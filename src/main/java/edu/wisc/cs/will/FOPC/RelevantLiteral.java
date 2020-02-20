@@ -54,10 +54,7 @@ public class RelevantLiteral {
         if (this.arity != other.arity) {
             return false;
         }
-        if (this.argument != other.argument) {
-            return false;
-        }
-		return this.strength == other.strength;
+        return this.strength == other.strength;
 	}
 
     @Override

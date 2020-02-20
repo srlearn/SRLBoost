@@ -80,13 +80,6 @@ public class DefaultHornClausebase implements HornClausebase {
 
         setupDataStructures();
 
-        if (null != null) {
-            assertBackgroundKnowledge((Collection<? extends Sentence>) null);
-        }
-
-        if (null != null) {
-            assertFacts(null);
-        }
     }
 
     /* Initializes the clausebase.
@@ -631,7 +624,7 @@ public class DefaultHornClausebase implements HornClausebase {
             List<AssertRetractListener> list = listenerMap.get(pnaa);
             if (list != null) {
                 for (AssertRetractListener assertRetractListener : list) {
-                    assertRetractListener.clauseRetracted(this, clause);
+                    assertRetractListener.clauseRetracted();
                 }
             }
         }
@@ -677,7 +670,7 @@ public class DefaultHornClausebase implements HornClausebase {
             }
         }
 
-        public void clauseRetracted(HornClausebase context, DefiniteClause clause) {
+        public void clauseRetracted() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }

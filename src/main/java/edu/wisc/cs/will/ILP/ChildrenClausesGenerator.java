@@ -108,7 +108,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				counter++;
 				// For tree-structured tasks, at least always complete the root.  TODO - maybe we allow a MULTIPLIER (eg, 10x) on the time limit when a ROOT of a tree-structured task? 
 				if ( (parentBodyLen > 0 || !thisTask.isaTreeStructuredTask() || ((Gleaner) thisTask.searchMonitor).bestNode != null) && // Need to have found something acceptable before stopping.
-						!thisTask.isThereTimeLeft()) { 
+						thisTask.isThereNotTimeLeft()) {
 					Utils.printlnErr("% No time left, so abandoning ILP-node generation:\n  " + thisTask.explainTimeLeft()); thisTask.open.clear(); return null; 
 				}
 				int              arity = Utils.getSizeSafely(specs.getSignature());				

@@ -23,7 +23,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     public ScoringFunction scorer;
 
-    public ChildrenNodeGenerator<T> childrenGenerator;
+    public ChildrenNodeGenerator childrenGenerator;
 
     public Initializer initializer;
 
@@ -167,15 +167,17 @@ public class StateBasedSearchTask<T extends SearchNode> {
         this.childrenGenerator = childrenGenerator;
         this.closed            = closed;
 
+        assert initializer != null;
         initializer.setSearchTask(this);
         if (terminator != null) { terminator.setSearchTask(); } // It isn't required there be a terminator (eg, max nodes might terminate the search).
         searchMonitor.setSearchTask(this);
         strategy.setSearchTask(this);
         if (scorer != null) { scorer.setSearchTask(); } // It isn't required that there be a node-scorer.
+        assert childrenGenerator != null;
         childrenGenerator.setSearchTask(this);
         if (closed != null) { closed.setSearchTask(); } // It isn't required that there be a closed list.
 
-        if (open == null) { open = new OpenList(this); }
+        if (open == null) { open = new OpenList<>(this); }
     }
     
     /*
@@ -243,7 +245,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
                 closed.emptyClosedList();
             } // Should we allow closed lists to persist across multiple iterations?  Generally won't want to do so.  Hence another boolean would be needed.
             if (open == null) {
-                open = new OpenList(this);
+                open = new OpenList<>(this);
             }
             initializer.initializeOpen(open); // Do this AFTER clearing CLOSED.
             initialized = true;
@@ -298,7 +300,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
             return result;
         }
 		if (open == null) {
-		    open = new OpenList(this);
+		    open = new OpenList<>(this);
 		    initializer.initializeOpen(open);
 		} // Do this here so that 'verbosity' can be set before OPEN is created.
 
@@ -341,10 +343,10 @@ public class StateBasedSearchTask<T extends SearchNode> {
         return search();
     }
     
-    public boolean isThereTimeLeft() {
-    	if (maximumClockTimePerIterationInMillisec == Long.MAX_VALUE) { return true; }
+    public boolean isThereNotTimeLeft() {
+    	if (maximumClockTimePerIterationInMillisec == Long.MAX_VALUE) { return false; }
 
-        return (System.currentTimeMillis() - iterationStartTimeInMillisec < maximumClockTimePerIterationInMillisec);
+        return (System.currentTimeMillis() - iterationStartTimeInMillisec >= maximumClockTimePerIterationInMillisec);
     }
     
     public String explainTimeLeft() {
@@ -390,7 +392,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
                 searchMonitor.searchEndedByMaxNodesConsidered(nodesConsidered);
             }
 
-            if (!isThereTimeLeft()) {
+            if (isThereNotTimeLeft()) {
                 done = true;
                 if (countOfWarnings++ < maxWarnings) {
                     long currentTime = System.currentTimeMillis();
@@ -454,7 +456,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
                     }
                 }
                 
-                if (verbosity > 2) { Utils.println("  task=" + taskName + "  |open| = " + open.size() + "  done=" + done + " continueTheSearch=" + continueTheSearch); }
+                if (verbosity > 2) { Utils.println("  task=" + taskName + "  |open| = " + open.size() + "  done=" + " continueTheSearch=" + continueTheSearch); }
 
                 if (open.isEmpty()) {
                     done = true;
@@ -464,7 +466,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
             if (done && !redoable) {
             	open.clear(); // Even if we worried about getting the next solution (see TAW notes below), ok to clear here since we hit limits (which prevent spending time on more solutions).
             	if (closed != null) { closed.emptyClosedList(); } // Ditto.
-            	if (verbosity > 2) { Utils.println("  task=" + taskName + ";  |open| = " + open.size() + ";  done=" + done + "; continueTheSearch=" + continueTheSearch + "."); } // "; node = " + lastNodeVisited); }
+            	if (verbosity > 2) { Utils.println("  task=" + taskName + ";  |open| = " + open.size() + ";  done=" + "; continueTheSearch=" + continueTheSearch + "."); } // "; node = " + lastNodeVisited); }
             } 
         }
         return searchMonitor.getSearchResult();

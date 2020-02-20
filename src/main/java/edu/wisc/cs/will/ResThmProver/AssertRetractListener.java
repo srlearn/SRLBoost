@@ -7,5 +7,5 @@ import edu.wisc.cs.will.FOPC.DefiniteClause;
  */
 public interface AssertRetractListener {
     void clauseAsserted(HornClausebase context, DefiniteClause clause);
-    void clauseRetracted(HornClausebase context, DefiniteClause clause);
+    void clauseRetracted();
 }

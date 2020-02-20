@@ -12,8 +12,6 @@ import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -243,7 +241,7 @@ public class FileParser {
 
 	// The parser can create additional predicates, by negating relevance statements it receives. This is used as the prefix for such predicate names.
 	// It is made static for each access w/o a parser instance and made final to cannot be changed if multiple WILLs are active.
-	public static final String will_notPred_prefix  = "wiNOT_";
+	private static final String will_notPred_prefix  = "wiNOT_";
 
 	private              int maxWarnings  = 100; // This can be reset via 'setParameter maxWarnings = 10'
 	private              int warningCount =   0;
@@ -268,22 +266,6 @@ public class FileParser {
 		this.stringHandler = stringHandler;
 		this.dontPrintUnlessImportant               = dontPrintUnlessImportant;
 		this.stringHandler.dontPrintUnlessImportant = dontPrintUnlessImportant;
-	}
-	public FileParser(HandleFOPCstrings stringHandler, String workingDir) {
-		this(stringHandler);
-
-        if ( workingDir != null ) {
-            File dir = new CondorFile(workingDir);
-            if ( dir.exists() && !dir.isDirectory()) {
-                try {
-                    workingDir = dir.getCanonicalFile().getParent();
-                } catch (IOException ex) {
-                    Logger.getLogger(FileParser.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-
-		directoryName      = workingDir;
 	}
 
 	public List<Sentence> getSentencesToPrecompute(int index) {
@@ -447,7 +429,7 @@ public class FileParser {
 	// If a file exists, add the default Utils.defaultFileExtensionWithPeriod extension.
 	private File getFileWithPossibleExtension(String fileNameRaw) throws IOException {
 		if (fileNameRaw == null) { Utils.error("Should not call with a NULL file name."); }
-		String fileName = fileNameRaw.trim();
+		String fileName = Objects.requireNonNull(fileNameRaw).trim();
 		File f = new CondorFile(fileName);
         if (!f.exists()) {
         	f = new CondorFile(fileName + Utils.defaultFileExtensionWithPeriod);
@@ -1320,7 +1302,7 @@ public class FileParser {
 		int tokenRead = getNextToken();
 		if (tokenRead == '[') {
 			tokenizer.pushBack();
-			processRelevantAND(headLit, listOfSentences, false);
+			processRelevantAND(null, listOfSentences, false);
 			return;
 		}
 		tokenRead = checkForPredicateNamesThatAreCharacters(tokenRead);
@@ -1517,7 +1499,7 @@ public class FileParser {
 		}
 		if (autoNegate) {
 			Literal nottypedHeadLiteral = createNegatedVersion(typedHeadLiteral);
-			processRelevantNOT(listOfSentences, nottypedHeadLiteral, typedHeadLiteral, strength.getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); // Prevent infinite loops.
+			processRelevantNOT(listOfSentences, nottypedHeadLiteral, typedHeadLiteral, Objects.requireNonNull(strength).getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); // Prevent infinite loops.
 		}
 	}
 
@@ -1612,7 +1594,7 @@ public class FileParser {
 		}
 		if (autoNegate) {
 			Literal notTypedHeadLiteral = createNegatedVersion(typedHeadLiteral);
-			processRelevantNOT(listOfSentences, notTypedHeadLiteral, typedHeadLiteral, strength.getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); // Prevent infinite loops.
+			processRelevantNOT(listOfSentences, notTypedHeadLiteral, typedHeadLiteral, Objects.requireNonNull(strength).getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); // Prevent infinite loops.
 		}
 	}
 
@@ -1881,11 +1863,10 @@ public class FileParser {
 
         RelevanceStrength strength = readRelevanceStrength();
 
-        int maxModes = 3;
-        if ( checkAndConsumeToken(",") ) {
+		if ( checkAndConsumeToken(",") ) {
             if ( checkAndConsumeToken("max")) {
                 expectAndConsumeToken("=");
-                maxModes = readInteger();
+				readInteger();
             }
         }
 
@@ -1930,7 +1911,7 @@ public class FileParser {
             return false;
         }
 
-        int tokenRead = getNextToken();
+		getNextToken();
         String currentWord = tokenizer.reportCurrentToken();
 
         if (currentWord.equals(tokenToEval)) {
@@ -1952,7 +1933,7 @@ public class FileParser {
             return false;
         }
 
-        int tokenRead = getNextToken();
+		getNextToken();
         String currentWord = tokenizer.reportCurrentToken();
         tokenizer.pushBack();
 
@@ -1970,7 +1951,7 @@ public class FileParser {
 
 			if ( atEOL()  ) throw new ParsingException("Unexpected end of file.  Expected '" + tokenToEval + "'." );
 
-			int tokenRead = getNextToken();
+			getNextToken();
 			String currentWord = tokenizer.reportCurrentToken();
 
 			if (!tokenToEval.startsWith(currentWord)) {
@@ -2225,7 +2206,6 @@ public class FileParser {
 			String setting  = stringHandler.getParameterSetting(wordRead);
 			if (setting     == null) { throw new ParsingException(" Read '@" + wordRead + "', but '" + wordRead + "' has not been set."); }
 			Double setToDouble = Double.parseDouble(setting);
-			if (setToDouble == null) { throw new ParsingException(" Read '@" + wordRead + "', but '" + wordRead + "' has been set to '" + setting + "', rather than a number."); }
 			return setToDouble;
 		} else if (tokenRead == '-')  { // Have a minus sign.
 			negate    = -1;
@@ -2394,7 +2374,7 @@ public class FileParser {
 			
 			if (newFileName.charAt(0) == '@') { newFileName = stringHandler.getParameterSetting(newFileName.substring(1)); }
 			newFileName = Utils.replaceWildCards(
-					       newFileName.replace("IMPORT_VAR1", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar1)));
+					       Objects.requireNonNull(newFileName).replace("IMPORT_VAR1", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar1)));
 			newFileName =  newFileName.replace("IMPORT_VAR2", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar2));
 			newFileName =  newFileName.replace("IMPORT_VAR3", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar3));
 			newFileName =  newFileName.replace("FACTS",       Utils.removeAnyOuterQuotes(stringHandler.FACTS));
@@ -2482,7 +2462,7 @@ public class FileParser {
 					String newName = newParser.getFileNameForSentencesToPrecompute(i);
 					Utils.println("  loadThisFile: i=" + i + " newName=" + newName + " sents=" + sents);
 					if (newName == null) { Utils.waitHere(" newName = null"); }
-					setFileNameForSentencesToPrecompute(i, newName, newName.startsWith("precomputed"));
+					setFileNameForSentencesToPrecompute(i, newName, Objects.requireNonNull(newName).startsWith("precomputed"));
 				}
 			}
 		}
@@ -2522,7 +2502,7 @@ public class FileParser {
 			if        (parameterName.equalsIgnoreCase("parsingWithNamedArguments")) {
 
 				// Indicates parsing IL ("interlingua") for the BL (Bootstrap Learning) project.
-				boolean parsingWithNamedArguments = Boolean.parseBoolean(parameterValue);
+				Boolean.parseBoolean(parameterValue);
 
 			} else if (parameterName.equalsIgnoreCase("maxWarnings")) {
 				maxWarnings               = Integer.parseInt(parameterValue);
@@ -2957,7 +2937,6 @@ public class FileParser {
 			tokenRead   = getNextToken();
 			currentWord = tokenizer.reportCurrentToken();
 
-
 			if (tokenRead == ',' || atEOL()) {
 
 			}
@@ -3033,7 +3012,7 @@ public class FileParser {
 			String wordRead = tokenizer.sval();
 			String setting  = stringHandler.getParameterSetting(wordRead);
 			if (setting      == null) { Utils.error(" Read '@" + wordRead + "', but '" + wordRead + "' has not been set."); }
-			return Integer.parseInt(setting);
+			return Integer.parseInt(Objects.requireNonNull(setting));
 		}
 		if (tokenRead != StreamTokenizer.TT_WORD || !isAllDigits(tokenizer.sval())) {
 			String lastItem = reportLastItemRead();
@@ -3557,7 +3536,7 @@ public class FileParser {
 				TermAsLiteral renamedHead =  (TermAsLiteral) clause.posLiterals.get(0);
 				if (renamedHead == null) { Utils.error("Renamed head = null in " + implicitImplication + " and " + clause); }
 
-				Term termForFindall2 = renamedHead.term; // Need to get this so variable renaming is consistent.
+				Term termForFindall2 = Objects.requireNonNull(renamedHead).term; // Need to get this so variable renaming is consistent.
 				if (!clause.isDefiniteClause()) { throw new ParsingException("The body of a findAll(), etc. needs to be a conjunction ('and') of literals.  You provided: " + sentenceForFindAll); }
 				clause.posLiterals = null; // No need to keep the "implictHeadForFindAll" around.  The resolution theorem prover "knows" it is implicitly there.
 				arguments = new ArrayList<>(  3);
@@ -3646,7 +3625,7 @@ public class FileParser {
 			case ']': // Can "pop" the stack.
 				if (closeWithRightParen) { throw new ParsingException("Expecting a ')', but read: '" + reportLastItemRead() + "'."); }
 				if (leftParensCount == 1) { return stringHandler.getNil(); }
-				return processList(argumentsMustBeTyped, (leftParensCount - 1), closeWithRightParen);
+				return processList(argumentsMustBeTyped, (leftParensCount - 1), false);
 		    default:
 				try { // Read the first term.
 					Term  first = processRestOfTerm(tokenRead, argumentsMustBeTyped);
@@ -3693,7 +3672,7 @@ public class FileParser {
 			case ']':
 				if (closeWithRightParen) { throw new ParsingException("Expecting a ')', but read: '" + reportLastItemRead() + "'."); }
 				if (leftParensCount == 1) { return stringHandler.getNil(); }
-				return processInsideConsCell(argumentsMustBeTyped, (leftParensCount - 1), closeWithRightParen);
+				return processInsideConsCell(argumentsMustBeTyped, (leftParensCount - 1), false);
 			default: throw new ParsingException("Processing inside a list and expecting a '|', ',' or ']', but read: '" + reportLastItemRead() + "'.");
 		}
 	}

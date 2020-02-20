@@ -367,7 +367,7 @@ public class Clause extends Sentence implements DefiniteClause {
     private Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables, boolean skipNegLiterals) {
 		List<Variable>  result = null;
 		
-		if (!false && posLiterals != null) for (Literal lit : posLiterals) {
+		if (posLiterals != null) for (Literal lit : posLiterals) {
 			Collection<Variable> temp = lit.collectFreeVariables(boundVariables);
 			
 			if (temp != null) for (Variable var : temp) if (result == null || !result.contains(var)) {

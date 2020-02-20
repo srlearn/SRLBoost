@@ -181,7 +181,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	
 	private int countOfWarningsForInliners = 0; // Turn off reporting at the first 100.
 	Clause handleInlinersIfPossible(Clause cRaw) {
-		if (cRaw == null) { return cRaw; }
+		if (cRaw == null) { return null; }
 		Clause c = (Clause) stringHandler.renameAllVariables(cRaw);
 		if (ilpOuterLooper == null || ilpOuterLooper.innerLoopTask == null) { return c; }
 		List<Clause> clauses = ilpOuterLooper.innerLoopTask.getInlineManager().handleInlinerAndSupportingClauses(c);
@@ -333,7 +333,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 									+ " - learned after " + Utils.comma(saved.nodeCountWhenSaved) + " total and " + Utils.comma(saved.acceptableNodeCountWhenSaved) + " acceptable nodes.  Node score = " + saved.score + "\n"
 									+ saved.ruleAsString
 									+ (saved.annotation != null ? " // " + saved.annotation : "") + "\n"); // TODO - should call handleInlinersIfPossible when the instance is made, but the wasted time shouldn't matter too much.
-							if (reportUptoThisManyFalseNegatives > 0 &&  saved.recall >= reportFalseNegativesIfRecallAtLeastThisHigh) {
+							if (saved.recall >= reportFalseNegativesIfRecallAtLeastThisHigh) {
 								Set<Example> uncovered = saved.uncoveredPos;
 								if (uncovered != null) for (Example ex : uncovered) {
 									Term   annotationTerm = ex.getAnnotationTerm();
@@ -341,7 +341,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 									str2.append("      /* FALSE NEG: ").append(annotationStr.replace("::", "\n                     ")).append(" */\n");
 								}
 							}
-							if (reportUptoThisManyFalsePositives > 0 && saved.precision >= reportFalsePositivesIfPrecisionAtLeastThisHigh) {
+							if (saved.precision >= reportFalsePositivesIfPrecisionAtLeastThisHigh) {
 								Set<Example> covered =  saved.uncoveredNeg;
 								if (covered != null) for (Example ex : covered) {
 									Term   annotationTerm = ex.getAnnotationTerm();
@@ -455,7 +455,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 							buffer.append(saved.annotation);
 							buffer.append("</annotation>");
 						} 
-						if (reportUptoThisManyFalseNegatives > 0 && saved.recall >= reportFalseNegativesIfRecallAtLeastThisHigh) {
+						if (saved.recall >= reportFalseNegativesIfRecallAtLeastThisHigh) {
 							Set<Example> uncovered = saved.uncoveredPos;
 							
 							if (uncovered != null) {
@@ -483,7 +483,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 								buffer.append("</falseNegatives>");
 							}
 						}
-						if (reportUptoThisManyFalsePositives > 0 && saved.precision >= reportFalsePositivesIfPrecisionAtLeastThisHigh) {
+						if (saved.precision >= reportFalsePositivesIfPrecisionAtLeastThisHigh) {
 							Set<Example> covered = saved.uncoveredNeg;
 		
 							if (covered != null) {

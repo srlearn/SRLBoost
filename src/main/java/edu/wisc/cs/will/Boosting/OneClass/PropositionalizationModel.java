@@ -181,11 +181,6 @@ public class PropositionalizationModel {
 			
 		
 		// Also reload the constants
-		if (constList != null) {
-			ConstantLookupList newConstList = new MultiClassExampleHandler.ConstantLookupList();
-			newConstList.load(setup, constList.toString());
-			setup.getMulticlassHandler().updateConstantList(predicate, newConstList);
-		}
 	}
 
 

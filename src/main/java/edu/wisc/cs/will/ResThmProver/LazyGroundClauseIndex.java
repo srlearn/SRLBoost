@@ -98,38 +98,36 @@ public class LazyGroundClauseIndex {
         if (definiteClausesAllArgsIndex.containsKey(key)) {
             Literal headLiteral = definiteClause.getDefiniteClauseHead();
 
-            if (definiteClausesAllArgsIndex != null) {
-                Map<List<Term>, DefiniteClauseList> mapForKey = definiteClausesAllArgsIndex.get(key);
-                if (mapForKey != null) {
+            Map<List<Term>, DefiniteClauseList> mapForKey = definiteClausesAllArgsIndex.get(key);
+            if (mapForKey != null) {
 
-                    if (headLiteral.isGrounded()) {
-                        DefiniteClauseList definiteClauseList = mapForKey.get(headLiteral.getArguments());
+                if (headLiteral.isGrounded()) {
+                    DefiniteClauseList definiteClauseList = mapForKey.get(headLiteral.getArguments());
 
-                        if (definiteClauseList != null) {
-                            definiteClauseList.remove(definiteClause);
-                        }
-
-                        assert definiteClauseList != null;
-                        if (definiteClauseList.isEmpty()) {
-                            mapForKey.remove(headLiteral.getArguments());
-                        }
+                    if (definiteClauseList != null) {
+                        definiteClauseList.remove(definiteClause);
                     }
-                    else {
-                        // This is an non-ground literal, so we just need to throw into all of the appropriate
-                        // places was well as the seed list.
-                        for (DefiniteClauseList list : mapForKey.values()) {
-                            list.remove(definiteClause);
-                        }
 
-                        removeDefiniteClausesSeedDefiniteClause(key, definiteClause);
+                    assert definiteClauseList != null;
+                    if (definiteClauseList.isEmpty()) {
+                        mapForKey.remove(headLiteral.getArguments());
                     }
+                }
+                else {
+                    // This is an non-ground literal, so we just need to throw into all of the appropriate
+                    // places was well as the seed list.
+                    for (DefiniteClauseList list : mapForKey.values()) {
+                        list.remove(definiteClause);
+                    }
+
+                    removeDefiniteClausesSeedDefiniteClause(key, definiteClause);
                 }
             }
         }
     }
 
     DefiniteClauseList lookupDefiniteClauses(Literal lookupLiteral) {
-        if (definiteClausesAllArgsIndex != null && lookupLiteral != null && lookupLiteral.isGrounded()) {
+        if (lookupLiteral != null && lookupLiteral.isGrounded()) {
             PredicateNameAndArity key = lookupLiteral.getPredicateNameAndArity();
             Map<List<Term>, DefiniteClauseList> mapForKey = definiteClausesAllArgsIndex.get(key);
 

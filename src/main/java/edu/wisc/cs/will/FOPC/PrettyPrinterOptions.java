@@ -35,7 +35,6 @@ public class PrettyPrinterOptions {
 
     int getMaximumLiteralsPerLine() {
         if ( maximumLiteralsPerLine != -1 ) return maximumLiteralsPerLine;
-        if ( maximumTermsPerLine != -1 ) return maximumTermsPerLine;
         return -1;
     }
 

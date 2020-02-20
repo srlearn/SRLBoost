@@ -1134,9 +1134,6 @@ public final class WILLSetup {
 					disableFactBase && !allowRecursion) {
 					System.currentTimeMillis();
 					for (Example eg : posEg.get(target)) {
-						if (!disableFactBase) {
-							addedToFactBase.remove(eg);
-						}
 						removeFact(eg);
 					}
 					System.currentTimeMillis();
@@ -1385,8 +1382,6 @@ public final class WILLSetup {
 		}
 		if (cmdArgs.isLearnMLN()) {
 			getOuterLooper().setLearnMLNTheory(true);
-		}
-		if (cmdArgs.isUseProbabilityWeights()) {
 		}
 
 		// Since WILL focuses on seeds to filter out candidate clauses, we need a good number here because some seeds will go on the "false" branch.  Want to have enough so that on average can find the maximally acceptable skew for the true/false branches.  Or maybe OK to miss these to save time by having a smaller set of seeds?

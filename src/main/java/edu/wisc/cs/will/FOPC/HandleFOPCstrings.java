@@ -118,10 +118,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	final Constant  trueIndicator;
 	final Constant falseIndicator;
 	public final Literal   trueLiteral;
-	public final Literal falseLiteral;
 	public final Literal cutLiteral;
 	public final Clause    trueClause;
-	public final Clause falseClause;
 
 	// Invented predicates should have the following suffix.
 	// This is useful if one is creating multiple theories, one can reset this for every theory
@@ -197,10 +195,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		trueIndicator       = this.getStringConstant("true");
 		falseIndicator      = this.getStringConstant("false");
 		trueLiteral         = this.getLiteral(standardPredicateNames.trueName);
-		falseLiteral        = this.getLiteral(standardPredicateNames.falseName);
+		Literal falseLiteral = this.getLiteral(standardPredicateNames.falseName);
 		cutLiteral          = this.getLiteral(standardPredicateNames.cut);
 		trueClause          = this.getClause(trueLiteral,  true);
-		falseClause         = this.getClause(falseLiteral, false);
+		Clause falseClause = this.getClause(falseLiteral, false);
 		precedenceTableForOperators   = new HashMap<>( 8);
 		precedenceTableForConnectives = new HashMap<>(24);
 		initPrecedences(precedenceTableForOperators, precedenceTableForConnectives);
@@ -358,7 +356,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// TODO - note that useStdLogicNotation still impacts how FOPC sentences are printed even if variablesStartWithQuestionMarks=true.  NEED TO CLEAN UP.
 	private final Boolean answerTo_printUsingStdLogicNotation = null; // CAN SET THIS TO OVERRIDE.
 	boolean printUsingStdLogicNotation() {
-		if (answerTo_printUsingStdLogicNotation != null) { return answerTo_printUsingStdLogicNotation; }
 		return usingStdLogicNotation();
 	}
 
@@ -470,21 +467,16 @@ public final class HandleFOPCstrings implements CallbackRegister {
         
         ConsCell tail = null;
 
-        if ( items == null || items.isEmpty() ) {
-
+		for (Term term : items) {
+			ConsCell newCell = getConsCell(term, null);
+			if ( head == null) {
+				head = newCell;
+			}
+			else {
+				tail.setCdr(newCell);
+			}
+			tail = newCell;
 		}
-        else {
-            for (Term term : items) {
-                ConsCell newCell = getConsCell(term, null);
-                if ( head == null) {
-                    head = newCell;
-                }
-                else {
-                    tail.setCdr(newCell);
-                }
-                tail = newCell;
-            }
-        }
 
         return head;
     }
@@ -1766,10 +1758,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
     }
 
 	UserDefinedLiteral getUserDefinedLiteral(PredicateName pName, int arity) {
-    	if (userAddedProcDefinedPredicates == null) { return null; }
-    	Map<Integer,UserDefinedLiteral> lookup1 = userAddedProcDefinedPredicates.get(pName);
-		if (lookup1 == null) { return null; }
-		return lookup1.get(arity);
+		return null;
 	}
 
 	public boolean haveLoadedThisFile(String fileName, boolean recordLoaded) {

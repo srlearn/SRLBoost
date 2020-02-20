@@ -649,7 +649,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 				File f = new File(precomputeFileNameToUse);
 				Utils.println("Writing to file: " + f.getAbsolutePath());
 				/* Actually do the precomputes, writing precompute facts out to file*/
-				precomputer.processPrecomputeSpecifications(overwritePrecomputeFileIfExists, getContext().getClausebase(), precomputeThese, precomputeFileNameToUse);
+				precomputer.processPrecomputeSpecifications(getContext().getClausebase(), precomputeThese, precomputeFileNameToUse);
 				Utils.println("% Loading: " + precomputeFileNameToUse);
 				addToFacts(precomputeFileNameToUse); // Load the precomputed file.
 			}
@@ -1973,7 +1973,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	boolean isRelevanceEnabled() {
 		// When null or false, relevance is disabled.
 		Boolean relevanceEnabled = true;
-		return relevanceEnabled == null ? false : relevanceEnabled;
+		return true;
     }
 
 	AdviceProcessor getAdviceProcessor() {

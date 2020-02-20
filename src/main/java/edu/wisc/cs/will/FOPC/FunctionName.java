@@ -31,8 +31,7 @@ public class FunctionName extends AllOfFOPC {
 	}
 
 	List<String> getNamedArgOrdering(int arity) {
-		if (namedArgumentOrdering == null) { return null; }
-		return namedArgumentOrdering.get(arity);
+		return null;
 	}
 
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {

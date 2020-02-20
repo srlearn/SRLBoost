@@ -556,8 +556,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 
 	List<String> getNamedArgOrdering(int arity) {
-		if (namedArgumentOrdering == null) { return null; }
-		return namedArgumentOrdering.get(arity);
+		return null;
 	}
 	
 	public void addInliner(int arity) {
