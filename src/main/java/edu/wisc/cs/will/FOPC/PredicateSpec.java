@@ -17,11 +17,11 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
 	private PredicateSpec() {		
 	}
 
-	protected PredicateSpec(List<Term> signature, List<TypeSpec> typeSpecList, PredicateName owner, boolean isaILPmode) {
+	protected PredicateSpec(List<Term> signature, List<TypeSpec> typeSpecList, PredicateName owner) {
 		this.signature    = signature;
 		this.typeSpecList = typeSpecList;
 		this.owner        = owner;
-		this.isaILPmode   = isaILPmode;
+		this.isaILPmode   = true;
 	}
 	
 	// Create a copy, but without all the type specifications.

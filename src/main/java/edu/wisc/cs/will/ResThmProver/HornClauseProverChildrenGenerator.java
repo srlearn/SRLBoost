@@ -201,7 +201,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             result = collectChildrenActual(hornSearchNode);
 
             if (result != null && (getTask().getTraceLevel() >= 2 || isSpyLiteral(literalBeingExpanded))) {
-                result.add(new FailedTraceNode(getTask(), literalBeingExpanded, null, hornSearchNode.parentProofCounter, hornSearchNode.parentExpansionIndex));
+                result.add(new FailedTraceNode(getTask(), literalBeingExpanded, hornSearchNode.parentProofCounter, hornSearchNode.parentExpansionIndex));
             }
             
             maxOpen = Math.max(getTask().open.size(), maxOpen);
@@ -1333,8 +1333,8 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         final Literal failedLiteral;
 
-        FailedTraceNode(HornClauseProver task, Literal failedLiteral, BindingList bindings, long parentProofCounter, int parentExpansionIndex) {
-            super(task, null, bindings, parentProofCounter, parentExpansionIndex);
+        FailedTraceNode(HornClauseProver task, Literal failedLiteral, long parentProofCounter, int parentExpansionIndex) {
+            super(task, null, null, parentProofCounter, parentExpansionIndex);
             this.failedLiteral = failedLiteral;
         }
 

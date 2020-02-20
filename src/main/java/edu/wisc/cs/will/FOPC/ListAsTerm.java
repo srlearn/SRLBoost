@@ -19,10 +19,10 @@ public class ListAsTerm extends Term {
 	/*
 	 * This is a way to wrap a list of anything as an argument to an FOPC function.
 	 */
-	protected ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects) {
+	ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects) {
 		this(stringHandler, objects, true);
 	}
-	protected ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects, boolean processItemsInList) {
+	private ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects, boolean processItemsInList) {
 		this.stringHandler       = stringHandler;
 		this.objects            = objects;
 		this.processItemsInList = processItemsInList;

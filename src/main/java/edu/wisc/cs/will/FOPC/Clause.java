@@ -361,13 +361,13 @@ public class Clause extends Sentence implements DefiniteClause {
 
     @Override
 	public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
-    	return collectFreeVariables(boundVariables, false, false);
+    	return collectFreeVariables(boundVariables, false);
     }
 
-    private Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables, boolean skipPosLiterals, boolean skipNegLiterals) {
+    private Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables, boolean skipNegLiterals) {
 		List<Variable>  result = null;
 		
-		if (!skipPosLiterals && posLiterals != null) for (Literal lit : posLiterals) {
+		if (!false && posLiterals != null) for (Literal lit : posLiterals) {
 			Collection<Variable> temp = lit.collectFreeVariables(boundVariables);
 			
 			if (temp != null) for (Variable var : temp) if (result == null || !result.contains(var)) {

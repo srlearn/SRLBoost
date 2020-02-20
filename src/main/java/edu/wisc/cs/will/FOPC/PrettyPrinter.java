@@ -741,7 +741,7 @@ public class PrettyPrinter {
         int renamedVariableIndex = 0;
 
         FOPCPrettyPrinterData() {
-            pushPrecedence(0);
+            pushPrecedence();
         }
 
         void pushIndent(int additionalIndentation) {
@@ -751,8 +751,8 @@ public class PrettyPrinter {
             precedenceInfo.add(new PrecedenceInfo(newPrefix));
         }
 
-        final void pushPrecedence(int precedence) {
-            precedenceInfo.add(new PrecedenceInfo(precedence));
+        final void pushPrecedence() {
+            precedenceInfo.add(new PrecedenceInfo(0));
         }
 
         PrecedenceInfo getCurrentPrecedence() {

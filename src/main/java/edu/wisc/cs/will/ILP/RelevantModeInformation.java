@@ -21,9 +21,9 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
 
     private final RelevanceStrength relevanceStrength;
 
-    RelevantModeInformation(Example example, boolean relevanceFromPositiveExample, Literal mode, RelevanceStrength relevanceStrength) {
+    RelevantModeInformation(Example example, Literal mode, RelevanceStrength relevanceStrength) {
         this.example = example;
-        this.relevanceFromPositiveExample = relevanceFromPositiveExample;
+        this.relevanceFromPositiveExample = true;
         this.mode = mode;
         this.relevanceStrength = relevanceStrength;
     }

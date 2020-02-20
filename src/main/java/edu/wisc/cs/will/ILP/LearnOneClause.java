@@ -297,7 +297,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         adviceProcessor = new AdviceProcessor(context, this);
 
 		// Load BK first since it is the place where 'usePrologVariables' etc is typically set.
-		if (backgroundClausesReader != null) { context.assertSentences(readBackgroundTheory(backgroundClausesReader, null)); }
+		if (backgroundClausesReader != null) { context.assertSentences(readBackgroundTheory(backgroundClausesReader)); }
 
 		Initializer              init        = new InitializeILPsearchSpace();
 		ChildrenClausesGenerator nodeGen     = new ChildrenClausesGenerator();
@@ -1563,11 +1563,11 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return str2;
 	}
 	
-	private Theory readBackgroundTheory(Reader bkReader, String readerDirectoryName) {
+	private Theory readBackgroundTheory(Reader bkReader) {
 		if (bkReader == null) { return null; }
 		List<Sentence> sentences;
-		Utils.println("% Reading background theory from dir: " + readerDirectoryName);
-		sentences = getParser().readFOPCreader(bkReader, readerDirectoryName);
+		Utils.println("% Reading background theory from dir: " + null);
+		sentences = getParser().readFOPCreader(bkReader, null);
 		if (sentences == null) { return null; } // It is possible there are no inference rules, though some modes should have been read.
 		return new Theory(stringHandler, sentences);
 	}

@@ -611,9 +611,9 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
         if ( prettyPrinterOptions == null ) {
             prettyPrinterOptions = new PrettyPrinterOptions();
             prettyPrinterOptions.setMaximumLiteralsPerLine(1);
-            prettyPrinterOptions.setAlignParathesis(false);
+            prettyPrinterOptions.setAlignParathesis();
             prettyPrinterOptions.setRenameVariables(true);
-            prettyPrinterOptions.setNewLineAfterOpenParathesis(true);
+            prettyPrinterOptions.setNewLineAfterOpenParathesis();
             prettyPrinterOptions.setMaximumIndentationAfterImplication(5);
             prettyPrinterOptions.setNewLineAfterImplication(true);
         }

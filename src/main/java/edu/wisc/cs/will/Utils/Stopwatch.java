@@ -43,8 +43,7 @@ public class Stopwatch {
      * @return Total time so far in milliseconds.
      */
     public long getTotalTimeInMilliseconds() {
-        long totalTime = 0;
-        long time = totalTime;
+        long time = 0;
         if (startTime != -1) {
             time += System.currentTimeMillis() - startTime;
         }

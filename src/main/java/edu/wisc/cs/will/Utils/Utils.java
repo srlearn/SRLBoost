@@ -99,9 +99,9 @@ public class Utils {
      * the appropriate value through the setter.
      */
     public enum Verbosity {
-        Developer(true,true,true,true),  // Print everything and waitHeres wait, severeError cause a throw.
+        Developer(true, true,true),  // Print everything and waitHeres wait, severeError cause a throw.
         // Print everything, waitHeres don't wait, severeError cause a throw.
-        Medium(false,true,false,false)   // Print everything, waitHeres don't wait, severeError just print error
+        Medium(false, false,false)   // Print everything, waitHeres don't wait, severeError just print error
         ;
 
         final boolean developmentRun;
@@ -109,9 +109,9 @@ public class Utils {
         final boolean waitHere;
         final boolean severeWarningThrowsError;
 
-        Verbosity(boolean developmentRun, boolean print, boolean waitHere, boolean severeWarningThrowsError) {
+        Verbosity(boolean developmentRun, boolean waitHere, boolean severeWarningThrowsError) {
             this.developmentRun = developmentRun;
-            this.print    = print;
+            this.print    = true;
             this.waitHere = waitHere;
             this.severeWarningThrowsError = severeWarningThrowsError;
         }

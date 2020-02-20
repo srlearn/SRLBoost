@@ -67,16 +67,16 @@ public class PrettyPrinterOptions {
         return alignParathesis;
     }
 
-    void setAlignParathesis(boolean alignParathesis) {
-        this.alignParathesis = alignParathesis;
+    void setAlignParathesis() {
+        this.alignParathesis = false;
     }
 
     boolean isNewLineAfterOpenParathesis() {
         return newLineAfterOpenParathesis;
     }
 
-    void setNewLineAfterOpenParathesis(boolean newLineAfterOpenParathesis) {
-        this.newLineAfterOpenParathesis = newLineAfterOpenParathesis;
+    void setNewLineAfterOpenParathesis() {
+        this.newLineAfterOpenParathesis = true;
     }
 
     int getMaximumConsCells() {

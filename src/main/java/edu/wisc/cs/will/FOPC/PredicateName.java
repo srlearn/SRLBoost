@@ -313,7 +313,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
             Utils.waitHere(this + " sig = " + signature + " specs = " + typeSpecs);
         }
 
-        PredicateSpec pSpec = new PredicateSpec(signature, typeSpecs, this, true);
+        PredicateSpec pSpec = new PredicateSpec(signature, typeSpecs, this);
 
         addToTypeListForILP(pSpec, !okIfDup);
         addToTypeListForMLN(pSpec);

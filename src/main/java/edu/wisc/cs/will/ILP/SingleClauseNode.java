@@ -1055,7 +1055,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		LearnOneClause  theILPtask = (LearnOneClause) task;
 		
 		if (!theILPtask.constantsAtLeaves) { Utils.error("Have not yet implemented constantsAtLeaves = false."); }
-		if ( theILPtask.normToUse != 2)    { Utils.error("Have not yet implemented normToUse = " + theILPtask.normToUse + "."); }
 
 		if (getRegressionInfoHolder().totalExampleWeightAtSuccess() < theILPtask.getMinPosCoverage() ||
 			getRegressionInfoHolder().totalExampleWeightAtFailure() < theILPtask.getMinPosCoverage()) {

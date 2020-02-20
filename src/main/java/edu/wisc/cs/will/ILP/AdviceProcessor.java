@@ -926,7 +926,7 @@ public class AdviceProcessor {
             if (constraint != null) {
                 learnOneClause.removeModeConstraint(constraint);
             }
-            constraint = new MutuallyExclusiveModeConstraint(assertedRelevanceModes, 1);
+            constraint = new MutuallyExclusiveModeConstraint(assertedRelevanceModes);
             learnOneClause.addModeConstraint(constraint);
         }
     }
@@ -942,7 +942,7 @@ public class AdviceProcessor {
 
     private void addRelevantMode(Example example, Literal mode, RelevanceStrength relevanceStrength) {
 
-        RelevantModeInformation rfi = new RelevantModeInformation(example, true, mode, relevanceStrength);
+        RelevantModeInformation rfi = new RelevantModeInformation(example, mode, relevanceStrength);
 
         if (!relevantModes.contains(rfi)) {
             relevantModes.add(rfi);
