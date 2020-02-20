@@ -250,8 +250,7 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     }
 
     int getCurrentFold() {
-        int currentFold = -1;
-        return currentFold;
+        return -1;
     }
 
     protected String getPrefix() {

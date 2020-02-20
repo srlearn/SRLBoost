@@ -28,8 +28,7 @@ public class PrettyPrinterOptions {
     }
 
     int getMaximumTermsPerLine() {
-        int maximumTermsPerLine = -1;
-        return maximumTermsPerLine;
+        return -1;
     }
 
     int getMaximumLiteralsPerLine() {

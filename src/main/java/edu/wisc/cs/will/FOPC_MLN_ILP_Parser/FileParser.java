@@ -2205,8 +2205,7 @@ public class FileParser {
 			String wordRead = tokenizer.sval();
 			String setting  = stringHandler.getParameterSetting(wordRead);
 			if (setting     == null) { throw new ParsingException(" Read '@" + wordRead + "', but '" + wordRead + "' has not been set."); }
-			Double setToDouble = Double.parseDouble(setting);
-			return setToDouble;
+			return Double.parseDouble(setting);
 		} else if (tokenRead == '-')  { // Have a minus sign.
 			negate    = -1;
 			Utils.println("processNumber: have a '-'");
