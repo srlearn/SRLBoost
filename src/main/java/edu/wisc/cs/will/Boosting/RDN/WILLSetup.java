@@ -1496,20 +1496,10 @@ public final class WILLSetup {
 
 	void getBitMaskForNeighboringFactArguments(String target) {
 		// TODO(@hayesall): This is only used by `InferBoostedRDN`.
-		List<Boolean> bitmask = new ArrayList<>();
 		String lookup;
 		if ((lookup =  getHandler().getParameterSetting("bitMaskForNeighboringFactArgsFor" + target)) != null) {
 			lookup = lookup.replaceAll("\"", "");
 			List<String> bools = Utils.parseListOfStrings(lookup);
-			for (String bool : bools) {
-				bitmask.add(Utils.parseBoolean(bool));
-			}
-		} else {
-			bitmask.add(false); // AR
-			bitmask.add(false); // PA
-			bitmask.add(false); // SE
-			bitmask.add(true);
-			bitmask.add(true);
 		}
 	}
 

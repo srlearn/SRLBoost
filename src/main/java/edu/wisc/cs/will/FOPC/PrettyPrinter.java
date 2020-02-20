@@ -375,13 +375,6 @@ public class PrettyPrinter {
         }
 
         public PPResult visitListAsTerm(ListAsTerm listAsTerm, FOPCPrettyPrinterData data) {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("[");
-            for (Term term : listAsTerm.objects) {
-                PPResult r = term.accept(this, data);
-                stringBuilder.append(r.resultString);
-            }
-            stringBuilder.append("]");
             return null;
         }
 

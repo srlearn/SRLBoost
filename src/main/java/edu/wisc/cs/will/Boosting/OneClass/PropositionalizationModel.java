@@ -1,7 +1,5 @@
 package edu.wisc.cs.will.Boosting.OneClass;
 
-import edu.wisc.cs.will.Boosting.RDN.MultiClassExampleHandler;
-import edu.wisc.cs.will.Boosting.RDN.MultiClassExampleHandler.ConstantLookupList;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.Trees.FeatureTree;
@@ -27,13 +25,8 @@ public class PropositionalizationModel {
 	private int numTrees;
 	
 	final List<FeatureTree> treeList;
-	
-	/**
-	 * Save the constants for this predicate, if multiclass
-	 */
-	private final ConstantLookupList constList = null;
-	
-	/**
+
+    /**
 	 * Prefix for every tree used while storing the tree.
 	 * Generally set to the targetPredicate 
 	 */

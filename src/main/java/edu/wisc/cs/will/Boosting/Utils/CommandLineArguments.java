@@ -508,9 +508,8 @@ public class CommandLineArguments {
 				continue;
 			}
 			if (argMatches(args[i], saveModel)) {
-				boolean saveModelVal = true;
 				if (isArgumentNotAFlag(args, i+1)) {
-					saveModelVal = Utils.parseBoolean(args[++i]);
+					Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}

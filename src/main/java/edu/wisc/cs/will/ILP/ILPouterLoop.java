@@ -1073,10 +1073,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfCycles")) != null) {
 			maxNumberOfCycles = Integer.parseInt(lookup);
 		}
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfFreeBridgers")) != null) {
-			// TODO set it once available
-		}
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxScoreToStop")) != null) {
+        lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfFreeBridgers");// TODO set it once available
+        if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxScoreToStop")) != null) {
 			setMaxAcceptableNodeScoreToStop(Double.parseDouble(lookup));
 		}
 		
@@ -1268,20 +1266,13 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         outerLoopState.setNumberOfNegExamples( innerLoopTask.getNumberOfNegExamples());
         outerLoopState.setNumberOfPosExamples( innerLoopTask.getNumberOfPosExamples());
 
-        ObjectOutputStream oos = null;
-        try {
-            oos = new ObjectOutputStream(new GZIPOutputStream(new CondorFileOutputStream(filename)));
+        try (ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new CondorFileOutputStream(filename)))) {
             oos.writeObject(outerLoopState); // Store outer loop state...
             oos.writeObject(getGleaner()); // Store the gleaner...
             oos.close();
         } catch (Exception ex) {
             String msg = "Unable to write checkpoint file: " + filename + ".  Error message: " + ex.getClass().getCanonicalName() + ": " + ex.getMessage();
             Utils.error(msg);
-        } finally {
-            try {
-                if ( oos != null ) oos.close();
-            } catch (IOException ignored) {
-            }
         }
     }
 
@@ -1562,8 +1553,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     }
     
     private void reportOuterLooperStatus() {
-    	if ("\n% STARTING executeOuterLoop()" != null) { Utils.println("\n% STARTING executeOuterLoop()"); }
-		Utils.println("%  getNumberOfLearnedClauses() = " + getNumberOfLearnedClauses() + " vs " + Utils.comma(maxNumberOfClauses));
+        Utils.println("\n% STARTING executeOuterLoop()");
+        Utils.println("%  getNumberOfLearnedClauses() = " + getNumberOfLearnedClauses() + " vs " + Utils.comma(maxNumberOfClauses));
 		Utils.println("%  getNumberOfCycles()         = " + getNumberOfCycles()         + " vs " + Utils.comma(maxNumberOfCycles));
 		Utils.println("%  getFractionOfPosCovered()   = " + getFractionOfPosCovered()   + " vs " + Utils.comma(minFractionOfPosCoveredToStop));
 		Utils.println("%  getTotal_nodesConsidered()  = " + getTotal_nodesConsidered()  + " vs " + Utils.comma(max_total_nodesExpanded));

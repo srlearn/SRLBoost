@@ -102,7 +102,8 @@ public class ClauseOptimiser {
             int[] components = clauseToComponents(head, body);
             int total_components = normalise_components(components);
 
-            int[] ids = new int[body.size()], map = new int[body.size()], size = new int[total_components];
+            int[] map = new int[body.size()];
+            int[] size = new int[total_components];
 
             int next_component = 0;
             for (int i = 0; i < body.size(); i++) {
@@ -112,7 +113,6 @@ public class ClauseOptimiser {
                     map[i] = next_component++;
                 }
                 component = map[components[i]];
-                ids[i] = component;
                 size[component]++;
             }
 

@@ -1250,7 +1250,7 @@ public class FileParser {
 				else if (nextTokenAsString.equalsIgnoreCase("1D"))              { dimensions      = 1;    }  // If multiple specifications, simply take the last.
 				else if (nextTokenAsString.equalsIgnoreCase("2D"))              { dimensions      = 2;    }
 				else if (nextTokenAsString.equalsIgnoreCase("3D"))              { dimensions      = 3;    }
-				tokenRead = getNextToken();
+				getNextToken();
 			}
 			switch (dimensions) {
 				case 1: pName.setIsaInterval_1D(arity, boundariesAtEnd); stringHandler.needPruner = true; break;
@@ -1385,11 +1385,10 @@ public class FileParser {
 		tokenRead = getNextToken();
 
 		if (tokenRead == '@') {  // A leading # indicates the value needs to be looked up in the list of set parameters.
-			tokenRead       = getNextToken();
+			getNextToken();
 			String wordRead = tokenizer.sval();
 			String setting  = stringHandler.getParameterSetting(wordRead);
 			if (setting == null) { throw new ParsingException(" Read '@" + wordRead + "', but '" + wordRead + "' has not been set."); }
-			//Utils.println("setting = " + setting);
 			return RelevanceStrength.getRelevanceStrengthFromString(setting);
 		}
 		if (tokenRead == StreamTokenizer.TT_WORD) {
@@ -1678,7 +1677,8 @@ public class FileParser {
         Literal innerLit = processLiteral(true);
 
         int tokenRead = (atEOL() ? 0 : getNextToken());
-        String currentWord = tokenizer.reportCurrentToken();
+		tokenizer.reportCurrentToken();
+		String currentWord;
 
         RelevanceStrength strength = readRelevanceStrength();
         while (!atEOL()) { // Have some optional arguments since not yet at EOL.
@@ -2052,7 +2052,8 @@ public class FileParser {
 	 */
 	private void processPrecompute(int index) throws ParsingException, IOException {
 		String fileNameToUse;
-		int tokenRead = getNextToken();
+		getNextToken();
+		int tokenRead;
 		String currentWord = tokenizer.reportCurrentToken();
 		
 		boolean usingDefaultName = false;
@@ -2721,7 +2722,8 @@ public class FileParser {
 	}
 
 	private void processConstrains() throws ParsingException, IOException {
-		int tokenRead = checkForPredicateNamesThatAreCharacters(getNextToken());
+		checkForPredicateNamesThatAreCharacters(getNextToken());
+		int tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
@@ -2743,7 +2745,9 @@ public class FileParser {
 		boolean pruneIfNoEffect = false;
 		if (!atEOL()) {
 			tokenRead    = getNextToken();
-			if (tokenRead == ',') { tokenRead = getNextToken(); }
+			if (tokenRead == ',') {
+				getNextToken();
+			}
 			currentWord = tokenizer.reportCurrentToken();
 			if (!currentWord.equalsIgnoreCase("pruneIfNoEffect")) { throw new ParsingException("Expecting to read: 'arg' but instead read '" + reportLastItemRead() + "'."); }
 			pruneIfNoEffect = true;
@@ -2763,7 +2767,8 @@ public class FileParser {
 	 *
 	 */
 	private void processDeterminate() throws ParsingException, IOException {
-		int tokenRead = checkForPredicateNamesThatAreCharacters(getNextToken());
+		checkForPredicateNamesThatAreCharacters(getNextToken());
+		int tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
@@ -2778,7 +2783,7 @@ public class FileParser {
 
 		if (position < 1 || position > arity) { throw new ParsingException("Expecting to read an integer between 1 and " + arity + ", but instead read '" + position + "."); }
 
-		tokenRead = getNextToken();
+		getNextToken();
 
         Type type = null;
 
@@ -2798,7 +2803,8 @@ public class FileParser {
 	}
 
 	private void processFunctionAsPred(FunctionAsPredType prefix) throws ParsingException, IOException {
-		int tokenRead = checkForPredicateNamesThatAreCharacters(getNextToken());
+		checkForPredicateNamesThatAreCharacters(getNextToken());
+		int tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
@@ -2807,7 +2813,9 @@ public class FileParser {
 		int arity = readInteger();
 
 		tokenRead = getNextToken();
-		if (tokenRead == ',') { tokenRead = getNextToken(); } // OK if there are some commas separating the items.
+		if (tokenRead == ',') {
+			getNextToken();
+		} // OK if there are some commas separating the items.
 		currentWord = tokenizer.reportCurrentToken();
 		if (!currentWord.equalsIgnoreCase("arg")) { Utils.println("Expecting to read: 'arg' but instead read '" + reportLastItemRead() + "'."); }
 		tokenRead    = getNextToken();
@@ -2823,7 +2831,8 @@ public class FileParser {
 	}
 
 	private void processBridger() throws ParsingException, IOException {
-		int tokenRead = checkForPredicateNamesThatAreCharacters(getNextToken());
+		checkForPredicateNamesThatAreCharacters(getNextToken());
+		int tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
@@ -2839,7 +2848,8 @@ public class FileParser {
 	}
 
 	private void processTemporary() throws ParsingException, IOException {
-		int tokenRead = checkForPredicateNamesThatAreCharacters(getNextToken());
+		checkForPredicateNamesThatAreCharacters(getNextToken());
+		int tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
@@ -2855,7 +2865,8 @@ public class FileParser {
 	}
 
 	private void processInline() throws ParsingException, IOException {
-		int           tokenRead   = checkForPredicateNamesThatAreCharacters(getNextToken());
+		checkForPredicateNamesThatAreCharacters(getNextToken());
+		int           tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate   = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
@@ -2871,7 +2882,8 @@ public class FileParser {
 	}
 
 	private void processFilter() throws ParsingException, IOException {
-		int           tokenRead   =	checkForPredicateNamesThatAreCharacters(getNextToken());
+		checkForPredicateNamesThatAreCharacters(getNextToken());
+		int           tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate   = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
@@ -2884,7 +2896,8 @@ public class FileParser {
 	}
 
 	private void processQueryPred() throws ParsingException, IOException {
-		int           tokenRead   = checkForPredicateNamesThatAreCharacters(getNextToken());
+		checkForPredicateNamesThatAreCharacters(getNextToken());
+		int           tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate   = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
@@ -2900,7 +2913,8 @@ public class FileParser {
 	}
 
 	private void processHiddenPred() throws ParsingException, IOException {
-		int tokenRead = checkForPredicateNamesThatAreCharacters(getNextToken());
+		checkForPredicateNamesThatAreCharacters(getNextToken());
+		int tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
@@ -2917,8 +2931,10 @@ public class FileParser {
 
 	private void processThreshold()  throws ParsingException, IOException {
 		Literal typedHeadLiteral = processLiteral(true);
-		String  currentWord  = tokenizer.reportCurrentToken();
-		int     tokenRead    = getNextToken();
+		tokenizer.reportCurrentToken();
+		String  currentWord;
+		getNextToken();
+		int     tokenRead;
 		int     maxCuts      = -1;
 		boolean createTiles  = false;
 		boolean firstArgIsExampleID = false;

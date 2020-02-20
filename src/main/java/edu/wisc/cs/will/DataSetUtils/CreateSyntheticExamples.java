@@ -250,7 +250,7 @@ public class CreateSyntheticExamples {
     		} else if (term instanceof Function) {
 				Set<Term> groundedTermsOfThisTypeInThisState = createGroundFunctionsInThisWorldState(stringHandler, (Function) term, currentCounter, targetArgSpecs, worldState, prover, factPredicates);
 				if (groundedTermsOfThisTypeInThisState == null) {
-					if (debugLevel > 1 || worldState == null) { Utils.println(" No grounded versions for " + term + " in " + worldState); }
+					if (debugLevel > 1 || worldState == null) { Utils.println(" No grounded versions for " + term + " in " + null); }
 					return null; 
 				}
 				crossProduct.add(groundedTermsOfThisTypeInThisState);

@@ -54,6 +54,8 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 	}
 
 	private List<SearchNode>  children  = new ArrayList<>(8); // TODO - reuse this list which returns children.  This is called alot so don't want to make anew each time.
+
+	// TODO(@hayesall): Too complex to analyze with data flow: major need of refactoring.
 	public List<SearchNode> collectChildren(SearchNode nodeBeingExplored) throws SearchInterrupted {
 		SingleClauseNode     parent         = (SingleClauseNode) nodeBeingExplored;
 		children.clear();

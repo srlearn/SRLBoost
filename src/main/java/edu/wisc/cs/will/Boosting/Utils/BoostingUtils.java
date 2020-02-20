@@ -2,7 +2,6 @@ package edu.wisc.cs.will.Boosting.Utils;
 
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
-import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.ProbDistribution;
