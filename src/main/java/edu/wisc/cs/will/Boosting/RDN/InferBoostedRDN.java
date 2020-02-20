@@ -361,8 +361,8 @@ public class InferBoostedRDN {
 				(target.isEmpty() ? "" : "_"+target) + "." + type;
 	}
 
-	private double getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
-							  String target, int trees, boolean usingAllEgs) {
+	private void getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
+							 String target, int trees, boolean usingAllEgs) {
 		// TODO(@hayesall): Why does this return a double when the double is never used?
 
 		// We repeatedly loop over the examples, but the code at least is cleaner.
@@ -428,12 +428,12 @@ public class InferBoostedRDN {
 			resultsString += "\nrecall(   " + target + ", " + Utils.truncate(score.getRecall(),    6) + ", usingThreshold(" + threshold + ")).";
 			resultsString += "\nF1(       " + target + ", " + Utils.truncate(score.getF1(),        6) + ", usingThreshold(" + threshold + ")).";
 			if (writeQueryAndResults) { Utils.writeStringToFile(resultsString + "\n", new CondorFile(fileNameForResults)); }
-			return score.getF1();
+			score.getF1();
+			return;
 		}
 		
 		if (writeQueryAndResults) { Utils.writeStringToFile(resultsString + "\n", new CondorFile(fileNameForResults)); }
-		return -1;
-		
+
 	}
 
 	private ComputeAUC computeAUCFromEg(List<RegressionRDNExample> examples, String target) {

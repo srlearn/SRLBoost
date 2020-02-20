@@ -531,7 +531,7 @@ public class Utils {
      *
      * @return False if an exception occurs while reading input from the user, true otherwise.
      */
-    public static boolean waitHere(String msg, boolean waitHereRegardless, String skipWaitString) {
+    public static void waitHere(String msg, boolean waitHereRegardless, String skipWaitString) {
 
         int occurenceCount = 1;
         if ( skipWaitString != null ) {
@@ -544,11 +544,11 @@ public class Utils {
             if ( msg != null && !msg.isEmpty()) {
                 print("\n% Skipping over this 'waitHere': " + msg + "\n", true);
             }
-    		return true;
+    		return;
     	}
 
         if (!waitHereRegardless && occurenceCount > 1) {
-            return true;
+            return;
         }
 
         // Let's collect these in dribble files.
@@ -580,9 +580,7 @@ public class Utils {
         } catch (IOException e) {
             // Ignore any errors here.
         	inBufferedReader = null;  // If something went wrong, reset the reader. 
-        	return false;
         }
-        return true; // The main reason for returning values is so that waitHere's can be placed inside conditionals.
     }
 
     private static void cleanupAndExit() {
@@ -1217,8 +1215,8 @@ public class Utils {
         return getFBeta(1, truePositives, falsePositives, falseNegatives);
     }
 
-   public static double getF1(double precision, double recall) {
-       return getFBeta(1, precision, recall);
+   public static void getF1(double precision, double recall) {
+       getFBeta(1, precision, recall);
    }
 
     public static double getAccuracy(double truePositives, double falsePositives, double trueNegatives, double falseNegatives) {

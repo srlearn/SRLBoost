@@ -1440,7 +1440,7 @@ public final class WILLSetup {
 		return this.lastSampledWorlds;
 	}
 	
-	List<PredicateNameAndArity> getListOfPredicateAritiesForNeighboringFacts() {
+	void getListOfPredicateAritiesForNeighboringFacts() {
 		if (neighboringFactFilterList == null) {
 			Set<PredicateNameAndArity> pars = new HashSet<>();
 			String lookup;
@@ -1467,7 +1467,6 @@ public final class WILLSetup {
 			}
 			neighboringFactFilterList = new ArrayList<>(pars);
 		}
-		return neighboringFactFilterList;
 	}
 	
 	private List<PredicateNameAndArity> convertStringToPnameArity(String pname) {
@@ -1495,7 +1494,7 @@ public final class WILLSetup {
 		return pars;
 	}
 
-	List<Boolean> getBitMaskForNeighboringFactArguments(String target) {
+	void getBitMaskForNeighboringFactArguments(String target) {
 		// TODO(@hayesall): This is only used by `InferBoostedRDN`.
 		List<Boolean> bitmask = new ArrayList<>();
 		String lookup;
@@ -1512,7 +1511,6 @@ public final class WILLSetup {
 			bitmask.add(true);
 			bitmask.add(true);
 		}
-		return bitmask;
 	}
 
 	/**

@@ -971,11 +971,11 @@ public class LearnOneClause extends StateBasedSearchTask {
         return result;
     }
 
-    SearchResult performSearch(SingleClauseNode bestNodeFromPreviousSearch) throws SearchInterrupted {
+    void performSearch(SingleClauseNode bestNodeFromPreviousSearch) throws SearchInterrupted {
         if (!initialized) { initialize(); }
         ((InitializeILPsearchSpace) initializer).setBestNodeFromPreviousSearch(bestNodeFromPreviousSearch);
-        return performSearch();
-    }
+		performSearch();
+	}
 
     private String getSearchParametersString() {
         StringBuilder stringBuilder = new StringBuilder();

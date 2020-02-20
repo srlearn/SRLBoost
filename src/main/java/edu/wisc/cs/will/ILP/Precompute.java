@@ -9,7 +9,6 @@ import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.*;
@@ -75,7 +74,7 @@ public class Precompute {
      * 				e.g., if p(x) :- q(x), r(x) IS THE ONLY CLAUSE FOR p(x) then if p(x) is in a clause, no need to consider adding q(x) and r(x).
      * 		e) remove the clause(s) used to precompute from background knowledge (so they aren't again used)
      */
-    private List<Literal> createPrecomputedFile(MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute, HornClausebase clausebase, String fileName) {
+    private void createPrecomputedFile(MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute, HornClausebase clausebase, String fileName) {
 
         List<Literal> precomputedLiterals = new ArrayList<>();
 
@@ -225,7 +224,6 @@ public class Precompute {
             }
         }
 
-        return precomputedLiterals;
     }
 
     // This is written iteratively instead of recursively to prevent stack overflows (which have happened).
