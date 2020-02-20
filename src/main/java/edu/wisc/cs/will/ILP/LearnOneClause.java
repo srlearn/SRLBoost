@@ -1676,7 +1676,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		}
 	}
 
-	private boolean addToTargetModes(PredicateNameAndArity targetPred) {
+	private void addToTargetModes(PredicateNameAndArity targetPred) {
 
 	    PredicateSpec targetArgTypes = targetPred.getPredicateName().getTypeList().get(0);
 
@@ -1711,7 +1711,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         	Utils.println(  "%  targetArgTypes:            " + targetArgTypes);
         	Utils.println(  "%  targetArgSpecs:            " + targetArgSpecs);
         }
-        return targetExists;
 	}
 	
     private ArgSpec lookupInArgSpecList(List<ArgSpec> specs, Term term) {

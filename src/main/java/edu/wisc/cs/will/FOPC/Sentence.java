@@ -70,9 +70,8 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	public double getWeightOnSentence() {
 		return wgtSentence;
 	}	
-	public Sentence setWeightOnSentence() { // Set to DEFAULT value if no arguments.
+	public void setWeightOnSentence() { // Set to DEFAULT value if no arguments.
 		wgtSentence = defaultWeight;
-		return this; // Returning this makes it convenient to append '.setWeight' to new's.
 	}
 	public Sentence setWeightOnSentence(double weight) {
 		this.wgtSentence = Math.max(minWeight, Math.min(maxWeight, weight)); // Keep in range.

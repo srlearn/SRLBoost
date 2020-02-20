@@ -66,7 +66,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         result.addAll(c);
     }
 
-    public boolean add(Key key, Value e) {
+    public void add(Key key, Value e) {
         if ( map == null ) {
             map = createMap();
         }
@@ -77,7 +77,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
             map.put(key, result);
         }
 
-        return result.add(e);
+        result.add(e);
     }
 
 

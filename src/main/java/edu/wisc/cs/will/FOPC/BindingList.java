@@ -146,8 +146,8 @@ public class BindingList extends AllOfFOPC {
 		if (term instanceof Variable) { return help_addBinding((Variable) term, var, false); } // This is probably already checked below, but try again nevertheless.
 		return false;
 	}
-	public boolean addBinding(Variable var, Term term) {
-		return help_addBinding(var, term, true);
+	public void addBinding(Variable var, Term term) {
+		help_addBinding(var, term, true);
 	}
 	private boolean help_addBinding(Variable var, Term term, boolean errorIfProblem) {
 		if (theta.containsKey(var)) { 

@@ -501,11 +501,11 @@ public class Utils {
     /*
      * Waits for input on standard input after displaying "Waiting for user input".
      */
-    public static boolean waitHere() {
-    	return waitHere("", false, null);
+    public static void waitHere() {
+        waitHere("", false, null);
     }
-    public static boolean waitHere(String msg) {
-    	return waitHere(msg, false, null);
+    public static void waitHere(String msg) {
+        waitHere(msg, false, null);
     }
 
     public static void waitHereErr(String msg) {
@@ -1515,9 +1515,9 @@ public class Utils {
 
     // OK if this is global because we're simply making and never deleting directories (unless the user does so manually).
     private static final Set<String> ensured = new HashSet<>(4);
-    public static File ensureDirExists(File file) {
-    	if (file == null) { return null; }
-    	return ensureDirExists(file.getAbsolutePath());
+    public static void ensureDirExists(File file) {
+    	if (file == null) { return; }
+        ensureDirExists(file.getAbsolutePath());
     }
     public static File ensureDirExists(String file) {
     	if (file == null) { return null; }
@@ -1598,8 +1598,8 @@ public class Utils {
         return file.delete();
     }
 
-   public static boolean delete(String fileName) {
-	   return delete(new CondorFile(fileName));
+   public static void delete(String fileName) {
+       delete(new CondorFile(fileName));
    }
 
     public static boolean isDevelopmentRun() {
