@@ -11,8 +11,8 @@ import java.util.Map;
  *
  */
 public class SentenceAsTerm extends Term {
-	public  Sentence sentence;
-	private String   wrapperPredicate;  // Record a note on who 'created' this SentenceAsTerm, since this code assumes they are only internally created.
+	public final Sentence sentence;
+	private final String   wrapperPredicate;  // Record a note on who 'created' this SentenceAsTerm, since this code assumes they are only internally created.
 
 	/*
 	 * FOPC sentences can be terms in some Prolog constructs, e.g. once( (p(x), q(x), r(x)) ).

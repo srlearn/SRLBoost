@@ -732,7 +732,7 @@ public class PrettyPrinter {
 
     public static class FOPCPrettyPrinterData {
 
-        Queue<PrecedenceInfo> precedenceInfo = new LinkedList<>();
+        final Queue<PrecedenceInfo> precedenceInfo = new LinkedList<>();
 
         PrettyPrinterOptions options = new PrettyPrinterOptions();
 

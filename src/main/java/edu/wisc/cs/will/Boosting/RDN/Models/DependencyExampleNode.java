@@ -7,9 +7,9 @@ import edu.wisc.cs.will.FOPC.Literal;
  */
 public class DependencyExampleNode extends DependencyNode {
 	// Note: Literals may have variables in them
-	private Literal example;
+	private final Literal example;
 	
-	private ExampleType type;
+	private final ExampleType type;
 
 	public enum ExampleType {
 		QUERY,

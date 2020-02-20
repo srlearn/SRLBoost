@@ -13,15 +13,15 @@ import java.util.Map;
  */
 public class PairWiseExampleScore {
 
-	private Map<String, Double> currentPairWiseDistance;
+	private final Map<String, Double> currentPairWiseDistance;
 	
-	private Map<String, Integer> exampleCategory;
+	private final Map<String, Integer> exampleCategory;
 	
 	int currCount= 0;
 
 	int numLabelled = 0;
 	
-	private KernelEstimator kernelEst;
+	private final KernelEstimator kernelEst;
 	
 	PairWiseExampleScore() {
 		currentPairWiseDistance = new HashMap<>();

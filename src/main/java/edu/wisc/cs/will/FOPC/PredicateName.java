@@ -15,7 +15,7 @@ import java.util.*;
  *  All predicates with the same name map to the same instance.
  */
 public class PredicateName extends AllOfFOPC implements Serializable {
-	public    String                   name;	
+	public final String                   name;
 	private   List<PredicateSpec>      typeSpecList = null; // Information about this Predicate, e.g. legal arguments to it.  A 'type' describes both the kind of arguments it takes (e.g., 'people' are 'books') and whether these arguments are "input" variables, "output" variables, or constants.
 	private   List<PredicateSpec>      typeOnlyList = null; // Similar to above, but the input/output markers are not included.
 	private   Set<Integer>             typeDeSpeced = null; // Modes that have been disabled - currently all modes of a given arity are disabled
@@ -46,7 +46,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Map<Integer,Double>            cost                       = null;  // See if this predicate/arity has a cost (default is 1.0).  Costs are used for scoring clauses.
 	private   boolean                        costIsFinal                = false; // Is the cost frozen?
 	private   Map<Integer,RelevanceStrength> relevance                  = null;  // See if this predicate/arity has a relevance (default is NEUTRAL).  
-	private   Map<Integer,List<String>>      namedArgumentOrdering      = null;  // When getting rid of named arguments, this is the order argument should be placed (if null, then use alphabetic ordering).
+	private final Map<Integer,List<String>>      namedArgumentOrdering      = null;  // When getting rid of named arguments, this is the order argument should be placed (if null, then use alphabetic ordering).
 	private   Map<Integer,Map<Integer, List<Object>>> constrainsType    = null;  // Record if this literal constrains the type of one of its arguments.
 
     /* Map from non-operation arities to operational predicates.

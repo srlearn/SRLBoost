@@ -10,7 +10,7 @@ import java.io.Serializable;
  */
 public abstract class SearchNode implements Serializable {
 
-	private SearchNode parentNode;
+	private final SearchNode parentNode;
 
 	// Provide a back pointer.
 	transient public StateBasedSearchTask task;

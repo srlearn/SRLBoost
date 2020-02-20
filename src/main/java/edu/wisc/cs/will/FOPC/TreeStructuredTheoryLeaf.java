@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 public class TreeStructuredTheoryLeaf extends TreeStructuredTheoryNode {
-	private Term   leafValue;
-	private double variance;
-	private String extraLabel; // Allow examples to be marked with a string that can be used in whatever way some algorithm wishes.
+	private final Term   leafValue;
+	private final double variance;
+	private final String extraLabel; // Allow examples to be marked with a string that can be used in whatever way some algorithm wishes.
 	
 	public TreeStructuredTheoryLeaf(double weightedCountOfPositiveExamples, double weightedCountOfNegativeExamples, double variance, Term leafValue, String extraLabel) {
 		super();

@@ -9,26 +9,28 @@ import java.util.*;
  */
 public class DoBuiltInListProcessing extends AllOfFOPC {
 
-	private FunctionName conscell; // Should really have ConsCell instances, but check for this as a function name as well.
-	private FunctionName first;
-	private FunctionName rest;
-	private FunctionName remove;
-	private FunctionName push;
-	private FunctionName nth;
-	private FunctionName nthPlus1;
-	private FunctionName length; // Do numeric-valued here.
-	private FunctionName position;
-	private FunctionName convertListToString;
+	private final FunctionName conscell; // Should really have ConsCell instances, but check for this as a function name as well.
+	private final FunctionName first;
+	private final FunctionName rest;
+	private final FunctionName remove;
+	private final FunctionName push;
+	private final FunctionName nth;
+	private final FunctionName nthPlus1;
+	private final FunctionName length; // Do numeric-valued here.
+	private final FunctionName position;
+	private final FunctionName convertListToString;
 
 	// Use 'fast' to indicate that we convert to lists and manipulate the lists; other than the initial call, no unification is done (ie, for union and intersection).
     // Ie, there are used like this:
     //                 ?X is append(?A, ?B)
     // The FOPC library supports Prolog-based versions, eg
     //                 append(?A, ?B, ?X)
-	private FunctionName fastAppend, fastIntersection, fastUnion;
+	private final FunctionName fastAppend;
+	private final FunctionName fastIntersection;
+	private final FunctionName fastUnion;
 
-	private HandleFOPCstrings stringHandler;
-	private Map<FunctionName,Set<Integer>> canHandle = new HashMap<>(16);
+	private final HandleFOPCstrings stringHandler;
+	private final Map<FunctionName,Set<Integer>> canHandle = new HashMap<>(16);
 
 	DoBuiltInListProcessing(HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;

@@ -14,10 +14,10 @@ import java.util.*;
 
 public class GroundDependencyNetwork extends DependencyNetwork {
 
-	private Map<String, List<RegressionRDNExample>> jointExamples;
+	private final Map<String, List<RegressionRDNExample>> jointExamples;
 
-	private Set<String> queryExampleStr;
-	private WILLSetup willSetup;
+	private final Set<String> queryExampleStr;
+	private final WILLSetup willSetup;
 	private int numExamples = 0;
 	public GroundDependencyNetwork(WILLSetup setup, Map<String, List<RegressionRDNExample>> queryExamples) {
 		super();

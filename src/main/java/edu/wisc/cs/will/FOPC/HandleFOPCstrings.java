@@ -43,9 +43,9 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
 	public  boolean cleanFunctionAndPredicateNames        = false; // Check for hyphens and spaces.  DO NOT SET UNTIL AFTER LIBRARIES ARE LOADED.
 	public  boolean keepQuoteMarks                        = false; // Set to true if quote marks on string constants should be preserved.  NOTE: if true, then strings with quote marks will NOT be cleaned regardless of any other setting.
-	boolean alwaysUseParensForInfixFunctions      = false; // Useful for debugging the parser, and possibly for safely writing out expressions.
+	final boolean alwaysUseParensForInfixFunctions      = false; // Useful for debugging the parser, and possibly for safely writing out expressions.
 
-	boolean printTypedStrings     = false; // If set to true, then Terms will have their types printed.
+	final boolean printTypedStrings     = false; // If set to true, then Terms will have their types printed.
 	public boolean printVariableCounters = false; // If set to true, then variables will have their counters printed.
 
 	public String  precompute_file_prefix = ""; // Allow overriding of these.
@@ -57,10 +57,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public String  import_assignmentToTempVar1 = "UNASSIGNED_import_assignmentToTempVar1";
 	public String  import_assignmentToTempVar2 = "UNASSIGNED_import_assignmentToTempVar2";
 	public String  import_assignmentToTempVar3 = "UNASSIGNED_import_assignmentToTempVar3";
-	public String  FACTS   = "FACTS_UNASSIGNED";  // The MachineReading project uses these, for BOTH import and precompute.
-	public String  PRECOMP = "PRECOMP_UNASSIGNED";
-	public String  SWD     = "SWD_UNASSIGNED";    // SWD = ScratchWorkingDir (do NOT use SCRATCH because we already use MYSCRATCHDIR).
-	public String  TASK    = "TASK_UNASSIGNED";
+	public final String  FACTS   = "FACTS_UNASSIGNED";  // The MachineReading project uses these, for BOTH import and precompute.
+	public final String  PRECOMP = "PRECOMP_UNASSIGNED";
+	public final String  SWD     = "SWD_UNASSIGNED";    // SWD = ScratchWorkingDir (do NOT use SCRATCH because we already use MYSCRATCHDIR).
+	public final String  TASK    = "TASK_UNASSIGNED";
 
 	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
 	int     numberOfTermsPerRowInPrintouts            = 4; // Actually only if this is 1 does it matter (used for debugging).
@@ -72,42 +72,42 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// A non-negative value V means this special term is in position V (counting starts at zero).
 	// A negative value W means this special term is in position "#args - W" (so '-1' means LAST arg).
 	// Indicating an argument out of range means 'ignore' (TODO - check that code works this way).
-	public    int locationOfWorldArg         =  0;
-    public    int locationOfStateArg         = -1;
+	public final int locationOfWorldArg         =  0;
+    public final int locationOfStateArg         = -1;
 
-	public    IsaHetrarchy                isaHandler;
-	private DoBuiltInMath               mathHandler;
-	private DoBuiltInListProcessing     listHandler;
+	public final IsaHetrarchy                isaHandler;
+	private final DoBuiltInMath               mathHandler;
+	private final DoBuiltInListProcessing     listHandler;
 	private   List<PredicateNameAndArity> knownModes; // Hold all the predicates with known modes.
-	private   List<PredicateNameAndArity> disallowedModes;
+	private final List<PredicateNameAndArity> disallowedModes;
 	public    boolean                     needPruner = false;
 
 
 
 	public    enum VarIndicator { questionMarks, lowercase, uppercase }
 	private        VarIndicator           variableIndicator = null; // Usually when read inside a file the former setting is reverted to once file reading is over.  But if null when file reading starts, that setting persists after the file is closed (ie., the first setting defines the default).
-	private        VarIndicator           defaultVariableIndicator = VarIndicator.uppercase; // This will be set very early by the constructor since it needs to create some strings and needs to choose a notation (but after that it is again set to null).
+	private final VarIndicator           defaultVariableIndicator = VarIndicator.uppercase; // This will be set very early by the constructor since it needs to create some strings and needs to choose a notation (but after that it is again set to null).
 	// NOTE: if variableIndicator=lowercase, then standard FOPC notation is used when printing.  Otherwise Prolog notation is used.  TODO - allow a separate variable to decide how to print?
 
 	public    boolean                     prettyPrintClauses     = true;
-	boolean                     duplicateCostWarningEnabled = true;
+	final boolean                     duplicateCostWarningEnabled = true;
 
-	private Map<String,PredicateName>   predicateNameHash; // These map a given string to one and only one instance.
-	private Map<String,FunctionName>    functionNameHash;
-	private Map<String,ConnectiveName>  connectiveNameHash;
+	private final Map<String,PredicateName>   predicateNameHash; // These map a given string to one and only one instance.
+	private final Map<String,FunctionName>    functionNameHash;
+	private final Map<String,ConnectiveName>  connectiveNameHash;
 	private Map<String,Stack<Variable>> variableHash;
-	private Set<String>                 variableNamesSeen;
-	private Stack<Map<String,Stack<Variable>>> stackOfVariableHashes;
-	private Map<String,StringConstant>  stringConstantHash;
-	private Map<String,NumericConstant> numericConstantHash;
+	private final Set<String>                 variableNamesSeen;
+	private final Stack<Map<String,Stack<Variable>>> stackOfVariableHashes;
+	private final Map<String,StringConstant>  stringConstantHash;
+	private final Map<String,NumericConstant> numericConstantHash;
 
-	private   Map<FunctionName,  Integer> precedenceTableForOperators;
-	private   Map<ConnectiveName,Integer> precedenceTableForConnectives;
-	public    Map<Term,List<Type>>    constantToTypesMap;       // A given constant can have multiple types.  Record them here.  TODO 'wrap' this variable?
+	private final Map<FunctionName,  Integer> precedenceTableForOperators;
+	private final Map<ConnectiveName,Integer> precedenceTableForConnectives;
+	public final Map<Term,List<Type>>    constantToTypesMap;       // A given constant can have multiple types.  Record them here.  TODO 'wrap' this variable?
 	private   ConsCell                    nil;                      // The nil used for lists.
     private   Literal                     nilAsLiteral;             // Just so we can convert back to the nil if we treat nil as a literal at some point.
 	private   Set<Term>                   setNIL;                   // NIL in a set.
-	Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
+	final Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
 	private   long varCounter             = 0; // Used to create new variable names that start with 'a', 'b', 'c', etc.
 	private   long overallCounter         = 0;
 	private   int  countOfSkolemFunctions = 0;
@@ -115,9 +115,13 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private boolean              predicatesHaveCosts = false; // Set if ANY predicate has a cost.  If so, the SUM of costs is used instead of length() to score a clause.
 	private Set<RelevantLiteral> relevantLiterals    = null;  // Collect statements about which predicateName/arity's have an associated relevance statement.
 
-	Constant  trueIndicator, falseIndicator;
-	public    Literal   trueLiteral,   falseLiteral, cutLiteral;
-	public Clause    trueClause,    falseClause;
+	final Constant  trueIndicator;
+	final Constant falseIndicator;
+	public final Literal   trueLiteral;
+	public final Literal falseLiteral;
+	public final Literal cutLiteral;
+	public final Clause    trueClause;
+	public final Clause falseClause;
 
 	// Invented predicates should have the following suffix.
 	// This is useful if one is creating multiple theories, one can reset this for every theory
@@ -127,9 +131,9 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// Be very careful if you want to change these!
 	private boolean useStrictEqualsForLiterals  = false; // If 'true,' only say literals are equal if they are '=='.
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
-	boolean useFastHashCodeForClauses   = true;
+	final boolean useFastHashCodeForClauses   = true;
 
-    private Map<String,Integer> nameCounter    = new HashMap<>(4);  // Unique name counter for anonymous names...
+    private final Map<String,Integer> nameCounter    = new HashMap<>(4);  // Unique name counter for anonymous names...
 
 	private   static Map<String,Integer> precedenceTableForOperators_static   = null; // To avoid the need to pass around a stringHandler, there is also a static version that uses String.equals instead of '=='.
 	private   static Map<String,Integer> precedenceTableForConnectives_static = null;
@@ -139,9 +143,9 @@ public final class HandleFOPCstrings implements CallbackRegister {
     private static final int alphabet2Size = alphabet2.length;
 
 	// Collect user-defined predicates.  These have priority over built-ins if there is a name collision (hence users can overwrite existing ones if they wish).
-	private Map<PredicateName,Map<Integer,UserDefinedLiteral>> userAddedProcDefinedPredicates = null;
+	private final Map<PredicateName,Map<Integer,UserDefinedLiteral>> userAddedProcDefinedPredicates = null;
 
-	private Set<String> filesLoaded = new HashSet<>(8);
+	private final Set<String> filesLoaded = new HashSet<>(8);
 
     // This group records information used by the MLN code.
     private ClauseOptimiser   clauseOptimizer;
@@ -149,7 +153,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
     public boolean underscoredAnonymousVariables = false;
 
-    public PredicateNameAndArityFilter spyEntries = new PredicateNameAndArityFilter(this);
+    public final PredicateNameAndArityFilter spyEntries = new PredicateNameAndArityFilter(this);
 
     /* Clausebase handling for facts added to the clausebase. */
     public VariantClauseAction variantFactHandling = WARN_AND_REMOVE_VARIANTS;
@@ -157,7 +161,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
     /* Clausebase handling for facts added to the clausebase. */
     public VariantClauseAction variantRuleHandling = WARN_AND_REMOVE_VARIANTS;
 
-    private Map<Literal, Literal> literalAliases = new HashMap<>();
+    private final Map<Literal, Literal> literalAliases = new HashMap<>();
 
 	public HandleFOPCstrings() {
 		this(false);
@@ -352,7 +356,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 
 	// TODO - note that useStdLogicNotation still impacts how FOPC sentences are printed even if variablesStartWithQuestionMarks=true.  NEED TO CLEAN UP.
-	private Boolean answerTo_printUsingStdLogicNotation = null; // CAN SET THIS TO OVERRIDE.
+	private final Boolean answerTo_printUsingStdLogicNotation = null; // CAN SET THIS TO OVERRIDE.
 	boolean printUsingStdLogicNotation() {
 		if (answerTo_printUsingStdLogicNotation != null) { return answerTo_printUsingStdLogicNotation; }
 		return usingStdLogicNotation();
@@ -1223,7 +1227,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return startsWithLowerCase;
 	}
 
-	private Map<String,Integer> mapForGetUniqueStringConstant = new HashMap<>(4);
+	private final Map<String,Integer> mapForGetUniqueStringConstant = new HashMap<>(4);
 	StringConstant getUniqueStringConstant(String string) {
 		Integer lookup = mapForGetUniqueStringConstant.get(string);
 		if (lookup == null) {
@@ -1730,7 +1734,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return strength.defaultCost();
 	}
 
-	private Map<String,SetParamInfo> hashOfSetParameters = new HashMap<>(4);
+	private final Map<String,SetParamInfo> hashOfSetParameters = new HashMap<>(4);
 	// If doing joint inference, one target would be evidence for other predicate
 	// So it may have more than one mode for target. This prevents the error check.
 	public boolean dontComplainIfMoreThanOneTargetModes = false;
@@ -1882,7 +1886,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	int     getStarMode()          { return starModeMap; }
 
 	static class SetParamInfo {
-		String parameterValue;
+		final String parameterValue;
 
 		SetParamInfo(String parameterValue) {
 			this.parameterValue = parameterValue;

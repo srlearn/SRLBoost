@@ -768,11 +768,11 @@ public final class WILLSetup {
 	public static final String multiclassPredPrefix = "multiclass_";
 
 	// Maintain a list of predicates that are already added, so that we can save on time.
-	private HashSet<String> predicatesAsFacts = new HashSet<>();
-	private HashSet<Literal> addedToFactBase  = new HashSet<>();
-	private boolean disableFactBase = true;
+	private final HashSet<String> predicatesAsFacts = new HashSet<>();
+	private final HashSet<Literal> addedToFactBase  = new HashSet<>();
+	private final boolean disableFactBase = true;
 	
-	private Set<PredicateNameAndArity> backupTargetModes=new HashSet<>();
+	private final Set<PredicateNameAndArity> backupTargetModes=new HashSet<>();
 	public void removeAllTargetsBodyModes() {
 		
 		for (PredicateNameAndArity bodyMode: getInnerLooper().getBodyModes()) {

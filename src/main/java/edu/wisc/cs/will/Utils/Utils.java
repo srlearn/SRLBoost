@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 public class Utils {
 	
 	// For large-scale runs we do not want to create dribble (nor 'debug') files. 
-	public static Boolean doNotCreateDribbleFiles  = false;
+	public static final Boolean doNotCreateDribbleFiles  = false;
 	private static Boolean doNotPrintToSystemDotOut = false;
 
     // If the strings MYUSERNAME appear in file names, they will be replaced with these settings.
@@ -78,7 +78,7 @@ public class Utils {
      */
     private static Boolean severeErrorThrowsEnabled = null; // Should be null.  See comment.
 
-    private static Set<MessageType> filteredMessageTypes = EnumSet.noneOf(MessageType.class);
+    private static final Set<MessageType> filteredMessageTypes = EnumSet.noneOf(MessageType.class);
 
 	// These relate to determining whether or not someone is a WILL developer.
 	// WILL developers should create a file whose name is that stored by DEVELOPER_MACHINE_FILE_NAME 
@@ -104,10 +104,10 @@ public class Utils {
         Medium(false,true,false,false)   // Print everything, waitHeres don't wait, severeError just print error
         ;
 
-        boolean developmentRun;
-        boolean print;
-        boolean waitHere;
-        boolean severeWarningThrowsError;
+        final boolean developmentRun;
+        final boolean print;
+        final boolean waitHere;
+        final boolean severeWarningThrowsError;
 
         Verbosity(boolean developmentRun, boolean print, boolean waitHere, boolean severeWarningThrowsError) {
             this.developmentRun = developmentRun;
@@ -148,15 +148,15 @@ public class Utils {
      * If non-null, copy all printing to this stream as well.
      */
     private static PrintStream dribbleStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static PrintStream dribbleStream2      = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static PrintStream debugStream         = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static PrintStream warningStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static PrintStream warningShadowStream = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
+    private static final PrintStream dribbleStream2      = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
+    private static final PrintStream debugStream         = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
+    private static final PrintStream warningStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
+    private static final PrintStream warningShadowStream = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
 
     /* The random instance for all the random utility functions. */
-    private static Random randomInstance = new Random(112957);
+    private static final Random randomInstance = new Random(112957);
 
-    private static Map<String,Integer> warningCounts = new HashMap<>();
+    private static final Map<String,Integer> warningCounts = new HashMap<>();
 
 	private static BufferedReader inBufferedReader;
 
@@ -432,7 +432,7 @@ public class Utils {
     }
     
     // Should we cache?  If we do, cache needs to be cleared whenever any of these keywords are changed.
-    private static Map<String,String> environmentVariableResolutionCache = new HashMap<>(4);
+    private static final Map<String,String> environmentVariableResolutionCache = new HashMap<>(4);
     public static String replaceWildCards(String original) {
     	if (original == null) { return null; }
     	String lookup = environmentVariableResolutionCache.get(original);
@@ -750,7 +750,7 @@ public class Utils {
     }
 
     // This is one place that this class maintains state (so if two threads running, their dribble files will interfere).
-    private static String dribbleFileName2 = null;
+    private static final String dribbleFileName2 = null;
 
     private static void closeDribbleFile() {
     	dribbleFileName = null;
@@ -760,13 +760,13 @@ public class Utils {
     }
 
     // This is another place that this class maintains state (so if two threads running, their debug files will interfere).
-    private static String debugFileName = null;
+    private static final String debugFileName = null;
 
     // This is another place that this class maintains state (so if two threads running, their debug files will interfere).
-    private static String warningFileName = null;
+    private static final String warningFileName = null;
 
     // Also write warnings to this file (one might go into one directory and the other into a different directory).
-    private  static String warningShadowFileName = null;
+    private  static final String warningShadowFileName = null;
 
     private static void warning_println(String str) {
 		if (warningStream       != null) { warningStream.println(str);       }
@@ -1514,7 +1514,7 @@ public class Utils {
     }
 
     // OK if this is global because we're simply making and never deleting directories (unless the user does so manually).
-    private static Set<String> ensured = new HashSet<>(4);
+    private static final Set<String> ensured = new HashSet<>(4);
     public static File ensureDirExists(File file) {
     	if (file == null) { return null; }
     	return ensureDirExists(file.getAbsolutePath());

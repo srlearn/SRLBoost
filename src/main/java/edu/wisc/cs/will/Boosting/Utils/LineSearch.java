@@ -10,7 +10,7 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 public class LineSearch {
 
-	private double multiplierConstant = 2;
+	private final double multiplierConstant = 2;
 	
 	public LineSearch() {}
 	

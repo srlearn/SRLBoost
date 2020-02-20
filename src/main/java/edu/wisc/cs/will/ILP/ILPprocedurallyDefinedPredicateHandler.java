@@ -10,7 +10,7 @@ import java.util.List;
  * @author shavlik
  */
 public class ILPprocedurallyDefinedPredicateHandler extends	ProcedurallyDefinedPredicateHandler {
-    private LearnOneClause task;
+    private final LearnOneClause task;
 
 	ILPprocedurallyDefinedPredicateHandler(LearnOneClause task) {
 		this.task = task;

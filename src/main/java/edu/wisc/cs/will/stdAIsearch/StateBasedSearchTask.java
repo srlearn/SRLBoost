@@ -33,7 +33,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     public ClosedList closed;
 
-    boolean    addNodesToClosedListWhenCreated = true;
+    final boolean    addNodesToClosedListWhenCreated = true;
 
     public SearchMonitor searchMonitor;
 
@@ -41,9 +41,9 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     private SearchNode bestNodeVisited;
 
-    boolean stopWhenMaxNodesCreatedReached = true;
+    final boolean stopWhenMaxNodesCreatedReached = true;
 
-    boolean stopWhenMaxNodesCreatedThisIterationReached = true;
+    final boolean stopWhenMaxNodesCreatedThisIterationReached = true;
 
     public int maxNodesToConsider = -1;
 
@@ -53,13 +53,13 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     public int beamWidth = -1;
 
-    double minAcceptableScore = Double.NEGATIVE_INFINITY;
+    final double minAcceptableScore = Double.NEGATIVE_INFINITY;
 
-    boolean allowToTieMinAcceptableScore = true;
+    final boolean allowToTieMinAcceptableScore = true;
 
-    boolean inOpenListPutNewTiesInFront = false;
+    final boolean inOpenListPutNewTiesInFront = false;
 
-    private boolean useIterativeDeepeningDepth = false;
+    private final boolean useIterativeDeepeningDepth = false;
 
     public boolean continueTheSearch = true;
 

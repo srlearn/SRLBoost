@@ -26,12 +26,12 @@ public class PropositionalizationModel {
 	
 	private int numTrees;
 	
-	List<FeatureTree> treeList;
+	final List<FeatureTree> treeList;
 	
 	/**
 	 * Save the constants for this predicate, if multiclass
 	 */
-	private ConstantLookupList constList = null;
+	private final ConstantLookupList constList = null;
 	
 	/**
 	 * Prefix for every tree used while storing the tree.

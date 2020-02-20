@@ -258,14 +258,14 @@ public class DuplicateDeterminateRemover {
 
     static class PassOneData {
 
-        private MapOfSets<Integer, Term> groupToVariableMap = new LinkedMapOfSets<>();
+        private final MapOfSets<Integer, Term> groupToVariableMap = new LinkedMapOfSets<>();
 
         // Maps from predicates to canonical, unique,
-        private MapOfLists<PredicateNameAndArity, LitEntry> canonicalLiterals = new MapOfLists<>();
+        private final MapOfLists<PredicateNameAndArity, LitEntry> canonicalLiterals = new MapOfLists<>();
 
         private int nextGroupIndex = 0;
 
-        private LinkedList<MergeEntry> mergeList = new LinkedList<>();
+        private final LinkedList<MergeEntry> mergeList = new LinkedList<>();
 
         void addLiteral(LiteralOrFunction newLiteral) {
             LitEntry newInfo = createLitInfo(newLiteral);
@@ -404,7 +404,7 @@ public class DuplicateDeterminateRemover {
 
         private PassOneData passOneData;
 
-        private Set<LitEntry> seenLiterals = new HashSet<>();
+        private final Set<LitEntry> seenLiterals = new HashSet<>();
 
         private Map<Integer, Term> groupBindings;
 
@@ -557,7 +557,7 @@ public class DuplicateDeterminateRemover {
 
     public static class PassThreeData {
 
-        private Set<Literal> seenLiterals = new HashSet<>();
+        private final Set<Literal> seenLiterals = new HashSet<>();
 
         PassThreeData() {}
 
@@ -577,11 +577,11 @@ public class DuplicateDeterminateRemover {
 
     private static class LitEntry {
 
-        PredicateNameAndArity pnaa;
+        final PredicateNameAndArity pnaa;
 
-        int[] argumentSetIndices;
+        final int[] argumentSetIndices;
 
-        int determinateIndex;
+        final int determinateIndex;
 
         LitEntry(PredicateNameAndArity pnaa) {
             this.pnaa = pnaa;
@@ -655,9 +655,9 @@ public class DuplicateDeterminateRemover {
 
     private static class MergeEntry {
 
-        int oldGroup;
+        final int oldGroup;
 
-        int newGroup;
+        final int newGroup;
 
         MergeEntry(int oldGroup, int newGroup) {
             this.oldGroup = oldGroup;

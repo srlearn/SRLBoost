@@ -18,7 +18,7 @@ import java.util.List;
 public class PruneILPsearchTree {
 	int      nodesPrunedDueToIntervalAnalysis  = 0;
 	int  nodesPrunedDueToSingleClauseAnalysis  = 0;
-	private LearnOneClause                      task; // The ILP search algorithm for which this pruner "works."
+	private final LearnOneClause                      task; // The ILP search algorithm for which this pruner "works."
 		
 	PruneILPsearchTree(LearnOneClause task) {
 		this.task = task;	

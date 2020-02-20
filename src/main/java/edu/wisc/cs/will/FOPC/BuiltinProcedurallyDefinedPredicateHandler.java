@@ -89,7 +89,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 
     private static final BindingList FAIL = null;
 
-    private HandleFOPCstrings stringHandler;
+    private final HandleFOPCstrings stringHandler;
 
 
     private DateFormat       dateTimeInstance;

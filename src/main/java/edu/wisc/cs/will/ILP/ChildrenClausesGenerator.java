@@ -22,7 +22,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 	private                int     callCounter          = 0;
 	private   static final int     callCounterMOD       = 10000; // Every N predicate-usage counts, report predicate usage.
 	public    static       int     modForReportingExpansions = 10; // Every so often, report the node being expanded.
-	private   Set<PredicateName>   predicatesMarked     = new HashSet<>(4); // TODO - add code to RESET.  But might not be necessary since not a large number of predicates.
+	private final Set<PredicateName>   predicatesMarked     = new HashSet<>(4); // TODO - add code to RESET.  But might not be necessary since not a large number of predicates.
 	
 	public    static final int       numberofConstantsToCreate = 100;
 	private Map<Type,List<Term>>   newTypesPresentInChildMap; // I (JWS) don't know how in Java one can change (and recover) a passed-in argument, so I'll make it a 'global' instance variable.

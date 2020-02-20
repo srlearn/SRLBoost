@@ -12,9 +12,9 @@ import edu.wisc.cs.will.ResThmProver.Proof;
  */
 public class PruneIfTrueRule implements PruningRule {
 
-    private PredicateNameAndArity prunedPredicate;
+    private final PredicateNameAndArity prunedPredicate;
 
-    private DefiniteClause condition;
+    private final DefiniteClause condition;
 
     public PruneIfTrueRule(PredicateNameAndArity prunedPredicate, Clause condition) {
         this.prunedPredicate = prunedPredicate;

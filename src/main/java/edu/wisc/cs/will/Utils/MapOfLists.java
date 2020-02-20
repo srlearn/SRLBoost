@@ -182,7 +182,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
     }
 
     public class AllValueIterator implements Iterator<Value>{
-        Iterator<Key> allKeysIterator;
+        final Iterator<Key> allKeysIterator;
 
         Iterator<Value> currentSubIterator = null;
 

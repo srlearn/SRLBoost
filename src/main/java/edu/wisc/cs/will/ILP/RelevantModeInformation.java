@@ -13,13 +13,13 @@ import java.util.Objects;
  */
 public class RelevantModeInformation implements RelevantInformation, Cloneable {
 
-    private Example example;
+    private final Example example;
 
     private boolean relevanceFromPositiveExample;
 
-    private Literal mode;
+    private final Literal mode;
 
-    private RelevanceStrength relevanceStrength;
+    private final RelevanceStrength relevanceStrength;
 
     RelevantModeInformation(Example example, boolean relevanceFromPositiveExample, Literal mode, RelevanceStrength relevanceStrength) {
         this.example = example;

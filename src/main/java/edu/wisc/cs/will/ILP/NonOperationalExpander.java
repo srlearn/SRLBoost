@@ -141,7 +141,7 @@ class NonOperationalExpander {
 
     private static class CollectorData {
 
-        List<Literal> literals = new ArrayList<>();
+        final List<Literal> literals = new ArrayList<>();
 
     }
 
@@ -218,9 +218,9 @@ class NonOperationalExpander {
 
     private static class ExistingExpansion {
 
-        PredicateNameAndArity expansion;
+        final PredicateNameAndArity expansion;
 
-        Set<TermAndIndex> termAndIndices;
+        final Set<TermAndIndex> termAndIndices;
 
         ExistingExpansion(PredicateNameAndArity expansion, Set<TermAndIndex> termAndIndices) {
             this.expansion = expansion;
@@ -235,9 +235,9 @@ class NonOperationalExpander {
 
     private static class TermAndIndex {
 
-        Term term;
+        final Term term;
 
-        int index;
+        final int index;
 
         TermAndIndex(Term term, int index) {
             this.term = term;

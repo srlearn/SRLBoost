@@ -17,8 +17,8 @@ public class SentenceUnifier {
     }
 
     private static class SentenceUnifierData {
-        Sentence that;
-        BindingList bl;
+        final Sentence that;
+        final BindingList bl;
 
         SentenceUnifierData(Sentence that, BindingList bl) {
             this.that = that;

@@ -16,7 +16,7 @@ import java.util.List;
 
 class BoostingPrecomputeManager {
 
-	private WILLSetup setup;
+	private final WILLSetup setup;
 
 	BoostingPrecomputeManager(WILLSetup setup) {
 		this.setup = setup;

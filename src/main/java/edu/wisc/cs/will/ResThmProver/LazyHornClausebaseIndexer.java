@@ -10,9 +10,9 @@ import java.util.Collection;
  */
 public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<DefiniteClause>{
 
-  private HornClausebase clausebase;
+  private final HornClausebase clausebase;
 
-    private int indexWidth;
+    private final int indexWidth;
 
     private LazyGroundNthArgumentClauseIndex[] singleGroundArgIndexArray = null;
 

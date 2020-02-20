@@ -24,14 +24,14 @@ import java.util.*;
 public class InferBoostedRDN {
 
 	private boolean printExamples = false;
-	private boolean writeQueryAndResults = true;
+	private final boolean writeQueryAndResults = true;
 	private boolean useOldFileLocations = true;
 	private double  minRecallForAUCPR = 0;
 	private double minLCTrees = 20;
 	private double incrLCTrees = 2;
 	
-	private CommandLineArguments cmdArgs;	
-	private WILLSetup setup;
+	private final CommandLineArguments cmdArgs;
+	private final WILLSetup setup;
 	private JointRDNModel model;
 
 	private static final String RDNTreeStats = "RDNtreePathStats";
@@ -546,7 +546,7 @@ public class InferBoostedRDN {
 	 *
 	 */
 	public static class ValueComparator implements Comparator<String> {
-		Map<String, Double> base;
+		final Map<String, Double> base;
 		ValueComparator(Map<String, Double> input) {
 			base = input;
 		}

@@ -14,7 +14,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 	protected static final int debugLevel = 0;  // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
 	private Sentence       sentenceA;
-	Sentence       sentenceB; // If the connective = NOT, this first sentence is ignored (and should be set to null).
+	final Sentence       sentenceB; // If the connective = NOT, this first sentence is ignored (and should be set to null).
 	ConnectiveName connective;  // Should be one of "AND, OR, NOT, =>, <=>, etc" (case is ignored).
 	
 	/*

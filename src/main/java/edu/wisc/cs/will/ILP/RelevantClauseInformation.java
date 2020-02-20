@@ -616,7 +616,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
         ElementPath currentPosition = new ElementPath(0);
 
-        Set<ElementPath> constantPositions;
+        final Set<ElementPath> constantPositions;
 
         ConstantMarkerData() {
             this(null);
@@ -751,9 +751,9 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     public static class GeneralizerData2 extends ElementPositionData {
 
-        Set<ElementPath> constantPositions;
+        final Set<ElementPath> constantPositions;
 
-        Map<Term, Term> currentMappings;
+        final Map<Term, Term> currentMappings;
 
         GeneralizerData2(Set<ElementPath> constantPositions, Map<Term, Term> currentMappings) {
             this.constantPositions = constantPositions;
@@ -878,9 +878,9 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     static class PositionData extends ElementPositionData {
 
-        Map<ElementPath, AllOfFOPC> pathToElementMap = new HashMap<>();
+        final Map<ElementPath, AllOfFOPC> pathToElementMap = new HashMap<>();
 
-        MapOfLists<AllOfFOPC, ElementPath> elementToPathMap = new MapOfLists<>();
+        final MapOfLists<AllOfFOPC, ElementPath> elementToPathMap = new MapOfLists<>();
 
     }
 

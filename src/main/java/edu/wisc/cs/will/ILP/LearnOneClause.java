@@ -105,7 +105,7 @@ import java.util.*;
 public class LearnOneClause extends StateBasedSearchTask {
 	protected final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
-	boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
+	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
 
 	private boolean             createCacheFiles                  = false;   // Create files that cache computations, to save time, for debugging, etc.
 	private boolean             useCachedFiles                    = false;   // Files cached (if requested):
@@ -120,7 +120,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	String              callerName = "unnamed caller";               // Used to annotate printing during runs.
 	private int                   dumpGleanerEveryNexpansions = -1;
 
-	private   FileParser          parser;
+	private final FileParser          parser;
 
 	private   boolean             isaTreeStructuredTask = false; // For a tree-structured task, we don't want to generalize the heads (e.g., p(X,X) might be a good rule - will need to learn this via sameAs() calls ...).
 	SingleClauseNode    currentStartingNode   = null;  // For some calculations we want to stop at this node.
@@ -130,12 +130,12 @@ public class LearnOneClause extends StateBasedSearchTask {
     private boolean             learnMultiValPredicates             = false;
     boolean			  oneClassTask		= false;
     public 	  PairWiseExampleScore occScorer			= null;
-	boolean 			  sampleForScoring  = false;
-	int				  maxExamplesToSampleForScoring = 300;
-	boolean             constantsAtLeaves = true;  // Are leaves CONSTANTS or linear models?  TODO - implement linear models, using (say) regularized least squares.
-	int                 normToUse         = 2;     // Other norms implemented: NONE
+	final boolean 			  sampleForScoring  = false;
+	final int				  maxExamplesToSampleForScoring = 300;
+	final boolean             constantsAtLeaves = true;  // Are leaves CONSTANTS or linear models?  TODO - implement linear models, using (say) regularized least squares.
+	final int                 normToUse         = 2;     // Other norms implemented: NONE
 	
-	int                 maxCrossProductSize               =1000;     // When generating candidate groundings of a literal in the child-generator, randomly seleect if more than this many.
+	final int                 maxCrossProductSize               =1000;     // When generating candidate groundings of a literal in the child-generator, randomly seleect if more than this many.
 	int                 maxBodyLength                     =   9;     // Max length for the bodies of clauses.
 	public    int                 maxFreeBridgersInBody             = maxBodyLength; // Bridgers can run amok so limit them (only has an impact when countBridgersInLength=true).  This is implemented as follows: the first  maxBridgersInBody don't count in the length, but any excess does.
 	public    int                 maxNumberOfNewVars                =  10;     // Limit on the number of "output" variables used in a rule body.
@@ -167,7 +167,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private List<WorldState>    worldStatesContainingNoPositiveExamples = null;  // All ways of matching the target predicate in these states are known (or at least assumed) to be NEGATIVE examples.
 	private boolean             findWorldStatesContainingNoPosExamples  = false;
 	public    boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
-	private int                 skewMaxNegToPos                         = -1; // If negative, don't alter the neg-pos ratio.  TODO - handle cases where we want to limit the POS wrt NEG.
+	private final int                 skewMaxNegToPos                         = -1; // If negative, don't alter the neg-pos ratio.  TODO - handle cases where we want to limit the POS wrt NEG.
 	////////////////////////////////////////////////////////////
 	//  Variables for controlling random-rapid-restart searches (i.e., repeatedly randomly create an initial clause, then do some local search around each).
 	//    The initial clause randomly created will meet the specification on the positive and negative seeds.
@@ -200,7 +200,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	PredicateName       procDefinedForConstants        = null;  // This is used to see which constants in the positive seeds can fill some arguments in a new literal.
 	PredicateName       procDefinedNeedForNewVariables = null;  // See if these new variables ever bind in the positive seeds to some thing new in the clause (otherwise they aren't needed).  Only used if dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds=true.
 	List<List<Term>>    collectedConstantBindings;    // This is used as a temporary variable by a method below.
-	protected BindingList         bindings = new BindingList(); // Only recreate theta if needed, in order to save on creating new lists.
+	protected final BindingList         bindings = new BindingList(); // Only recreate theta if needed, in order to save on creating new lists.
 
 	private boolean              allowMultipleTargets       = true;
 
@@ -211,20 +211,20 @@ public class LearnOneClause extends StateBasedSearchTask {
 	protected List<List<ArgSpec>>  targetArgSpecs             = null; // The info about the target argument being used and the variables matched with their types.
 	List<List<Term>>     variablesInTargets         = null; // These are really 'arguments' since it is possible a mode specifies a constant be used.
 
-    protected HornClauseContext    context;
+    protected final HornClauseContext    context;
 
 	protected HandleFOPCstrings    stringHandler;
-	protected Unifier              unifier; // Make instances out of some things that could be 'statics' so the code is safer.
+	protected final Unifier              unifier; // Make instances out of some things that could be 'statics' so the code is safer.
 	private   HornClauseProver     prover; // This is initialized by getProver() so please don't use this variable directly.
 	PruneILPsearchTree   pruner = null;  // Used to prune search trees that are unlikely to pan out (called by ChildrenClausesGenerator and its extensions).
-	private Precompute           precomputer;
+	private final Precompute           precomputer;
 	private   ThresholdManager     thresholdHandler;
 	private   InlineManager        inlineHandler; // Handle the in-lining of literal bodies (should only be applied to literals that are only defined by ONE clause).
-	private TypeManagement       typeManager;
+	private final TypeManagement       typeManager;
 
 	//private   HornClauseProverChildrenGenerator ruleAndFactsHolder;
-	private   Reader               posExamplesReader; // We now also delay this in case we want to specify this is a regression task.
-	private   Reader               negExamplesReader; // Needed in case implicit negatives need to be created (we delay doing this to allow the caller to set parameters related to this neg-generation process).
+	private final Reader               posExamplesReader; // We now also delay this in case we want to specify this is a regression task.
+	private final Reader               negExamplesReader; // Needed in case implicit negatives need to be created (we delay doing this to allow the caller to set parameters related to this neg-generation process).
 
 	// Clarification on how m-estimates are currently used in this code:
 	//  All clauses are assumed to also match mEstimateNeg negative examples
@@ -234,21 +234,21 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   double               mEstimatePos = 0.1; // When computing coverage of a rule use these "m estimates."  NOTE these are also used when examples are weighted, so if total weight is small, might want to change these.
 	private   double               mEstimateNeg = 0.1; // Note: these are used in recall as well as precision.
 
-	List<Literal> requiredBodyPredicatesForAcceptableClauses = null; // See documentation for the method addRequiredBodyPredicateForAcceptableClauses.
-	int           minRequiredBodyPredicates = 0;
-	int           maxRequiredBodyPredicates = Integer.MAX_VALUE;
+	final List<Literal> requiredBodyPredicatesForAcceptableClauses = null; // See documentation for the method addRequiredBodyPredicateForAcceptableClauses.
+	final int           minRequiredBodyPredicates = 0;
+	final int           maxRequiredBodyPredicates = Integer.MAX_VALUE;
 
     private long          totalProofTimeInNanoseconds = 0;
 
-	private RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
-    private Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
+	private final RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
+    private final Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
 
 	private List<ModeConstraint> modeConstraints = null;
 
     private final AdviceProcessor adviceProcessor;
     private ActiveAdvice activeAdvice = null;
 
-    private EventListenerList searchListenerList = new EventListenerList();
+    private final EventListenerList searchListenerList = new EventListenerList();
 
     private List<Sentence> facts = null; // This temporarily stores the facts between construction and initialization.  After initialization it will be null.
 
@@ -537,8 +537,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 		
 	}
 
-	public int num_hits = 0;
-	public int num_misses = 0;
+	public final int num_hits = 0;
+	public final int num_misses = 0;
 
 	public void setMEstimateNeg(double mEstimateNeg) {
 		if (mEstimateNeg < 0.0) Utils.error("The 'm' for neg examples covered needs to be a non-negative number.  You provided: " + mEstimateNeg);

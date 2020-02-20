@@ -79,7 +79,7 @@ import java.util.zip.GZIPOutputStream;
 public class ILPouterLoop implements GleanerFileNameProvider {
 	private static final String systemName = "WILL"; // See comment above for explanation.
    
-	public  LearnOneClause innerLoopTask;  // LearnOnClause performs the inner loop of ILP.
+	public final LearnOneClause innerLoopTask;  // LearnOnClause performs the inner loop of ILP.
 
 	/* The state of the outer loop.
      *
@@ -99,16 +99,16 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 
     public  int            maxNumberOfCycles             = 100;   // Call the inner loop at most this many times.
 	public  int            maxNumberOfClauses            = 100;   // Same as above EXCEPT only counts if a clause was learned.
-	private double         minFractionOfPosCoveredToStop = 0.90;  // Stop when this fraction of the positive examples are covered by some acceptable clause.
+	private final double         minFractionOfPosCoveredToStop = 0.90;  // Stop when this fraction of the positive examples are covered by some acceptable clause.
 	public  int            max_total_nodesExpanded       = Integer.MAX_VALUE;
 	public  int            max_total_nodesCreated        = Integer.MAX_VALUE;
     public  int            numberPosSeedsToUse           = 1;
 	private int            numberNegSeedsToUse           = 0;
 	
-	double         minimalAcceptablePrecision    = 0.0; // If these cannot be met, even if the next clause learned covers ALL uncovered positive and covers NO negatives, then abort.
-	double         minimalAcceptableRecall       = 0.0;
-	double         minimalAcceptableAccuracy     = 0.0;
-	double         minimalAcceptableF1           = 0.0; // TODO - handle F(beta).
+	final double         minimalAcceptablePrecision    = 0.0; // If these cannot be met, even if the next clause learned covers ALL uncovered positive and covers NO negatives, then abort.
+	final double         minimalAcceptableRecall       = 0.0;
+	final double         minimalAcceptableAccuracy     = 0.0;
+	final double         minimalAcceptableF1           = 0.0; // TODO - handle F(beta).
 
     ///////////////////////////////////////////////////////////////////
 	// Parameters that are used when learning tree-structured theories.
@@ -126,10 +126,10 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 	public  boolean        writeGleanerFilesToDisk       = false; // Write 'gleaner' files periodically.
 	private String         gleanerFileName               = null;  // Please don't use this directly.  Null indicates the use of a default value.
 	private String         gleanerFileNameFlipFlopped    = null;  // Put the gleaner results for the flip-flopped case here.
-	private String         annotationForRun              = null;
+	private final String         annotationForRun              = null;
 
 	private boolean        checkpointEnabled             = false; // Write 'gleaner' files periodically.
-	private String         checkpointFileName            = null;  // Please don't use this directly.  Null indicates the use of a default value.
+	private final String         checkpointFileName            = null;  // Please don't use this directly.  Null indicates the use of a default value.
 
 	// All of the fields below are now in the ILPouterLoopState object.
 	// Any information needed to restart a run in the middle (from the chkpt)
@@ -1098,7 +1098,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     	learnOCCTree = val;
     }
     
-    private boolean useSamplingWithReplacementOnPos = (RunBoostedRDN.numbModelsToMake > 1);  // TODO integrate this better if we decide to keep it.
+    private final boolean useSamplingWithReplacementOnPos = (RunBoostedRDN.numbModelsToMake > 1);  // TODO integrate this better if we decide to keep it.
 
 	public void setFlagsForRegressionTask(boolean notLearnTrees) {
     	innerLoopTask.regressionTask           = true;
@@ -1688,7 +1688,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         return outerLoopState.getPrefix();
     }
 
-    private String directoryForGleanerFile = null; // Allow overriding of where Gleaner files go.
+    private final String directoryForGleanerFile = null; // Allow overriding of where Gleaner files go.
 
     public String getGleanerFileName() {
 

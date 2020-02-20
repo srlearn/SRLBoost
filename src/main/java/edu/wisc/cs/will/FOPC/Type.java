@@ -11,7 +11,7 @@ import java.util.Map;
  *
  */
 public class Type extends AllOfFOPC implements Serializable {
-	public String typeName;
+	public final String typeName;
 
     protected Type(String typeName) {
         this.typeName = typeName;
@@ -41,7 +41,7 @@ public class Type extends AllOfFOPC implements Serializable {
      */
     protected static class SerializableType implements Serializable {
 
-        String typeName;
+        final String typeName;
         transient public HandleFOPCstrings stringHandler;
 
         SerializableType(String type) {

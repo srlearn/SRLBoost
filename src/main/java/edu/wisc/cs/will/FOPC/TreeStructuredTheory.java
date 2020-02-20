@@ -15,8 +15,8 @@ public class TreeStructuredTheory extends Theory {
 	private Literal                  headLiteral;
 	private TreeStructuredTheoryNode root;
 	private static int uniqueVarCounter = 1; // This is shared across multiple WILL threads, but that should be OK (if not, place counter in stringHander).
-	private static Map<String,StringConstant> flattenedVarMap = new HashMap<>(4); // Ditto.
-	private Set<Literal> uniqueFlattenedLiterals = new HashSet<>(4);
+	private static final Map<String,StringConstant> flattenedVarMap = new HashMap<>(4); // Ditto.
+	private final Set<Literal> uniqueFlattenedLiterals = new HashSet<>(4);
 	
 	private List<Clause> flattenedClauses;
 

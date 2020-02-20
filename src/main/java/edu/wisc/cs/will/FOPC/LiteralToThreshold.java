@@ -18,10 +18,10 @@ import java.util.List;
  *
  */
 public class LiteralToThreshold extends Literal {
-	public int     positionToThreshold;
-	public int     maxCuts;
-	public boolean createTiles;
-	public boolean firstArgIsExampleID;
+	public final int     positionToThreshold;
+	public final int     maxCuts;
+	public final boolean createTiles;
+	public final boolean firstArgIsExampleID;
 
 	LiteralToThreshold(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, int positionToThreshold, int maxCuts, boolean createTiles, boolean firstArgIsExampleID) {
 		super(stringHandler, pred, arguments);

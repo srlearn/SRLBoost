@@ -120,7 +120,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     // It is possible some in-liners are still in a theory (eg, due to some bug).
     // So if a theory is to 'stand alone' in a new task, we need to keep the definitions of these in-liners.
     private boolean haveCollectedRemainingInLiners = false;
-    private Set<Clause> collectedSupporters = new HashSet<>(4);
+    private final Set<Clause> collectedSupporters = new HashSet<>(4);
     private void collectAnyRemainingInliners() {
     	if (haveCollectedRemainingInLiners) { return; }
     	collectedSupporters.clear();

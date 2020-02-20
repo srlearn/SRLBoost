@@ -13,10 +13,10 @@ public class CoverageScore implements Serializable {
     private double falsePositives = 0;
     private double trueNegatives  = 0;
     private double falseNegatives = 0;
-    private double falseNegativeMEstimate = 0;
-    private double truePositiveMEstimate  = 0;
-    private double falsePositiveMEstimate = 0;
-    private double trueNegativeMEstimate  = 0;
+    private final double falseNegativeMEstimate = 0;
+    private final double truePositiveMEstimate  = 0;
+    private final double falsePositiveMEstimate = 0;
+    private final double trueNegativeMEstimate  = 0;
 
     /* Creates a new instance of CoverageScore */
     public CoverageScore() {

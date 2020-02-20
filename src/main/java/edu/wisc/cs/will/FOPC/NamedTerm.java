@@ -11,10 +11,10 @@ import java.util.Comparator;
  *
  */
 public class NamedTerm {
-	public Term   term;
-	public String name;
+	public final Term   term;
+	public final String name;
 	
-	public static Comparator<NamedTerm> comparator = new NamedTermComparator(); 
+	public static final Comparator<NamedTerm> comparator = new NamedTermComparator();
 	
 	NamedTerm(Term term, String name) {
 		super();

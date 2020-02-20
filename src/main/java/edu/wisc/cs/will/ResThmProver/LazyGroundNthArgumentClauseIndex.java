@@ -16,10 +16,10 @@ import java.util.Map;
  */
 public class LazyGroundNthArgumentClauseIndex {
 
-    private HornClausebase clausebase;
+    private final HornClausebase clausebase;
 
     private static int maximumIndexSizeDefault = 50;
-    private        int maximumIndexSize;
+    private final int maximumIndexSize;
 
     public static void setMaximumIndexSize(int maximumIndexSizeToUse) {
     	maximumIndexSizeDefault = maximumIndexSizeToUse;
@@ -41,7 +41,7 @@ public class LazyGroundNthArgumentClauseIndex {
      * This is used to as a starting place for new definiteClause lists indexed by the
      * Nth args.  This is necessary to make sure unseen
      */
-    private Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundNthArg = new HashMap<>();
+    private final Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundNthArg = new HashMap<>();
 
 
     public LazyGroundNthArgumentClauseIndex(HornClausebase clausebase, int indexedArgument) {

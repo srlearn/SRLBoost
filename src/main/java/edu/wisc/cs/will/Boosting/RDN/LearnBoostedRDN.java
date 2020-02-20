@@ -38,16 +38,16 @@ import java.util.List;
 public class LearnBoostedRDN {
 	protected final static int debugLevel = 1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-	private CommandLineArguments cmdArgs;
-	private ExampleSubSampler egSubSampler;
-	private WILLSetup setup;
+	private final CommandLineArguments cmdArgs;
+	private final ExampleSubSampler egSubSampler;
+	private final WILLSetup setup;
 
 	private List<RegressionRDNExample> egs    = null;
 	private String  targetPredicate          = null;
 	private int     maxTrees                 = 10;
 	private String  yapSettingsFile;
 	private boolean resampleExamples        = true;
-	private boolean stopIfFewChanges        = false;
+	private final boolean stopIfFewChanges        = false;
 	private boolean performLineSearch       = false;
 	private boolean learnSingleTheory 		= false;
 	private boolean disableBoosting			= false;
@@ -323,7 +323,7 @@ public class LearnBoostedRDN {
 		}
 	}
 
-	private Collection<Literal> theseFlattenedLits = new HashSet<>(4);
+	private final Collection<Literal> theseFlattenedLits = new HashSet<>(4);
 	private RegressionTree getWILLTree(List<RegressionRDNExample> newDataSet, int i) {
 		TreeStructuredTheory th;
 		Theory thry = null;

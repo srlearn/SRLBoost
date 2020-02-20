@@ -9,8 +9,8 @@ import java.util.List;
  * @author shavlik
  */
 public class NamedTermList {
-	private List<Term>   terms;
-	private List<String> names;
+	private final List<Term>   terms;
+	private final List<String> names;
 	
 	public NamedTermList(List<Term> terms, List<String> names) {
 		this.terms = terms;

@@ -31,7 +31,7 @@ public class ComputeAUC {
 
 	private double ROC = Double.NaN;
 	private double PR  = Double.NaN;
-	private double CLL;
+	private final double CLL;
 	private double minRecallForPR = 0;
 	private StringBuffer outputFromAUC;
 	private String       aucFile                       = null;

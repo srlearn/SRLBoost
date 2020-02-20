@@ -9,7 +9,7 @@ public class ScoreRegressionNode extends ScoreSingleClauseByAccuracy {
 	// Note we ADD penalties here, since the final score gets negated.
 	private   final static double scalingPenalties = 0.1; // For regression we might want to shift the penalties since prediction errors might be smaller or larger
 	private   final static double bonusForBridgers = 10000.0; // Seems this should suffice, though for some uses of regression it might not.  Don't want to lose the true score, since that'll help sort.
-	private boolean forMLNs;
+	private final boolean forMLNs;
 
 	public ScoreRegressionNode(boolean useMLNs) {
 		super();

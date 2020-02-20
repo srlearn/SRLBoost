@@ -15,9 +15,9 @@ import java.util.*;
  */
 class InferOCCModel {
 
-	private WILLSetup setup;
+	private final WILLSetup setup;
 	
-	private CommandLineArguments cmdArgs;
+	private final CommandLineArguments cmdArgs;
 
 	InferOCCModel(CommandLineArguments cmdArgs, WILLSetup setup) {
 		this.cmdArgs = cmdArgs;

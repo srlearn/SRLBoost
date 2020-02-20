@@ -15,7 +15,7 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
 
     private static final long serialVersionUID = 1L;
 
-    public StateBasedSearchTask task;
+    public final StateBasedSearchTask task;
 
     private int countOfAdds = 0;
 

@@ -13,7 +13,7 @@ import java.util.*;
  */
 public class ExampleSubSampler {
 
-	private WILLSetup willSetup;
+	private final WILLSetup willSetup;
 
 	private boolean useTopKResidueExamples = false;
     private double  negSampleRatioForTopK = 2.0;

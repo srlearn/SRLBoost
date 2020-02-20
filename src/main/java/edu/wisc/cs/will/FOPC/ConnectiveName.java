@@ -44,7 +44,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
     public final static ConnectiveName NOT     = new ConnectiveName(NOTalt0);
     public final static ConnectiveName IMPLIES = new ConnectiveName(IMPLIESalt0);
 
-	public String name;
+	public final String name;
 
 	protected ConnectiveName(String name) { // This is protected because getConnectiveName(String name) should be used instead.
 		this.name = name;
@@ -128,7 +128,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
      */
     protected static class SerializableConnectiveName implements Serializable {
 
-        String name;
+        final String name;
 
         transient public HandleFOPCstrings stringHandler;
 

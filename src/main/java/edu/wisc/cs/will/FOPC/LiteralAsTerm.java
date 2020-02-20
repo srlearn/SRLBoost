@@ -11,7 +11,7 @@ import java.util.Map;
  * This is a dummy class that allows a Literal to be put in a place where a Term is needed.  (Used for dealing with Prolog cuts.)
  */
 public class LiteralAsTerm extends Term {
-	public Literal itemBeingWrapped;
+	public final Literal itemBeingWrapped;
 
 	protected LiteralAsTerm(HandleFOPCstrings stringHandler, Literal itemBeingWrapped) {
 		this.stringHandler    = stringHandler;

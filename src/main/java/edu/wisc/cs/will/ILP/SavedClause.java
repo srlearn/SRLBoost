@@ -12,11 +12,11 @@ import java.util.Set;
  *  An entry in a Gleaner.
  */
 public class SavedClause implements Serializable {
-	long nodeCountWhenSaved;
-	long acceptableNodeCountWhenSaved;
-	boolean examplesFlipFlopped;
-	String annotation; // Holds a string that will be printed when the clause is dumped.
-	String clauseCreator; // Annotation about what created this clause.
+	final long nodeCountWhenSaved;
+	final long acceptableNodeCountWhenSaved;
+	final boolean examplesFlipFlopped;
+	final String annotation; // Holds a string that will be printed when the clause is dumped.
+	final String clauseCreator; // Annotation about what created this clause.
 	double posCoverage;
 	double negCoverage;
 	protected double precision;

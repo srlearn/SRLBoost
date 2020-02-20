@@ -47,9 +47,9 @@ public class SentencePruner {
 
     private static class SentencePrunerData extends ElementPositionVisitor.ElementPositionData {
 
-        HornClauseContext context;
+        final HornClauseContext context;
 
-        List<? extends PruningRule> rules;
+        final List<? extends PruningRule> rules;
 
         Sentence sentence;
 

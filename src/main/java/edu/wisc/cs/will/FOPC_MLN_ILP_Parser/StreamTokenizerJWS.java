@@ -20,14 +20,14 @@ import java.io.StreamTokenizer;
 public class StreamTokenizerJWS extends StreamTokenizerTAW {
 	protected final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	
-	private int      k;                  // Keep the last k items around.	
+	private final int      k;                  // Keep the last k items around.
 	private int      counter       = -1; // The location of the current token (in a "wrap around" buffer).
 	private int      itemsInBuffer =  0;
 	private int      itemsToReturn =  0; // When this is zero, need to call the underlying StreamTokenizer.
-	private int[]    saved_ttype;
-	private String[] saved_sval;
-	private double[] saved_nval;
-	private int[]    saved_lineno;
+	private final int[]    saved_ttype;
+	private final String[] saved_sval;
+	private final double[] saved_nval;
+	private final int[]    saved_lineno;
 	
 	private boolean  doingSuperCall = false; // Apparently when dealing with comments, there is a recursive call to nextToken.  So have to know to ignore that.
 

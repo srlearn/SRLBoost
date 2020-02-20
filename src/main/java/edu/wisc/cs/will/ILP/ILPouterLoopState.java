@@ -32,13 +32,13 @@ public class ILPouterLoopState implements Serializable, Cloneable {
 
     private int            indexIntoPosSeedArray;  // When the provided list runs out, seeds are randomly chosen from the not-yet-covered positive examples.
     private Theory         stdILPtheory;           // The standard ILP theory, i.e. the best clause from each seed.
-    private int[]          posSeedIndicesToUse = null;    // This can be overridden with setSequenceOfSeedsToUse().  These three variables help to allow users to specific which examples are the seeds.
+    private final int[]          posSeedIndicesToUse = null;    // This can be overridden with setSequenceOfSeedsToUse().  These three variables help to allow users to specific which examples are the seeds.
     private int            lengthPosSeedArray;
 
     private Collection<Example> coveredPosExamples; // Collect positive examples covered by at least ONE 'best clause' produced by the ILP inner loop.
     private Collection<Example> coveredNegExamples; // Also see which negative examples are covered by some clause.
 
-    private int              currentFold   = -1;
+    private final int              currentFold   = -1;
 
     private String           prefix;
     private boolean          RRR;

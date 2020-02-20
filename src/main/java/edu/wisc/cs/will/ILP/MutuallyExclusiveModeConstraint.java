@@ -15,9 +15,9 @@ public class MutuallyExclusiveModeConstraint implements ModeConstraint {
 
     private final static int debugLevel = 0;
 
-    private Set<PredicateNameAndArity> mutuallyExclusiveModes;
+    private final Set<PredicateNameAndArity> mutuallyExclusiveModes;
 
-    private int maxOccurances;
+    private final int maxOccurances;
 
     MutuallyExclusiveModeConstraint(Collection<PredicateNameAndArity> mutuallyExclusiveModes, int maxOccurances) {
         this.mutuallyExclusiveModes = new HashSet<>(mutuallyExclusiveModes);

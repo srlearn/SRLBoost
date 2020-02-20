@@ -15,9 +15,9 @@ public class HornSearchNode extends SearchNode {
     private static final int DEBUG = 0;
 
 	Clause      clause;
-	BindingList bindings;
-    long        parentProofCounter;
-    int         parentExpansionIndex;
+	final BindingList bindings;
+    final long        parentProofCounter;
+    final int         parentExpansionIndex;
 
 
 	HornSearchNode(HornClauseProver task, Clause clause, BindingList bindings, long parentProofCounter, int parentExpansionIndex) { // Used for the initial call (i.e., to create the root of the search space).

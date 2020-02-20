@@ -1287,7 +1287,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
     }
 
     
-    private HashMap<Example, Set<BindingList>> cachedBindingLists = new HashMap<>();
+    private final HashMap<Example, Set<BindingList>> cachedBindingLists = new HashMap<>();
 
 	public long getNumberOfGroundingsForRegressionEx(Example eg) {
 		initGroundingCalc();

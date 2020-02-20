@@ -13,10 +13,10 @@ public class InlineManager {
 
 	protected final static int debugLevel = 0;
 
-	private HandleFOPCstrings  stringHandler;
-	private HornClausebase     hornClauseKnowledgeBase;
+	private final HandleFOPCstrings  stringHandler;
+	private final HornClausebase     hornClauseKnowledgeBase;
 	
-	private PredicateName      notPname;
+	private final PredicateName      notPname;
 	
 	InlineManager(HandleFOPCstrings stringHandler, HornClausebase hornClauseKnowledgeBase) {
         this.stringHandler = stringHandler;
@@ -142,7 +142,7 @@ public class InlineManager {
 		if (debugLevel > 3) { stringHandler.printVariableCounters = hold; }
 		return newResults;
 	}
-	private BindingList blToUse =  new BindingList();
+	private final BindingList blToUse =  new BindingList();
 	private List<Clause> help_handleInlinerAndSupportingClauses(Clause c, int depth) {
 
 		if (c == null) { return null; }

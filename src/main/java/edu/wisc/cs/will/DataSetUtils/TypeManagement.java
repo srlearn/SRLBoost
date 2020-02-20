@@ -18,7 +18,7 @@ public class TypeManagement {
 
     protected final static int debugLevel = 0; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-    private HandleFOPCstrings stringHandler;
+    private final HandleFOPCstrings stringHandler;
 
     private Map<PredicateName, Set<Type>> beenWarnedHashMap;
 

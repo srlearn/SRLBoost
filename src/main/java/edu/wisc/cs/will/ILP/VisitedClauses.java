@@ -15,12 +15,12 @@ import java.util.Map.Entry;
  *
  */
 public class VisitedClauses extends ClosedList {
-	private LiteralComparator literalComparator; // Only need one of these even if many instances, but for safety give each instance its own since the space needed is trivial (only one comparator per ILP search).
-	private Map<Integer,Map<PredicateName,List<List<Literal>>>> canonicalClauses; // Index first on total number of args (dont bother to recur into any functions) + 97 * length.  Then hash on the predicate of the last literal.
+	private final LiteralComparator literalComparator; // Only need one of these even if many instances, but for safety give each instance its own since the space needed is trivial (only one comparator per ILP search).
+	private final Map<Integer,Map<PredicateName,List<List<Literal>>>> canonicalClauses; // Index first on total number of args (dont bother to recur into any functions) + 97 * length.  Then hash on the predicate of the last literal.
 	private int    size    =  0; // Count how many items are in this CLOSED.
 	private int    maxSize = -1; // If size gets close to this, then 1-fractionToKeep of the items are randomly deleted.  A non-pos value means "do not prune CLOSED."
-	private double fractionToKeep = 0.75; // When CLOSED reaches 90% of its maxSize, discard 25% of the items (which means it will be be about 2/3rds full).
-	private BindingList tempBindings;
+	private final double fractionToKeep = 0.75; // When CLOSED reaches 90% of its maxSize, discard 25% of the items (which means it will be be about 2/3rds full).
+	private final BindingList tempBindings;
 
 	/*
 	 * 

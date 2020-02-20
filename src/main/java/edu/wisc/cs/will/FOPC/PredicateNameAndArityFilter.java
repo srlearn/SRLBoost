@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity> {
 
-    private HandleFOPCstrings stringHandler;
+    private final HandleFOPCstrings stringHandler;
 
     private Map<PredicateName, ArityFilter> nameToArityMap;
 

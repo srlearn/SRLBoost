@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class DependencyNetwork {
 
-	Map<String, DependencyNode> stringRepToNode;
+	final Map<String, DependencyNode> stringRepToNode;
 	
 	DependencyNetwork() {
 		stringRepToNode = new HashMap<>();

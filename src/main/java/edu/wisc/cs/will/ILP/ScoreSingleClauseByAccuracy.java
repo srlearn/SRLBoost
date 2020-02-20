@@ -16,7 +16,7 @@ import java.util.Set;
  */
 public class ScoreSingleClauseByAccuracy extends ScoreSingleClause {
 
-	private Set<PredicateName> pNamesSeen = new HashSet<>(32);
+	private final Set<PredicateName> pNamesSeen = new HashSet<>(32);
 	
 	ScoreSingleClauseByAccuracy() {
 	}

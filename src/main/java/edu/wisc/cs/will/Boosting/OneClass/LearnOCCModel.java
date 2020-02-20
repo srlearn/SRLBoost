@@ -25,9 +25,9 @@ public class LearnOCCModel {
 
 	protected final static int debugLevel = 1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-	private WILLSetup setup;
+	private final WILLSetup setup;
 
-	private CommandLineArguments cmdArgs;
+	private final CommandLineArguments cmdArgs;
 	
 	private int maxTrees;
 

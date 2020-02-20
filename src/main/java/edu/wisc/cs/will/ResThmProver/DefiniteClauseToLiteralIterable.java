@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
 
 public class DefiniteClauseToLiteralIterable implements Iterable<Literal> {
 
-    private Iterable<DefiniteClause> iterable;
+    private final Iterable<DefiniteClause> iterable;
 
     DefiniteClauseToLiteralIterable(Iterable<DefiniteClause> iterable) {
         this.iterable = iterable;

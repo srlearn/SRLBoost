@@ -8,14 +8,14 @@ package edu.wisc.cs.will.Boosting.RDN.Models;
  *
  */
 public class DependencyNetworkEdge {
-	private DependencyNode start;
-	private DependencyNode end;
+	private final DependencyNode start;
+	private final DependencyNode end;
 	public enum EdgeType {
 		DETERMINISTIC,
 		PROBABILISTIC,
 	}
 	
-	private EdgeType edge;
+	private final EdgeType edge;
 
 	DependencyNetworkEdge(DependencyNode start,
 						  DependencyNode end,

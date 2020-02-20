@@ -235,7 +235,7 @@ public class FileParser {
 
 	private                 boolean dontPrintUnlessImportant = true;
     
-    public          static boolean allowSingleQuotes        = true; // If true, can use single quotes to wrap strings.
+    public          static final boolean allowSingleQuotes        = true; // If true, can use single quotes to wrap strings.
 	 
 	// Allows user to set it to a higher number but doesn't penalize all runs where there are fewer precomputes
 	// It is mildly risky to make this a static, but acceptable.
@@ -248,7 +248,7 @@ public class FileParser {
 	private              int maxWarnings  = 100; // This can be reset via 'setParameter maxWarnings = 10'
 	private              int warningCount =   0;
 
-	public  HandleFOPCstrings  stringHandler;
+	public final HandleFOPCstrings  stringHandler;
 	private StreamTokenizerJWS tokenizer;
 	private List<Sentence>[]   sentencesToPrecompute;
 	private String[]           sentencesToPrecomputeFileNameToUse;
@@ -258,7 +258,7 @@ public class FileParser {
 	private String             fileName           = null;
 	private int                isaCounter         =    0; // Since there can be many of these, report progress.  Could inherit this from import's, but not that necessary (and then should really pass in the current counter as well).
 
-	private boolean treatAND_OR_NOTasRegularNames = false; // If true, treat AND and OR as function or predicate names.  (Used for IL parsing, for example.)
+	private final boolean treatAND_OR_NOTasRegularNames = false; // If true, treat AND and OR as function or predicate names.  (Used for IL parsing, for example.)
 
 
 	public FileParser(HandleFOPCstrings stringHandler) {
@@ -2335,7 +2335,7 @@ public class FileParser {
 		return results;
 	}
 
-	private Set<String> loadedBasicModes = new HashSet<>(4);
+	private final Set<String> loadedBasicModes = new HashSet<>(4);
 	public List<Sentence> loadAllBasicModes() throws ParsingException {
 		String[] knownBasicModes = { "modes_arithmeticInLogic", "modes_comparisonInLogic", "modes_differentInLogic", "modes_listsInLogic" };
 

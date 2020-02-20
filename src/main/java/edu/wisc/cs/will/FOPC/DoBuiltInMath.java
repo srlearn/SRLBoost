@@ -38,9 +38,9 @@ public class DoBuiltInMath extends AllOfFOPC {
 
     DoBuiltInListProcessing listHandler = null;
 
-    private HandleFOPCstrings stringHandler;
+    private final HandleFOPCstrings stringHandler;
 
-    private Map<FunctionName, Set<Integer>> canHandle = new HashMap<>(16);
+    private final Map<FunctionName, Set<Integer>> canHandle = new HashMap<>(16);
 
     /*
      * Reduce an arithmetic expression, producing a NumericConstant node.   Throw an error if any variables encountered where a number is needed.

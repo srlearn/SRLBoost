@@ -19,8 +19,8 @@ import java.util.List;
 public class ClauseBasedTree  {
 
 	WILLSetup setup;
-	ArrayList<Clause> regressionClauses;
-	private ArrayList<Clause> suppClauses;
+	final ArrayList<Clause> regressionClauses;
+	private final ArrayList<Clause> suppClauses;
 	private boolean breakAfterFirstMatch;
 	boolean addLeafId;
 

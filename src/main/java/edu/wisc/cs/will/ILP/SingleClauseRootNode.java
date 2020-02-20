@@ -13,9 +13,9 @@ import java.util.*;
  * @author shavlik
  */
 public class SingleClauseRootNode extends SingleClauseNode {
-	protected Literal        target;          // For now, only work on one target (at a time? to do).
-	protected List<ArgSpec>  targetArgSpecs;  // The info about the target argument being used and the variable matched with the type.
-	List<Term>     variablesInTarget;
+	protected final Literal        target;          // For now, only work on one target (at a time? to do).
+	protected final List<ArgSpec>  targetArgSpecs;  // The info about the target argument being used and the variable matched with the type.
+	final List<Term>     variablesInTarget;
 	Set<Variable>  requiredBodyVariablesInTarget = null;
 
 	SingleClauseRootNode(StateBasedSearchTask task, Literal head, List<ArgSpec> argSpecs, List<Term> variables,

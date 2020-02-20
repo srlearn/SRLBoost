@@ -14,7 +14,7 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 public class RegressionTreeInference extends SRLInference {
 
-	private ConditionalModelPerPredicate conditionalModel;
+	private final ConditionalModelPerPredicate conditionalModel;
 
 	RegressionTreeInference(ConditionalModelPerPredicate model, WILLSetup setup) {
 		super(setup);

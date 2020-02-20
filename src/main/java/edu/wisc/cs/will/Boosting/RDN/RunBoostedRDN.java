@@ -37,13 +37,13 @@ public class RunBoostedRDN extends RunBoostedModels {
 
 	// TODO(?): Allow this to be settable.
 	// 		Each 'tree' in the sequence of the trees is really a forest of this size.
-	public static int numbModelsToMake = 1;
+	public static final int numbModelsToMake = 1;
 
 	// "Run1"; // NOTE: file names will look best if this starts with a capital letter.  If set (ie, non-null), will write testset results out.
-	public static String nameOfCurrentModel = null;
+	public static final String nameOfCurrentModel = null;
 
 	// Allow caller to put extra markers in results file names.
-	public static String resultsFileMarker = null;
+	public static final String resultsFileMarker = null;
 	
 	public void learn() {
 		fullModel = new JointRDNModel();

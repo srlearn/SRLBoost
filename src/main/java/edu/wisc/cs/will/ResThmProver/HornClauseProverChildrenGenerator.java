@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<HornSearchNode> {
 
-    protected HornClauseContext context;
+    protected final HornClauseContext context;
 
     protected BindingList bindingList; // Use this repeatedly to save some "new'ing."
 
@@ -98,7 +98,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      */
     static long proofCounter = 0;
 
-    private PrettyPrinterOptions prettyPrintOptions;
+    private final PrettyPrinterOptions prettyPrintOptions;
 
     HornClauseProverChildrenGenerator(HornClauseProver task, HornClauseContext context) {
         super(task);
@@ -1186,11 +1186,11 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     private static class StackTraceLiteral extends Literal {
 
-        private Literal traceLiteral;
+        private final Literal traceLiteral;
 
-        private long proofCounter;
+        private final long proofCounter;
 
-        private int expansion;
+        private final int expansion;
 
         StackTraceLiteral(Literal traceLiteral, long proofCount, int expansion) {
             this.traceLiteral = traceLiteral;
@@ -1235,7 +1235,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     protected static class CutMarkerNode extends HornSearchNode {
 
-        private CutMarkerLiteral cutMarkerLiteral;
+        private final CutMarkerLiteral cutMarkerLiteral;
 
         CutMarkerNode(HornSearchNode parentNode, Literal literalBeingCut, long proofCounterOfCutClause) {
             super(parentNode, null, null, proofCounterOfCutClause, -1);
@@ -1272,9 +1272,9 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
          * This is just for debugging purpose, never used in the actual resolution.
          *
          */
-        private Literal literalBeingCut;
+        private final Literal literalBeingCut;
 
-        private long proofCounterOfCutClause;
+        private final long proofCounterOfCutClause;
 
         CutMarkerLiteral(HandleFOPCstrings stringHandler, Literal literalBeingCut, long proofCounterOfCutClause) {
             super(stringHandler, stringHandler.standardPredicateNames.cutMarker);
@@ -1301,7 +1301,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         /** Head of the clause that contained the cut.
          *
          */
-        private CutMarkerNode cutMarkerNode;
+        private final CutMarkerNode cutMarkerNode;
 
         CutLiteral(HandleFOPCstrings stringHandler, CutMarkerNode cutMarkerNode) {
             super(stringHandler, stringHandler.standardPredicateNames.cut);
@@ -1331,7 +1331,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     private static class FailedTraceNode extends HornSearchNode {
 
-        Literal failedLiteral;
+        final Literal failedLiteral;
 
         FailedTraceNode(HornClauseProver task, Literal failedLiteral, BindingList bindings, long parentProofCounter, int parentExpansionIndex) {
             super(task, null, bindings, parentProofCounter, parentExpansionIndex);

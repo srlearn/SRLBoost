@@ -10,9 +10,9 @@ public enum VariantClauseAction {
     SILENTLY_REMOVE_VARIANTS("silentlyRemove", false, true),
     WARN_AND_REMOVE_VARIANTS("remove", true, true);
 
-    private String parameterSetting;
-    private boolean warn;
-    private boolean remove;
+    private final String parameterSetting;
+    private final boolean warn;
+    private final boolean remove;
 
     VariantClauseAction(String parameterSetting, boolean warn, boolean remove) {
         this.parameterSetting = parameterSetting;

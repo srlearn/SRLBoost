@@ -8,7 +8,7 @@ public class ElementPath implements Comparable<ElementPath>{
 
     private ElementPath parent;
 
-    private int index;
+    private final int index;
 
     public ElementPath(ElementPath parent, int index) {
         this.parent = parent;

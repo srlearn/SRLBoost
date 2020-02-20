@@ -8,7 +8,7 @@ import java.io.Reader;
  */
 public class NamedReader extends BufferedReader {
 
-    private String name;
+    private final String name;
 
     public NamedReader(Reader in, String name) {
         super(in);

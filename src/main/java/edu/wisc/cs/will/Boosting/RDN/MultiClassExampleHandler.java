@@ -222,9 +222,9 @@ public class MultiClassExampleHandler {
 		public int size() {
 			return constants.size();
 		}
-		private List<ArgumentList<Term>> constants ;
+		private final List<ArgumentList<Term>> constants ;
 		
-		private Map<ArgumentList<Term>, Integer> constantIndex;
+		private final Map<ArgumentList<Term>, Integer> constantIndex;
 		
 		void addConstant(ArgumentList<Term> addThis) {
 			if (!constantIndex.containsKey(addThis)) {

@@ -14,9 +14,9 @@ import java.util.Objects;
  */
 public class RelevantLiteral {	
 	
-	private PredicateName     pName;
+	private final PredicateName     pName;
 	private int               arity    = -1;  // If negative, any arity is fine. 
-	private int               argument = -1;  // If set, says which ARGUMENT is relevant (counts from 1).
+	private final int               argument = -1;  // If set, says which ARGUMENT is relevant (counts from 1).
 	private RelevanceStrength strength = RelevanceStrength.RELEVANT; // Default to saying something is relevant. 
 
 	/*

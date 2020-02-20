@@ -12,7 +12,7 @@ import java.util.Map.Entry;
  *
  */
 public class BindingList extends AllOfFOPC {
-	public HashMap<Variable,Term> theta;
+	public final HashMap<Variable,Term> theta;
 
 	public BindingList() {
 		theta = createMap(0);

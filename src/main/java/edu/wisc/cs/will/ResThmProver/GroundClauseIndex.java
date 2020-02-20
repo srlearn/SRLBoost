@@ -23,7 +23,7 @@ public class GroundClauseIndex<T extends DefiniteClause> {
      * all args.  This is necessary to make sure unseen term combinations
      * start with the unground clauses in their index.
      */
-    private Map<PredicateNameAndArity, List<T>> definiteClausesWithUngroundArgs = new HashMap<>();
+    private final Map<PredicateNameAndArity, List<T>> definiteClausesWithUngroundArgs = new HashMap<>();
 
     void indexDefiniteClause(PredicateNameAndArity key, T definiteClause) {
         Literal headLiteral = definiteClause.getDefiniteClauseHead();

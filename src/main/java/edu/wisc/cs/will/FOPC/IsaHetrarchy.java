@@ -11,7 +11,7 @@ public class IsaHetrarchy {
 
 	protected final static int debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	
-	private HandleFOPCstrings stringHandler; // Have a back pointer to the owner of this ISA hetrarchy.
+	private final HandleFOPCstrings stringHandler; // Have a back pointer to the owner of this ISA hetrarchy.
 	
 	private static final String WILL_ANYTHING_TYPE_NAME = "willAnything";
 	private static final String WILL_LIST_TYPE_NAME     = "willList";
@@ -19,12 +19,12 @@ public class IsaHetrarchy {
 	private static final String WILL_BOOLEAN_TYPE_NAME  = "willBoolean";
 	private static final String WILL_TOKEN_TYPE_NAME    = "willToken";
 	private static final String WILL_ATOMIC_TYPE_NAME   = "willAtomic";
-	private Type willNumberType;
+	private final Type willNumberType;
 
-	private   Type                        rootOfISA;
-	private   Map<Type,List<Type>>        isaHetrarchy; // Only LEAF nodes can be ISA more than one type.  EXTENDED (7/09) TO A HETRARCHY.
-	private   Map<Type,List<Type>>        reverseIsaHetrarchy;  // Allow quick lookup of the CHILDREN nodes.
-	private Map<String,Type>            isaTypeHash; // Used to convert strings to types.  THIS IS NOT USED TO STORE PARENTS POINTERS IN THE ISA Hetrarchy (isaHetrarchy is used for this).
+	private final Type                        rootOfISA;
+	private final Map<Type,List<Type>>        isaHetrarchy; // Only LEAF nodes can be ISA more than one type.  EXTENDED (7/09) TO A HETRARCHY.
+	private final Map<Type,List<Type>>        reverseIsaHetrarchy;  // Allow quick lookup of the CHILDREN nodes.
+	private final Map<String,Type>            isaTypeHash; // Used to convert strings to types.  THIS IS NOT USED TO STORE PARENTS POINTERS IN THE ISA Hetrarchy (isaHetrarchy is used for this).
 	
 	IsaHetrarchy(HandleFOPCstrings stringHandler) {
 		

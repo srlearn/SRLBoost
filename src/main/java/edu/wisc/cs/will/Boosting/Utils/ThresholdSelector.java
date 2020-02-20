@@ -21,8 +21,8 @@ public class ThresholdSelector {
 			return prob +":" + posEg;
 		}
 		
-		public double prob;
-		boolean posEg;
+		public final double prob;
+		final boolean posEg;
 	}
 	
 	public static class descendingProbs implements java.util.Comparator<ProbabilityResult> {
@@ -45,7 +45,7 @@ public class ThresholdSelector {
 		 }
 	}
 	
-	private ArrayList<ProbabilityResult> results;
+	private final ArrayList<ProbabilityResult> results;
 
 	public double lastComputedF1 = Double.NaN;
 

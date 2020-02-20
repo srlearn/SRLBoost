@@ -22,9 +22,9 @@ import java.util.*;
 public class ThresholdManager {
 	protected final static int debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	
-	private LearnOneClause    innerLoopForILP; // Really only need this one, but get the others for convenience.
-	private HandleFOPCstrings stringHandler;
-	private InlineManager     inlineManager;
+	private final LearnOneClause    innerLoopForILP; // Really only need this one, but get the others for convenience.
+	private final HandleFOPCstrings stringHandler;
+	private final InlineManager     inlineManager;
 	
 	private int lowerCounter = 0; // Need unique variables for each use.
 	private int upperCounter = 0; // These three probably follow in lock-step, but down the road we might want them to do different things, so keep three counters.
@@ -520,8 +520,8 @@ public class ThresholdManager {
 	}
 }
 class ScoredSentence {
-	Sentence sentence;
-	double   score;
+	final Sentence sentence;
+	final double   score;
 	
 	ScoredSentence(Sentence sentence, double score) {
 		super();

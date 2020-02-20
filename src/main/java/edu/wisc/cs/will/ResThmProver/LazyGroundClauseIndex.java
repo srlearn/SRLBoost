@@ -19,10 +19,10 @@ import java.util.Map;
  */
 public class LazyGroundClauseIndex {
 
-    private HornClausebase clausebase;
+    private final HornClausebase clausebase;
 
     private static int maximumIndexSizeDefault = 150;
-    private        int maximumIndexSize        = maximumIndexSizeDefault;
+    private final int maximumIndexSize        = maximumIndexSizeDefault;
 	public  static void setMaximumIndexSize(int maximumIndexSizeToUse) {
 		maximumIndexSizeDefault = maximumIndexSizeToUse;
 	}
@@ -33,7 +33,7 @@ public class LazyGroundClauseIndex {
 
     private Map<PredicateNameAndArity, Integer> indexBuilds;
 
-    private Map<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> definiteClausesAllArgsIndex = new LRUMap();
+    private final Map<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> definiteClausesAllArgsIndex = new LRUMap();
 
     /* Store clauses in which one or more of the args is not ground.
      *
@@ -41,7 +41,7 @@ public class LazyGroundClauseIndex {
      * all args.  This is necessary to make sure unseen term combinations
      * start with the unground clauses in their index.
      */
-    private Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundArgs = new HashMap<>();
+    private final Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundArgs = new HashMap<>();
 
     public LazyGroundClauseIndex(HornClausebase clausebase) {
         this.clausebase = clausebase;

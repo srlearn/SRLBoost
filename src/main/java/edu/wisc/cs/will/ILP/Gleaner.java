@@ -47,10 +47,10 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	          private ILPouterLoop            ilpOuterLooper; // Trevor - I (JWS) didnt know if this should be transient.  TODO
     transient private GleanerFileNameProvider fileNameProvider;
     
-    int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
-    int    reportUptoThisManyFalsePositives = 5;
-	private  double reportFalseNegativesIfRecallAtLeastThisHigh    = 0.8;
-	private  double reportFalsePositivesIfPrecisionAtLeastThisHigh = 0.8;
+    final int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
+    final int    reportUptoThisManyFalsePositives = 5;
+	private final double reportFalseNegativesIfRecallAtLeastThisHigh    = 0.8;
+	private final double reportFalsePositivesIfPrecisionAtLeastThisHigh = 0.8;
     
 	
 	private final String defaultMarker = "allPossibleMarkers";
@@ -59,7 +59,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	private Map<String,Map<Integer,SavedClause>>        gleaners; // The first argument is the marker, the second is an integer marking the recall bin, and the inner Map contains the highest-scoring clause in that bin.
 	private Map<Integer,SavedClause>              currentGleaner;
 	private Map<Integer,SavedClause>              defaultGleaner;
-	private double[] recallBinUpperBounds = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.01};  // Leave a little extra at the end (could be +inf, actually).
+	private final double[] recallBinUpperBounds = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.01};  // Leave a little extra at the end (could be +inf, actually).
 	private boolean  addedAnItem = false; // Indicates that something is in some Gleaner and hence cannot change recallBinUpperBounds.
 	private long     nodeCounterAll         =    0;
 	private long     nodeCounterAcceptable  =    0;
@@ -504,7 +504,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 										}
 									}
 									}
-									buffer.append("<fact>").append(fact.toString().substring(0, fact.length() - 1)).append(")." + "</fact>\n");
+									buffer.append("<fact>").append(fact.toString(), 0, fact.length() - 1).append(")." + "</fact>\n");
 									buffer.append("</falsePositive>\n");
 								
 								}

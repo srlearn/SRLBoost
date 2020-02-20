@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class VectorStatistics {
 
-	private List<double[]> datapoints;
+	private final List<double[]> datapoints;
 	
 	private int size;
 	
