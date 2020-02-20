@@ -385,7 +385,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
             }
 
             if (LearnOneClause.debugLevel > 1) {
-                reportOuterLooperStatus("\n% STARTING executeOuterLoop()");
+                reportOuterLooperStatus();
             }
 
             SingleClauseNode savedBestNode = null; // When learning tree-structured models, we need to remember the node learned at the parent.
@@ -398,7 +398,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 					getTotal_nodesConsidered() < max_total_nodesExpanded &&
 					getTotal_nodesCreated() < max_total_nodesCreated &&
 					getClockTimeUsedInMillisec() < getMaximumClockTimeInMillisec() &&
-					canStillMeetPrecisionRecallAccuracyF1specs(false)
+					canStillMeetPrecisionRecallAccuracyF1specs()
                    ) {
 
                 start = System.currentTimeMillis();
@@ -854,7 +854,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 			if (!innerLoopTask.regressionTask && getFractionOfPosCovered() >= minFractionOfPosCoveredToStop) {
 				Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have exceeded the minimal fraction ("
 								+ minFractionOfPosCoveredToStop	+ ") of positive examples to cover.");
-			} else if (!canStillMeetPrecisionRecallAccuracyF1specs(true)) {
+			} else if (!canStillMeetPrecisionRecallAccuracyF1specs()) {
 			} else if (stoppedBecauseTreeStructuredQueueEmpty) {
 				Utils.println(MessageType.ILP_INNERLOOP, "%  Have stopped ILP's outer loop because the tree-structured queue is empty.");
 			} else if (getNumberOfCycles() >= maxNumberOfCycles) {
@@ -1074,7 +1074,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 			maxNumberOfCycles = Integer.parseInt(lookup);
 		}
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfFreeBridgers")) != null) {
-			// TODO set it once available			
+			// TODO set it once available
 		}
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxScoreToStop")) != null) {
 			setMaxAcceptableNodeScoreToStop(Double.parseDouble(lookup));
@@ -1557,21 +1557,12 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         outerLoopState.setOverallMinPosWeight(wgt);
     }
     
-    private boolean canStillMeetPrecisionRecallAccuracyF1specs(boolean printReason) {
-        if (minimalAcceptablePrecision > 0) {
-            bestPossibleWeightedPrecision();
-        }
-        if (minimalAcceptableAccuracy > 0) {
-            bestPossibleWeightedAccuracy();
-        }
-        if (minimalAcceptableRecall > 0) {
-            bestPossibleWeightedF1();
-        }
+    private boolean canStillMeetPrecisionRecallAccuracyF1specs() {
         return true;
     }
     
-    private void reportOuterLooperStatus(String firstMsg) {
-    	if (firstMsg != null) { Utils.println(firstMsg); }
+    private void reportOuterLooperStatus() {
+    	if ("\n% STARTING executeOuterLoop()" != null) { Utils.println("\n% STARTING executeOuterLoop()"); }
 		Utils.println("%  getNumberOfLearnedClauses() = " + getNumberOfLearnedClauses() + " vs " + Utils.comma(maxNumberOfClauses));
 		Utils.println("%  getNumberOfCycles()         = " + getNumberOfCycles()         + " vs " + Utils.comma(maxNumberOfCycles));
 		Utils.println("%  getFractionOfPosCovered()   = " + getFractionOfPosCovered()   + " vs " + Utils.comma(minFractionOfPosCoveredToStop));

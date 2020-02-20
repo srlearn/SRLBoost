@@ -1245,7 +1245,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         }
 
         CutMarkerNode(HornClauseProver task, Literal literalBeingCut, long proofCounterOfCutClause) {
-            super(task, null, null, proofCounterOfCutClause, -1);
+            super(task, null, proofCounterOfCutClause, -1);
 
             this.cutMarkerLiteral = new CutMarkerLiteral(literalBeingCut.getStringHandler(), literalBeingCut, proofCounterOfCutClause);
             this.clause = literalBeingCut.getStringHandler().getClause(null, this.cutMarkerLiteral);
@@ -1334,7 +1334,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         final Literal failedLiteral;
 
         FailedTraceNode(HornClauseProver task, Literal failedLiteral, long parentProofCounter, int parentExpansionIndex) {
-            super(task, null, null, parentProofCounter, parentExpansionIndex);
+            super(task, null, parentProofCounter, parentExpansionIndex);
             this.failedLiteral = failedLiteral;
         }
 

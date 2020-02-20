@@ -752,7 +752,7 @@ public class PrettyPrinter {
         }
 
         final void pushPrecedence() {
-            precedenceInfo.add(new PrecedenceInfo(0));
+            precedenceInfo.add(new PrecedenceInfo());
         }
 
         PrecedenceInfo getCurrentPrecedence() {
@@ -807,8 +807,8 @@ public class PrettyPrinter {
             this.prefix = prefix;
         }
 
-        PrecedenceInfo(int currentIndentation) {
-            this.currentIndentation = currentIndentation;
+        PrecedenceInfo() {
+            this.currentIndentation = 0;
         }
     }
 

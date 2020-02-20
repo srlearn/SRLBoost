@@ -16,8 +16,7 @@ public class RelevantLiteral {
 	
 	private final PredicateName     pName;
 	private int               arity    = -1;  // If negative, any arity is fine. 
-	private final int               argument = -1;  // If set, says which ARGUMENT is relevant (counts from 1).
-	private RelevanceStrength strength = RelevanceStrength.RELEVANT; // Default to saying something is relevant. 
+    private RelevanceStrength strength = RelevanceStrength.RELEVANT; // Default to saying something is relevant.
 
 	/*
 	 * Constructors for RelevantLiteral instances.
@@ -62,7 +61,9 @@ public class RelevantLiteral {
         int hash = 5;
         hash = 23 * hash + (this.pName != null ? this.pName.hashCode() : 0);
         hash = 23 * hash + this.arity;
-        hash = 23 * hash + this.argument;
+        // If set, says which ARGUMENT is relevant (counts from 1).
+        int argument = -1;
+        hash = 23 * hash + argument;
         hash = 23 * hash + (this.strength != null ? this.strength.hashCode() : 0);
         return hash;
     }

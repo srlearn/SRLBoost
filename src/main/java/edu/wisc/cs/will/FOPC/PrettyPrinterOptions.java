@@ -2,8 +2,6 @@ package edu.wisc.cs.will.FOPC;
 
 public class PrettyPrinterOptions {
 
-    private final int maximumTermsPerLine = -1;
-
     private int maximumLiteralsPerLine = -1;
 
     private boolean multilineOutputEnabled = true;
@@ -30,6 +28,7 @@ public class PrettyPrinterOptions {
     }
 
     int getMaximumTermsPerLine() {
+        int maximumTermsPerLine = -1;
         return maximumTermsPerLine;
     }
 

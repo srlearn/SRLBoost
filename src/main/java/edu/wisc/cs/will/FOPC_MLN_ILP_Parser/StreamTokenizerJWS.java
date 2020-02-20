@@ -31,13 +31,13 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
 	
 	private boolean  doingSuperCall = false; // Apparently when dealing with comments, there is a recursive call to nextToken.  So have to know to ignore that.
 
-	StreamTokenizerJWS(Reader reader, int k) {
+	StreamTokenizerJWS(Reader reader) {
 		super(reader);
-		this.k          = k;
-		saved_ttype     = new int[k];
-		saved_sval      = new String[k];
-		saved_nval      = new double[k];
-		saved_lineno    = new int[k];
+		this.k          = 8;
+		saved_ttype     = new int[8];
+		saved_sval      = new String[8];
+		saved_nval      = new double[8];
+		saved_lineno    = new int[8];
 	}
 	
 	int prevToken() {

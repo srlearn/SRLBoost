@@ -24,7 +24,7 @@ public class Example extends Literal implements Serializable {
 	// This weight must be used only for scoring nodes by RDN/MLN-Boost. This weight is used to handle the positive/negative example skew as well as sub-sampling negatives.
 	
 	private double weightOnExample = 1.0; // Note there is also wgtSentence!  This weight is for use in algorithms like Boosting, where wgtSentence is for use in, say, Markov Logic Networks.
-	public  String provenance      = ""; // Indicates the 'reason' for this example.
+	public  String provenance; // Indicates the 'reason' for this example.
 	private Term   annotationTerm  = null;  // This term (presumably a StringConstant) can be used (if set) instead of the example itself when reporting examples.
 	public String extraLabel; // Examples can be labeled wrt some other information and when this information is present, it is used to report how the examples at some node are distributed wrt these labels.
 

@@ -38,8 +38,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     private Collection<Example> coveredPosExamples; // Collect positive examples covered by at least ONE 'best clause' produced by the ILP inner loop.
     private Collection<Example> coveredNegExamples; // Also see which negative examples are covered by some clause.
 
-    private final int              currentFold   = -1;
-
     private String           prefix;
     private boolean          RRR;
 
@@ -252,6 +250,7 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     }
 
     int getCurrentFold() {
+        int currentFold = -1;
         return currentFold;
     }
 

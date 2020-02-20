@@ -526,7 +526,8 @@ public class AdviceProcessor {
 
     private MapOfSets<Example, RelevantClauseInformation> createExampleToSplitVariableMap(MapOfSets<Example, RelevantClauseInformation> exampleToGeneralizedConjunctiveMap) {
 
-        MapOfSets<Example, RelevantClauseInformation> result = new LinkedMapOfSets<>();
+        new LinkedMapOfSets<>();
+        MapOfSets<Example, RelevantClauseInformation> result;
 
         // Don't split for now...
         result = exampleToGeneralizedConjunctiveMap;

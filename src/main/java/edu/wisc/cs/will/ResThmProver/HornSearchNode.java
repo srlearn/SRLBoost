@@ -20,10 +20,10 @@ public class HornSearchNode extends SearchNode {
     final int         parentExpansionIndex;
 
 
-	HornSearchNode(HornClauseProver task, Clause clause, BindingList bindings, long parentProofCounter, int parentExpansionIndex) { // Used for the initial call (i.e., to create the root of the search space).
+	HornSearchNode(HornClauseProver task, Clause clause, long parentProofCounter, int parentExpansionIndex) { // Used for the initial call (i.e., to create the root of the search space).
 		super(task);
 		this.clause   = clause;
-		this.bindings = bindings; // I don't think there will ever be bindings at the root, but leave a hook in here just in case.
+		this.bindings = null; // I don't think there will ever be bindings at the root, but leave a hook in here just in case.
         this.parentProofCounter = parentProofCounter;
         this.parentExpansionIndex = parentExpansionIndex;
 	}

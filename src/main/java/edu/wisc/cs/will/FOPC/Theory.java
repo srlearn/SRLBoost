@@ -569,13 +569,13 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		int counter = 1;
 		for (Clause clause : clauses) {	
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, null)).append(" // Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter)).append(" // Clause #").append(counter++).append(".\n\n");
 		}
 		firstTime = true;
 		counter   = 1;
 		if (Utils.getSizeSafely(supportClauses) > 0) for (Clause clause : supportClauses) {	
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Supporting Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, null)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
 		boolean reportUnsimplifiedClauses = true;
 		firstTime = true;
@@ -585,13 +585,13 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		else { return str.toString(); }
 		if (Utils.getSizeSafely(unsimplifiedClauses) > 0) for (Clause clause : unsimplifiedClauses) {
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Unsimplified Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, null)).append(" // Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter)).append(" // Clause #").append(counter++).append(".\n\n");
 		}	
 		firstTime = true;
 		counter   = 1;	
 		if (Utils.getSizeSafely(unsimplifiedSupportClauses) > 0) for (Clause clause : unsimplifiedSupportClauses) {	
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Unsimplified Supporting Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, null)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
 		str.append("\n*/");
 		return str.toString();
@@ -601,8 +601,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	}
 
 
-    private String printClause(Clause clause, String newLineStarter, BindingList bl) {
-        return PrettyPrinter.print(clause, "", newLineStarter, getPrettyPrinterOptions(), bl);
+    private String printClause(Clause clause, String newLineStarter) {
+        return PrettyPrinter.print(clause, "", newLineStarter, getPrettyPrinterOptions(), null);
 
     }
 

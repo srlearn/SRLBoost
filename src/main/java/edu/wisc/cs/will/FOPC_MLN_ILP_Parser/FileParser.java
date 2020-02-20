@@ -355,7 +355,7 @@ public class FileParser {
 			this.fileName = fName; // Used to report errors.
 			InputStream  inStream = (isaGzippedFile ? new CompressedInputStream(file) : new CondorFileInputStream(file));
 
-			tokenizer = new StreamTokenizerJWS(new InputStreamReader(inStream), 8); // Don't need to do more than 2-3 push backs, so don't need a big buffer.
+			tokenizer = new StreamTokenizerJWS(new InputStreamReader(inStream)); // Don't need to do more than 2-3 push backs, so don't need a big buffer.
 			initTokenizer(tokenizer);
 			int counter = 0;
 			while (tokenizer.nextToken() != StreamTokenizer.TT_EOF) {
@@ -555,7 +555,7 @@ public class FileParser {
 		if (file != null) {	checkDirectoryName(parent);	}
 
 		List<Sentence> listOfSentencesReadOrCreated = new ArrayList<>(8);
-		tokenizer = new StreamTokenizerJWS(inStream, 8); // Don't need to do more than 2-3 push backs, so don't need a big buffer.
+		tokenizer = new StreamTokenizerJWS(inStream); // Don't need to do more than 2-3 push backs, so don't need a big buffer.
 		initTokenizer(tokenizer);
 		
 		
@@ -1242,7 +1242,7 @@ public class FileParser {
 			if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in an isaInterval specification, but got: '" + reportLastItemRead() + "'."); }
 			int arity = readInteger();
 			int dimensions = arity / 3; // Integer division is the default.
-			tokenRead = getNextToken();
+			getNextToken();
 			boolean boundariesAtEnd = false; // The default is the first and the last argument are the boundaries in the 1D case, and in 2D it is 1st, 3rd, 4th, and 6th, while in 3D it is 1st, 3rd, 4th, 6th,7th, and 9th.
 			while (!atEOL()) {
 				String nextTokenAsString = tokenizer.reportCurrentToken();
@@ -2925,7 +2925,9 @@ public class FileParser {
 		boolean firstArgIsExampleID = false;
 
 		tokenRead = getNextToken();
-		if (tokenRead == ',') { tokenRead = getNextToken(); } // OK if there are some commas separating the items.
+		if (tokenRead == ',') {
+			getNextToken();
+		} // OK if there are some commas separating the items.
 		currentWord = tokenizer.reportCurrentToken();
 		if (!currentWord.equalsIgnoreCase("arg")) { Utils.println("Expecting to read: 'arg' but instead read '" + reportLastItemRead() + "'."); }
 		tokenRead    = getNextToken();
@@ -3008,7 +3010,7 @@ public class FileParser {
 			tokenRead = getNextToken();
 		}
 		if (tokenRead == '@') {  // A leading # indicates the value needs to be looked up in the list of set parameters.
-			tokenRead       = getNextToken();
+			getNextToken();
 			String wordRead = tokenizer.sval();
 			String setting  = stringHandler.getParameterSetting(wordRead);
 			if (setting      == null) { Utils.error(" Read '@" + wordRead + "', but '" + wordRead + "' has not been set."); }
@@ -3257,7 +3259,7 @@ public class FileParser {
 
         while (!done) {
             // Look for a name?
-            name = checkAndConsumeArgumentName();
+			checkAndConsumeArgumentName();
             t = processTerm(argumentsMustBeTyped);
 
             ConsCell cell = stringHandler.getConsCell(t, stringHandler.getNil(), null);
@@ -3274,7 +3276,7 @@ public class FileParser {
                 done = true;
             }
             else if ( checkAndConsumeToken("|") ) {
-                name = checkAndConsumeArgumentName();
+				checkAndConsumeArgumentName();
                 t = processTerm(argumentsMustBeTyped);
                 tail.setCdr(t);
 
