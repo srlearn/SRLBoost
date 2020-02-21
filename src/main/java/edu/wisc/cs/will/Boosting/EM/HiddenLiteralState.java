@@ -145,7 +145,7 @@ public class HiddenLiteralState {
 	}
 	
 
-	public static class ExampleIterable implements Iterable<Literal> {
+	static class ExampleIterable implements Iterable<Literal> {
 
 		final HiddenLiteralState state;
 		final Integer match;
@@ -160,7 +160,7 @@ public class HiddenLiteralState {
 		
 	}
 	
-	public static class ExampleIterator implements Iterator<Literal> {
+	static class ExampleIterator implements Iterator<Literal> {
 
 		final Iterator<String> predKeyIterator;
 		String currentPred;

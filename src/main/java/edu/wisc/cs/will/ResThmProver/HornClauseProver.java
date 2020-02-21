@@ -16,7 +16,7 @@ import java.util.Set;
  * See http://en.wikipedia.org/wiki/SLD_resolution and http://en.wikipedia.org/wiki/Horn_clause or an AI textbook.
  */
 public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
-	protected static final int debugLevel = 0;  // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
+	static final int debugLevel = 0;  // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
 	private final HornClauseContext context;
 
@@ -44,7 +44,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 	public HornClauseProver(HornClausebase factbase, boolean redoable) {
         this(new DefaultHornClauseContext(factbase), new DepthFirstSearch(), null,redoable);
 	}
-	public HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy, ScoringFunction scorer) {
+	private HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy, ScoringFunction scorer) {
         this(new DefaultHornClauseContext(factbase), searchStrategy, scorer, false);
     }
     public HornClauseProver(HornClauseContext context) {
@@ -53,7 +53,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
     public HornClauseProver(HornClauseContext context, boolean redoable) {        
         this(context, new DepthFirstSearch(), null, redoable);
     }
-    public HornClauseProver(HornClauseContext context, SearchStrategy searchStrategy, ScoringFunction scorer, boolean redoable) {
+    private HornClauseProver(HornClauseContext context, SearchStrategy searchStrategy, ScoringFunction scorer, boolean redoable) {
         this.context = context;
         taskName = "HornClauseProver";
         this.redoable = redoable;
@@ -96,11 +96,11 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		open.addToFrontOfOpenList(node); // Need to return the last item popped.
 	}
 
-    protected void initialize(List<Literal> negatedConjunctiveQuery ) {
+    private void initialize(List<Literal> negatedConjunctiveQuery) {
         ((InitHornProofSpace) initializer).loadNegatedConjunctiveQuery(negatedConjunctiveQuery, open);
     }
 
-    protected void initialize(SLDQuery query) throws IllegalArgumentException {
+    void initialize(SLDQuery query) throws IllegalArgumentException {
         initialize(query.getNegatedQueryClause().negLiterals);
     }
 
@@ -117,7 +117,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         return result;
     }
 
-	public boolean proveSimpleQuery(Literal negatedFact) throws SearchInterrupted {
+	private boolean proveSimpleQuery(Literal negatedFact) throws SearchInterrupted {
 		((InitHornProofSpace) initializer).loadNegatedSimpleQuery(negatedFact, open);
 		return performSearch().goalFound();
 	}

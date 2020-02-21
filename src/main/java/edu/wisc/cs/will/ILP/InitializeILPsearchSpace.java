@@ -303,8 +303,8 @@ public class InitializeILPsearchSpace extends Initializer {
 
     // A simple 'helper' class.
     private static class TypeVarPair {
-        protected final Type     type;
-        protected final Variable variable;
+        final Type     type;
+        final Variable variable;
 
         TypeVarPair(Type type, Variable var) {
             this.type = type;

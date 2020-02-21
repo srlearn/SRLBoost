@@ -22,8 +22,6 @@ import static edu.wisc.cs.will.Utils.MessageType.STRING_HANDLER_VARIABLE_INDICAT
 public final class HandleFOPCstrings implements CallbackRegister {
 
     public final StandardPredicateNames standardPredicateNames;
-
-	protected final static int debugLevel   =   0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	int warningCount =   1;
 	final static int maxWarnings  = 100;
 	public                 int exceptionCount     =   1; // These should be used when something is caught, and we don't want to print
@@ -107,7 +105,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private   ConsCell                    nil;                      // The nil used for lists.
     private   Literal                     nilAsLiteral;             // Just so we can convert back to the nil if we treat nil as a literal at some point.
 	private   Set<Term>                   setNIL;                   // NIL in a set.
-	final Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
+	private final Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
 	private   long varCounter             = 0; // Used to create new variable names that start with 'a', 'b', 'c', etc.
 	private   long overallCounter         = 0;
 	private   int  countOfSkolemFunctions = 0;
@@ -443,7 +441,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return new ConnectedSentence(this, A, connective, B);
 	}
 
-	public ConsCell getConsCell() {
+	private ConsCell getConsCell() {
 		return new ConsCell(this);
 	}
 	ConsCell getConsCell(FunctionName functionName, TypeSpec typeSpec) {
@@ -534,7 +532,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return new Literal(this, pred, arguments, argumentNames);
 	}
 
-	public Literal getLiteral(PredicateName pred, Term argument) {
+	private Literal getLiteral(PredicateName pred, Term argument) {
 		return new Literal(this, pred, argument);
 	}
     public Literal getLiteral(Literal existingLiteral, List<Term> newArguments) {
@@ -875,10 +873,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	// Collect the argument types in the order they appear in a traversal of the literal's arguments ('types' are only at LEAVES).
 	// TODO: but seems functions also need to be typed for proper operation ...
-	public void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs) {
+	private void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs) {
 		getTypeList(arguments, typeSpecs, false);
 	}
-	public void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs, boolean skipConstants) {
+	private void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs, boolean skipConstants) {
 		for (Term spec : arguments) {
 			if (skipConstants && spec instanceof Constant) { continue; }
 			if (spec.typeSpec != null) { typeSpecs.add(spec.typeSpec); } // NOTE: we do NOT want to skip duplicates!
@@ -904,9 +902,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
 						freeVars.add(specAsVar);
 						freeVarNames.add(argNames == null ? "unnamed" : argNames.get(i));
 					}
-				} else if (debugLevel > 1) { Utils.println("%  getTypedFreeVariables: typeSpec '" + spec.typeSpec + "' of '" + spec + "' is not a plusorMinus or unset var."); }
+				}
 			} else if (spec instanceof Variable && freeVars.contains(spec)) {
-				if (debugLevel > 1) { Utils.println("%  getTypedFreeVariables: already have variable '" + spec + "' in " + freeVars); }
 			} else if (spec instanceof Function) {
 				getTypedFreeVariables(keepThisVarIfPresent, ((Function) spec).getArguments(), ((Function) spec).getArgumentNames(), freeVars, freeVarNames, typeSpecs, onlyKeepPlusOrMinusVariables);
 			} else { Utils.error("Need all these arguments to be typed: " + spec + "  all info: " + arguments + "  freeVars = " + freeVars + "  typeSpecs = " + typeSpecs); }
@@ -1045,7 +1042,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return getPredicateName(nameRaw, cleanFunctionAndPredicateNames);
 	}
 
-    public PredicateName getPredicateName(String nameRaw, boolean cleanName) {
+    private PredicateName getPredicateName(String nameRaw, boolean cleanName) {
 		String name    = (cleanName ? cleanString(nameRaw) : nameRaw);
 		String stdName = standardize(name); // Hash case-independently.
 		PredicateName hashedValue = predicateNameHash.get(stdName);
@@ -1100,7 +1097,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
     * some information if possible about the predicateName.  However, in most cases, the predicateNames
     * will already be instantiated and we will probably lose the serialized predicateName information anyway.
     */
-    protected PredicateName getPredicateName(PredicateName pName) {
+   PredicateName getPredicateName(PredicateName pName) {
 		String name    = pName.name; // cleanString(pName.name); // should already be cleaned..
         String stdName = standardize(name); // Hash case-independently.
         PredicateName hashedValue = predicateNameHash.get(stdName);
@@ -1247,14 +1244,14 @@ public final class HandleFOPCstrings implements CallbackRegister {
     public StringConstant getStringConstant(String name, boolean cleanString) {
 		return getStringConstant(null, name, cleanString);
 	}
-	public StringConstant getStringConstant(TypeSpec spec, String name) {
+	private StringConstant getStringConstant(TypeSpec spec, String name) {
 		// If false, will not clean and will always wrap in quote marks EVEN IF NO QUOTES ORIGINALLY.
 		return getStringConstant(spec, name, true);
 	}
 	public StringConstant getStringConstant(TypeSpec spec, String name, boolean cleanString) {
 		return getStringConstant(spec, (doVariablesStartWithQuestionMarks() || !cleanString ? name : Utils.setFirstCharToRequestedCase(name, usingStdLogicNotation())), cleanString, true);
 	}
-	public StringConstant getStringConstant(TypeSpec spec, String nameRaw, boolean cleanString, boolean complainIfWrongCase) {
+	private StringConstant getStringConstant(TypeSpec spec, String nameRaw, boolean cleanString, boolean complainIfWrongCase) {
 		if (cleanString && !isaConstantType(nameRaw)) {
 			if (complainIfWrongCase) { Utils.error("Since variableIndicator = " + variableIndicator  + ", '" + nameRaw + "' is not a constant."); }
 			// The caller can handler the error (e.g., the parser might want to report the line number).
@@ -1431,7 +1428,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		addNewConstantOfThisType(constant, type, true);
 	}
 	private void addNewConstantOfThisType(Term constant, Type type, boolean callAddISA) {
-		if (debugLevel > 2) { Utils.println("addNewConstantOfThisType to isaHetrarchy: " + constant + " type=" + type); }
 		Type constantAsType = isaHandler.getIsaType(constant);
 		isaHandler.addISA(constantAsType, type);
 		Set<Term> existingConstantsOfThisType = getConstantsOfExactlyThisType(type);
@@ -1517,7 +1513,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		if (Utils.getSizeSafely(vars) < 1) { return s; }
 		BindingList bl = renameAllVariables(vars, s);
 		Sentence newS = s.applyTheta(bl.theta);
-		if (debugLevel > 10) { Utils.println("% renameAllVariables: bl = " + bl); Utils.waitHere("newS = " + newS); }
 		return newS;
 	}
 
@@ -1525,17 +1520,15 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		if (vars == null) { return null; }
 		BindingList bl = new BindingList();
 		resetVarCounters();
-		if (debugLevel > 2) { Utils.println("% renameAllVariables: starting at counter=" + varCounter); }
 		for (Variable var : vars) {
 			Variable v = (countVarOccurrencesInFOPC(var, owner) == 1 ? getExternalVariable(var.getTypeSpec(), "_", true) :  getNewGeneratedVariable(true));
-			if (debugLevel > 2) { Utils.println("%  var = " + var.getName() + ":" + var.counter + "  v=" + v + " + varCounter=" + varCounter); }
 			bl.addBinding(var, v);
 		}
 		resetVarCounters();
 		return bl;
 	}
 
-	public int countVarOccurrencesInFOPC(Variable v, AllOfFOPC fopc) {
+	private int countVarOccurrencesInFOPC(Variable v, AllOfFOPC fopc) {
 		if (fopc == null || v == null) { return 0; }
 		return fopc.countVarOccurrencesInFOPC(v);
 	}

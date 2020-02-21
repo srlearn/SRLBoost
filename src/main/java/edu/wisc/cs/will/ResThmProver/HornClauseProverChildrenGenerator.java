@@ -14,9 +14,9 @@ import java.util.*;
  */
 public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<HornSearchNode> {
 
-    protected final HornClauseContext context;
+    private final HornClauseContext context;
 
-    protected BindingList bindingList; // Use this repeatedly to save some "new'ing."
+    private BindingList bindingList; // Use this repeatedly to save some "new'ing."
 
     private long counter = 0;
 
@@ -1057,15 +1057,15 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         // We want the theory to persist across searches.
     }
 
-    public HandleFOPCstrings getStringHandler() {
+    private HandleFOPCstrings getStringHandler() {
         return context.getStringHandler();
     }
 
-    public HornClausebase getClausebase() {
+    private HornClausebase getClausebase() {
         return context.getClausebase();
     }
 
-    public HornClauseProver getTask() {
+    private HornClauseProver getTask() {
         return (HornClauseProver) task;
     }
 

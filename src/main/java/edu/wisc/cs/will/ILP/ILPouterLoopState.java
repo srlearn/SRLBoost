@@ -252,7 +252,7 @@ public class ILPouterLoopState implements Serializable, Cloneable {
         return -1;
     }
 
-    protected String getPrefix() {
+    String getPrefix() {
         return prefix;
     }
 

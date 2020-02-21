@@ -11,8 +11,6 @@ import java.util.Set;
 
 public class InlineManager {
 
-	protected final static int debugLevel = 0;
-
 	private final HandleFOPCstrings  stringHandler;
 	private final HornClausebase     hornClauseKnowledgeBase;
 	
@@ -73,24 +71,13 @@ public class InlineManager {
 		}
 		if (!definer.isDefiniteClause()) { Utils.error("This code only handle definitions that are definite clauses.  It was given: " + definer); }
 		Literal     head = definer.posLiterals.get(0);
-		if (debugLevel > 3) { 
-			indentAndPrintln(depth, "");
-			indentAndPrintln(depth, "  raw rule  = " + definer);
-			indentAndPrintln(depth, "  head      = " + head);
-			indentAndPrintln(depth, "  lit       = " + lit);
-			indentAndPrintln(depth, "  overall   = " + bindingsToDetailedString(overallBindings));
-		}
 		BindingList bl   = Unifier.UNIFIER.unify(head, lit, overallBindings); // Doing this order will make it more likely that lit's variables remain.
-		if (debugLevel > 3) {
-			indentAndPrintln(depth, "  bl        = " + bindingsToDetailedString(bl));
-		}
 		if (bl == null) {
 			Utils.waitHere("Inliner could not be inserted; could not unify\n  " + lit + " and\n  " + head + "\n given overall bindings = " + overallBindings);
 			return null;
 		}
 		// Will this next line mess up in recursion?  Hopefully not.
 		overallBindings.addBindings(bl); // Delay this to here in case we figure out how to recover from that error.
-		if (debugLevel > 3) { indentAndPrintln(depth, " combined = " + bindingsToDetailedString(overallBindings)); }
 		List<Literal> litsToKeep = new ArrayList<>(Utils.getSizeSafely(definer.negLiterals));
 		if (definer.negLiterals != null) for (Literal innerLit : definer.negLiterals) if (!innerLit.predicateName.filter()) {
 			litsToKeep.add(innerLit);
@@ -108,7 +95,6 @@ public class InlineManager {
 		if (c == null) { return null; }
 		boolean hold = getStringHandler().printVariableCounters;
 
-		if (debugLevel > 3) { stringHandler.printVariableCounters = true; }
 		if (!c.isDefiniteClause()) { Utils.error("This code only handle definite clauses.  It was given: " + c); }
 
 		Literal head = c.posLiterals.get(0);
@@ -116,26 +102,15 @@ public class InlineManager {
 		if (literalIsInlined(             head)) { Utils.error("This code assumes the HEAD is not an in-liner: "          + head + "."); } // TODO generalize
 		if (literalIsaSupportingPredicate(head)) { Utils.error("This code assumes the HEAD is not a supporting literal: " + head + "."); }
 
-        if (debugLevel > 1) {
-			getStringHandler().reportVarsInFOPC(c);
-			Utils.println("\n% handleInlinerAndSupportingClauses:\n% IN  " +  c.toString(Integer.MAX_VALUE));
-		}
-
 		List<Clause> results = help_handleInlinerAndSupportingClauses(c, 0);
 		if (results == null) { Utils.waitHere("Got no results from in-lining: " + c); return null; }
 		VisitedClauses clausesVisited = new VisitedClauses(100000);  // Watch for duplicates in the Supporting Clauses.
 		List<Clause>   newResults     = new ArrayList<>(results.size());
 		for (Clause c2 : results) {
-			if (debugLevel > 3) { Utils.println("\n% Refactored clause: "); getStringHandler().reportVarsInFOPC(c2); }
 			Clause newClause = (Clause) getStringHandler().renameAllVariables(c2);
 			newResults.add(newClause);
 			clausesVisited.addClauseToClosed(getStringHandler(),newClause); // OK to add the 'main clause' here, since it would be odd to have the same clause as a main and supporting clause.
-			if (debugLevel > 1) { 
-				Utils.println("\n% OUT " + c2.toString(Integer.MAX_VALUE));
-				getStringHandler().reportVarsInFOPC(c);
-			}
 		}
-		if (debugLevel > 3) { stringHandler.printVariableCounters = hold; }
 		return newResults;
 	}
 	private final BindingList blToUse =  new BindingList();
@@ -151,8 +126,7 @@ public class InlineManager {
 		List<Literal> newBodyLiterals = new ArrayList<>(c.getLength());
 		Set<Clause>   supporters      = null; // Remove duplicates when possible, but might not too look for variants via VisitedClauses instance.
 		BindingList   overallBindings = new BindingList(); // Need to keep track of all the bindings necessary to make the in-lines match up.
-		
-		if (debugLevel > 3) { indentAndPrintln(depth, "Handle: " + c.toString(Integer.MAX_VALUE)); }
+
 		if (c.negLiterals != null) for (Literal lit : c.negLiterals) {
 			boolean isaInliner   = literalIsInlined(             lit);
 			boolean isaSupporter = literalIsaSupportingPredicate(lit);
@@ -176,7 +150,6 @@ public class InlineManager {
 			if (isaInliner && isaSupporter) { 
 				Utils.error("This code assumes a literal is not BOTH an in-liner and a 'supporting' literal: " + lit + "."); // TODO generalize
 			} else if (lit.predicateName == notPname) { // We want to leave these as is, but need to collecting any 'supporters' they need.
-				if (debugLevel > 3) { indentAndPrintln(depth, " NEGATION: " + lit); } 
 
 				if (isaInliner || isaSupporter) { Utils.error("This code assumes the negation-by-failure predicate is not an in-liner nor a 'supporting' literal: " + lit + "."); } // TODO generalize
 
@@ -223,10 +196,8 @@ public class InlineManager {
                         }
                     }
 				}
-				if (debugLevel > 3) { indentAndPrintln(depth, " NEGATION, add this to body: " + lit); }
 				newBodyLiterals.add(lit);
 			} else if (isaSupporter) {
-				if (debugLevel > 3) { indentAndPrintln(depth, " SUPPORTER (add to body): " + lit); } 
 				newBodyLiterals.add(lit);
 				// Next see if the body of the supporter has any-liners.
 				Iterable<Clause> definingClauses = getHornClauseKnowledgeBase().getPossibleMatchingBackgroundKnowledge(lit, null);
@@ -240,23 +211,16 @@ public class InlineManager {
 					if (Utils.getSizeSafely(recurResults) > 0) { supporters.addAll(recurResults); }
 				}
 			} else if (isaInliner) { // Need to replace this literal.
-				if (debugLevel > 3) { indentAndPrintln(depth, " INLINE this lit: " + lit); }
 				Clause newDefn = getUnifiedLiteralDefinition(depth, lit, overallBindings); // This will change overallBindings.
-				if (debugLevel > 3) { indentAndPrintln(depth, " INLINE defn:   " + newDefn); }
 				
 				List<Clause> recurResults = help_handleInlinerAndSupportingClauses(newDefn, depth + 1);
 				if (Utils.getSizeSafely(recurResults) < 1) { Utils.error("recurResults = " + recurResults + " for newliner = " + lit + "\n newDefn = " + newDefn + "\n overall bindings =" + overallBindings); }
 				
 				if (supporters == null) { supporters = new HashSet<>(1); }
 				Clause        result       = recurResults.remove(0);
-				if (debugLevel > 3) { indentAndPrintln(depth, " INLINE result: " + result.toString(Integer.MAX_VALUE)); }
-				if (debugLevel > 3) { indentAndPrintln(depth, " Overall binds: " + bindingsToDetailedString(overallBindings)); }
 				List<Literal> litsToInsert = result.negLiterals;
-				if (litsToInsert != null) for (Literal litToInsert : litsToInsert) { 
-					if (debugLevel > 3) { indentAndPrintln(depth, " INLINE (add to body): " + litToInsert); }
-					if (debugLevel > 3) { indentAndPrintln(depth, " INLINE (theta'ed):    " + litToInsert.applyTheta(overallBindings.theta)); } 
-					newBodyLiterals.add(litToInsert);  // Would be an odd 'inliner' to have no body ...
-				}
+				// Would be an odd 'inliner' to have no body ...
+				if (litsToInsert != null) newBodyLiterals.addAll(litsToInsert);
 				else { Utils.waitHere("Have an inliner with no body! " + newDefn); }
 				if (Utils.getSizeSafely(recurResults) > 0) { supporters.addAll(recurResults); }				
 			} else { // Simply save.
@@ -266,42 +230,14 @@ public class InlineManager {
 		Clause newClause = getStringHandler().getClause(c.posLiterals, newBodyLiterals, c.getExtraLabel());  // Note we are REUSING THE OLD HEAD.
 		List<Clause> newListOfClauses = new ArrayList<>();
 		Clause newClauseBound = newClause.applyTheta(overallBindings.theta);
-		if (debugLevel > 3) {
-			indentAndPrintln(depth, "Final processing of clause:    " + c.toString(             Integer.MAX_VALUE));
-			indentAndPrintln(depth, "As collected (plus orig head): " + newClause.toString(     Integer.MAX_VALUE));
-			indentAndPrintln(depth, "                Overall binds: " + bindingsToDetailedString(overallBindings)); 
-			indentAndPrintln(depth, "         After applying theta: " + newClauseBound.toString(Integer.MAX_VALUE));
-		}
 		newListOfClauses.add(newClauseBound);
 		if (Utils.getSizeSafely(supporters) < 1) { return newListOfClauses; }
 		assert supporters != null;
 		newListOfClauses.addAll(supporters); // These do not need to be unified since they are stand-alone.
 		return newListOfClauses;		
 	}
-	
-	private String bindingsToDetailedString(BindingList bl) {
-		StringBuilder result = new StringBuilder();
-		if (bl == null || bl.theta == null) {
-			result = new StringBuilder("| ");
-		}
-		else for (Variable var : bl.theta.keySet()) {
-			result.append("| ").append(var).append(getStringHandler().printVariableCounters ? "" : ":" + var.counter).append(" -> ");
-			 			 
-			Term term = bl.theta.get(var);
-			if (getStringHandler().printVariableCounters) { result.append(term); }
-			else if (term instanceof Variable)       { result.append(term).append(":").append(((Variable) term).counter); }
-			else                                     { result.append(term); }
-			result.append(" ");
-		}
-		return result + "|";
-	}
 
-	private void indentAndPrintln(int depth, String str) {
-		Utils.print("% "); for (int i = 0; i < depth; i++) { Utils.print("  "); }
-		Utils.println(str);		
-	}
-
-    public HandleFOPCstrings getStringHandler() {
+	private HandleFOPCstrings getStringHandler() {
         return stringHandler;
     }
 

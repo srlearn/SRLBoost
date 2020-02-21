@@ -228,7 +228,7 @@ public class ExampleSubSampler {
 		return new ArrayList<>(topExamples);
 	}
 
-	public static class GradientComparator implements Comparator<RegressionRDNExample> {
+	static class GradientComparator implements Comparator<RegressionRDNExample> {
 
 		@Override
 		public int compare(RegressionRDNExample r1, RegressionRDNExample r2) {
@@ -244,7 +244,7 @@ public class ExampleSubSampler {
 		}
 	}
 	
-	public static class WeightComparator implements Comparator<RegressionRDNExample> {
+	static class WeightComparator implements Comparator<RegressionRDNExample> {
 
 		@Override
 		public int compare(RegressionRDNExample r1, RegressionRDNExample r2) {
