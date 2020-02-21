@@ -15,18 +15,18 @@ import java.util.*;
  */
 public class ConsCell extends Function implements Iterable<Term> {
 
-    protected ConsCell(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
+    ConsCell(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
         super(stringHandler, functionName, typeSpec); // This will set this.stringHandler.
         if (!functionName.name.equalsIgnoreCase("consCell")) {
             Utils.error("The name of a ConsCell cannot be: " + functionName);
         }
     }
 
-    protected ConsCell(HandleFOPCstrings stringHandler) {
+    ConsCell(HandleFOPCstrings stringHandler) {
         super(stringHandler, stringHandler.getFunctionName("consCell"), null); // The empty cons cell is 'nil'.
     }
 
-    protected ConsCell(HandleFOPCstrings stringHandler, Term firstTerm, TypeSpec typeSpec) {
+    ConsCell(HandleFOPCstrings stringHandler, Term firstTerm, TypeSpec typeSpec) {
         super(stringHandler, stringHandler.getFunctionName("consCell"), typeSpec);
         ConsCell nil = stringHandler.getNil();
         List<Term> arguments2 = new ArrayList<>(2);
@@ -36,7 +36,7 @@ public class ConsCell extends Function implements Iterable<Term> {
 
     }
 
-    protected ConsCell(HandleFOPCstrings stringHandler, Term firstTerm, Term restTerm, TypeSpec typeSpec) {
+    ConsCell(HandleFOPCstrings stringHandler, Term firstTerm, Term restTerm, TypeSpec typeSpec) {
         super(stringHandler, stringHandler.getFunctionName("consCell"), typeSpec);
         List<Term> arguments2 = new ArrayList<>(2);
         arguments2.add(firstTerm);
@@ -47,7 +47,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
     }
 
-    protected ConsCell(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
+    ConsCell(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
         this(stringHandler, functionName, typeSpec);
         if (!functionName.name.equalsIgnoreCase("consCell")) { // Redundant here, but keep for now.
             Utils.error("The name of a ConsCell cannot be: " + functionName);

@@ -24,7 +24,7 @@ public class DefaultHornClausebase implements HornClausebase {
     private List<Clause> backgroundKnowledge = new LinkedList<>();
 
     // Definite clauses with no body, stored as bare Literals.
-    protected List<Literal> facts = new LinkedList<>();
+    private List<Literal> facts = new LinkedList<>();
 
     private HandleFOPCstrings stringHandler;
 

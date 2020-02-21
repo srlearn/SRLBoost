@@ -8,7 +8,7 @@ import java.util.Map;
  */
 public abstract class Constant extends Term {
 
-	protected Constant() { } // Compiler complains without this (for subtypes).
+	Constant() { } // Compiler complains without this (for subtypes).
 
 	public Constant applyTheta(Map<Variable,Term> theta) {
 		return this;

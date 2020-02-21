@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author twalker
  */
-public interface HornClausebaseIndexer<T extends DefiniteClause> {
+interface HornClausebaseIndexer<T extends DefiniteClause> {
 
     /* Clears the index.
      */

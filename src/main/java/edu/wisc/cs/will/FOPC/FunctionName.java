@@ -15,7 +15,7 @@ public class FunctionName extends AllOfFOPC {
 	boolean printUsingInFixNotation = false;
 	private final Map<Integer,List<String>> namedArgumentOrdering = null;  // When getting rid of named arguments, this is the order argument should be placed (if null, then use alphabetic ordering).
 
-	protected FunctionName(String name) { // This is protected because getFunctionName(String name) should be used instead.
+	FunctionName(String name) { // This is protected because getFunctionName(String name) should be used instead.
 		this.name = name;
 	}
 

@@ -162,8 +162,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                 strategy, scorer, monitor, context, useRRR, deferLoadingExamples);
     }
 
-    public ILPouterLoop(String workingDir, String prefix, Reader posExamplesReader, Reader negExamplesReader, Reader backgroundReader, Reader factsReader,
-					    SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, HornClauseContext context, boolean useRRR, boolean deferLoadingExamples) {
+    private ILPouterLoop(String workingDir, String prefix, Reader posExamplesReader, Reader negExamplesReader, Reader backgroundReader, Reader factsReader,
+                         SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, HornClauseContext context, boolean useRRR, boolean deferLoadingExamples) {
 
        outerLoopState = new ILPouterLoopState();
        
@@ -1348,7 +1348,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         outerLoopState.clearSeedNegExamplesUsed();
     }
 
-    public final void setGleaner(Gleaner gleaner) {
+    private void setGleaner(Gleaner gleaner) {
     	Gleaner oldGleaner = (Gleaner) innerLoopTask.getGleaner(); // cth updated to pass structured output flag
         innerLoopTask.setGleaner(gleaner);
         
@@ -1365,7 +1365,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
       	gleanerFlipFlopped.setUseStructuredOutput(gleaner.getUseStructuredOutput());
     }
 
-    public Gleaner getGleaner() {
+    private Gleaner getGleaner() {
         if ( innerLoopTask.searchMonitor instanceof Gleaner ) {
             return (Gleaner) innerLoopTask.searchMonitor;
         }
@@ -1399,7 +1399,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         }
     }
 
-    ActiveAdvice getActiveAdvice() {
+    private ActiveAdvice getActiveAdvice() {
         return innerLoopTask.getActiveAdvice();
     }
 
@@ -1601,7 +1601,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         outerLoopState.setRRR(useRRR);
     }
 
-    public final void setPrefix(String prefix) {
+    private void setPrefix(String prefix) {
         outerLoopState.setPrefix(prefix);
     }
 
@@ -1617,7 +1617,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         return outerLoopState.isRRR();
     }
 
-    public String getPrefix() {
+    private String getPrefix() {
         return outerLoopState.getPrefix();
     }
 

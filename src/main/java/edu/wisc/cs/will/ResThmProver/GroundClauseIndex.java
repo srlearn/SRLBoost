@@ -13,7 +13,7 @@ import java.util.*;
  *
  * @author twalker
  */
-public class GroundClauseIndex<T extends DefiniteClause> {
+class GroundClauseIndex<T extends DefiniteClause> {
 
     private Map<PredicateNameAndArity, Map<List<Term>, List<T>>> definiteClausesAllArgsIndex = new HashMap<>();
 

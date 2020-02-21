@@ -19,10 +19,10 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
      */
     private boolean buildSentence = true;
 
-    public DefaultFOPCVisitor() {
+    protected DefaultFOPCVisitor() {
     }
 
-    public DefaultFOPCVisitor(boolean buildSentence) {
+    DefaultFOPCVisitor(boolean buildSentence) {
         this.buildSentence = buildSentence;
     }
 

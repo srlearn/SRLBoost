@@ -43,7 +43,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	double           bestScoreRegardless = Double.NEGATIVE_INFINITY;
 	public  int       reportingPeriod;  // Report statistics every this many node expansions.
 
-	transient public  HandleFOPCstrings       stringHandler;
+	private transient HandleFOPCstrings       stringHandler;
 	          private ILPouterLoop            ilpOuterLooper; // Trevor - I (JWS) didnt know if this should be transient.  TODO
     transient private GleanerFileNameProvider fileNameProvider;
     
@@ -73,7 +73,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		this(null, null, null, 5000);
 	}
 
-	public Gleaner(GleanerFileNameProvider fileNameProvider, StateBasedSearchTask owner, HandleFOPCstrings stringHandler, int reportingPeriod) {
+	private Gleaner(GleanerFileNameProvider fileNameProvider, StateBasedSearchTask owner, HandleFOPCstrings stringHandler, int reportingPeriod) {
       resetAllMarkers();
       this.fileNameProvider   = fileNameProvider;
       this.setTaskBeingMonitored(owner);

@@ -46,7 +46,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 
 	public final String name;
 
-	protected ConnectiveName(String name) { // This is protected because getConnectiveName(String name) should be used instead.
+	ConnectiveName(String name) { // This is protected because getConnectiveName(String name) should be used instead.
 		this.name = name;
 	}
 
@@ -126,11 +126,11 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
      *
      * This call will then use the readResolve method to fix up the stream.
      */
-    protected static class SerializableConnectiveName implements Serializable {
+    static class SerializableConnectiveName implements Serializable {
 
         final String name;
 
-        transient public HandleFOPCstrings stringHandler;
+        transient HandleFOPCstrings stringHandler;
 
         SerializableConnectiveName(String name) {
             this.name = name;

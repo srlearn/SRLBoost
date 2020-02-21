@@ -14,7 +14,7 @@ import java.util.*;
  *
  * @author twalker
  */
-public class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
+class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
 
     /* Index of clauses which might match a constant arg N.
      *

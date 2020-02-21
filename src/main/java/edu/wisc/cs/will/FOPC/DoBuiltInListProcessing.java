@@ -63,12 +63,12 @@ public class DoBuiltInListProcessing extends AllOfFOPC {
 		return fName;
 	}
 
-	public boolean canHandle(FunctionName fName, int arity) {
+	private boolean canHandle(FunctionName fName, int arity) {
 		Set<Integer> lookup = canHandle.get(fName);
 		if (lookup == null) { return false; }
 		return lookup.contains(arity);
 	}
-	public boolean canHandle(Term expression) {
+	boolean canHandle(Term expression) {
 		if (expression instanceof Function) {	
 			FunctionName fName = ((Function) expression).functionName;
 			

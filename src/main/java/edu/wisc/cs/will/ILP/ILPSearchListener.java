@@ -5,7 +5,7 @@ import java.util.EventListener;
 /*
  * @author twalker
  */
-public interface ILPSearchListener extends EventListener {
+interface ILPSearchListener extends EventListener {
 
     ILPSearchAction outerLoopStarting(ILPouterLoop outerLoop);
     void outerLoopFinished(ILPouterLoop outerLoop);

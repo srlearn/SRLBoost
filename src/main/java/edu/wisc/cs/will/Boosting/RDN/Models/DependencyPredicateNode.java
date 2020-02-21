@@ -70,7 +70,7 @@ public class DependencyPredicateNode extends DependencyNode {
 	/*
 	 * @param predicate the predicate to set
 	 */
-	public void setPredicate(PredicateName predicate) {
+	private void setPredicate(PredicateName predicate) {
 		if (predicate.name.startsWith(WILLSetup.recursivePredPrefix)) {
 			type = PredicateType.RECURSIVE;
 		}

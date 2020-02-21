@@ -12,8 +12,6 @@ import java.util.*;
  */
 public class DuplicateDeterminateRemover {
 
-    private static final int debugLevel = 0;
-
     private static final PassOneVisitor PASS_ONE_VISITOR = new PassOneVisitor();
 
     private static final PassTwoVisitor PASS_TWO_VISITOR = new PassTwoVisitor();
@@ -333,10 +331,6 @@ public class DuplicateDeterminateRemover {
 
         private void performMerger(MergeEntry mergeEntry) {
 
-            if (debugLevel >= 1) {
-                System.out.println("Merging " + mergeEntry.oldGroup + " = " + groupToVariableMap.getValues(mergeEntry.oldGroup) + " into " + mergeEntry.newGroup + " = " + groupToVariableMap.getValues(mergeEntry.newGroup) + ".");
-            }
-
             for (List<LitEntry> list : canonicalLiterals.values()) {
                 for (LitEntry litEntry : list) {
                     litEntry.renumber(mergeEntry);
@@ -352,10 +346,6 @@ public class DuplicateDeterminateRemover {
             groupToVariableMap.removeValues(mergeEntry.oldGroup);
 
             groupToVariableMap.putAll(mergeEntry.newGroup, terms);
-
-            if (debugLevel >= 1) {
-                System.out.println("Collapsed Group " + mergeEntry.newGroup + " = " + groupToVariableMap.getValues(mergeEntry.newGroup) + ".");
-            }
         }
 
         private boolean scanForMergers() {
@@ -378,9 +368,6 @@ public class DuplicateDeterminateRemover {
                             int newGroup = le1.argumentSetIndices[determinateIndex];
 
                             if (oldGroup != newGroup) {
-                                if (debugLevel >= 1) {
-                                    System.out.println("Found merger of " + le1 + " and " + le2 + ".  Will merge " + oldGroup + " = " + groupToVariableMap.getValues(oldGroup) + " into " + newGroup + " = " + groupToVariableMap.getValues(newGroup) + ".");
-                                }
 
                                 addMerge(new MergeEntry(oldGroup, newGroup));
 
@@ -555,7 +542,7 @@ public class DuplicateDeterminateRemover {
         }
     }
 
-    public static class PassThreeData {
+    static class PassThreeData {
 
         private final Set<Literal> seenLiterals = new HashSet<>();
 
