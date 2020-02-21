@@ -17,11 +17,11 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
 	private PredicateSpec() {		
 	}
 
-	protected PredicateSpec(List<Term> signature, List<TypeSpec> typeSpecList, PredicateName owner, boolean isaILPmode) {
+	PredicateSpec(List<Term> signature, List<TypeSpec> typeSpecList, PredicateName owner) {
 		this.signature    = signature;
 		this.typeSpecList = typeSpecList;
 		this.owner        = owner;
-		this.isaILPmode   = isaILPmode;
+		this.isaILPmode   = true;
 	}
 	
 	// Create a copy, but without all the type specifications.
@@ -43,7 +43,6 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
 	}
 
 	private List<Term> help_applyArgsToSignature(HandleFOPCstrings stringHandler, List<Term> sig, int counter, List<Term> args) {
-		if (debugLevel > 2) { Utils.print("%  " + owner + ": applyArgs = " + args + " to signature = " + sig + " counter = " + counter); }
 		if (args == null || sig == null) { Utils.error("Should not have args=null nor sig=null here."); }
 		assert sig != null;
 		List<Term> result = new ArrayList<>(sig.size());
@@ -59,7 +58,6 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
 				counter += f.countLeaves();				
 			} else { Utils.error("Should not have item=" + item + " sig=" + sig + " args=" + args); }
 		}
-		if (debugLevel > 2) { Utils.println("  result = " + result); }
 		return result;
 	}
 	

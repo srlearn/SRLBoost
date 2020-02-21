@@ -22,8 +22,6 @@ import static edu.wisc.cs.will.Utils.MessageType.STRING_HANDLER_VARIABLE_INDICAT
 public final class HandleFOPCstrings implements CallbackRegister {
 
     public final StandardPredicateNames standardPredicateNames;
-
-	protected final static int debugLevel   =   0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	int warningCount =   1;
 	final static int maxWarnings  = 100;
 	public                 int exceptionCount     =   1; // These should be used when something is caught, and we don't want to print
@@ -43,9 +41,9 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
 	public  boolean cleanFunctionAndPredicateNames        = false; // Check for hyphens and spaces.  DO NOT SET UNTIL AFTER LIBRARIES ARE LOADED.
 	public  boolean keepQuoteMarks                        = false; // Set to true if quote marks on string constants should be preserved.  NOTE: if true, then strings with quote marks will NOT be cleaned regardless of any other setting.
-	boolean alwaysUseParensForInfixFunctions      = false; // Useful for debugging the parser, and possibly for safely writing out expressions.
+	final boolean alwaysUseParensForInfixFunctions      = false; // Useful for debugging the parser, and possibly for safely writing out expressions.
 
-	boolean printTypedStrings     = false; // If set to true, then Terms will have their types printed.
+	final boolean printTypedStrings     = false; // If set to true, then Terms will have their types printed.
 	public boolean printVariableCounters = false; // If set to true, then variables will have their counters printed.
 
 	public String  precompute_file_prefix = ""; // Allow overriding of these.
@@ -57,10 +55,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public String  import_assignmentToTempVar1 = "UNASSIGNED_import_assignmentToTempVar1";
 	public String  import_assignmentToTempVar2 = "UNASSIGNED_import_assignmentToTempVar2";
 	public String  import_assignmentToTempVar3 = "UNASSIGNED_import_assignmentToTempVar3";
-	public String  FACTS   = "FACTS_UNASSIGNED";  // The MachineReading project uses these, for BOTH import and precompute.
-	public String  PRECOMP = "PRECOMP_UNASSIGNED";
-	public String  SWD     = "SWD_UNASSIGNED";    // SWD = ScratchWorkingDir (do NOT use SCRATCH because we already use MYSCRATCHDIR).
-	public String  TASK    = "TASK_UNASSIGNED";
+	public final String  FACTS   = "FACTS_UNASSIGNED";  // The MachineReading project uses these, for BOTH import and precompute.
+	public final String  PRECOMP = "PRECOMP_UNASSIGNED";
+	public final String  SWD     = "SWD_UNASSIGNED";    // SWD = ScratchWorkingDir (do NOT use SCRATCH because we already use MYSCRATCHDIR).
+	public final String  TASK    = "TASK_UNASSIGNED";
 
 	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
 	int     numberOfTermsPerRowInPrintouts            = 4; // Actually only if this is 1 does it matter (used for debugging).
@@ -72,42 +70,42 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// A non-negative value V means this special term is in position V (counting starts at zero).
 	// A negative value W means this special term is in position "#args - W" (so '-1' means LAST arg).
 	// Indicating an argument out of range means 'ignore' (TODO - check that code works this way).
-	public    int locationOfWorldArg         =  0;
-    public    int locationOfStateArg         = -1;
+	public final int locationOfWorldArg         =  0;
+    public final int locationOfStateArg         = -1;
 
-	public    IsaHetrarchy                isaHandler;
-	private DoBuiltInMath               mathHandler;
-	private DoBuiltInListProcessing     listHandler;
+	public final IsaHetrarchy                isaHandler;
+	private final DoBuiltInMath               mathHandler;
+	private final DoBuiltInListProcessing     listHandler;
 	private   List<PredicateNameAndArity> knownModes; // Hold all the predicates with known modes.
-	private   List<PredicateNameAndArity> disallowedModes;
+	private final List<PredicateNameAndArity> disallowedModes;
 	public    boolean                     needPruner = false;
 
 
 
 	public    enum VarIndicator { questionMarks, lowercase, uppercase }
 	private        VarIndicator           variableIndicator = null; // Usually when read inside a file the former setting is reverted to once file reading is over.  But if null when file reading starts, that setting persists after the file is closed (ie., the first setting defines the default).
-	private        VarIndicator           defaultVariableIndicator = VarIndicator.uppercase; // This will be set very early by the constructor since it needs to create some strings and needs to choose a notation (but after that it is again set to null).
+	private final VarIndicator           defaultVariableIndicator = VarIndicator.uppercase; // This will be set very early by the constructor since it needs to create some strings and needs to choose a notation (but after that it is again set to null).
 	// NOTE: if variableIndicator=lowercase, then standard FOPC notation is used when printing.  Otherwise Prolog notation is used.  TODO - allow a separate variable to decide how to print?
 
 	public    boolean                     prettyPrintClauses     = true;
-	boolean                     duplicateCostWarningEnabled = true;
+	final boolean                     duplicateCostWarningEnabled = true;
 
-	private Map<String,PredicateName>   predicateNameHash; // These map a given string to one and only one instance.
-	private Map<String,FunctionName>    functionNameHash;
-	private Map<String,ConnectiveName>  connectiveNameHash;
+	private final Map<String,PredicateName>   predicateNameHash; // These map a given string to one and only one instance.
+	private final Map<String,FunctionName>    functionNameHash;
+	private final Map<String,ConnectiveName>  connectiveNameHash;
 	private Map<String,Stack<Variable>> variableHash;
-	private Set<String>                 variableNamesSeen;
-	private Stack<Map<String,Stack<Variable>>> stackOfVariableHashes;
-	private Map<String,StringConstant>  stringConstantHash;
-	private Map<String,NumericConstant> numericConstantHash;
+	private final Set<String>                 variableNamesSeen;
+	private final Stack<Map<String,Stack<Variable>>> stackOfVariableHashes;
+	private final Map<String,StringConstant>  stringConstantHash;
+	private final Map<String,NumericConstant> numericConstantHash;
 
-	private   Map<FunctionName,  Integer> precedenceTableForOperators;
-	private   Map<ConnectiveName,Integer> precedenceTableForConnectives;
-	public    Map<Term,List<Type>>    constantToTypesMap;       // A given constant can have multiple types.  Record them here.  TODO 'wrap' this variable?
+	private final Map<FunctionName,  Integer> precedenceTableForOperators;
+	private final Map<ConnectiveName,Integer> precedenceTableForConnectives;
+	public final Map<Term,List<Type>>    constantToTypesMap;       // A given constant can have multiple types.  Record them here.  TODO 'wrap' this variable?
 	private   ConsCell                    nil;                      // The nil used for lists.
     private   Literal                     nilAsLiteral;             // Just so we can convert back to the nil if we treat nil as a literal at some point.
 	private   Set<Term>                   setNIL;                   // NIL in a set.
-	Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
+	private final Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
 	private   long varCounter             = 0; // Used to create new variable names that start with 'a', 'b', 'c', etc.
 	private   long overallCounter         = 0;
 	private   int  countOfSkolemFunctions = 0;
@@ -115,9 +113,11 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private boolean              predicatesHaveCosts = false; // Set if ANY predicate has a cost.  If so, the SUM of costs is used instead of length() to score a clause.
 	private Set<RelevantLiteral> relevantLiterals    = null;  // Collect statements about which predicateName/arity's have an associated relevance statement.
 
-	Constant  trueIndicator, falseIndicator;
-	public    Literal   trueLiteral,   falseLiteral, cutLiteral;
-	public Clause    trueClause,    falseClause;
+	final Constant  trueIndicator;
+	final Constant falseIndicator;
+	public final Literal   trueLiteral;
+	public final Literal cutLiteral;
+	public final Clause    trueClause;
 
 	// Invented predicates should have the following suffix.
 	// This is useful if one is creating multiple theories, one can reset this for every theory
@@ -127,9 +127,9 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// Be very careful if you want to change these!
 	private boolean useStrictEqualsForLiterals  = false; // If 'true,' only say literals are equal if they are '=='.
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
-	boolean useFastHashCodeForClauses   = true;
+	final boolean useFastHashCodeForClauses   = true;
 
-    private Map<String,Integer> nameCounter    = new HashMap<>(4);  // Unique name counter for anonymous names...
+    private final Map<String,Integer> nameCounter    = new HashMap<>(4);  // Unique name counter for anonymous names...
 
 	private   static Map<String,Integer> precedenceTableForOperators_static   = null; // To avoid the need to pass around a stringHandler, there is also a static version that uses String.equals instead of '=='.
 	private   static Map<String,Integer> precedenceTableForConnectives_static = null;
@@ -138,10 +138,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
         "L","M","N","P","Q","R","S","T","U","W","X","Y","Z" }; // I DROPPED "V" since it means "OR"
     private static final int alphabet2Size = alphabet2.length;
 
-	// Collect user-defined predicates.  These have priority over built-ins if there is a name collision (hence users can overwrite existing ones if they wish).
-	private Map<PredicateName,Map<Integer,UserDefinedLiteral>> userAddedProcDefinedPredicates = null;
-
-	private Set<String> filesLoaded = new HashSet<>(8);
+	private final Set<String> filesLoaded = new HashSet<>(8);
 
     // This group records information used by the MLN code.
     private ClauseOptimiser   clauseOptimizer;
@@ -149,7 +146,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
     public boolean underscoredAnonymousVariables = false;
 
-    public PredicateNameAndArityFilter spyEntries = new PredicateNameAndArityFilter(this);
+    public final PredicateNameAndArityFilter spyEntries = new PredicateNameAndArityFilter(this);
 
     /* Clausebase handling for facts added to the clausebase. */
     public VariantClauseAction variantFactHandling = WARN_AND_REMOVE_VARIANTS;
@@ -157,7 +154,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
     /* Clausebase handling for facts added to the clausebase. */
     public VariantClauseAction variantRuleHandling = WARN_AND_REMOVE_VARIANTS;
 
-    private Map<Literal, Literal> literalAliases = new HashMap<>();
+    private final Map<Literal, Literal> literalAliases = new HashMap<>();
 
 	public HandleFOPCstrings() {
 		this(false);
@@ -185,6 +182,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
         standardPredicateNames = new StandardPredicateNames(this);
 
+        // TODO(@hayesall): What is `recordHandler` doing, and why is it never used?
 		RecordHandler recordHandler = new RecordHandler();
 		isaHandler          = new IsaHetrarchy(this);
 		mathHandler         = new DoBuiltInMath(this);
@@ -193,10 +191,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		trueIndicator       = this.getStringConstant("true");
 		falseIndicator      = this.getStringConstant("false");
 		trueLiteral         = this.getLiteral(standardPredicateNames.trueName);
-		falseLiteral        = this.getLiteral(standardPredicateNames.falseName);
+		Literal falseLiteral = this.getLiteral(standardPredicateNames.falseName);
 		cutLiteral          = this.getLiteral(standardPredicateNames.cut);
 		trueClause          = this.getClause(trueLiteral,  true);
-		falseClause         = this.getClause(falseLiteral, false);
+		Clause falseClause = this.getClause(falseLiteral, false);
 		precedenceTableForOperators   = new HashMap<>( 8);
 		precedenceTableForConnectives = new HashMap<>(24);
 		initPrecedences(precedenceTableForOperators, precedenceTableForConnectives);
@@ -207,28 +205,28 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		}
 
 		// Initialize some parameters used in libraries.
-		recordSetParameter("relevance0", "POSSIBLE_ANSWER",   "built-in default", -1); // Probably a bad choice to number with LOWER being better ...
-		recordSetParameter("relevance1", "STRONGLY_RELEVANT", "built-in default", -1);
-		recordSetParameter("relevance2", "WEAKLY_RELEVANT",   "built-in default", -1);
-		recordSetParameter("relevance3", "NEUTRAL",           "built-in default", -1);
-		recordSetParameter("mixAndMatchAdviceLiterals", "WEAKLY_RELEVANT",    "built-in default", -1);
-		recordSetParameter("atOrAboveTargetArguments", "IRRELEVANT",          "built-in default", -1);
-		recordSetParameter("belowTargetArguments",     "WEAKLY_RELEVANT",     "built-in default", -1);
-		recordSetParameter("typeInRelevance2",         "ISA_OBSERVED_FEATURE","built-in default", -1);
-		recordSetParameter("typeInRelevance1",         "STRONGLY_RELEVANT",   "built-in default", -1);
-		recordSetParameter("typeInRelevance0",         "POSSIBLE_ANSWER",     "built-in default", -1);
-		recordSetParameter("typeInRelevance",          "POSSIBLE_ANSWER",     "built-in default", -1); // TODO - this is in some megatest files for IL; can deleted once those are updated.
-		recordSetParameter("modeMax1",     "1", "built-in default", -1);
-		recordSetParameter("modeMax2",     "2", "built-in default", -1);
-		recordSetParameter("modeMax3",     "3", "built-in default", -1);
-		recordSetParameter("modeMax4",     "4", "built-in default", -1);
-		recordSetParameter("modeMax5",     "5", "built-in default", -1);
-		recordSetParameter("modeMaxInf", "100", "built-in default", -1); // Currently (6/09) not used in the libraries, but that might change.
-		recordSetParameter("thresholdsMax1",     "10", "built-in default", -1);
-		recordSetParameter("thresholdsMax2",    "100", "built-in default", -1);
-		recordSetParameter("thresholdsMax3",   "1000", "built-in default", -1);
-		recordSetParameter("thresholdsMax4",  "10000", "built-in default", -1);
-		recordSetParameter("thresholdsMax5", "100000", "built-in default", -1);
+		recordSetParameter("relevance0", "POSSIBLE_ANSWER"); // Probably a bad choice to number with LOWER being better ...
+		recordSetParameter("relevance1", "STRONGLY_RELEVANT");
+		recordSetParameter("relevance2", "WEAKLY_RELEVANT");
+		recordSetParameter("relevance3", "NEUTRAL");
+		recordSetParameter("mixAndMatchAdviceLiterals", "WEAKLY_RELEVANT");
+		recordSetParameter("atOrAboveTargetArguments", "IRRELEVANT");
+		recordSetParameter("belowTargetArguments",     "WEAKLY_RELEVANT");
+		recordSetParameter("typeInRelevance2",         "ISA_OBSERVED_FEATURE");
+		recordSetParameter("typeInRelevance1",         "STRONGLY_RELEVANT");
+		recordSetParameter("typeInRelevance0",         "POSSIBLE_ANSWER");
+		recordSetParameter("typeInRelevance",          "POSSIBLE_ANSWER"); // TODO - this is in some megatest files for IL; can deleted once those are updated.
+		recordSetParameter("modeMax1",     "1");
+		recordSetParameter("modeMax2",     "2");
+		recordSetParameter("modeMax3",     "3");
+		recordSetParameter("modeMax4",     "4");
+		recordSetParameter("modeMax5",     "5");
+		recordSetParameter("modeMaxInf", "100"); // Currently (6/09) not used in the libraries, but that might change.
+		recordSetParameter("thresholdsMax1",     "10");
+		recordSetParameter("thresholdsMax2",    "100");
+		recordSetParameter("thresholdsMax3",   "1000");
+		recordSetParameter("thresholdsMax4",  "10000");
+		recordSetParameter("thresholdsMax5", "100000");
 		cleanFunctionAndPredicateNames = hold;
 
 		setVariableIndicator(null); // Wait for the first user file to set things, and keep that as the default.
@@ -351,10 +349,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public boolean usingStdLogicNotation() { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.lowercase; }
 
 
-	// TODO - note that useStdLogicNotation still impacts how FOPC sentences are printed even if variablesStartWithQuestionMarks=true.  NEED TO CLEAN UP.
-	private Boolean answerTo_printUsingStdLogicNotation = null; // CAN SET THIS TO OVERRIDE.
 	boolean printUsingStdLogicNotation() {
-		if (answerTo_printUsingStdLogicNotation != null) { return answerTo_printUsingStdLogicNotation; }
 		return usingStdLogicNotation();
 	}
 
@@ -442,7 +437,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return new ConnectedSentence(this, A, connective, B);
 	}
 
-	public ConsCell getConsCell() {
+	private ConsCell getConsCell() {
 		return new ConsCell(this);
 	}
 	ConsCell getConsCell(FunctionName functionName, TypeSpec typeSpec) {
@@ -466,21 +461,16 @@ public final class HandleFOPCstrings implements CallbackRegister {
         
         ConsCell tail = null;
 
-        if ( items == null || items.isEmpty() ) {
-
+		for (Term term : items) {
+			ConsCell newCell = getConsCell(term, null);
+			if ( head == null) {
+				head = newCell;
+			}
+			else {
+				tail.setCdr(newCell);
+			}
+			tail = newCell;
 		}
-        else {
-            for (Term term : items) {
-                ConsCell newCell = getConsCell(term, null);
-                if ( head == null) {
-                    head = newCell;
-                }
-                else {
-                    tail.setCdr(newCell);
-                }
-                tail = newCell;
-            }
-        }
 
         return head;
     }
@@ -538,7 +528,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return new Literal(this, pred, arguments, argumentNames);
 	}
 
-	public Literal getLiteral(PredicateName pred, Term argument) {
+	private Literal getLiteral(PredicateName pred, Term argument) {
 		return new Literal(this, pred, argument);
 	}
     public Literal getLiteral(Literal existingLiteral, List<Term> newArguments) {
@@ -866,12 +856,12 @@ public final class HandleFOPCstrings implements CallbackRegister {
         }
 	}
 	private void disableModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars) {
-        if (typedLiteral != null ) disableModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types, maxOccurrences, maxPerInputVars);
+        if (typedLiteral != null ) disableModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types);
 	}
-	private void disableModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars) {
+	private void disableModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types) {
         if ( predicate != null ) {
             recordPredicatesWithDisabledModes(predicate);
-            predicate.getPredicateName().disableMode(signature, types, maxOccurrences, maxPerInputVars);
+            predicate.getPredicateName().disableMode(signature, types);
         }
 	}
 
@@ -879,10 +869,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	// Collect the argument types in the order they appear in a traversal of the literal's arguments ('types' are only at LEAVES).
 	// TODO: but seems functions also need to be typed for proper operation ...
-	public void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs) {
+	private void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs) {
 		getTypeList(arguments, typeSpecs, false);
 	}
-	public void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs, boolean skipConstants) {
+	private void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs, boolean skipConstants) {
 		for (Term spec : arguments) {
 			if (skipConstants && spec instanceof Constant) { continue; }
 			if (spec.typeSpec != null) { typeSpecs.add(spec.typeSpec); } // NOTE: we do NOT want to skip duplicates!
@@ -908,9 +898,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
 						freeVars.add(specAsVar);
 						freeVarNames.add(argNames == null ? "unnamed" : argNames.get(i));
 					}
-				} else if (debugLevel > 1) { Utils.println("%  getTypedFreeVariables: typeSpec '" + spec.typeSpec + "' of '" + spec + "' is not a plusorMinus or unset var."); }
+				}
 			} else if (spec instanceof Variable && freeVars.contains(spec)) {
-				if (debugLevel > 1) { Utils.println("%  getTypedFreeVariables: already have variable '" + spec + "' in " + freeVars); }
 			} else if (spec instanceof Function) {
 				getTypedFreeVariables(keepThisVarIfPresent, ((Function) spec).getArguments(), ((Function) spec).getArgumentNames(), freeVars, freeVarNames, typeSpecs, onlyKeepPlusOrMinusVariables);
 			} else { Utils.error("Need all these arguments to be typed: " + spec + "  all info: " + arguments + "  freeVars = " + freeVars + "  typeSpecs = " + typeSpecs); }
@@ -1049,7 +1038,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return getPredicateName(nameRaw, cleanFunctionAndPredicateNames);
 	}
 
-    public PredicateName getPredicateName(String nameRaw, boolean cleanName) {
+    private PredicateName getPredicateName(String nameRaw, boolean cleanName) {
 		String name    = (cleanName ? cleanString(nameRaw) : nameRaw);
 		String stdName = standardize(name); // Hash case-independently.
 		PredicateName hashedValue = predicateNameHash.get(stdName);
@@ -1104,7 +1093,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
     * some information if possible about the predicateName.  However, in most cases, the predicateNames
     * will already be instantiated and we will probably lose the serialized predicateName information anyway.
     */
-    protected PredicateName getPredicateName(PredicateName pName) {
+   PredicateName getPredicateName(PredicateName pName) {
 		String name    = pName.name; // cleanString(pName.name); // should already be cleaned..
         String stdName = standardize(name); // Hash case-independently.
         PredicateName hashedValue = predicateNameHash.get(stdName);
@@ -1142,7 +1131,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	// These are used when a mode only specifies the type and doesn't also include any Terms.  E.g., 'mode: p(+human)'   instead of     'mode: p(+human:x)'
 	public Constant getAnonymousTerm(TypeSpec spec)  {
-		return new StringConstant(this, null, false, doVariablesStartWithQuestionMarks(), usingStdLogicNotation(), spec);
+		return new StringConstant(this, null, false, spec);
 	}
 
 	public Term getVariableOrConstant(TypeSpec spec, String name) {
@@ -1223,7 +1212,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return startsWithLowerCase;
 	}
 
-	private Map<String,Integer> mapForGetUniqueStringConstant = new HashMap<>(4);
+	private final Map<String,Integer> mapForGetUniqueStringConstant = new HashMap<>(4);
 	StringConstant getUniqueStringConstant(String string) {
 		Integer lookup = mapForGetUniqueStringConstant.get(string);
 		if (lookup == null) {
@@ -1251,14 +1240,14 @@ public final class HandleFOPCstrings implements CallbackRegister {
     public StringConstant getStringConstant(String name, boolean cleanString) {
 		return getStringConstant(null, name, cleanString);
 	}
-	public StringConstant getStringConstant(TypeSpec spec, String name) {
+	private StringConstant getStringConstant(TypeSpec spec, String name) {
 		// If false, will not clean and will always wrap in quote marks EVEN IF NO QUOTES ORIGINALLY.
 		return getStringConstant(spec, name, true);
 	}
 	public StringConstant getStringConstant(TypeSpec spec, String name, boolean cleanString) {
 		return getStringConstant(spec, (doVariablesStartWithQuestionMarks() || !cleanString ? name : Utils.setFirstCharToRequestedCase(name, usingStdLogicNotation())), cleanString, true);
 	}
-	public StringConstant getStringConstant(TypeSpec spec, String nameRaw, boolean cleanString, boolean complainIfWrongCase) {
+	private StringConstant getStringConstant(TypeSpec spec, String nameRaw, boolean cleanString, boolean complainIfWrongCase) {
 		if (cleanString && !isaConstantType(nameRaw)) {
 			if (complainIfWrongCase) { Utils.error("Since variableIndicator = " + variableIndicator  + ", '" + nameRaw + "' is not a constant."); }
 			// The caller can handler the error (e.g., the parser might want to report the line number).
@@ -1288,7 +1277,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 			return hashedValue;
 		}
 
-		StringConstant result = new StringConstant(this, name, !cleanString, doVariablesStartWithQuestionMarks(), usingStdLogicNotation(), spec); // Use the first name encountered.
+		StringConstant result = new StringConstant(this, name, !cleanString, spec); // Use the first name encountered.
 		stringConstantHash.put(stdName, result);
 		return result;
 	}
@@ -1435,7 +1424,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		addNewConstantOfThisType(constant, type, true);
 	}
 	private void addNewConstantOfThisType(Term constant, Type type, boolean callAddISA) {
-		if (debugLevel > 2) { Utils.println("addNewConstantOfThisType to isaHetrarchy: " + constant + " type=" + type); }
 		Type constantAsType = isaHandler.getIsaType(constant);
 		isaHandler.addISA(constantAsType, type);
 		Set<Term> existingConstantsOfThisType = getConstantsOfExactlyThisType(type);
@@ -1520,39 +1508,24 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		Collection<Variable> vars = s.collectAllVariables();
 		if (Utils.getSizeSafely(vars) < 1) { return s; }
 		BindingList bl = renameAllVariables(vars, s);
-		Sentence newS = s.applyTheta(bl.theta);
-		if (debugLevel > 10) { Utils.println("% renameAllVariables: bl = " + bl); Utils.waitHere("newS = " + newS); }
-		return newS;
+		return s.applyTheta(bl.theta);
 	}
 
 	BindingList renameAllVariables(Collection<Variable> vars, AllOfFOPC owner) { // If owner != null, variables that only appear once are renamed to "_";
 		if (vars == null) { return null; }
 		BindingList bl = new BindingList();
 		resetVarCounters();
-		if (debugLevel > 2) { Utils.println("% renameAllVariables: starting at counter=" + varCounter); }
 		for (Variable var : vars) {
 			Variable v = (countVarOccurrencesInFOPC(var, owner) == 1 ? getExternalVariable(var.getTypeSpec(), "_", true) :  getNewGeneratedVariable(true));
-			if (debugLevel > 2) { Utils.println("%  var = " + var.getName() + ":" + var.counter + "  v=" + v + " + varCounter=" + varCounter); }
 			bl.addBinding(var, v);
 		}
 		resetVarCounters();
 		return bl;
 	}
 
-	public int countVarOccurrencesInFOPC(Variable v, AllOfFOPC fopc) {
+	private int countVarOccurrencesInFOPC(Variable v, AllOfFOPC fopc) {
 		if (fopc == null || v == null) { return 0; }
 		return fopc.countVarOccurrencesInFOPC(v);
-	}
-
-	public void reportVarsInFOPC(Sentence s) {
-		Collection<Variable> vars = s.collectAllVariables();
-		Utils.println("% Variables in: " + s);
-		for (Variable var : vars) { Utils.print(" " + var.getName() + ":" + var.counter); }
-		Utils.println("");
-	}
-
-	// TODO(@hayesall): Drop this method
-	void recordParentVariable() {
 	}
 
 	public String getVariablePrefix() {
@@ -1730,12 +1703,12 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return strength.defaultCost();
 	}
 
-	private Map<String,SetParamInfo> hashOfSetParameters = new HashMap<>(4);
+	private final Map<String,SetParamInfo> hashOfSetParameters = new HashMap<>(4);
 	// If doing joint inference, one target would be evidence for other predicate
 	// So it may have more than one mode for target. This prevents the error check.
 	public boolean dontComplainIfMoreThanOneTargetModes = false;
 
-	public void recordSetParameter(String paramName, String paramValue, String fileName, int lineno) {
+	public void recordSetParameter(String paramName, String paramValue) {
 		hashOfSetParameters.put(paramName, new SetParamInfo(paramValue));
 	}
 	public String getParameterSetting(String paramName) {
@@ -1761,11 +1734,9 @@ public final class HandleFOPCstrings implements CallbackRegister {
         this.inventedPredicateNameSuffix = inventedPredicateNameSuffix;
     }
 
-	UserDefinedLiteral getUserDefinedLiteral(PredicateName pName, int arity) {
-    	if (userAddedProcDefinedPredicates == null) { return null; }
-    	Map<Integer,UserDefinedLiteral> lookup1 = userAddedProcDefinedPredicates.get(pName);
-		if (lookup1 == null) { return null; }
-		return lookup1.get(arity);
+	UserDefinedLiteral getUserDefinedLiteral() {
+		// TODO(@hayesall): `getUserDefinedLiteral` always returns null;
+		return null;
 	}
 
 	public boolean haveLoadedThisFile(String fileName, boolean recordLoaded) {
@@ -1882,7 +1853,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	int     getStarMode()          { return starModeMap; }
 
 	static class SetParamInfo {
-		String parameterValue;
+		final String parameterValue;
 
 		SetParamInfo(String parameterValue) {
 			this.parameterValue = parameterValue;

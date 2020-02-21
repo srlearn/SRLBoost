@@ -15,6 +15,8 @@ import java.util.*;
  *
  */
 public class CreateSyntheticExamples {
+
+	// TODO(@hayesall): Find the call chain where `CreateSyntheticExamples.debugLevel` is referenced from.
 	protected final static int debugLevel = 0; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
 	public static List<WorldState> createWorldStatesWithNoPosExamples(HandleFOPCstrings stringHandler,
@@ -63,9 +65,6 @@ public class CreateSyntheticExamples {
 														  double fractionOfImplicitNegExamplesToKeep,
 														  Set<PredicateNameAndArity> factPredicates) { // If > 1.1 (allow 0.1 of buffer), then we'll keep this NUMBER of generated examples.
 		
-		if (debugLevel > 0 && fractionOfImplicitNegExamplesToKeep <= 1.1) { Utils.println("% When creating synthetic examples, keeping at most this fraction of the possible negative examples: " + fractionOfImplicitNegExamplesToKeep);       }
-		if (debugLevel > 0 && fractionOfImplicitNegExamplesToKeep >  1.1 && fractionOfImplicitNegExamplesToKeep < Integer.MAX_VALUE) { Utils.println("% Keeping at most this many negative examples: " + (int) fractionOfImplicitNegExamplesToKeep); }
-		
 		if (usingWorldStates && worldStatesToProcess == null) {
 			int size = Utils.getSizeSafely(posExamples);
 			if (realNegExamples != null) { size += Utils.getSizeSafely(realNegExamples); }
@@ -101,14 +100,12 @@ public class CreateSyntheticExamples {
 		int desiredExamplesCreated = (fractionOfImplicitNegExamplesToKeep <= 1.1 ? (int) (Math.min(1.0, fractionOfImplicitNegExamplesToKeep) * Utils.getSizeSafely(negExamples))
 																			     : (int)                fractionOfImplicitNegExamplesToKeep)
 									 ; // - numbRealExamples;  // The caller has already subtracted this.
-		if (       debugLevel > 2) { Utils.println("% Have " + Utils.comma(negExamples) + " and want " + Utils.comma(desiredExamplesCreated) + " negative examples. fractionOfImplicitNegExamplesToKeep=" + fractionOfImplicitNegExamplesToKeep ); }
+
+
 		if (totalNegsCreated > desiredExamplesCreated) {
 			negExamples = Utils.chooseRandomNfromThisList(desiredExamplesCreated, negExamples);
-			if (   debugLevel > 2) { Utils.println("% Now have " + Utils.comma(negExamples) + " negative examples after down-sampling the randomly generated ones."); }
-		} else if (desiredExamplesCreated < Integer.MAX_VALUE && desiredExamplesCreated > totalNegsCreated) {
-			if (   debugLevel > 2) { Utils.println("% Have only created " + Utils.comma(totalNegsCreated) + " negative examples, which is " + Utils.comma(desiredExamplesCreated - totalNegsCreated) + " short of the requested " + Utils.comma(desiredExamplesCreated) + "."); }
-		} else if (debugLevel > 2) { Utils.println("% Have created " + Utils.comma(negExamples) + " implicit negative examples (each " + provenanceString + ")");  } 
-		if (       debugLevel > 2) { Utils.waitHere("Have " + Utils.comma(negExamples) + " and want " + Utils.comma(desiredExamplesCreated) + " negative examples."); }
+		}
+
 		// Don't lose the 'real' negatives.
 		if (numbRealExamples > 0) { negExamples.addAll(realNegExamples); }
 
@@ -137,29 +134,24 @@ public class CreateSyntheticExamples {
 			worldStatesToProcess2 = new ArrayList<>(1);
 			worldStatesToProcess2.add(new WorldState(null, null)); // Create a dummy world state, so the FOR LOOP below is used once.
 		}
-			
-		if (debugLevel > 0) { Utils.println("\n% Creating some possible examples with " + numbArgs + " getArguments().  Signature = " + targetPredicateSignature + ".  Reason for each: " + provenanceString + "."); }
+
 		Set< Example>  resultsAsSet      = new HashSet<>(4); // Use this to quickly look for duplicates.
 		List<Example>  results           = new ArrayList<>(4);
 		Constant       dummyConstant     = stringHandler.getStringConstant("Dummy"); // Need a filler for the positions from which we don't extract.
 		Set<Term>      dummyConstantSet  = new HashSet<>(4);
 		dummyConstantSet.add(dummyConstant);
 		for (WorldState worldState : worldStatesToProcess2) {
-			if (debugLevel > 1 && usingWorldStates) { Utils.println("%    WorldState: " + worldState); }
 			List<Set<Term>> crossProduct = new ArrayList<>(targetPredicateSignature.size());
 			int             leafCounter  = 0;
 			for (int argCounter = 0; argCounter < numbArgs; argCounter++) { // Look at each argument in the target's specification.
 				Term sig = targetPredicateSignature.get(argCounter);
-				if (debugLevel > 1) { Utils.println("\n% signature item = " + sig); }
 				
-				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)) { 
-					if (debugLevel > 1) { Utils.println("%   Using the current WORLD argument."); }
+				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)) {
 					crossProduct.add(dummyConstantSet); 
 					leafCounter++;
 					continue; 
 				}
-				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)) { 
-					if (debugLevel > 1) { Utils.println("%   Using the current STATE argument."); }
+				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)) {
 					crossProduct.add(dummyConstantSet);
 					leafCounter++;
 					continue; 
@@ -168,11 +160,6 @@ public class CreateSyntheticExamples {
 				Set<Term> groundedTermsOfThisTypeInThisState = null;
 				if (sig instanceof Constant) {
 					groundedTermsOfThisTypeInThisState = getConstantsOfThisTypeInThisWorldState(stringHandler, targetArgSpecs.get(leafCounter), worldState, prover.getClausebase().getFacts(), factPredicates);
-					if (debugLevel > 1) {
-						Utils.println("%   For argument #" + argCounter + " (leaf #" + leafCounter + "), constants of type='" + targetArgSpecs.get(leafCounter).typeSpec + "' in world-state='" + worldState + "':"); 
-						Utils.println("%      " + Utils.limitLengthOfPrintedList(groundedTermsOfThisTypeInThisState));
-					}
-					if (debugLevel > 2) { Utils.println("% Existing groundedTermsOfThisTypeInThisState '" + targetArgSpecs.get(leafCounter) + "':\n%   " + Utils.limitLengthOfPrintedList(groundedTermsOfThisTypeInThisState)); }
 					leafCounter++;
                 } else if (sig instanceof ConsCell) {
                     groundedTermsOfThisTypeInThisState = new HashSet<>();
@@ -185,18 +172,12 @@ public class CreateSyntheticExamples {
 						groundedTermsOfThisTypeInThisState = createGroundFunctionsInThisWorldState(stringHandler, f, leafCounter, targetArgSpecs, null, prover, factPredicates);
 					}
 					if (groundedTermsOfThisTypeInThisState == null) { crossProduct = null; break; } // Cannot make any examples from this state since no constants of the necessary type.
-					if (debugLevel > 1) { 
-						Utils.println("%   For function with signature '" + sig + "', grounded instances in world-state='" + worldState + "':"); 
-						Utils.println("%      " + Utils.limitLengthOfPrintedList(groundedTermsOfThisTypeInThisState));
-					}
-					if (debugLevel > 2) { Utils.println("% Existing groundedFunctionsInThisState for this signature '" + f + "':\n%   " + Utils.limitLengthOfPrintedList(groundedTermsOfThisTypeInThisState)); }
 					leafCounter += f.countLeaves(); // Need to know where we are in the targetArgSpecs.					
 				} else { Utils.error("Cannot handle this type here: " + sig); }
 				crossProduct.add(groundedTermsOfThisTypeInThisState);
 			}
 			if (crossProduct != null) {
 				List<List<Term>> allPossibilities = Utils.computeCrossProduct(crossProduct);
-				if (debugLevel > 2) { Utils.println("% CrossProduct [#=" + Utils.comma(allPossibilities) + "] = " + Utils.limitLengthOfPrintedList(allPossibilities)); }
 				int counter = 0;
 				for (List<Term> args : allPossibilities) {
 					counter++;
@@ -212,16 +193,13 @@ public class CreateSyntheticExamples {
 					if (!resultsAsSet.contains(example) &&   // Watch for duplicates, both newly created and those in the exceptions lists..
 						(exceptions1 == null || !exceptions1.contains(example)) && 
 						(exceptions2 == null || !exceptions2.contains(example))) {
-						 if (debugLevel > 1) { Utils.println("% Newly created candidate-negative example #" + Utils.comma(results) + ": " + example); }
 						results.add(     example); 
 						resultsAsSet.add(example);
 						if (results.size() % 1000 == 0) { Utils.println("%   Have randomly created " + Utils.comma(results) + " putative negative examples."); }
 					}
-					else if (debugLevel > 1) { Utils.println((resultsAsSet.contains(example) ? "%    Already collected: " : "%    Already in an exceptions list: ") + example); }
 				}
 			}
 		}
-		if (debugLevel > 1) { Utils.println("% createAllPossibleExamples: Have created " + Utils.getSizeSafely(results) + " examples."); }
 		return results;
 	}
 	
@@ -250,16 +228,13 @@ public class CreateSyntheticExamples {
     		} else if (term instanceof Function) {
 				Set<Term> groundedTermsOfThisTypeInThisState = createGroundFunctionsInThisWorldState(stringHandler, (Function) term, currentCounter, targetArgSpecs, worldState, prover, factPredicates);
 				if (groundedTermsOfThisTypeInThisState == null) {
-					if (debugLevel > 1 || worldState == null) { Utils.println(" No grounded versions for " + term + " in " + worldState); }
 					return null; 
 				}
 				crossProduct.add(groundedTermsOfThisTypeInThisState);
 				currentCounter += countLeavesInThisFunction((Function) term); // Need to know where we are in the targetArgSpecs.
 			} else { Utils.error("Cannot handle this type here: " + term); }
 		}
-		if (debugLevel > 0) { Utils.println("%      For '" + f  + "', [leaves " + leafCounter + " to " + currentCounter + "] crossProduct = " + Utils.limitLengthOfPrintedList(crossProduct)); }
 		List<List<Term>> allPossibilities = Utils.computeCrossProduct(crossProduct);
-		if (debugLevel > 0) { Utils.println("%        results: " + Utils.limitLengthOfPrintedList(allPossibilities)); }
 		Set<Term>        results          = new HashSet<>(allPossibilities.size());
 		for (List<Term> args : allPossibilities) {
 			results.add(stringHandler.getFunction(f.functionName, args, f.getTypeSpec()));
@@ -281,12 +256,10 @@ public class CreateSyntheticExamples {
 	
 	private static Set<Term> getConstantsOfThisTypeInThisWorldState(HandleFOPCstrings stringHandler, ArgSpec spec, WorldState worldState, Iterable<Literal> facts, Set<PredicateNameAndArity> factPredicates) {
 		Type type = spec.typeSpec.isaType;
-		Set<Term> results = new HashSet<Term>(4);		
-		
-		if (debugLevel > 0) { Utils.println("%    Collect constants of spec '" + spec + "' in world state '" + worldState + "'."); }
+		Set<Term> results = new HashSet<>(4);
+
 		if (spec.typeSpec.mustBeThisValue()) { 
 			results.add(spec.arg);
-			if (debugLevel > 2) { Utils.println("%     Constants of type '" + spec + "': " + Utils.limitLengthOfPrintedList(results)); }
 			return results;
 		}
 		// Need to walk through the facts file to see if (a) a fact is true in this worldState and (b) some of its getArguments() are of the type specified by spec.
@@ -308,10 +281,7 @@ public class CreateSyntheticExamples {
                                 Term arg = lit.getArguments().get(index - 1); // Recall counting from 0 here (but from 1 externally).
                                 if (arg instanceof Constant) {
                                     Constant argAsConstant = (Constant) arg;
-                                    boolean addResult = results.add(argAsConstant);
-                                    if (debugLevel > 2 && addResult) {
-                                        Utils.println("%     via constrained, arg='" + arg + "' is of type='" + type);
-                                    }
+									results.add(argAsConstant);
                                 }
                             }
                         }
@@ -322,7 +292,6 @@ public class CreateSyntheticExamples {
 		if (worldState == null && Utils.getSizeSafely(results) < 1) {
 			Utils.warning("No constants for " + spec);
 		}
-		if (debugLevel > 2) { Utils.println("%     Constants of type '" + spec + "': " + Utils.limitLengthOfPrintedList(results)); }
 		return results;		
 	}
 	
@@ -331,9 +300,8 @@ public class CreateSyntheticExamples {
 		for (Term arg : arguments) { // If so, look at each argument and see if of the proper type (could skip locationOfWorldArg_countingLeftToRight and locationOfStateArg_countingRightToLeft, but not worth it).
 			if (arg instanceof Constant) {
 				Constant argAsConstant = (Constant) arg;
-				if (stringHandler.isaHandler.isa(stringHandler.isaHandler.getIsaType(argAsConstant), type)) { 
-					boolean addResult = results.add(argAsConstant);
-					if (debugLevel > 2 && addResult) { Utils.println("%     arg='" + arg + "' is of type='" + type); }
+				if (stringHandler.isaHandler.isa(stringHandler.isaHandler.getIsaType(argAsConstant), type)) {
+					results.add(argAsConstant);
 				}
     		} else if (arg instanceof ConsCell) {
     			// We need to skip lists, since they can be of variable length.

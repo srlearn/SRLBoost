@@ -10,9 +10,9 @@ public class SearchResult implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private boolean goalFound;
+	private final boolean goalFound;
 
-	private String reason;
+	private final String reason;
 
 	SearchResult(boolean goalFound, String reason) {
 		this.goalFound = goalFound;

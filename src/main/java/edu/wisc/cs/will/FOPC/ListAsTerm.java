@@ -13,16 +13,16 @@ import java.util.Map;
  *
  */
 public class ListAsTerm extends Term {
-	protected List<Term> objects;
+	final List<Term> objects;
 	private boolean processItemsInList; // If false, leave the items in 'objects' untouched.
 
 	/*
 	 * This is a way to wrap a list of anything as an argument to an FOPC function.
 	 */
-	protected ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects) {
+	ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects) {
 		this(stringHandler, objects, true);
 	}
-	protected ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects, boolean processItemsInList) {
+	private ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects, boolean processItemsInList) {
 		this.stringHandler       = stringHandler;
 		this.objects            = objects;
 		this.processItemsInList = processItemsInList;
@@ -81,7 +81,7 @@ public class ListAsTerm extends Term {
     public Sentence asSentence() {
         return null;
     }
-	
+
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		final int prime = 31;
@@ -132,7 +132,7 @@ public class ListAsTerm extends Term {
 
     
 
-	public String toString(int precedenceOfCaller, BindingList bindingList) {
+	protected String toString(int precedenceOfCaller, BindingList bindingList) {
         if ( objects == null ) {
             return "listAsTerm([])";
         }

@@ -5,9 +5,9 @@ import edu.wisc.cs.will.FOPC.DefiniteClause;
 
 import java.util.Iterator;
 
-public class DefiniteClauseToClauseIterable implements Iterable<Clause> {
+class DefiniteClauseToClauseIterable implements Iterable<Clause> {
 
-    private Iterable<DefiniteClause> iterable;
+    private final Iterable<DefiniteClause> iterable;
 
     DefiniteClauseToClauseIterable(Iterable<DefiniteClause> iterable) {
         this.iterable = iterable;
@@ -17,9 +17,9 @@ public class DefiniteClauseToClauseIterable implements Iterable<Clause> {
         return new DefiniteClauseToClauseIterator(iterable.iterator());
     }
 
-    public static class DefiniteClauseToClauseIterator implements Iterator<Clause> {
+    static class DefiniteClauseToClauseIterator implements Iterator<Clause> {
 
-    Iterator<DefiniteClause> iterator;
+    final Iterator<DefiniteClause> iterator;
 
     DefiniteClauseToClauseIterator(Iterator<DefiniteClause> iterator) {
         this.iterator = iterator;

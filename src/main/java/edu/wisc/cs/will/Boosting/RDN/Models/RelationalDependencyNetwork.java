@@ -254,12 +254,11 @@ public class RelationalDependencyNetwork extends DependencyNetwork {
 				Utils.error("Doesn't contain the predicate " + predicate + " in the RDN");
 			}
 			// Queue of ancestors
-			ArrayList<DependencyNetworkEdge> ancestors = new ArrayList<>();
 			HashMap<PredicateType, Set<PredicateName>> ancestorsOfType = new HashMap<>();
 			Set<PredicateName> nodesConsidered = new HashSet<>();
 
 			// Search for ancestors
-			ancestors.addAll(node.getParents());
+			ArrayList<DependencyNetworkEdge> ancestors = new ArrayList<>(node.getParents());
 			while(!ancestors.isEmpty()) {
 				// Since we are looking at parents, we need source
 				DependencyPredicateNode ancestor = (DependencyPredicateNode)ancestors.remove(0).getStart();

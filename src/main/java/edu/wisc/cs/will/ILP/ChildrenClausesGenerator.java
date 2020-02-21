@@ -11,37 +11,33 @@ import java.util.*;
 /*
  * @author shavlik
  * 
- * TODO - if last literal is a BRIDGER than REQUIRE (unless flag set?) that a VAR NEW TO THE BRIDGER IS USED (else it isn't bridging).
+ * TODO(@jws) - if last literal is a BRIDGER than REQUIRE (unless flag set?) that a VAR NEW TO THE BRIDGER IS USED (else it isn't bridging).
  *
  */
 public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
-	
-	private   static final int debugMult = 1; // Set this to -1 to get a lot more printing (HACK for use in debugging).  SHOULD ONLY BE SET TO -1 OR 1.
-	
+
 	private   static final boolean reportPredicateUsage = true;
 	private                int     callCounter          = 0;
 	private   static final int     callCounterMOD       = 10000; // Every N predicate-usage counts, report predicate usage.
-	public    static       int     modForReportingExpansions = 10; // Every so often, report the node being expanded.
-	private   Set<PredicateName>   predicatesMarked     = new HashSet<>(4); // TODO - add code to RESET.  But might not be necessary since not a large number of predicates.
+
+	private final Set<PredicateName>   predicatesMarked     = new HashSet<>(4); // TODO - add code to RESET.  But might not be necessary since not a large number of predicates.
 	
 	public    static final int       numberofConstantsToCreate = 100;
 	private Map<Type,List<Term>>   newTypesPresentInChildMap; // I (JWS) don't know how in Java one can change (and recover) a passed-in argument, so I'll make it a 'global' instance variable.
 	private List<Type>             newTypesPresentInChild;
-	private   Map<Type,List<Term>>   existingTermsOfTypeMap;
+
+
 	BindingList            cachedBindingListForPruning; // Used if any pruning is being considered.
 	Clause                 numberedBodyForPruning;      // Also used when pruning.
 	private   Map<PredicateName,List<Literal>> literalsTriedSoFar; // Used to check for variants in children (only newVars can vary).
 	private StringConstant[]       constantsToUse    = null; // These are used to replace variables when matching for pruning.
 	private   BindingList            dummyBindingList;         // Use this to save some new'ing.
 	int                    countOfPruningDueToVariantChildren = 0;
-	
-	private long start = -1; // Will be sent upon first call.
 
 	ChildrenClausesGenerator() {
 	}
 	
-	protected void initialize() { 
-		existingTermsOfTypeMap = new HashMap<>(4);
+	void initialize() {
 		literalsTriedSoFar     = new HashMap<>(64);
 		constantsToUse         = new StringConstant[numberofConstantsToCreate];
 		dummyBindingList       = new BindingList();
@@ -54,33 +50,33 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 	}
 
 	private List<SearchNode>  children  = new ArrayList<>(8); // TODO - reuse this list which returns children.  This is called alot so don't want to make anew each time.
+
+
+
+	// TODO(@hayesall): Too complex to analyze with data flow: major need of refactoring.
 	public List<SearchNode> collectChildren(SearchNode nodeBeingExplored) throws SearchInterrupted {
+
+
 		SingleClauseNode     parent         = (SingleClauseNode) nodeBeingExplored;
 		children.clear();
 		LearnOneClause       thisTask       = (LearnOneClause) task;
 		Set<PredicateNameAndArity>   bodyModes      = thisTask.bodyModes;
 		int                  parentBodyLen  = getParentBodyLength(parent, thisTask); // parent.bodyLength();
-		int   startingCountOfVariantPruning = countOfPruningDueToVariantChildren; // Report the number from this call.
 
 		// Note this uses the corrected body length for 'bridgers.'  (Not sure that this is being done consistently.)
-		// HOWEVER IF A LITERAL ENDS WITH A *BRIDGER* IT IS ADDED (since it is added 'for free').  TODO - handle maxFreeBridgersInBody (for now simply added if when sometimes it shouldnt be).
+		// HOWEVER IF A LITERAL ENDS WITH A *BRIDGER* IT IS ADDED (since it is added 'for free').
+		// TODO(@jws) - handle maxFreeBridgersInBody (for now simply added if when sometimes it shouldnt be).
 		boolean dontAddAnyChildToOpenButStillScoreThem = (parentBodyLen >= thisTask.maxBodyLength - 1); // If one step away from the max length, don't add children to open (but still score them) since they will be discarded when popped.
 
 		// Cannot check this earlier, since could find a good clause using constraints on the head.
 		if (Utils.getSizeSafely(bodyModes) < 1) { Utils.waitHere("There are no body modes for this task!"); return null; }
-
-		Utils.println("\n% Consider expanding [#" + Utils.comma(thisTask.getNodesConsidered()) + " of " + thisTask.callerName + ", bodyLen=" + parentBodyLen + (parentBodyLen==parent.bodyLength() ?  "" : ":" + parent.bodyLength()) + "] '" + parent + "' score=" + parent.score);   // parent.reportTypesPresent(); parent.reportTypedVariablesPresent();  parent.reportBadList(); }
-
-		// TODO Some tests (eg, canImprove) for stopping we'll postpone until/if a node is popped from OPEN.  Also, some would require scoring early, though that is cached so no wasted cycles.
-        //	if (true) { Utils.println("\n% Consider expanding [#" + Utils.comma(thisTask.nodesConsidered + 1) + " of " + thisTask.callerName + "]: '" + parent + "' score=" + parent.score);  } // parent.reportTypesPresent(); parent.reportTypedVariablesPresent();  parent.reportBadList(); }
+		// TODO(@jws) Some tests (eg, canImprove) for stopping we'll postpone until/if a node is popped from OPEN.  Also, some would require scoring early, though that is cached so no wasted cycles.
         if (parentBodyLen >= thisTask.maxBodyLength) {
-			if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("%  Cannot expand since at max body length (" + thisTask.maxBodyLength + " vs " + parentBodyLen + ")."); }
             return null; // At max length for clauses.
         }
 		// If true, save all the conjuncts created to the collectedConjuncts list.
 		boolean collectAllConjuncts = false;
 		if (!collectAllConjuncts && !parent.canImprove(thisTask)) {
-			if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("%  It does not make sense to expand since this clause cannot be improved."); }
 			return null; // No need to continue if no negative examples are covered, for example (assuming the clause does not have other requirements, such as containing all the variables appearing in the head).
        }
 
@@ -91,28 +87,28 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
                 thisTask.beamWidth = thisTask.savedBeamWidth; // When done with RRR's first phase, reset to the standard beam width.
             }
         }
-		
-		existingTermsOfTypeMap.clear(); // This is a local cache that is only used for expanding the chosen node (since too much space to store for all of OPEN).
+
 		putParentClauseInFormForPruning(parent);
 
 		Set<PredicateNameAndArity> eligibleBodyModes = applyModeContraints(bodyModes, parent);
 		
 		int  maxPossibleNewVars = thisTask.maxNumberOfNewVars - parent.numberOfNewVars;
-		int  counter = 0; int modToUse = Integer.MAX_VALUE; // SET THIS TO, SAY, '1' IN ORDER TO GET A SENSE OF WHAT IS HAPPENING IN THE ILP SEARCH.
-		if (LearnOneClause.debugLevel > -1 && start < 0) { start = System.currentTimeMillis(); }
-		
+
 		for (PredicateNameAndArity predicateNameAndArity : eligibleBodyModes) if (predicateNameAndArity.getPredicateName().getTypeList() != null) {       // Consider each known predicate.
             PredicateName predName = predicateNameAndArity.getPredicateName();
-			if (LearnOneClause.debugLevel > debugMult*3) { Utils.println("\n% JWS: GENERATE CHILDREN: " + predName + " getTypeList = " + predName.getTypeList()); }
 			for (PredicateSpec specs : predName.getTypeList()) if (specs != null && specs.isaILPmode()) { // Consider each known mode for this predicate that can be used during ILP.
-				counter++;
-				// For tree-structured tasks, at least always complete the root.  TODO - maybe we allow a MULTIPLIER (eg, 10x) on the time limit when a ROOT of a tree-structured task? 
+
+
+
+				// For tree-structured tasks, at least always complete the root.
+				// TODO(@jws): maybe we allow a MULTIPLIER (eg, 10x) on the time limit when a ROOT of a tree-structured task?
 				if ( (parentBodyLen > 0 || !thisTask.isaTreeStructuredTask() || ((Gleaner) thisTask.searchMonitor).bestNode != null) && // Need to have found something acceptable before stopping.
-						!thisTask.isThereTimeLeft()) { 
+						thisTask.isThereNotTimeLeft()) {
 					Utils.printlnErr("% No time left, so abandoning ILP-node generation:\n  " + thisTask.explainTimeLeft()); thisTask.open.clear(); return null; 
 				}
-				int              arity = Utils.getSizeSafely(specs.getSignature());				
-				if (LearnOneClause.debugLevel > debugMult*3) { Utils.println("  JWS: specs: " + specs + " arity = " + arity + " specs.getTypeSpecList() = " + specs.getTypeSpecList()); }
+
+
+				int              arity = Utils.getSizeSafely(specs.getSignature());
 				int countOfOccurrences = parent.countPredicateOccurrences(predName, arity);  // Note that this recorded also as a function of the arity (essentially p/1 and p/2, i.e., p(x) and p(x,y), are two different predicates).
 				Integer        predMax = predName.getMaxOccurrences(arity);
 				if (predMax == null) {
@@ -137,7 +133,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
                 
 				if (specs.getTypeSpecList() != null) for (TypeSpec spec : specs.getTypeSpecList()) {               // Consider each argument in this mode.
 					List<Term> validTermsOfThisType = new ArrayList<>(4); // Collect all the terms that can legally be used for this argument.
-					if (LearnOneClause.debugLevel > 3) { Utils.println("%     spec = " + spec); }
 					// If a predicate is acceptable, need to hook into the old variables.
 					//   If a +mode, then MUST hook into an old variable of same type, but what if several?  Do all possibilities.
 					//   If a $mode, then MUST hook into an old variable that APPEARS ONLY ONCE EARLIER IN THE CLAUSE.  Again, do all such possibilities.
@@ -152,7 +147,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 						Type typeOfThisSpecificValue = ((LearnOneClause) task).stringHandler.isaHandler.getIsaType(typeSpecAsConstant);
 						
 						if (typeOfThisSpecificValue == null) { Utils.error("Cannot find type of: '" + typeSpecAsConstant + "'."); }
-						if (LearnOneClause.debugLevel > 2) { Utils.println("%    Spec says to use this constant: '" + typeSpecAsConstant + ",' whose type = '" + typeOfThisSpecificValue + "'."); }
 						validTermsOfThisType.add(typeSpecAsConstant);
 						if (typesOfNewTerms == null) { typesOfNewTerms = new HashMap<>(4); }
 						Type assignedType = typesOfNewTerms.get(typeSpecAsConstant);
@@ -176,7 +170,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 						
 						// Collect all of the variables and constants of this type in the current clause.
 						List<Term> existingTermsOfThisType = getExistingTermsOfThisType(spec.isaType, parent); // We want objects UNDER this type (or OF this type).  E.g., if we're looking for an DOG, collect POODLEs, but *not* ANIMALs.
-						if (LearnOneClause.debugLevel > 3) { Utils.println("%  JWS: isaType = '" + spec.isaType + "' matches these existing terms: " + existingTermsOfThisType); }
 						if (existingTermsOfThisType != null) for (Term item : existingTermsOfThisType) {
 							if (depthsOfTerms == null) { depthsOfTerms = new HashMap<>(4); }
 							Integer oldDepth = depthsOfTerms.get(item);
@@ -199,8 +192,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 						// If this is an input variable, but nothing of that type is present, then this mode isn't eligible.
 						// (TODO should CONSTANTS of a specific type be allowed?  Seems so.)
 						if (spec.mustBeBound() && (existingTermsOfThisType == null || existingTermsOfThisType.size() < 1)) { 
-							allNeededPredsFound = false; 
-							if (LearnOneClause.debugLevel > debugMult*3 || counter % modToUse == 0) { Utils.println("%  JWS: GIVE UP ON '" + spec + "' because no existingTermsOfThisType."); }
+							allNeededPredsFound = false;
 							break;
 						}
 						// Collect all these legal terms.
@@ -235,10 +227,8 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 							typesOfNewTerms.put(newVarOfThisType, spec.isaType);
 							validTermsOfThisType.add(newVarOfThisType);
 						} else { 
-							if (LearnOneClause.debugLevel > 1 && spec.canBeNewVariable()) { Utils.println("%   Have hit limit of new variables [" + thisTask.maxNumberOfNewVars + ", # in parent=" + parent.numberOfNewVars + "] so cannot create a new variable for: " + spec); }
-							if (spec.mustBeNewVariable()) { 
-								if (LearnOneClause.debugLevel > debugMult || counter % modToUse == 0) { Utils.println("%     Reject '" + spec + "' since cannot add a new variable.\n Have " + Utils.comma(parent.numberOfNewVars)
-																					+ " variables already, and " + Utils.comma(thisTask.maxNumberOfNewVars) + " is the specified maximum."); }
+
+							if (spec.mustBeNewVariable()) {
 								usableTerms = null;
 								break;		
 							}
@@ -253,12 +243,10 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 					
 					usableTerms.add(validTermsOfThisType); // Remember what can be used to fill this argument.
 				}
-				if (LearnOneClause.debugLevel > debugMult*3) { Utils.println("   JWS: Usable terms = " + usableTerms + " (in null, abandon)."); }
 				if (usableTerms == null) { continue; }
 				int totalNumberOfCandidates = 1;
 				for (List<Term> terms : usableTerms) { totalNumberOfCandidates *= Utils.getSizeSafely(terms); }
-				if (totalNumberOfCandidates < 1) { 
-					if (LearnOneClause.debugLevel > debugMult || counter % modToUse == 0) { Utils.println("   JWS: abandon since totalNumberOfCandidates = " + totalNumberOfCandidates + "."); }
+				if (totalNumberOfCandidates < 1) {
 					continue;
 				}
 				
@@ -272,14 +260,12 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 					}
 					Literal easyPred = thisTask.stringHandler.getLiteral(predName, mostGeneralArguments);
 					SingleClauseNode newEasyNode = new SingleClauseNode(parent, easyPred, null);
-					if (LearnOneClause.debugLevel > 1) { Utils.println("% Easy node (have " + Utils.comma(totalNumberOfCandidates) + " candidates): " + newEasyNode + " " + specs); }
 					if (!newEasyNode.acceptableCoverageOnPosExamples()) {
-						if (LearnOneClause.debugLevel > debugMult || counter % modToUse == 0) { Utils.println("  Not enough positive examples match if adding '" + predName + "/" + arity + "', so will skip this mode: " + specs); }
 						continue;
 					}
 
 					// Next look at each term in each set, and see if just adding it to the 'easy node' still leads to acceptability.
-					// jwsjws TODO can pruning rules also help here?  seems they should
+					// TODO(@jws) can pruning rules also help here?  seems they should
 					boolean continueHigherUp                = false;
 					boolean needToLoop                      = true;	// See if some singleton created on the CURRENT loop.
 					boolean haveReducedCandidateToSingleton = false;
@@ -289,7 +275,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 						for (List<Term> terms : usableTerms) {
 							argNumber++;
 							if (!haveReducedCandidateToSingleton && terms.size() < 1) { continue; } // No need to check singletons until others reduced to singletons.
-							if (LearnOneClause.debugLevel > debugMult) { Utils.println("% Candidates for arg #" + argNumber + ": " + terms); }
 							int argNumberMinus1 = argNumber - 1; // Deal with counting from 0 in code, but 1 in human-readable stuff.
 							Term    hold        = mostGeneralArguments.get(argNumberMinus1);  // Need to replace when done.
 							boolean itemRemoved = false;
@@ -298,58 +283,38 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 							     
 							    mostGeneralArguments.set(argNumberMinus1, term);
 								if (!newEasyNode.acceptableCoverageOnPosExamples()) {
-									if (LearnOneClause.debugLevel > 1) { Utils.println("%  Not enough positive examples match if setting arg #" + argNumber + " to '" + term + "', so drop from candidates.  " + newEasyNode); }
 									termIter.remove(); // Drop this candidate.	
 									itemRemoved = true;
 								}
 							}
 							if (terms.isEmpty()) {
-								if (LearnOneClause.debugLevel > debugMult) { Utils.println("%  All possibilities dropped for arg #" + argNumber + ", so stop."); }
 			
 								continueHigherUp = true;
 								break;
-							} else if (itemRemoved && terms.size() == 1) { // If the one argument is a NEW variable, will waste some cycles UNLESS that SAME new variable also appears elsewhere, so still keep around. 
-								if (LearnOneClause.debugLevel > 1) { Utils.println("%  Only one possibility for arg #" + argNumber + ", so keep it in the general case: " + terms.get(0)); }
+							} else if (itemRemoved && terms.size() == 1) { // If the one argument is a NEW variable, will waste some cycles UNLESS that SAME new variable also appears elsewhere, so still keep around.
 								mostGeneralArguments.set(argNumberMinus1, terms.get(0)); // Since only one possibility, use it from now on.  (This makes the process order dependent, but we can live with that.)
 								needToLoop = true; // As long as something became permanent in "mostGeneralArguments," continue.
 								haveReducedCandidateToSingleton = true;
 							}
-							else                          { mostGeneralArguments.set(argNumberMinus1, hold); }
+							else {
+								mostGeneralArguments.set(argNumberMinus1, hold);
+							}
 						}
-					
-						int totalNumberOfCandidates2 = 1;
-						for (List<Term> terms : usableTerms) { totalNumberOfCandidates2 *= terms.size(); }
-						if (LearnOneClause.debugLevel > 1 && totalNumberOfCandidates2 < totalNumberOfCandidates) { Utils.println("%  Reduced # of candidates from " + totalNumberOfCandidates + " to " + totalNumberOfCandidates2 + "."); }
-						totalNumberOfCandidates = totalNumberOfCandidates2;
+
 					}
 					if (continueHigherUp) { continue; }
 					
 				}
-				if (LearnOneClause.debugLevel > 1 && !allNeededPredsFound) { Utils.println("%    Abandon since allNeededPredsFound=false."); }
 				// Now need to create the cross product of allowed terms.  I.e., if arg1 of predicate p can be any of {x1, x2} and argument any of {y1, y2, y3} than can create p(x1,y1), p(x1,y2), p(x1,y3), p(x2,y1), p(x2,y2), and p(x2,y3).  				
 				if (allNeededPredsFound) {
-					if (LearnOneClause.debugLevel > debugMult*3) { 
-						Utils.println("% specs=" + specs + "\n%  parent: " + parent);
-						for (List<Term> terms : usableTerms) { Utils.println("%    " + terms.size() + "x " + terms);	}
-					}
 					List<List<Term>> allArgPossibilities = Utils.computeCrossProduct(usableTerms, thisTask.maxCrossProductSize); // This is the set of cross products.
-					if (LearnOneClause.debugLevel > 1) { Utils.println(""); }
-					if (LearnOneClause.debugLevel > 2) { Utils.println("%  Usable terms:  " + usableTerms + " for '" + predName + "' " + specs); }
-					if (LearnOneClause.debugLevel > 3) { Utils.println("%  Possibilities: " + allArgPossibilities);	}
-					if (LearnOneClause.debugLevel > 1) { 
-						long end = System.currentTimeMillis();
-						Utils.println("% |allArgPossibilities| = " + Utils.getSizeSafely(allArgPossibilities) + " |children| = " +  children.size() + "    Was last here " + Utils.convertMillisecondsToTimeSpan(end - start) + " ago."
-														+ "\n%    " + predicateNameAndArity + " " + specs.getTypeSpecList());
-						start = end;
-					}	
+
 					List<List<Term>> allArgPossibilities2 = allArgPossibilities;
 					
 					// If some fillers really are supposed to be CONSTANTS, collect all (up to k?) ways the variables rep'ing the constants can be bound in some pos seed.
 					// Add the constant'ized version to allArgPossibilities.
-					if (typesOfNewConstants != null) { // Utils.println(" typesOfNewConstants=" + typesOfNewConstants);
+					if (typesOfNewConstants != null) {
 						allArgPossibilities2 = new ArrayList<>(4);
-						int counterOfFailures = 0;
-						int counterOfSuccesses = 0;
 						for (List<Term> args : allArgPossibilities) {
 							if (seeIfVarsPresent(args, typesOfNewConstants)) { 
 								Literal pred = thisTask.stringHandler.getLiteral(predName, args);	   // Create predicate(arguments) for the predicate being added.
@@ -360,17 +325,13 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 																							   new ArrayList<>(listOfVars4constants));  // Provide the arguments that are to be bound to constants.
 								SingleClauseNode newNodeForConstants = new SingleClauseNode(newNode, testForConstants, specs);
 								newNodeForConstants.acceptableCoverageOnPosSeeds(); // This will fail, but that is OK.  We simply want to collectedConstantBindings.
-								if (thisTask.collectedConstantBindings == null) { counterOfFailures++;  }
-								else {                                            counterOfSuccesses++; }
 								if (thisTask.collectedConstantBindings != null) { // If no bindings, then no constants exist so this literal cannot be added.
 									// Note: we may get MANY sets of constants here.  Elsewhere there is a limit of the first 1000, which hopefully is never reached.
 									List<List<Term>> allConstantsBindings = thisTask.collectedConstantBindings;
 									if (thisTask.maxConstantBindingsPerLiteral > 0 && allConstantsBindings.size() > thisTask.maxConstantBindingsPerLiteral) {
-										if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("      Will (randomly) reduce " + allConstantsBindings.size() + " possibilities to " + thisTask.maxConstantBindingsPerLiteral + "."); }
 										allConstantsBindings = Utils.reduceToThisSizeByRandomlyDiscardingItemsInPlace(allConstantsBindings, thisTask.maxConstantBindingsPerLiteral);
 									}
 									for (List<Term> args2 : allConstantsBindings) {
-										if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("        Constants found: " + args2); }
 										// Need to collect all those constants that involve the variables in typesOfNewConstants.
 										List<Term> args3 = new ArrayList<>(args.size());
 										int counter2 = 0; // Cannot do a dual-for-loop, since listOfVars4constants probably is shorter than arguments.  Note that counter is only incremented when a var-for-constant is encountered.
@@ -392,19 +353,12 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 							}
 							else { allArgPossibilities2.add(args); }
 						}
-						if ((LearnOneClause.debugLevel > debugMult) && counterOfFailures > 0) { Utils.println("*** Have had " + counterOfSuccesses + " successes and " + counterOfFailures + " failures trying to find constants for '" + predName + "' with specs = '" + specs + "'"); }
-					}
-
-					if (LearnOneClause.debugLevel > 1) { 
-						Utils.println("%    |allArgPossibilities2| = " + Utils.getSizeSafely(allArgPossibilities2));
 					}
 					
-					// let's not call this too often?  I'm not sure how expensive it is.			if (!thisTask.isThereTimeLeft()) { thisTask.open.clear(); Utils.println("% No time left so abandoning ILP-node generation."); return null; }
+					// let's not call this too often?  I'm not sure how expensive it is.
 					
 					// Now walk through all the possible ways this new literal can be added.
-					int counter3 = 0;
 					if (allArgPossibilities2 != null) for (List<Term> args : allArgPossibilities2) {
-						counter3++;
 						int numberOfNewVars     = countNewUniqueVariables(args, newVariables);
 						int maxDepthOfInputVars = 0;
 						// Determine max depth of an input argument.  The depth of a new variable is that max plus 1.  The depth of a new constant is the max of an input variable.
@@ -414,13 +368,11 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 								maxDepthOfInputVars = thisDepth;
 							}
 						}
-						//if (numberOfNewVars > 0) Utils.println(args + ": maxDepthOfInputVars=" + maxDepthOfInputVars + " numberOfNewVars=" + numberOfNewVars + " maxNewVars=" + maxPossibleNewVars + " parent=" + parent);
+
 						if (numberOfNewVars > maxPossibleNewVars) { // Note: this case is also caught above - i.e., when ZERO new variables are possible.  This code catches that case when N are still allowed, but N+1 (or more) are needed in 'args.'
-							if (LearnOneClause.debugLevel > debugMult*2 || counter3 % modToUse == 0) { Utils.println("    Discard " + predName + args + " because max number of new variables has been exceeded: " + thisTask.maxNumberOfNewVars + " [" + parent.numberOfNewVars + "old + " + numberOfNewVars + "new] newvars=" + newVariables); }
 							continue;
 						}
 						if (numberOfNewVars > 0 && maxDepthOfInputVars >= thisTask.maxDepthOfNewVars) {
-							if (LearnOneClause.debugLevel > debugMult*2 || counter3 % modToUse == 0) { Utils.println("    Discard " + predName + args + " because max depth of new variables has been exceeded: " + thisTask.maxDepthOfNewVars); }
 							continue;
 						}
 						
@@ -430,13 +382,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 						if (hasPossiblePredMaxPerInputVars) { // New design requires always requires a lookup unless there are less than two arguments, since at least infinity is stored.  But keep this code here in case there are later changes, plus it also catches inconsistent information.
 							List<Type> inputArgumentTypes  = TypeSpec.getListOfInputArgumentTypes(specs);
 							Integer    predMaxPerInputVars = predName.getMaxOccurrencesPerInputVars(arity, inputArgumentTypes);
-							if (LearnOneClause.debugLevel > debugMult*2) { 
-								if (predMaxPerInputVars != null &&predMaxPerInputVars < Integer.MAX_VALUE) { 
-									Utils.println("% Look up occurrences of '" + predName + "/" + arity + "' for these input arguments: " + inputArgumentTypes + "; max = " + predMaxPerInputVars + ".");
-								} else { 
-									Utils.println("% Look up occurrences of '" + predName + "/" + arity + "' for these input arguments: " + inputArgumentTypes + "."); 
-								}
-						    }
 							if (predMaxPerInputVars != null && predMaxPerInputVars < Integer.MAX_VALUE) {
 								int length = inputArgumentTypes.size();
 								List<Term> valuesOfInputArgs = new ArrayList<>(length);
@@ -446,24 +391,21 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 								}
 								currentInUseGivenInputArgs = parent.countPredicateOccurrencesGivenInputArgs(predName, arity, valuesOfInputArgs);
 								if (currentInUseGivenInputArgs >= predMaxPerInputVars) {
-									if (LearnOneClause.debugLevel > debugMult*2 || counter3 % modToUse == 0) { Utils.println("%    Discard " + args + " because max occurrences of '" + predName + "/"+ arity + "' for the input vars " + inputArgumentTypes + "/" + valuesOfInputArgs + " has been reached: " + predMaxPerInputVars); }
 									continue;
 								}
 							}
 						} else if (arity > 1) { Utils.error("Should always find hasPossiblePredMaxPerInputVars!  predName = '" + predName + "'"); }
 						boolean continueCheckingTheseArgs = true; // Could use catch-throw to skip over bad combo's, but for simplicity use this boolean.
 						Literal pred = thisTask.stringHandler.getLiteral(predName, specs.applyArgsToSignature(thisTask.stringHandler, args));	// Create predicate(arguments) for each possible set of arguments.
-						if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("%  Consider possible new literal '" + pred + "'."); } // JWSJWSJWS
+
 						// Sometimes we wish to KEEP these.
 						boolean discardDuplicateLiterals = true;
 						if (!parent.dontConsiderThisLiteral(discardDuplicateLiterals, pred, typesOfNewTerms)) { // Discard EXACT duplicates (which is NOT the same as unifiable terms) and literals in the dontReconsider list.
 							if (isaVariantOfChildAlreadyGenerated(pred, ((LearnOneClause) task).unifier)) { // Can't do this too early since this code doesn't understand that some variables are to be replaced by constants.
-								if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("%    Isa child variant " + pred); }
 								continue;
 							}
 							Map<Type,List<Term>> newTypesInChildMap = collectNewTypesPresentInChildMap(args, typesOfNewTerms); // Collect the new typed variables added, if any.
 							List<Type>              newTypesInChild = collectNewTypesPresentInChild(); // Grab the other local variable.
-							if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("%    types of new args: " + newTypesInChild); }							
 							
 							Map<Term,Integer> argDepths = new HashMap<>(args.size());
 							if (depthsOfTerms == null) { depthsOfTerms = new HashMap<>(4); }
@@ -472,7 +414,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 							if (newNode.pruneMe) { continue; } // TODO - should we count these?  If this node marks itself (e.g., it might be an unnecessary constrainer), then do not add to OPEN.
 							SingleClauseNode newNodePrime = newNode; // This might get changed below.
 							if (thisTask.pruner != null && thisTask.pruner.prune(newNode))  {
-								if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("%    Prune " + pred + " specs=" + specs + " newTypesInChild=" + newTypesInChild + " newTypesInChildMap=" + newTypesInChildMap + " typesOfNewTerms=" + typesOfNewTerms); }
 								continue; 	 // Advance to the next set of arguments.
 							}
 							List<Literal>    matchables   = (discardDuplicateLiterals ? parent.collectAllVariants(pred) : null);
@@ -483,7 +424,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 								matchables.add(0, pred);
 								List<Term> matchablesAsTerms = reify(matchables);
 								Literal  testForDiffBindings = thisTask.stringHandler.getLiteral(thisTask.procDefinedEnoughDiffMatches, matchablesAsTerms);
-								if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("%    Different bindings test: " + testForDiffBindings + " in " + parent); }
 								newNodePrime = new SingleClauseNode(newNode, testForDiffBindings);
 							}
 							
@@ -506,18 +446,17 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 										List<Term> existingTermsOfThisType = (isaMustBeVar ? null : getExistingTermsOfThisType(thisVarType, parent)); // Need ALL the variables of this type, up to and including the head.  We also can accept LOWER items in the isaHier.  E.g., as above, if we're a DOG, collect POODLEs, but *not* ANIMALs. 
 										if (!isaMustBeVar && existingTermsOfThisType != null) { // If no other variables of this type, then this variable is needed so no more checking necessary.
 											existingTermsOfThisType.add(0, newVar); // The FIRST variable is the new one whose need is being questioned.
-											if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("AFTER ADDITION: thisVarType = " + thisVarType + " existingTermsOfThisType = " + existingTermsOfThisType + "  parent = " + parent); }
+
 											// The job of 'procDefinedNeedForNewVariables' is to see if we add newVar, there is some binding of the	clause where newVar gets a different grounding
 											// then the other variables of that same type (if not, no need to add newVar).  It is possible that some of the other variables will be unbound. yet the clause be satisfied  If that is the case,
 											// then also no need for newVar.
 											Literal testNeedForNewVariables = thisTask.stringHandler.getLiteral(thisTask.procDefinedNeedForNewVariables, existingTermsOfThisType);
 										
 											SingleClauseNode newNodeDoublePrime = new SingleClauseNode(newNode, testNeedForNewVariables);
-											if (     LearnOneClause.debugLevel > debugMult*2) { Utils.println("%    Test for new variables: '" + testNeedForNewVariables + "' in '" + newNodeDoublePrime + "'."); }
 											if (newNodeDoublePrime.acceptableCoverageOnPosSeeds()) { countOfNewVarsNeeded++; }
-											else if (LearnOneClause.debugLevel > debugMult*2 || counter3 % modToUse == 0) { Utils.println("%    Since no need on enough POS seeds to use new variable " + newVar + ", discard '" + newNode + "'."); }
+
 											existingTermsOfThisType.remove(0); // Remove the extra variable added to the front - need to do this since existingTermsOfThisType is a cached result.
-											// Utils.println("AFTER REMOVAL: existingTermsOfThisType = " + existingTermsOfThisType);
+
 											if (countOfNewVarsNeeded > 0) { break; }
 										}
 										else { countOfNewVarsNeeded++; break; } // Since only need to need ONE of the newVars, can break here (and also a few lines above).
@@ -532,11 +471,12 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 								// Need to do the NEG seeds separately, since the EXTENSION to some clause that covers too many negatives might not cover too many negs.  In other words, we might need to reconsider adding the current literal later, even if it is no good now.
 								// (NEG seeds might be a little confusing - notice that the FIRST literal added to a clause must "knock out" enough of the neg seeds, and maybe no such single literal exists.)
 								if (newNode.acceptableCoverageOnNegSeeds()) {  // If so, it is an acceptable child that will be passed to the general search algo for scoring, etc.
-									if  (LearnOneClause.debugLevel > debugMult) { Utils.println("%    Added: '" + newNode + "' with new args types: " + newTypesInChild); }
+
 									newNode.numberOfNewVars                  = numberOfNewVars + parent.numberOfNewVars;
 									newNode.predicateOccurrences             = countOfOccurrences         + 1; // Need to add one, since we're adding this predicate.
 									newNode.predicateOccurrencesPerFixedVars = currentInUseGivenInputArgs + 1; // Ditto.  But be sure to read comments above related to this counter.
-									children.add(newNode); if (LearnOneClause.debugLevel > debugMult*3 || counter3 % modToUse == 0) { Utils.println("%    |children|=" + children.size() + "  " + newNode); }
+									children.add(newNode);
+
 									if (dontAddAnyChildToOpenButStillScoreThem && (thisTask.maxFreeBridgersInBody < 1 || !newNode.endsWithBridgerLiteral())) { newNode.setDontAddMeToOPEN(true); }
 									if (reportPredicateUsage) {
 										predName.incrementAddedCounter();
@@ -544,11 +484,9 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 									
 									// This "side effect" is used when collecting all possible k-long conjuncts (eg, compound features).
 								}
-								else if (LearnOneClause.debugLevel > debugMult*2 || counter3 % modToUse == 0) { Utils.println("%  Due to unacceptable coverage on NEG seeds, discard:\n%    " + newNode); }
 							}
 							else {
 								parent.addToDontConsiderThisLiteral(thisTask, predName, args, typesOfNewTerms);
-								if (LearnOneClause.debugLevel > debugMult*2 || counter3 % modToUse == 0) { Utils.println("%  Due to unacceptable coverage on POS seeds, discard:\n%    '" + newNode + "'"); }
 							}
 						}
 					}
@@ -557,25 +495,11 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		}
 
 		if (thisTask.performRRRsearch && thisTask.stillInRRRphase1 && children.size() > thisTask.beamWidthRRR) { // Need to keep a random beamWidthRRR of these (note: elsewhere the beam width of the full OPEN will be used, but also limit here so that all children aren't scored since they can be time-consuming and this phase of RRR is intended to be fast).
-			if (LearnOneClause.debugLevel > debugMult*2) { Utils.println("% Since in RRR's initial phase, need to randomly select " + thisTask.beamWidthRRR + " from the " + children.size() + " possible children."); }
 			children = Utils.reduceToThisSizeByRandomlyDiscardingItemsInPlace(children, thisTask.beamWidthRRR);  // Randomly discard until small enough.
 		}
-		if (LearnOneClause.debugLevel > -debugMult*2 && (modForReportingExpansions < 2 || thisTask.getNodesConsidered() % modForReportingExpansions == 1)) {
-			Utils.println("%  At # nodes expanded = " + Utils.comma(thisTask.getNodesConsidered()) + ", |OPEN| = " + Utils.comma(thisTask.open) + ".  Pruned " + Utils.comma(countOfPruningDueToVariantChildren - startingCountOfVariantPruning) + " variant children.  Sending " + Utils.comma(children) + " items to OPEN for evaluation and possible insertion.");
-			if (LearnOneClause.debugLevel > debugMult*2 && children != null) for (SearchNode node : children) { Utils.println("  new result node: " + node); }
-			if (children == null)                   { Utils.println("% No descendants created!"); } // "Valid" below means "acceptable coverage on the seed examples."
-			else if (parent.dontReconsider == null) { Utils.println("% Have created " + Utils.comma(children) + " valid-on-seeds descendants."); }
-			else                                    { Utils.println("% Have created " + Utils.comma(children) + " valid-on-seeds descendants and have picked up " + Utils.comma(parent.dontReconsider) + " bad extensions" + (LearnOneClause.debugLevel > 2 ? ": " + Utils.limitLengthOfPrintedList(parent.dontReconsider, 50) : ".")); }
-		}
+
 		if (thisTask.probOfDroppingChild > 0 && children.size() >= thisTask.minChildrenBeforeRandomDropping) {
-			ListIterator<SearchNode> iter = children.listIterator();
-			while (iter.hasNext()) {
-				SearchNode sn = iter.next();
-				if (Utils.random() < thisTask.probOfDroppingChild) {
-					if (LearnOneClause.debugLevel > debugMult*2) { Utils.println(" Randomly drop: " + sn); }
-					iter.remove(); 
-				}
-			}
+			children.removeIf(sn -> Utils.random() < thisTask.probOfDroppingChild);
 		}
 		
 		// If we made it this far, let's NOT peak at 'time left' since we might get a new best-node quickly by fully scoring the children.
@@ -583,17 +507,17 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		if (thisTask.getDumpGleanerEveryNexpansions() > 0  && thisTask.getNodesConsidered() % thisTask.getDumpGleanerEveryNexpansions() == 0) {
 			((Gleaner) thisTask.searchMonitor).dumpCurrentGleaner(thisTask);
 		}
-		if (LearnOneClause.debugLevel > debugMult*2) {  Utils.waitHere("% FINAL |result| = " + Utils.comma(children)); }
 		
 		if (callCounter >= callCounterMOD) {
 			callCounter = 0;
-			if (LearnOneClause.debugLevel > 2) Utils.println("\n% Report on Predicate Usage (since last report)");
-			for (PredicateName pName : predicatesMarked) { // TODO - sort by added/considered
+
+			// TODO(?) - sort by added/considered
+
+			for (PredicateName pName : predicatesMarked) {
 				int considered = pName.getConsideredCounts();
 				if (considered < 1) { continue; }
 				int used       = pName.getAddedCounts();
 				if (used < 1) { continue; }
-				if (LearnOneClause.debugLevel > 2) Utils.println("%  '" + pName + "' was considered " + Utils.comma(considered) + " times and added " + Utils.comma(used) + " times.");
 				pName.clearChildrenClausesCounters();
 			}
 			for (PredicateName pName : predicatesMarked) {
@@ -601,10 +525,8 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				if (considered < 1) { continue; }
 				int used       = pName.getAddedCounts();
 				if (used > 0) { continue; }
-				if (LearnOneClause.debugLevel > 2) Utils.println("%  '" + pName + "' was considered " + Utils.comma(considered) + " times and added " + Utils.comma(used) + " times.");
 				pName.clearChildrenClausesCounters();
 			}
-			if (LearnOneClause.debugLevel > 2) Utils.println("\n");
 		}
 				
 		return children;
@@ -762,13 +684,8 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		return false;
 	}
 	
-	private List<Term> getExistingTermsOfThisType(Type type, SingleClauseNode parent) {		
-		if (LearnOneClause.debugLevel > 2) { Utils.println("%         calling getExistingTermsOfThisType(" + type + ", " + parent + ")"); }
-		if (LearnOneClause.debugLevel > 2 && existingTermsOfTypeMap.containsKey(type)) { Utils.println("%        CACHED Existing terms of type = '" + type + "' are "+ existingTermsOfTypeMap.get(type)); return existingTermsOfTypeMap.get(type); }
-		List<Term> result = parent.termsOfThisTypePresentInChild(type);
-		existingTermsOfTypeMap.put(type, result);
-		if (LearnOneClause.debugLevel > 2 && result != null) { Utils.println("%      Existing terms of type = '" + type + "' are "+ result); }
-		return result;							
+	private List<Term> getExistingTermsOfThisType(Type type, SingleClauseNode parent) {
+		return parent.termsOfThisTypePresentInChild(type);
 	}
 	
 	private void putParentClauseInFormForPruning(SingleClauseNode parent) {
@@ -788,7 +705,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 			literalsWithThisPnameTriedSoFar = new ArrayList<>(16);
 			literalsTriedSoFar.put(lit.predicateName, literalsWithThisPnameTriedSoFar);
 		} else {
-			result = (isaVariantOfChildAlreadyGenerated_version2(lit, initNumberedLit) ||
+			result = (isaVariantOfChildAlreadyGenerated_version2(initNumberedLit) ||
 				      isaVariantOfChildAlreadyGenerated_version1(lit, initNumberedLit, unifier));
 		}
 		literalsWithThisPnameTriedSoFar.add(initNumberedLit);	
@@ -816,6 +733,9 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 
 			boolean anyNewVarsInBmatched = litBmatched.containsVariables();
 			if (anyNewVarsInBmatched) {
+
+				// TODO(@hayesall): This reports an error, but can likely be simplified.
+
 				Utils.println("*** VARIANT PRUNING:");
 				Utils.println("            lit: " + lit);
 				Utils.println("    litNumbered: " + fullyNumberedLit);
@@ -823,6 +743,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				Utils.println("    litA@theta1: " + litA.applyTheta(bindings1.theta));
 				Utils.println("           litB: " + litB);
 				Utils.println("    litB@theta1: " + litBmatched);
+
 				Utils.error("Should there be new variables here? " + litBmatched.collectFreeVariables(null));
 			}
 			
@@ -832,6 +753,9 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				if (bindings2 != null) { // Do a "sanity check" here.
 					boolean anyNewVarsInOldLit = oldLit.applyTheta(bindings2.theta).containsVariables();
 					if (anyNewVarsInOldLit) {
+
+						// TODO(@hayesall): This reports an error, but can likely be simplified.
+
 						Utils.println("*** VARIANT PRUNING:");
 						Utils.println("            lit: " + lit);
 						Utils.println("    litNumbered: " + fullyNumberedLit);
@@ -843,11 +767,8 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 						Utils.println("  oldLit@theta2: " + oldLit.applyTheta(bindings2.theta));
 						Utils.println("  bl 1: " + bindings1);
 						Utils.println("  bl 2: " + bindings2);
+
 						Utils.error("Should there be new variables here? " + oldLit.applyTheta(bindings2.theta).collectFreeVariables(null));
-					}
-					if (LearnOneClause.debugLevel > 2) { 
-						Utils.println("*** VARIANT PRUNING: \n    lit=" + initNumberedLit                  + " | \n oldLit=" + oldLit);
-						Utils.println(                       "  litA@=" + litA.applyTheta(bindings1.theta) + " | \n  litB@=" + oldLit.applyTheta(bindings2.theta));
 					}
 					countOfPruningDueToVariantChildren++;
 					return true;
@@ -857,16 +778,13 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		return false;
 	}
 	
-	private boolean isaVariantOfChildAlreadyGenerated_version2(Literal lit, Literal initNumberedLit) {
+	private boolean isaVariantOfChildAlreadyGenerated_version2(Literal initNumberedLit) {
 		PredicateName pName = initNumberedLit.predicateName;
 		List<Literal> literalsWithThisPnameTriedSoFar = literalsTriedSoFar.get(pName); // Could also hash on arity, but don't bother unless this method becomes a bottleneck. 
 		if (literalsWithThisPnameTriedSoFar != null) {
 			for (Literal oldLit : literalsWithThisPnameTriedSoFar) {
 				dummyBindingList.theta.clear();
 				if (oldLit.variants(initNumberedLit, dummyBindingList) != null) {
-					if (LearnOneClause.debugLevel > 2) {
-						Utils.println("*** Ignore '" + lit + " because in its 'numbered' form [" + initNumberedLit + "] it is a variant of previous child: " + oldLit);
-					}
 					countOfPruningDueToVariantChildren++;
 					return true;
 				}
@@ -888,16 +806,15 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		return result;
 	}
 		
-	public void clearAnySavedInformation(boolean insideIterativeDeepening) {
+	public void clearAnySavedInformation() {
 		if (newTypesPresentInChild    != null) { newTypesPresentInChild.clear();    }
 		if (newTypesPresentInChildMap != null) { newTypesPresentInChildMap.clear(); }
-		if (existingTermsOfTypeMap    != null) { existingTermsOfTypeMap.clear();    }
 		if (literalsTriedSoFar        != null) { literalsTriedSoFar.clear();        }
 		if (dummyBindingList != null && dummyBindingList.theta != null) { dummyBindingList.theta.clear(); }
 		countOfPruningDueToVariantChildren = 0;
 	}
 
-    public LearnOneClause getTask() {
+    private LearnOneClause getTask() {
         return (LearnOneClause) task;
     }
 

@@ -10,7 +10,6 @@ import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
-import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -43,14 +42,14 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	double           bestScoreRegardless = Double.NEGATIVE_INFINITY;
 	public  int       reportingPeriod;  // Report statistics every this many node expansions.
 
-	transient public  HandleFOPCstrings       stringHandler;
+	private transient HandleFOPCstrings       stringHandler;
 	          private ILPouterLoop            ilpOuterLooper; // Trevor - I (JWS) didnt know if this should be transient.  TODO
     transient private GleanerFileNameProvider fileNameProvider;
     
-    int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
-    int    reportUptoThisManyFalsePositives = 5;
-	private  double reportFalseNegativesIfRecallAtLeastThisHigh    = 0.8;
-	private  double reportFalsePositivesIfPrecisionAtLeastThisHigh = 0.8;
+    final int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
+    final int    reportUptoThisManyFalsePositives = 5;
+	private final double reportFalseNegativesIfRecallAtLeastThisHigh    = 0.8;
+	private final double reportFalsePositivesIfPrecisionAtLeastThisHigh = 0.8;
     
 	
 	private final String defaultMarker = "allPossibleMarkers";
@@ -59,7 +58,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	private Map<String,Map<Integer,SavedClause>>        gleaners; // The first argument is the marker, the second is an integer marking the recall bin, and the inner Map contains the highest-scoring clause in that bin.
 	private Map<Integer,SavedClause>              currentGleaner;
 	private Map<Integer,SavedClause>              defaultGleaner;
-	private double[] recallBinUpperBounds = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.01};  // Leave a little extra at the end (could be +inf, actually).
+	private final double[] recallBinUpperBounds = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.01};  // Leave a little extra at the end (could be +inf, actually).
 	private boolean  addedAnItem = false; // Indicates that something is in some Gleaner and hence cannot change recallBinUpperBounds.
 	private long     nodeCounterAll         =    0;
 	private long     nodeCounterAcceptable  =    0;
@@ -70,14 +69,14 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	private long     lastReported_addsToCurrentGleaner = 0;
 
 	public Gleaner() {
-		this(null, null, null, 5000);
+		this(5000);
 	}
 
-	public Gleaner(GleanerFileNameProvider fileNameProvider, StateBasedSearchTask owner, HandleFOPCstrings stringHandler, int reportingPeriod) {
+	private Gleaner(int reportingPeriod) {
       resetAllMarkers();
-      this.fileNameProvider   = fileNameProvider;
-      this.setTaskBeingMonitored(owner);
-	  this.stringHandler      = stringHandler;
+      this.fileNameProvider   = null;
+      this.setTaskBeingMonitored(null);
+	  this.stringHandler      = null;
 	  this.reportingPeriod    = reportingPeriod; // Override the default.
 	  
 	}
@@ -87,11 +86,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	}
 
 
-	public void clearAnySavedInformation() {
-		// Do NOT clear the Gleaner's when this is called, since we want them to persist across searches.
-		// Users can always create a new marker if they want a fresh Gleaner.
-	}
-	
 	void clearBestNode() { // Might want to clear this, e.g., each ILP outer loop clears this so that the bestNode PER inner loop can be found.
 		bestNode              = null;
 		bestScore             = Double.NEGATIVE_INFINITY;
@@ -119,34 +113,30 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		}
 
 		nodeCounterAll++;
+
+		// TODO(@hayesall): This is the only remaining call to `LearnOneClause.debugLevel`
 		if (LearnOneClause.debugLevel > 0 && nodeCounterAll % reportingPeriod == 0) { reportSearchStats(); }
 		
 		// Previously this was done when scoring a node timed out in computeCoverage(); we didn't want to report anything in such cases.
 		if (clause.timedOut) { // Incompletely scored nodes should be ignored.
-			if (LearnOneClause.debugLevel > 0) { Utils.println("% Ignored because an incompletely scored node due to a timeout: " + clause); }
 			return false;
 		}
 		
 		if (clause.getPosCoverage() < 0 || clause.negCoverage < 0) { Utils.error("% Should not reach here with an unevaluated node: '" + nodeBeingCreated + "'."); }
 
 		if (!clause.acceptableClauseExtraFilter(task)) {
-			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to extra-filter test: " + clause); }
 			return false; // Unacceptable according to user-provided acceptability test.
 		}
 		if (task.getMinPosCoverage() > 0 && clause.getPosCoverage() < task.getMinPosCoverage()) {
-			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to min pos coverage: " + Utils.truncate(clause.getPosCoverage(), 4) + " vs " + Utils.truncate(task.getMinPosCoverage(), 4) + "   " + clause); }
 			return false;  // Unacceptable recall.
 		}
 		if (task.getMaxNegCoverage() >= 0 && clause.negCoverage > task.getMaxNegCoverage()) {
-			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to max neg coverage: " + Utils.truncate(clause.negCoverage, 4) + " vs " +  Utils.truncate(task.getMaxNegCoverage(),4) + "   " + clause); }
 			return false;  // Unacceptable coverage of negative examples (as a raw total).
 		}
 		if (task.getMinPrecision() > 0.0 && clause.precision() < task.getMinPrecision()) {
-			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to minPrecision: " + Utils.truncate(clause.precision(), 4) + " vs " +  Utils.truncate(task.minPrecision, 4) + "   " + clause); }
 			return false;  // Unacceptable min precision.
 		}
 		if (task.maxRecall < 1.0 && clause.recall() > task.maxRecall) {
-			if (LearnOneClause.debugLevel > 1) { Utils.println("% Unacceptable due to maxPrecision: " + clause.precision() + " vs " +  task.maxRecall + "   " + clause); }
 			return false;  // Unacceptable max precision.
 		}
 		if (task.regressionTask && clause == clause.getRootNode()) {
@@ -159,21 +149,18 @@ public class Gleaner extends SearchMonitor implements Serializable {
 											(ilpOuterLooper != null && ilpOuterLooper.isFlipFlopPosAndNegExamples()),
 											(ilpOuterLooper == null ? null  : ilpOuterLooper.getAnnotationForCurrentRun()),
 											currentMarker);
-		addToGleaner("default", defaultGleaner, saver, true);
+		addToGleaner(defaultGleaner, saver, true);
 		if (currentGleaner != defaultGleaner) { 
-			addToGleaner("current", currentGleaner, saver, false);
+			addToGleaner(currentGleaner, saver, false);
 		}
 		
 		// Keep track of the best clause overall, assuming it meets the acceptability criteria.
-		if (LearnOneClause.debugLevel > 2) { Utils.println("% Acceptable (score = " + Utils.truncate(score, 4) + "): " + clause ); }
 		nodeCounterAcceptable++;
 		if (score > bestScore) {
 			bestScore = score;
 			bestNode  = clause;
 			changedAtThisNode = nodeCounterAll;
 			Utils.println("% Gleaner: New best node found (score = " + Utils.truncate(score, 6) + "): " + nodeBeingCreated);
-		} else if (LearnOneClause.debugLevel > 1) {
-			Utils.println("Acceptable but did not beat the score of: " + Utils.truncate(bestScore, 4));
 		}
 
 		return true;
@@ -181,7 +168,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	
 	private int countOfWarningsForInliners = 0; // Turn off reporting at the first 100.
 	Clause handleInlinersIfPossible(Clause cRaw) {
-		if (cRaw == null) { return cRaw; }
+		if (cRaw == null) { return null; }
 		Clause c = (Clause) stringHandler.renameAllVariables(cRaw);
 		if (ilpOuterLooper == null || ilpOuterLooper.innerLoopTask == null) { return c; }
 		List<Clause> clauses = ilpOuterLooper.innerLoopTask.getInlineManager().handleInlinerAndSupportingClauses(c);
@@ -192,6 +179,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		return c;
 	}
 
+	// TODO(@hayesall): `reportSearchStats()` method can likely be removed.
 	private void reportSearchStats() {
 		Utils.print("% Gleaner has visited " + Utils.comma(nodeCounterAll) + " ILP clauses, of which " + Utils.comma(nodeCounterAcceptable) + " met the acceptability specs.");
 		if (addsToGlobalGleaner  > lastReported_addsToGlobalGleaner)  { 
@@ -246,7 +234,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		lastReported_addsToCurrentGleaner = 0;
 	}
 
-	private void addToGleaner(String name, Map<Integer,SavedClause> gleaner, SavedClause saver, boolean theGlobalGleaner) {
+	private void addToGleaner(Map<Integer, SavedClause> gleaner, SavedClause saver, boolean theGlobalGleaner) {
 		double  recall = saver.recall;
 		double  F1     = saver.F1; // Use the F1 score for defining best within a bin.
 		LearnOneClause  task = (LearnOneClause) getTaskBeingMonitored();
@@ -256,7 +244,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		SavedClause currentBestSaverInBin = gleaner.get(index);
 		
 		if (currentBestSaverInBin == null) { // Nothing there, so add.
-			if (LearnOneClause.debugLevel > 1) { Utils.println("%  Adding '" + saver.ruleAsString + "' to the " + name + " Gleaner in bin #" + index + "."); }
 			if (theGlobalGleaner) { addsToGlobalGleaner++; } else { addsToCurrentGleaner++; }
 			gleaner.put(index, saver);
 		}
@@ -264,7 +251,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 			double F1current = (task.regressionTask ? currentBestSaverInBin.score : currentBestSaverInBin.F1);
 			
 			if (F1 > F1current) { // Update since better clause found.
-				if (LearnOneClause.debugLevel > 1) { Utils.println("%  Adding '" + saver.ruleAsString + "' to the " + name + " Gleaner in bin #" + index + ".  Removed '" + currentBestSaverInBin + "'."); }
 				gleaner.remove(currentBestSaverInBin);
 				gleaner.put(index, saver);
 				if (theGlobalGleaner) { addsToGlobalGleaner++; } else { addsToCurrentGleaner++; }
@@ -319,7 +305,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 					str       += "\n////";
 					str       += "\n////////////////////////////////////////////////////////////////////////////////\n";
 					out.println(str);
-					if (LearnOneClause.debugLevel > 2) { Utils.println(str); }
 					Map<Integer,SavedClause> thisGleaner = gleaners.get(marker);
 					int  counter = 0;
 					double lower = Double.NEGATIVE_INFINITY; 
@@ -333,7 +318,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 									+ " - learned after " + Utils.comma(saved.nodeCountWhenSaved) + " total and " + Utils.comma(saved.acceptableNodeCountWhenSaved) + " acceptable nodes.  Node score = " + saved.score + "\n"
 									+ saved.ruleAsString
 									+ (saved.annotation != null ? " // " + saved.annotation : "") + "\n"); // TODO - should call handleInlinersIfPossible when the instance is made, but the wasted time shouldn't matter too much.
-							if (reportUptoThisManyFalseNegatives > 0 &&  saved.recall >= reportFalseNegativesIfRecallAtLeastThisHigh) {
+							if (saved.recall >= reportFalseNegativesIfRecallAtLeastThisHigh) {
 								Set<Example> uncovered = saved.uncoveredPos;
 								if (uncovered != null) for (Example ex : uncovered) {
 									Term   annotationTerm = ex.getAnnotationTerm();
@@ -341,7 +326,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 									str2.append("      /* FALSE NEG: ").append(annotationStr.replace("::", "\n                     ")).append(" */\n");
 								}
 							}
-							if (reportUptoThisManyFalsePositives > 0 && saved.precision >= reportFalsePositivesIfPrecisionAtLeastThisHigh) {
+							if (saved.precision >= reportFalsePositivesIfPrecisionAtLeastThisHigh) {
 								Set<Example> covered =  saved.uncoveredNeg;
 								if (covered != null) for (Example ex : covered) {
 									Term   annotationTerm = ex.getAnnotationTerm();
@@ -350,7 +335,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 								}
 							}
 							out.println(str2);
-							if (LearnOneClause.debugLevel > 2) { Utils.println(str2.toString()); }
 						}
 						counter ++;
 						lower = upper;
@@ -416,10 +400,8 @@ public class Gleaner extends SearchMonitor implements Serializable {
 			
 			StringBuilder buffer;
 			for (Object marker : markerList) {
-				String str = null;
 				buffer = new StringBuilder();
 				buffer.append("<gleaner><marker>").append(marker).append("</marker>");
-				if (LearnOneClause.debugLevel > 2) { Utils.println(str); }
 				Map<Integer,SavedClause> thisGleaner = gleaners.get(marker);
 				int  counter = 0;
 				double lower = Double.NEGATIVE_INFINITY; 
@@ -455,7 +437,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 							buffer.append(saved.annotation);
 							buffer.append("</annotation>");
 						} 
-						if (reportUptoThisManyFalseNegatives > 0 && saved.recall >= reportFalseNegativesIfRecallAtLeastThisHigh) {
+						if (saved.recall >= reportFalseNegativesIfRecallAtLeastThisHigh) {
 							Set<Example> uncovered = saved.uncoveredPos;
 							
 							if (uncovered != null) {
@@ -483,7 +465,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 								buffer.append("</falseNegatives>");
 							}
 						}
-						if (reportUptoThisManyFalsePositives > 0 && saved.precision >= reportFalsePositivesIfPrecisionAtLeastThisHigh) {
+						if (saved.precision >= reportFalsePositivesIfPrecisionAtLeastThisHigh) {
 							Set<Example> covered = saved.uncoveredNeg;
 		
 							if (covered != null) {
@@ -504,7 +486,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 										}
 									}
 									}
-									buffer.append("<fact>").append(fact.toString().substring(0, fact.length() - 1)).append(")." + "</fact>\n");
+									buffer.append("<fact>").append(fact.toString(), 0, fact.length() - 1).append(")." + "</fact>\n");
 									buffer.append("</falsePositive>\n");
 								
 								}
@@ -514,8 +496,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 						}
 						buffer.append("\n</clause>");
 						buffer.append("\n</recallBin>");
-
-						if (LearnOneClause.debugLevel > 2) { Utils.println(buffer.toString()); }
 					}
 					
 					counter ++;

@@ -27,8 +27,8 @@ public class ElementFinder {
     }
 
     private static class ElementFinderData extends ElementPositionVisitor.ElementPositionData {
-        Filter<ElementAndPath> filter;
-        List<ElementAndPath> includedElements = new ArrayList<>();
+        final Filter<ElementAndPath> filter;
+        final List<ElementAndPath> includedElements = new ArrayList<>();
 
         ElementFinderData(Filter<ElementAndPath> filter) {
             this.filter = filter;

@@ -19,7 +19,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
         this.listener = listener;
     }
 
-    public ElementPositionVisitor() {
+    protected ElementPositionVisitor() {
     }
 
     public ConnectedSentence visitConnectedSentence(ConnectedSentence sentence, Data data) {

@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class MLNInference extends SRLInference {
 
-	private Map<String, Long> timePerModel = new HashMap<>();
+	private final Map<String, Long> timePerModel = new HashMap<>();
 	private Map<String, Long> cachedRegressionClauseWeights;
 	public MLNInference(WILLSetup setup, JointRDNModel model) {
 		super(setup);

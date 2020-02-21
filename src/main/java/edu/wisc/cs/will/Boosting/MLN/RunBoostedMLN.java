@@ -30,7 +30,7 @@ public class RunBoostedMLN extends RunBoostedModels {
 	
 	public void learn() {
 		fullModel = new JointRDNModel();
-		Map<String, LearnBoostedRDN> learners = new HashMap<String, LearnBoostedRDN>();
+		Map<String, LearnBoostedRDN> learners = new HashMap<>();
 		int minTreesInModel = Integer.MAX_VALUE;
 		
 		

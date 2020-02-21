@@ -23,11 +23,11 @@ public class NumericConstant extends Constant implements Serializable {
 
     static final int isaLong = 3;
 
-    protected NumericConstant() {
+    private NumericConstant() {
     }
 
     // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.
-    protected NumericConstant(HandleFOPCstrings stringHandler, Number value, int type, TypeSpec typeSpec) {
+    NumericConstant(HandleFOPCstrings stringHandler, Number value, int type, TypeSpec typeSpec) {
     	this();
         this.stringHandler = stringHandler;
         this.value = value;
@@ -35,7 +35,6 @@ public class NumericConstant extends Constant implements Serializable {
         this.setTypeSpec(typeSpec);
     }
 
-    @Override
     public String getName() {
         switch (getType()) {
             case isaInteger:
@@ -52,11 +51,11 @@ public class NumericConstant extends Constant implements Serializable {
         }
     }
 
-    public void setType(int type) {
+    private void setType(int type) {
         this.type = type;
     }
 
-    public int getType() {
+    private int getType() {
         return type;
     }
 
@@ -99,7 +98,7 @@ public class NumericConstant extends Constant implements Serializable {
     }
 
     @Override
-    public String toString(int precedenceOfCaller, BindingList bindingList) {
+    protected String toString(int precedenceOfCaller, BindingList bindingList) {
         if (stringHandler.printTypedStrings) {
             return toTypedString();
         }

@@ -96,7 +96,7 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 	}
 	
 	@Override
-	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
+	protected String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		return printRelationalTree(newLineStarter, precedenceOfCaller, 0, bindingList);
 	}
 	@Override
@@ -154,7 +154,6 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 		}
 		
 		int           numbNewLits = Utils.getSizeSafely(newLits);
-		PredicateName newPredName = (numbNewLits > 1 || clausesFalse != null ? treeTheory.getInventedPredName() : null);
 
 		assert newLits != null;
 		Literal           newHead = newLits.get(0);

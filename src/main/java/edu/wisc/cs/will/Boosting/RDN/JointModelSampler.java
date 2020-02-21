@@ -32,8 +32,8 @@ public class JointModelSampler extends SRLInference {
 	
 	private int burnInSteps  = 200;
 	private int numOfSamples = 1000;
-	private boolean useMLNInference;
-	private CommandLineArguments cmdArgs;
+	private final boolean useMLNInference;
+	private final CommandLineArguments cmdArgs;
 
 	/*
 	 * 

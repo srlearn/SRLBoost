@@ -89,7 +89,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 
     private static final BindingList FAIL = null;
 
-    private HandleFOPCstrings stringHandler;
+    private final HandleFOPCstrings stringHandler;
 
 
     private DateFormat       dateTimeInstance;
@@ -215,7 +215,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
         if ( predicateName == stringHandler.standardPredicateNames.write )    return true;
         if ( predicateName == stringHandler.standardPredicateNames.waitHere ) return true;
 
-		return stringHandler.getUserDefinedLiteral(predicateName, arity) != null;
+		return stringHandler.getUserDefinedLiteral() != null;
 	}
 	
 	/*
@@ -226,7 +226,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 		List<Term>    args = literal.getArguments();
 		int       numbArgs = literal.numberArgs();
 
-		UserDefinedLiteral match = context.getStringHandler().getUserDefinedLiteral(pred, numbArgs);
+		UserDefinedLiteral match = context.getStringHandler().getUserDefinedLiteral();
         
         // Trevor: should we set stringHandler=context.getStringHandler() here?  JWS (6/11)
         if ( match != null ) {

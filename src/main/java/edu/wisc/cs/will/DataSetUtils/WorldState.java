@@ -9,8 +9,8 @@ import edu.wisc.cs.will.FOPC.Variable;
  *
  */
 public class WorldState {
-	private Constant world;
-	private Constant state;
+	private final Constant world;
+	private final Constant state;
 	
 	WorldState(Constant world, Constant state) {
 		this.world = world;

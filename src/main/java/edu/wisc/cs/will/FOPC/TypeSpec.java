@@ -16,14 +16,14 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 
     private final static int unspecifiedMode = -1; // For use when modes aren't needed.
 	private final static int modeNotYetSet = 0; // Mark that this mode will be set later, when more information is available.
-	public final static int plusMode      = 1; // An 'input' argument (should be bound when the predicate or function containing this is called).
+	final static int plusMode      = 1; // An 'input' argument (should be bound when the predicate or function containing this is called).
 	private final static int onceMode      = 2; // An 'input' argument that appears exactly ONCE in the clause SO FAR (can be reused later).
 	public final static int minusMode     = 3; // An 'output' argument - need not be bound.
 	private final static int novelMode     = 4; // An 'output' argument that is a NEW variable.
 	private final static int constantMode  = 5; // An argument that should be a constant (i.e., not a variable).
 	private final static int thisValueMode = 6; // This SPECIFIC constant should fill this argument slot.
 	private final static int equalMode     = 7; // This variable must also appear in the body of a clause for that clause to be acceptable (otherwise, same as '+').
-	public final static int minusOrConstantMode =  8; // Means BOTH '-' and '#'.
+	private final static int minusOrConstantMode =  8; // Means BOTH '-' and '#'.
 	private final static int plusOrConstantMode  =  9; // Means BOTH '+' and '#'.
 	private final static int novelOrConstantMode = 10; // Means BOTH '^' and '#' (currently this one has no single-character name
 	private final static int starMode            = 11; // Look up the mode in the stringHandler.
@@ -35,14 +35,14 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 							       // If truthCounts =  0 then any number is possible.
 								   // If truthCounts =  K and K > 0, then for EXACTLY K of the possibly values for this argument will the predicate be true.
 								   // If truthCounts = -K and K > 0, then for AT MOST K possible values will this predicate be true.
-	transient protected HandleFOPCstrings stringHandler;
+	transient HandleFOPCstrings stringHandler;
 
 	public TypeSpec(String modeAsString, String typeAsString, HandleFOPCstrings stringHandler) {
 		this(modeAsString,
 			 stringHandler.isaHandler.getIsaType(stringHandler.createSafeStringConstantForWILL(typeAsString)), 
 			 stringHandler);		
 	}
-	public TypeSpec(String modeAsString, Type isaType, HandleFOPCstrings stringHandler) {
+	private TypeSpec(String modeAsString, Type isaType, HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
 		if      (isaSynonymForPlus(         modeAsString)) { mode = plusMode;      }
 		else if (isaSynonymForOnce(         modeAsString)) { mode = onceMode;      }
@@ -227,7 +227,7 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 	String getModeString() {
 		return getModeString(mode);
 	}
-	public static String getModeString(int modeToUse) {
+	private static String getModeString(int modeToUse) {
 		switch (modeToUse) {
 			case plusMode:      return "+";
 			case onceMode:      return "$";

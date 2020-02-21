@@ -15,21 +15,15 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
 
     private static final long serialVersionUID = 1L;
 
-    public StateBasedSearchTask task;
-
-    private int countOfAdds = 0;
+    private final StateBasedSearchTask task;
 
     public OpenList(StateBasedSearchTask task) {
         this.task = task;
-        if (task.verbosity > 1) {
-            Utils.println("Starting a search with strategy = " + task.strategy.getClass().getName() + ".");
-        }
     }
 
     private void recordNodeCreation(T node) {
         task.nodesCreated++;
         task.nodesCreatedThisIteration++;
-        task.searchMonitor.recordNodeCreation();
         if (task.closed != null && task.addNodesToClosedListWhenCreated) {
             task.closed.addNodeToClosed(node);
         }
@@ -41,9 +35,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
         task.nodesConsidered++;
         task.nodesConsideredThisIteration++;
         task.searchMonitor.recordNodeExpansion();
-        if (task.verbosity > 1) {
-            Utils.println("Popped '" + popped + "' (" + Utils.comma(task.nodesConsidered) + " nodes considered so far) from the OPEN list.");
-        }
         return popped;
     }
 
@@ -62,9 +53,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
         super.add(node);
         recordNodeCreation(node);
 
-        if (task.verbosity > 2) {
-            Utils.println("  Added " + node + " (node #" + Utils.comma(task.nodesCreated) + ") to the end of the OPEN list.");
-        }
         if (task.beamWidth > 0) {
             checkBeamWidth();
         }
@@ -80,9 +68,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
         super.add(0, node);
         recordNodeCreation(node);
 
-        if (task.verbosity > 2) {
-            Utils.println("  Added " + node + " (node #" + Utils.comma(task.nodesCreated) + ") to the front of the OPEN list.");
-        }
         if (task.beamWidth > 0) {
             checkBeamWidth();
         }
@@ -94,25 +79,13 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
             Utils.error("Cannot have node=null!");
         }
         if (task.closed != null && task.closed.alreadyInClosedList(node)) {
-            if (task.verbosity > 2) {
-                Utils.println(" Already in closed: " + node);
-            }
             return;
         }
         double score = task.scorer.scoreThisNode(node);
-        if (task.verbosity > 2) {
-            Utils.println(" insertByScoreIntoOpenList: Score of " + Utils.truncate(score, 3) + " for " + node);
-        }
         if (score < minAcceptableScore) {
-            if (task.verbosity > 2) {
-                Utils.println("  Discard since score less than minAcceptableScore (" + minAcceptableScore + ").");
-            }
             return;
         }
         if (!tiesOK && score <= minAcceptableScore) {
-            if (task.verbosity > 2) {
-                Utils.println("  Discard since score does not exceeed minAcceptableScore (" + minAcceptableScore + ").");
-            }
             return;
         }
         if (Double.isNaN(score)) {
@@ -127,16 +100,9 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
 
         // See if this node is an acceptable for setting 'bestScoreSeenSoFar.'
         boolean acceptable = true;
-
-        if (task.verbosity > 2) {
-            Utils.println("Consider adding this to OPEN: [#" + (++countOfAdds) + "] " + node);
-        }
         if (task.discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar &&
                 task.scorer.computeMaxPossibleScore(node) <= task.bestScoreSeenSoFar) {
             // TODO(?): allow this to be '<=' or '<'
-            if (task.verbosity > 2) {
-                Utils.println("   Discard '" + node + "' because its best possible score (" + task.scorer.computeMaxPossibleScore(node) + ") cannot exceed the best score seen so far (" + task.bestScoreSeenSoFar + " of [" + task.nodeWithBestScore + "]).");
-            }
             task.nodesNotAddedToOPENsinceMaxScoreTooLow++;
             return;
         }
@@ -152,35 +118,22 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
 
         if (acceptable && score > task.bestScoreSeenSoFar) {
             // TODO(?): allow '<' and '<=' the best score
-            if (task.verbosity > 2) {
-                Utils.println("NEW BEST SCORING (" + score + ") node: " + node);
-            }
             // Do not use BONUS here, since that should only impact sorting in the list.
             task.bestScoreSeenSoFar = score;
-            task.nodeWithBestScore = node;
             if (task.discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar) {
                 // TODO(?): allow '<' and '<=' the best score.
                 // Remove items from OPEN that cannot beat.
                 for (Iterator<T> iter = this.iterator(); iter.hasNext();) {
                     T n = iter.next();
                     if (task.scorer.computeMaxPossibleScore(n) <= score) {
-                        if (task.verbosity > 2) {
-                            Utils.println("   Can remove this existing OPEN-list node since its best possible score (" + task.scorer.computeMaxPossibleScore(n) + ") cannot beat this new node's score (" + score + "): " + n);
-                        }
                         iter.remove();
                         task.nodesRemovedFromOPENsinceMaxScoreNowTooLow++;
-                    }
-                    else if (task.verbosity > 2) {
-                        Utils.println("   Keep in OPEN: " + n);
                     }
                 }
             }
         }
 
         if (node.dontActuallyAddToOpen()) {
-            if (task.verbosity > 2) {
-                Utils.println("   Do NOT insert into OPEN: " + node);
-            }
             return;
         }
 
@@ -196,9 +149,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
                 found = true;
                 super.add(position, node);
                 recordNodeCreation(node);
-                if (task.verbosity > 2) {
-                    Utils.println("  Added " + node + " (node #" + task.nodesCreated + ") to the OPEN list in position " + position + " based on its score of " + Utils.truncate(totalScore, 3) + ".");
-                }
                 break;
             }
             position++;
@@ -207,15 +157,13 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
             // Don't forget this might need to be the LAST item.
             super.add(node);
             recordNodeCreation(node);
-            if (task.verbosity > 2) {
-                Utils.println("  Added " + node + " (node #" + task.nodesCreated + ") to the END of the OPEN list (in position " + position + ") based on its score of " + Utils.truncate(totalScore, 3) + ".");
-            }
         }
 
         if (task.beamWidth > 0) {
             checkBeamWidth();
         }
         if (task.verbosity > 3) {
+            // TODO(@hayesall): `reportOpenListScores` is the only thing that may need `task.verbosity`
             reportOpenListScores();
         }
     }
@@ -227,10 +175,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
     private void checkBeamWidth() {
         if (task.beamWidth > 0 && size() > task.beamWidth) {
             int excess = size() - task.beamWidth;
-
-            if (task.verbosity > 2) {
-                Utils.println("    Reducing OPEN to max beam size of " + task.beamWidth + ".");
-            }
             for (int i = 0; i < excess; i++) {
                 removeLast();
             }

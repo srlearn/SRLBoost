@@ -13,17 +13,17 @@ import java.util.Objects;
  */
 public class RelevantModeInformation implements RelevantInformation, Cloneable {
 
-    private Example example;
+    private final Example example;
 
     private boolean relevanceFromPositiveExample;
 
-    private Literal mode;
+    private final Literal mode;
 
-    private RelevanceStrength relevanceStrength;
+    private final RelevanceStrength relevanceStrength;
 
-    RelevantModeInformation(Example example, boolean relevanceFromPositiveExample, Literal mode, RelevanceStrength relevanceStrength) {
+    RelevantModeInformation(Example example, Literal mode, RelevanceStrength relevanceStrength) {
         this.example = example;
-        this.relevanceFromPositiveExample = relevanceFromPositiveExample;
+        this.relevanceFromPositiveExample = true;
         this.mode = mode;
         this.relevanceStrength = relevanceStrength;
     }
@@ -51,19 +51,6 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
 
     public void setRelevanceFromPositiveExample(boolean positive) {
         this.relevanceFromPositiveExample = positive;
-    }
-
-    @Override
-    public boolean isEquivalentUptoVariableRenaming(RelevantInformation info) {
-
-        boolean result = false;
-
-        if (info instanceof RelevantModeInformation) {
-            RelevantModeInformation that = (RelevantModeInformation) info;
-            result = this.mode.equals(that.mode);
-        }
-
-        return result;
     }
 
     @Override

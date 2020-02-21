@@ -11,10 +11,9 @@ import java.util.*;
  *
  */
 public class ConnectedSentence extends Sentence implements Serializable, Implication {
-	protected static final int debugLevel = 0;  // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
 	private Sentence       sentenceA;
-	Sentence       sentenceB; // If the connective = NOT, this first sentence is ignored (and should be set to null).
+	final Sentence       sentenceB; // If the connective = NOT, this first sentence is ignored (and should be set to null).
 	ConnectiveName connective;  // Should be one of "AND, OR, NOT, =>, <=>, etc" (case is ignored).
 	
 	/*
@@ -26,7 +25,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
      * @param connective
      * @param B 
      */
-	protected ConnectedSentence(HandleFOPCstrings stringHandler, ConnectiveName connective, Sentence B) {
+	ConnectedSentence(HandleFOPCstrings stringHandler, ConnectiveName connective, Sentence B) {
 		this.stringHandler = stringHandler;
 		sentenceA = null;
 		sentenceB = B;
@@ -37,7 +36,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 			Utils.error("Unknown unary connective: " + connective);
 		}
 	}
-	protected ConnectedSentence(HandleFOPCstrings stringHandler, Sentence A, ConnectiveName connective, Sentence B) {
+	ConnectedSentence(HandleFOPCstrings stringHandler, Sentence A, ConnectiveName connective, Sentence B) {
 		this.stringHandler = stringHandler;
 		sentenceA = A;
 		sentenceB = B;
@@ -276,7 +275,6 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 	}
     @Override
 	protected ConnectedSentence distributeDisjunctionOverConjunction() {
-		if (debugLevel > 0) { Utils.println("   distributeDisjunctionOverConjunction (connective='" + connective.name + "'): " + this); }
 		Sentence newL = (sentenceA == null ? null : sentenceA.distributeDisjunctionOverConjunction());
 		Sentence newR =                             sentenceB.distributeDisjunctionOverConjunction();
 		if (ConnectiveName.isaOR(connective.name)) {
@@ -303,10 +301,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 				Sentence              newOr4 = or4.distributeDisjunctionOverConjunction();
 				ConnectedSentence       and1 = stringHandler.getConnectedSentence(newOr1,  andConnective, newOr2); 
 				ConnectedSentence       and2 = stringHandler.getConnectedSentence(newOr3,  andConnective, newOr4);
-				ConnectedSentence result = stringHandler.getConnectedSentence(and1, andConnective, and2).spreadWeightEquallyOverConjuncts(wgtSentence); // Spread the weight now.
-				
-				if (debugLevel > 2) { Utils.println("    resultLR = " + result); }
-				return result;
+				return stringHandler.getConnectedSentence(and1, andConnective, and2).spreadWeightEquallyOverConjuncts(wgtSentence);
 			}
 			// (a ^ b) v c  <==> (a v c) ^ (b v c)
 			else if (sentLeftIsaAND) {
@@ -318,9 +313,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 				ConnectedSentence      right = stringHandler.getConnectedSentence(leftB, orConnective, newR);
 				Sentence             newLeft =  left.distributeDisjunctionOverConjunction(); // Need to handle conjuncts with more than two items.
 				Sentence            newRight = right.distributeDisjunctionOverConjunction();
-				ConnectedSentence result = stringHandler.getConnectedSentence(newLeft, andConnective, newRight).spreadWeightEquallyOverConjuncts(wgtSentence); // Spread the weight now.
-				if (debugLevel > 2) { Utils.println("    resultLonly = " + result); }
-				return result;
+				return stringHandler.getConnectedSentence(newLeft, andConnective, newRight).spreadWeightEquallyOverConjuncts(wgtSentence);
 			}
 			//  a v (b ^ c) <==> (a v b) ^ (a v c)
 			else if (sentRightIsaAND) {
@@ -332,25 +325,17 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 				ConnectedSentence      right = stringHandler.getConnectedSentence(newL, orConnective, rightB);
 				Sentence             newLeft =  left.distributeDisjunctionOverConjunction(); // Need to handle conjuncts with more than two items.
 				Sentence            newRight = right.distributeDisjunctionOverConjunction();
-				ConnectedSentence result = stringHandler.getConnectedSentence(newLeft, andConnective, newRight).spreadWeightEquallyOverConjuncts(wgtSentence); // Spread the weight now.
-				if (debugLevel > 2) { Utils.println("    resultRonly = " + result); }
-				return result;
+				return stringHandler.getConnectedSentence(newLeft, andConnective, newRight).spreadWeightEquallyOverConjuncts(wgtSentence);
 			}
 			else {
-				ConnectedSentence result =  (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
-				if (debugLevel > 2) { Utils.println("    resultNeither = " + result); }
-				return result;
+				return (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
 			}
 		}
 		if (ConnectiveName.isaNOT(connective.name)) {
-			ConnectedSentence result = (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
-			if (debugLevel > 2) { Utils.println("    resultNOT = " + result); }
-			return result;
+			return (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
 		}
 		if (ConnectiveName.isaAND(connective.name)) {
-			ConnectedSentence result =(ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
-			if (debugLevel > 2) { Utils.println("    resultAND = " + result); }
-			return result;
+			return (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
 		}
 		Utils.error("Should not be distributing connected sentences except those containing AND, OR, or NOT: " + this); // If negate needed more broadly, then make a new version or pass in a flag.
 		return null;
@@ -358,7 +343,6 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 
     @Override
 	protected ConnectedSentence distributeConjunctionOverDisjunction() {
-		if (debugLevel > 0) { Utils.println("   distributeDisjunctionOverConjunction (connective='" + connective.name + "'): " + this); }
 		Sentence newL = (sentenceA == null ? null : sentenceA.distributeConjunctionOverDisjunction());
 		Sentence newR =                             sentenceB.distributeConjunctionOverDisjunction();
 		if (ConnectiveName.isaAND(connective.name)) {
@@ -383,9 +367,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 				Sentence              newOr4 = and4.distributeConjunctionOverDisjunction();
 				ConnectedSentence       or1 = stringHandler.getConnectedSentence(newOr1,  orConnective, newOr2);            // Use infinite weight here.
 				ConnectedSentence       or2 = stringHandler.getConnectedSentence(newOr3,  orConnective, newOr4);            // Use infinite weight here.
-				ConnectedSentence result = stringHandler.getConnectedSentence(or1, orConnective, or2); // Use infinite weight here.
-				if (debugLevel > 2) { Utils.println("    resultLR = " + result); }
-				return result;
+				return stringHandler.getConnectedSentence(or1, orConnective, or2);
 			}
 			// (a ^ b) v c  <==> (a v c) ^ (b v c)
 			else if (sentLeftIsaOR) {
@@ -397,9 +379,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 				ConnectedSentence      right = (ConnectedSentence) stringHandler.getConnectedSentence(leftB, andConnective, newR).divideWeightByN(wgtSentence, 2);
 				Sentence             newLeft =  left.distributeConjunctionOverDisjunction(); // Need to handle conjuncts with more than two items.
 				Sentence            newRight = right.distributeConjunctionOverDisjunction();
-				ConnectedSentence result = stringHandler.getConnectedSentence(newLeft, orConnective, newRight); // Use infinite weight here.
-				if (debugLevel > 2) { Utils.println("    resultLonly = " + result); }
-				return result;
+				return stringHandler.getConnectedSentence(newLeft, orConnective, newRight);
 			}
 			//  a v (b ^ c) <==> (a v b) ^ (a v c)
 			else if (sentRightIsaOR) {
@@ -411,25 +391,17 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 				ConnectedSentence      right = (ConnectedSentence) stringHandler.getConnectedSentence(newL, andConnective, rightB).divideWeightByN(wgtSentence, 2);
 				Sentence             newLeft =  left.distributeConjunctionOverDisjunction(); // Need to handle conjuncts with more than two items.
 				Sentence            newRight = right.distributeConjunctionOverDisjunction();
-				ConnectedSentence result = stringHandler.getConnectedSentence(newLeft, orConnective, newRight); // Use infinite weight here.
-				if (debugLevel > 2) { Utils.println("    resultRonly = " + result); }
-				return result;
+				return stringHandler.getConnectedSentence(newLeft, orConnective, newRight);
 			}
 			else {
-				ConnectedSentence result =  (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
-				if (debugLevel > 2) { Utils.println("    resultNeither = " + result); }
-				return result;
+				return (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
 			}
 		}
 		if (ConnectiveName.isaNOT(connective.name)) {
-			ConnectedSentence result = (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
-			if (debugLevel > 2) { Utils.println("    resultNOT = " + result); }
-			return result;
+			return (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
 		}
 		if (ConnectiveName.isaOR(connective.name)) {
-			ConnectedSentence result =(ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
-			if (debugLevel > 2) { Utils.println("    resultAND = " + result); }
-			return result;
+			return (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
 		}
 		Utils.error("Should not be distributing connected sentences except those containing AND, OR, or NOT: " + this); // If negate needed more broadly, then make a new version or pass in a flag.
 		return null;
@@ -481,7 +453,6 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 	// When this is called the sentence should be in conjunctive normal form.
     @Override
 	protected List<Clause> convertToListOfClauses() {
-		if (debugLevel > 1) { Utils.println(" convertToListOfClauses (connective=" + connective.name + "): " + this); }
 		if (ConnectiveName.isaAND(connective.name)) {
 			List<Clause> newL = sentenceA.convertToListOfClauses();
 			List<Clause> newR = sentenceB.convertToListOfClauses();
@@ -508,7 +479,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 		return null;
 	}	
     @Override
-	protected Clause convertToClause() {
+	Clause convertToClause() {
 		if (ConnectiveName.isaOR(connective.name)) {
 			Clause left  = sentenceA.convertToClause();
 			Clause right = sentenceB.convertToClause();

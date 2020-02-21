@@ -6,7 +6,6 @@ import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -16,7 +15,7 @@ import java.util.*;
  *  All predicates with the same name map to the same instance.
  */
 public class PredicateName extends AllOfFOPC implements Serializable {
-	public    String                   name;	
+	public final String                   name;
 	private   List<PredicateSpec>      typeSpecList = null; // Information about this Predicate, e.g. legal arguments to it.  A 'type' describes both the kind of arguments it takes (e.g., 'people' are 'books') and whether these arguments are "input" variables, "output" variables, or constants.
 	private   List<PredicateSpec>      typeOnlyList = null; // Similar to above, but the input/output markers are not included.
 	private   Set<Integer>             typeDeSpeced = null; // Modes that have been disabled - currently all modes of a given arity are disabled
@@ -47,7 +46,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Map<Integer,Double>            cost                       = null;  // See if this predicate/arity has a cost (default is 1.0).  Costs are used for scoring clauses.
 	private   boolean                        costIsFinal                = false; // Is the cost frozen?
 	private   Map<Integer,RelevanceStrength> relevance                  = null;  // See if this predicate/arity has a relevance (default is NEUTRAL).  
-	private   Map<Integer,List<String>>      namedArgumentOrdering      = null;  // When getting rid of named arguments, this is the order argument should be placed (if null, then use alphabetic ordering).
 	private   Map<Integer,Map<Integer, List<Object>>> constrainsType    = null;  // Record if this literal constrains the type of one of its arguments.
 
     /* Map from non-operation arities to operational predicates.
@@ -64,7 +62,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public    boolean printUsingInFixNotation = false;
 	transient private HandleFOPCstrings stringHandler;  // The stringHandler needed to de-serialize the Predicate.
 
-	protected PredicateName(String name, HandleFOPCstrings stringHandler) { // This is protected because getPredicateName(String name) should be used instead.
+	PredicateName(String name, HandleFOPCstrings stringHandler) { // This is protected because getPredicateName(String name) should be used instead.
 		this.name          = name;
 		this.stringHandler = stringHandler;
 	}	
@@ -314,7 +312,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
             Utils.waitHere(this + " sig = " + signature + " specs = " + typeSpecs);
         }
 
-        PredicateSpec pSpec = new PredicateSpec(signature, typeSpecs, this, true);
+        PredicateSpec pSpec = new PredicateSpec(signature, typeSpecs, this);
 
         addToTypeListForILP(pSpec, !okIfDup);
         addToTypeListForMLN(pSpec);
@@ -324,22 +322,15 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         setMaxOccurrences(arity, max); // Always do these to catch user errors where the same spec is given, once with a max and another time w/o.
         setMaxOccurrencesPerInputVars(arity, pSpec, maxPerInputVars);
 
-        if (debugLevel > 1) {
-            Utils.println("  recordMode: " + this + " sig=" + signature + " specs=" + typeSpecs + " max=" + Utils.comma(max) + " maxPerInputVars=" + Utils.comma(maxPerInputVars));
-        }
 	}
 	
-	void disableMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars) {
+	void disableMode(List<Term> signature, List<TypeSpec> typeSpecs) {
         if (Utils.getSizeSafely(signature) != Utils.getSizeSafely(typeSpecs)) {
             Utils.waitHere(this + " sig = " + signature + " specs = " + typeSpecs);
         }
 
         int arity = Utils.getSizeSafely(signature);
         addToDeSpecTypeList(arity);
-
-        if (debugLevel > 1) {
-            Utils.println("  disableMode: " + this + " sig=" + signature + " specs=" + typeSpecs + " max=" + Utils.comma(max) + " maxPerInputVars=" + Utils.comma(maxPerInputVars));
-        }
 	}
 	
 	private void addToTypeListForILP(PredicateSpec pSpec, boolean warnIfDup) {
@@ -360,7 +351,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			return;
 		}
 		typeSpecList.add(pSpec);
-		if (debugLevel > 1) { Utils.println("  typeList for '" + name + "': " + typeSpecList); }
 	}	
 	
 	private void addToTypeListForMLN(PredicateSpec pSpec) {
@@ -373,48 +363,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private void addToDeSpecTypeList(int arity) {
 		if (typeDeSpeced == null) { typeDeSpeced = new HashSet<>(4); }
 		typeDeSpeced.add(arity);
-	}
-	
-	public void reportPossibleInstantiations() {
-		Utils.println(reportPossibleInstantiationsAsString());
-	}
-	private String reportPossibleInstantiationsAsString() {
-		StringBuilder result = new StringBuilder();
-		if (typeSpecList == null) {
-			result.append("  There are no possible instantiations of predicate '").append(name).append("'.\n");
-			return result.toString();
-		}
-		result.append("%  Possible instantiations of predicate '").append(name).append("':\n");
-		for (PredicateSpec args : getTypeList()) {
-			result.append("%    ").append(name).append(" sig=").append(args.getSignature()).append(" types=").append(args.getTypeSpecList()).append("\n");
-			result.append("%    ").append(name).append("(");
-			result.append(help_reportPossibleInstantiationsAsString(args.getSignature(), 0, args.getTypeSpecList()));
-			result.append(")\n");
-		}
-		return result.toString();
-	}
-
-	private String help_reportPossibleInstantiationsAsString(List<Term> arguments, int counter, List<TypeSpec> typeInfoList) {
-		StringBuilder result = new StringBuilder();
-		boolean firstTime = true;
-		if(arguments != null) for (Term term : arguments) {
-			if (firstTime) { firstTime = false; } else {
-				result.append(", "); }
-			if (term instanceof Constant) {
-				result.append(typeInfoList.get(counter).toString());
-				counter++;
-			} else if (Function.isaConsCell(term)) { // Probably won't have lists inside modes, but in case there ever is, handle them properly.
-				result.append(term.toString());
-				counter++;
-			} else if (term instanceof Function) {
-				Function f = (Function) term;
-				result.append(f.functionName).append("(");
-				result.append(help_reportPossibleInstantiationsAsString(f.getArguments(), counter, typeInfoList));
-				result.append(")");
-				counter += f.countLeaves();
-			} else { Utils.error("Can only handle constants and functions here: typeInfoList = " + typeInfoList + " and term = " + term + " in signature = " + arguments); }
-		}
-		return result.toString();
 	}
 
 	/**
@@ -598,9 +546,9 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		else if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate temporary of " + name + "/" + arity + ".  Will ignore."); }		
 	}
 
-	List<String> getNamedArgOrdering(int arity) {
-		if (namedArgumentOrdering == null) { return null; }
-		return namedArgumentOrdering.get(arity);
+	List<String> getNamedArgOrdering() {
+		// TODO(@hayesall): This always returns a null List<String>
+		return null;
 	}
 	
 	public void addInliner(int arity) {
@@ -720,7 +668,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		Map<Integer,Type> firstLookUp = determinateSpec.get(arity);
 		if (firstLookUp == null) { return -1; } // This means "not found."
 		for (Integer key : firstLookUp.keySet()) {
-			Type type = firstLookUp.get(key);
+			firstLookUp.get(key);
 			return key;
 		}
 		return -1; // Did not find what we sought, so return -1 to indicate "not found."
@@ -760,7 +708,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
     /* Replaces the stream object with a cached one if available.
      *
      */
-    private Object readResolve() throws ObjectStreamException {
+    private Object readResolve() {
         return stringHandler.getPredicateName(this);
     }
 

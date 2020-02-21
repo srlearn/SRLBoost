@@ -3,7 +3,6 @@ package edu.wisc.cs.will.FOPC;
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 
 /*
@@ -15,11 +14,11 @@ public class StringConstant extends Constant implements Serializable {
 
     private boolean alwaysUseDoubleQuotes = false;
 
-    protected StringConstant() {
+    private StringConstant() {
         checkIfQuoteMarksNeeded();  // 'name' not set, so don't need this, but keep it in case we later change the code.
     }
 
-    protected StringConstant(HandleFOPCstrings stringHandler, String name, boolean alwaysUseDoubleQuotes, boolean variablesStartWithQuestionMarks, boolean lowercaseMeansVariable, TypeSpec typeSpec) {
+    StringConstant(HandleFOPCstrings stringHandler, String name, boolean alwaysUseDoubleQuotes, TypeSpec typeSpec) {
     	this();
     	this.name = name; // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.
         while (name != null && name.length() > 1 && name.charAt(0) == '"' && name.charAt(name.length() - 1) == '"' ) { 
@@ -144,7 +143,7 @@ public class StringConstant extends Constant implements Serializable {
         return toString(precedenceOfCaller, bindingList);
     }
 
-    public String toString(int precedenceOfCaller, BindingList bindingList) {
+    protected String toString(int precedenceOfCaller, BindingList bindingList) {
         if (stringHandler.printTypedStrings) {
             return toTypedString();
         }
@@ -194,7 +193,7 @@ public class StringConstant extends Constant implements Serializable {
 
     /* Replace with the cached version from stringHandler.
      */
-    private Object readResolve() throws ObjectStreamException {
+    private Object readResolve() {
         return stringHandler.getStringConstant(typeSpec, name, true);
     }
 

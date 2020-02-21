@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.FOPC;
 
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -12,9 +11,9 @@ import java.util.Map;
  *
  */
 public class Type extends AllOfFOPC implements Serializable {
-	public String typeName;
+	public final String typeName;
 
-    protected Type(String typeName) {
+    Type(String typeName) {
         this.typeName = typeName;
     }
 
@@ -27,7 +26,7 @@ public class Type extends AllOfFOPC implements Serializable {
 
     /* Substitutes the Type with a SerializableType while Serializing.
     */
-   private Object writeReplace() throws ObjectStreamException {
+   private Object writeReplace() {
        return new SerializableType(typeName);
     }
 
@@ -40,10 +39,10 @@ public class Type extends AllOfFOPC implements Serializable {
      *
      * This call will then use the readResolve method to fix up the stream.
      */
-    protected static class SerializableType implements Serializable {
+    static class SerializableType implements Serializable {
 
-        String typeName;
-        transient public HandleFOPCstrings stringHandler;
+        final String typeName;
+        transient HandleFOPCstrings stringHandler;
 
         SerializableType(String type) {
             this.typeName = type;
@@ -63,7 +62,7 @@ public class Type extends AllOfFOPC implements Serializable {
             this.stringHandler = fOPCInputStream.getStringHandler();
         }
 
-        public Object readResolve() throws ObjectStreamException {
+        public Object readResolve() {
             // Canonicalize the object via the string handler...
             return stringHandler.isaHandler.getIsaType(typeName);
         }

@@ -10,7 +10,7 @@ public abstract class TreeStructuredTheoryNode extends AllOfFOPC {
 	
 	double weightedCountOfPositiveExamples = 0;
 	double weightedCountOfNegativeExamples = 0;
-	protected TreeStructuredTheoryInteriorNode parent = null;     // Need this in case tree-surgery is needed.
+	private TreeStructuredTheoryInteriorNode parent = null;     // Need this in case tree-surgery is needed.
 	protected int level = -1; // Level in the tree. Root=0.  I.e., this counts number of ancestor nodes.
 	// Used for creating a graph in DOT format.
 	int nodeNumber = 0;
@@ -37,7 +37,7 @@ public abstract class TreeStructuredTheoryNode extends AllOfFOPC {
 	public abstract TreeStructuredTheoryNode applyTheta(Map<Variable,Term> bindings);	
 	public abstract Collection<Variable>     collectFreeVariables(Collection<Variable> boundVariables);
 
-	protected static int counter=0;
+	static int counter=0;
 	public abstract String writeDotFormat();
 
 	public int getLevel() {

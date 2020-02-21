@@ -141,7 +141,7 @@ class NonOperationalExpander {
 
     private static class CollectorData {
 
-        List<Literal> literals = new ArrayList<>();
+        final List<Literal> literals = new ArrayList<>();
 
     }
 
@@ -199,15 +199,6 @@ class NonOperationalExpander {
             existingExpansionsMap.put(fromNonOperational.getPredicateNameAndArity(), new ExistingExpansion(toOperational.getPredicateNameAndArity(), getFreeTermSet(toOperational)));
         }
 
-        public HornClauseContext getContext() {
-            if (parent != null) {
-                return parent.getContext();
-            }
-            else {
-                return context;
-            }
-        }
-
         private Set<TermAndIndex> getFreeTermSet(LiteralOrFunction literal) {
             Set<TermAndIndex> set = new HashSet<>();
 
@@ -227,9 +218,9 @@ class NonOperationalExpander {
 
     private static class ExistingExpansion {
 
-        PredicateNameAndArity expansion;
+        final PredicateNameAndArity expansion;
 
-        Set<TermAndIndex> termAndIndices;
+        final Set<TermAndIndex> termAndIndices;
 
         ExistingExpansion(PredicateNameAndArity expansion, Set<TermAndIndex> termAndIndices) {
             this.expansion = expansion;
@@ -244,9 +235,9 @@ class NonOperationalExpander {
 
     private static class TermAndIndex {
 
-        Term term;
+        final Term term;
 
-        int index;
+        final int index;
 
         TermAndIndex(Term term, int index) {
             this.term = term;

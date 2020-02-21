@@ -16,18 +16,18 @@ import java.util.Set;
  */
 public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements HornClausebaseIndexer<T> {
 
-    private HornClausebase clausebase;
+    private final HornClausebase clausebase;
 
     /* Stores the class of T.
      * 
      * Since java generics do not store the actual class of T,
      * we need to do this by hand, since we need it later.
      */
-    private Class<? extends T> elementClass;
+    private final Class<? extends T> elementClass;
 
     /* The number of arguments that should be index.
      */
-    private int indexWidth;
+    private final int indexWidth;
 
     private GroundNthArgumentClauseIndex<T>[] singleGroundArgIndexArray = null;
 

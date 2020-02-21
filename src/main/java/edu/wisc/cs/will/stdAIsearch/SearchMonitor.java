@@ -39,8 +39,6 @@ public class SearchMonitor implements Serializable {
 
 	void recordNodeExpansion() {}
 
-	void recordNodeCreation() {}
-
 	public boolean recordNodeBeingScored(SearchNode nodeBeingCreated, double score) throws SearchInterrupted {
 		// Return TRUE only if this node is acceptable as one that sets "best score seen so far."
 		return true;
@@ -97,10 +95,8 @@ public class SearchMonitor implements Serializable {
 	public StateBasedSearchTask getTaskBeingMonitored() {
 		return taskBeingMonitored;
 	}
-	
-	public void clearAnySavedInformation() {}
 
-   /*
+	/*
 	* Methods for reading a Object cached to disk.
     */
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

@@ -18,7 +18,6 @@ package edu.wisc.cs.will.ILP;
 
 
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
-import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.*;
@@ -30,7 +29,6 @@ import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
-import edu.wisc.cs.will.stdAIsearch.SearchResult;
 import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
 
 import java.io.*;
@@ -79,7 +77,7 @@ import java.util.zip.GZIPOutputStream;
 public class ILPouterLoop implements GleanerFileNameProvider {
 	private static final String systemName = "WILL"; // See comment above for explanation.
    
-	public  LearnOneClause innerLoopTask;  // LearnOnClause performs the inner loop of ILP.
+	public final LearnOneClause innerLoopTask;  // LearnOnClause performs the inner loop of ILP.
 
 	/* The state of the outer loop.
      *
@@ -99,16 +97,11 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 
     public  int            maxNumberOfCycles             = 100;   // Call the inner loop at most this many times.
 	public  int            maxNumberOfClauses            = 100;   // Same as above EXCEPT only counts if a clause was learned.
-	private double         minFractionOfPosCoveredToStop = 0.90;  // Stop when this fraction of the positive examples are covered by some acceptable clause.
+	private final double         minFractionOfPosCoveredToStop = 0.90;  // Stop when this fraction of the positive examples are covered by some acceptable clause.
 	public  int            max_total_nodesExpanded       = Integer.MAX_VALUE;
 	public  int            max_total_nodesCreated        = Integer.MAX_VALUE;
     public  int            numberPosSeedsToUse           = 1;
 	private int            numberNegSeedsToUse           = 0;
-	
-	double         minimalAcceptablePrecision    = 0.0; // If these cannot be met, even if the next clause learned covers ALL uncovered positive and covers NO negatives, then abort.
-	double         minimalAcceptableRecall       = 0.0;
-	double         minimalAcceptableAccuracy     = 0.0;
-	double         minimalAcceptableF1           = 0.0; // TODO - handle F(beta).
 
     ///////////////////////////////////////////////////////////////////
 	// Parameters that are used when learning tree-structured theories.
@@ -126,12 +119,10 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 	public  boolean        writeGleanerFilesToDisk       = false; // Write 'gleaner' files periodically.
 	private String         gleanerFileName               = null;  // Please don't use this directly.  Null indicates the use of a default value.
 	private String         gleanerFileNameFlipFlopped    = null;  // Put the gleaner results for the flip-flopped case here.
-	private String         annotationForRun              = null;
 
-	private boolean        checkpointEnabled             = false; // Write 'gleaner' files periodically.
-	private String         checkpointFileName            = null;  // Please don't use this directly.  Null indicates the use of a default value.
+    private boolean        checkpointEnabled             = false; // Write 'gleaner' files periodically.
 
-	// All of the fields below are now in the ILPouterLoopState object.
+    // All of the fields below are now in the ILPouterLoopState object.
 	// Any information needed to restart a run in the middle (from the chkpt)
     // must reside in the ILPouterLoopState object.
 	//
@@ -163,8 +154,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                 strategy, scorer, monitor, context, useRRR, deferLoadingExamples);
     }
 
-    public ILPouterLoop(String workingDir, String prefix, Reader posExamplesReader, Reader negExamplesReader, Reader backgroundReader, Reader factsReader,
-					    SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, HornClauseContext context, boolean useRRR, boolean deferLoadingExamples) {
+    private ILPouterLoop(String workingDir, String prefix, Reader posExamplesReader, Reader negExamplesReader, Reader backgroundReader, Reader factsReader,
+                         SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, HornClauseContext context, boolean useRRR, boolean deferLoadingExamples) {
 
        outerLoopState = new ILPouterLoopState();
        
@@ -386,7 +377,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
             }
 
             if (LearnOneClause.debugLevel > 1) {
-                reportOuterLooperStatus("\n% STARTING executeOuterLoop()");
+                reportOuterLooperStatus();
             }
 
             SingleClauseNode savedBestNode = null; // When learning tree-structured models, we need to remember the node learned at the parent.
@@ -399,7 +390,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 					getTotal_nodesConsidered() < max_total_nodesExpanded &&
 					getTotal_nodesCreated() < max_total_nodesCreated &&
 					getClockTimeUsedInMillisec() < getMaximumClockTimeInMillisec() &&
-					canStillMeetPrecisionRecallAccuracyF1specs(false)
+					canStillMeetPrecisionRecallAccuracyF1specs()
                    ) {
 
                 start = System.currentTimeMillis();
@@ -517,7 +508,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                     if (isRRR()) {
                         innerLoopTask.performRRRsearch(learningTreeStructuredTheory ? savedBestNode : null);
                     } else {
-                        SearchResult sr = innerLoopTask.performSearch(learningTreeStructuredTheory ? savedBestNode : null);
+                        innerLoopTask.performSearch(learningTreeStructuredTheory ? savedBestNode : null);
 					}
 
                     // Want limits on (and statistics about) the full ILP search as well.
@@ -680,8 +671,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                             // Since 'maxTreeDepthInLiterals' includes bridgers, count them as well.
                             if (atMaxDepth) { Utils.println("%   Creating a TRUE-branch and FALSE-branch leaves because level = "  + interiorNode.getLevel() + " >= " + maxTreeDepthInInteriorNodes); }
 							// If false, then sort by TOTAL score of the examples reaching that node.
-							boolean sortTreeStructedNodesByMeanScore = true;
-							if (atMaxDepth || goodEnoughFitTrueBranch ||
+                            if (atMaxDepth || goodEnoughFitTrueBranch ||
                                 newClause.getLength()   >  maxTreeDepthInLiterals || // We use '>' here since we don't count the head literal in depth.
                                 wgtedCountTrueBranchPos <  2.1 * innerLoopTask.getMinPosCoverage() ||
                                 wgtedCountTrueBranchPos <  outerLoopState.getOverallMinPosWeight()) {
@@ -695,7 +685,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                                 }
                                 Term leaf;
                                 if (learnMultiValPredicates) {
-                                	leaf = createLeafNodeFromCurrentExamples(meanVecTrue);
+                                	leaf = createLeafNodeFromCurrentExamples(Objects.requireNonNull(meanVecTrue));
                                 } else {
                                 	leaf = createLeafNodeFromCurrentExamples(meanTrue);
                                 }
@@ -715,7 +705,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                                 
                                 // Since elsewhere we negate the score, do so here as well.
                                 Utils.println("%   Creating a TRUE-branch interior node with wgtedCountTrueBranchPos = " + Utils.truncate(wgtedCountTrueBranchPos, 1));
-                                outerLoopState.addToQueueOfTreeStructuredLearningTasks(newTask, newTreeNode, bestNode, -bestNode.getVarianceTrueBranch(sortTreeStructedNodesByMeanScore));
+                                outerLoopState.addToQueueOfTreeStructuredLearningTasks(newTask, newTreeNode, bestNode, -bestNode.getVarianceTrueBranch(true));
                             }
                             double meanFalse;
                             double[] meanVecFalse = null;
@@ -744,7 +734,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
           
                                 Term leaf;
                                 if (learnMultiValPredicates) {
-                                	leaf = createLeafNodeFromCurrentExamples(meanVecFalse);
+                                	leaf = createLeafNodeFromCurrentExamples(Objects.requireNonNull(meanVecFalse));
                                 } else {
                                 	leaf = createLeafNodeFromCurrentExamples(meanFalse);
                                 }
@@ -778,7 +768,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                                 }
                                 // Since elsewhere we negate the score, do so here as well.
                                 Utils.println("%   Creating a FALSE-branch interior node with wgtedCountFalseBranchPos = " + Utils.truncate(wgtedCountFalseBranchPos, 1));
-                                outerLoopState.addToQueueOfTreeStructuredLearningTasks(newTask, newTreeNode, parentSearchNode, -bestNode.getVarianceFalseBranch(sortTreeStructedNodesByMeanScore)); // We want to sort by TOTAL error, not AVERAGE.
+                                outerLoopState.addToQueueOfTreeStructuredLearningTasks(newTask, newTreeNode, parentSearchNode, -bestNode.getVarianceFalseBranch(true)); // We want to sort by TOTAL error, not AVERAGE.
                             }
                             interiorNode.setTreeForTrue( trueBranch);
                             interiorNode.setTreeForFalse(falseBranch);
@@ -855,7 +845,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 			if (!innerLoopTask.regressionTask && getFractionOfPosCovered() >= minFractionOfPosCoveredToStop) {
 				Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have exceeded the minimal fraction ("
 								+ minFractionOfPosCoveredToStop	+ ") of positive examples to cover.");
-			} else if (!canStillMeetPrecisionRecallAccuracyF1specs(true)) {
+			} else if (!canStillMeetPrecisionRecallAccuracyF1specs()) {
 			} else if (stoppedBecauseTreeStructuredQueueEmpty) {
 				Utils.println(MessageType.ILP_INNERLOOP, "%  Have stopped ILP's outer loop because the tree-structured queue is empty.");
 			} else if (getNumberOfCycles() >= maxNumberOfCycles) {
@@ -1074,10 +1064,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfCycles")) != null) {
 			maxNumberOfCycles = Integer.parseInt(lookup);
 		}
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfFreeBridgers")) != null) {
-			// TODO set it once available			
-		}
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxScoreToStop")) != null) {
+        lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfFreeBridgers");// TODO set it once available
+        if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxScoreToStop")) != null) {
 			setMaxAcceptableNodeScoreToStop(Double.parseDouble(lookup));
 		}
 		
@@ -1097,10 +1085,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     	innerLoopTask.oneClassTask = val;
     	learnOCCTree = val;
     }
-    
-    private boolean useSamplingWithReplacementOnPos = (RunBoostedRDN.numbModelsToMake > 1);  // TODO integrate this better if we decide to keep it.
 
-	public void setFlagsForRegressionTask(boolean notLearnTrees) {
+    public void setFlagsForRegressionTask(boolean notLearnTrees) {
     	innerLoopTask.regressionTask           = true;
 		innerLoopTask.stopIfPerfectClauseFound = false;
 		
@@ -1125,57 +1111,32 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		double	   reweighPositiveExamples = numbOrigPosExamples / numbNewPosExamples;
 		
 		int countOfPosKept = 0;
-		if (useSamplingWithReplacementOnPos) { // Sample WITH REPLACEMENT.   IF THIS IS SET, IGNORE (for now) samplePositiveProb.
-			if (numbOrigPosExamples > 0) for (int i = 0; i < numbNewPosExamples; i++) {
-				Example eg = origPosExamples.get(Utils.random0toNminus1(numbOrigPosExamples));
-				double outputVal = all_pos_wt;
-				if (areRegressionEgs) {
-					if (eg instanceof RegressionExample) {
-						outputVal = ((RegressionExample)eg).getOutputValue();
-						
-					} else {
-						Utils.waitHere("Expected regression examples for learning regression trees");
-					}
-				}
-				RegressionRDNExample regEx = new RegressionRDNExample(eg.getStringHandler(), eg.extractLiteral(),
-																	  outputVal, eg.provenance, eg.extraLabel, true);
-				if (areRegressionEgs) {
-					regEx.originalRegressionOrProbValue = regEx.getOutputValue();
-					//Utils.println("Setting reg value to : " + regEx.originalRegressionOrProbValue);
-				}
-				if (reweighExs) {
-					regEx.setWeightOnExample(eg.getWeightOnExample() * reweighPositiveExamples);
-					
-				}
-				positiveExamples.add(regEx);
-				countOfPosKept++;
-			}
-		} else { // TODO - should this also be sampling with replacement of the expected number to collect?  Correctly no duplicates, but number collected can vary.
-			if (numbOrigPosExamples > 0) for (Example eg : origPosExamples) { // Should we ignore this positive example?
-				if (samplePositiveProb >= 0 && samplePositiveProb < 1 && Utils.random() > samplePositiveProb) {	continue; }
-				double outputVal = all_pos_wt;
-				if (areRegressionEgs) {
-					if (eg instanceof RegressionExample) {
-						outputVal = ((RegressionExample)eg).getOutputValue();
-					} else {
-						Utils.waitHere("Expected regression examples for learning regression trees");
-					}
-				}
-				RegressionRDNExample regEx = new RegressionRDNExample(eg.getStringHandler(), eg.extractLiteral(),
-																	  outputVal, eg.provenance, eg.extraLabel, true);
-				if (areRegressionEgs) {
-					regEx.originalRegressionOrProbValue = regEx.getOutputValue();
-				}
-				if (reweighExs) {
-				regEx.setWeightOnExample(eg.getWeightOnExample() * reweighPositiveExamples);
-				
-				}
-				positiveExamples.add(regEx);
-				countOfPosKept++;
-			}
-		}
-		
-		// TODO - Handle skew in both directions.
+        // TODO integrate this better if we decide to keep it.
+        // TODO - should this also be sampling with replacement of the expected number to collect?  Correctly no duplicates, but number collected can vary.
+        if (numbOrigPosExamples > 0) for (Example eg : origPosExamples) { // Should we ignore this positive example?
+            if (samplePositiveProb >= 0 && samplePositiveProb < 1 && Utils.random() > samplePositiveProb) {	continue; }
+            double outputVal = all_pos_wt;
+            if (areRegressionEgs) {
+                if (eg instanceof RegressionExample) {
+                    outputVal = ((RegressionExample)eg).getOutputValue();
+                } else {
+                    Utils.waitHere("Expected regression examples for learning regression trees");
+                }
+            }
+            RegressionRDNExample regEx = new RegressionRDNExample(eg.getStringHandler(), eg.extractLiteral(),
+                                                                  outputVal, eg.provenance, eg.extraLabel, true);
+            if (areRegressionEgs) {
+                regEx.originalRegressionOrProbValue = regEx.getOutputValue();
+            }
+            if (reweighExs) {
+            regEx.setWeightOnExample(eg.getWeightOnExample() * reweighPositiveExamples);
+
+            }
+            positiveExamples.add(regEx);
+            countOfPosKept++;
+        }
+
+        // TODO - Handle skew in both directions.
 		// Now move the negative examples to positives (since for regression all examples are positives).
 		List<Example> origNegExamples = getNegExamples();
 		int       numbOrigNegExamples = Utils.getSizeSafely(origNegExamples);
@@ -1215,7 +1176,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 			countOfNegsKept++;
 		}
 
-		Utils.println("% Kept " + (useSamplingWithReplacementOnPos ? "(via sampling with replacement) " : "") + Utils.comma(countOfPosKept)  + " of the " + Utils.comma(numbOrigPosExamples) + " positive examples.");
+		Utils.println("% Kept " + "" + Utils.comma(countOfPosKept) + " of the " + Utils.comma(numbOrigPosExamples) + " positive examples.");
 		Utils.println("% Kept " + "" + Utils.comma(countOfNegsKept) + " of the " + Utils.comma(numbOrigNegExamples) + " negative examples.");
 		setPosExamples(positiveExamples);
 		setNegExamples(new ArrayList<>(0));
@@ -1295,20 +1256,12 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         outerLoopState.setNumberOfNegExamples( innerLoopTask.getNumberOfNegExamples());
         outerLoopState.setNumberOfPosExamples( innerLoopTask.getNumberOfPosExamples());
 
-        ObjectOutputStream oos = null;
-        try {
-            oos = new ObjectOutputStream(new GZIPOutputStream(new CondorFileOutputStream(filename)));
+        try (ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new CondorFileOutputStream(filename)))) {
             oos.writeObject(outerLoopState); // Store outer loop state...
             oos.writeObject(getGleaner()); // Store the gleaner...
-            oos.close();
         } catch (Exception ex) {
             String msg = "Unable to write checkpoint file: " + filename + ".  Error message: " + ex.getClass().getCanonicalName() + ": " + ex.getMessage();
             Utils.error(msg);
-        } finally {
-            try {
-                if ( oos != null ) oos.close();
-            } catch (IOException ignored) {
-            }
         }
     }
 
@@ -1385,7 +1338,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         outerLoopState.clearSeedNegExamplesUsed();
     }
 
-    public final void setGleaner(Gleaner gleaner) {
+    private void setGleaner(Gleaner gleaner) {
     	Gleaner oldGleaner = (Gleaner) innerLoopTask.getGleaner(); // cth updated to pass structured output flag
         innerLoopTask.setGleaner(gleaner);
         
@@ -1402,7 +1355,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
       	gleanerFlipFlopped.setUseStructuredOutput(gleaner.getUseStructuredOutput());
     }
 
-    public Gleaner getGleaner() {
+    private Gleaner getGleaner() {
         if ( innerLoopTask.searchMonitor instanceof Gleaner ) {
             return (Gleaner) innerLoopTask.searchMonitor;
         }
@@ -1436,7 +1389,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         }
     }
 
-    ActiveAdvice getActiveAdvice() {
+    private ActiveAdvice getActiveAdvice() {
         return innerLoopTask.getActiveAdvice();
     }
 
@@ -1584,66 +1537,19 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         outerLoopState.setOverallMinPosWeight(wgt);
     }
     
-    private boolean canStillMeetPrecisionRecallAccuracyF1specs(boolean printReason) {
-    	if (minimalAcceptablePrecision > 0 && bestPossibleWeightedPrecision() < minimalAcceptablePrecision) {
-    		if (printReason) {  reportOuterLooperStatus("\n% STATUS OF THE OUTER LOOPER:");
-    							Utils.warning("%  Have stopped ILP's outer loop because the best possible (weighted) precision is " 
-    											+ Utils.truncate(bestPossibleWeightedPrecision(), 2) + ", and that does not meet the specification of " + Utils.truncate(minimalAcceptablePrecision, 3) + ".", 1); }
-    		return false;
-    	}
-    	if (minimalAcceptableRecall    > 0 && bestPossibleWeightedRecall()    < minimalAcceptableRecall) {
-    		if (printReason) {  reportOuterLooperStatus("\n% STATUS OF THE OUTER LOOPER:");
-								Utils.warning("%  Have stopped ILP's outer loop because the best possible (weighted) recall is " 
-    											+ Utils.truncate(bestPossibleWeightedRecall(), 2)   + ", and that does not meet the specification of "  + Utils.truncate(minimalAcceptableRecall,    3) + ".", 1); }
-    		return false;
-    	}
-    	if (minimalAcceptableAccuracy  > 0 && bestPossibleWeightedAccuracy()  < minimalAcceptableAccuracy) {
-    		if (printReason) {  reportOuterLooperStatus("\n% STATUS OF THE OUTER LOOPER:");
-								Utils.warning("%  Have stopped ILP's outer loop because the best possible (weighted) accuracy is " 
-    											+ Utils.truncate(bestPossibleWeightedAccuracy(), 2) + ", and that does not meet the specification of "  + Utils.truncate(minimalAcceptableAccuracy,  3) + ".", 1); }
-    		return false;
-    	}
-    	if (minimalAcceptableRecall    > 0 && bestPossibleWeightedF1()        < minimalAcceptableF1) {
-    		if (printReason) {  reportOuterLooperStatus("\n% STATUS OF THE OUTER LOOPER:");
-								Utils.warning("%  Have stopped ILP's outer loop because the best possible (weighted) F1 is " 
-    											+ Utils.truncate(bestPossibleWeightedF1(), 2) + ", and that does not meet the specification of "        + Utils.truncate(minimalAcceptableF1,        3) + ".", 1); }
-    		return false;
-    	}
-    	return true;
+    private boolean canStillMeetPrecisionRecallAccuracyF1specs() {
+        return true;
     }
     
-    private void reportOuterLooperStatus(String firstMsg) {
-    	if (firstMsg != null) { Utils.println(firstMsg); }
-		Utils.println("%  getNumberOfLearnedClauses() = " + getNumberOfLearnedClauses() + " vs " + Utils.comma(maxNumberOfClauses));
+    private void reportOuterLooperStatus() {
+        Utils.println("\n% STARTING executeOuterLoop()");
+        Utils.println("%  getNumberOfLearnedClauses() = " + getNumberOfLearnedClauses() + " vs " + Utils.comma(maxNumberOfClauses));
 		Utils.println("%  getNumberOfCycles()         = " + getNumberOfCycles()         + " vs " + Utils.comma(maxNumberOfCycles));
 		Utils.println("%  getFractionOfPosCovered()   = " + getFractionOfPosCovered()   + " vs " + Utils.comma(minFractionOfPosCoveredToStop));
 		Utils.println("%  getTotal_nodesConsidered()  = " + getTotal_nodesConsidered()  + " vs " + Utils.comma(max_total_nodesExpanded));
 		Utils.println("%  getTotal_nodesCreated()     = " + getTotal_nodesCreated()     + " vs " + Utils.comma(max_total_nodesCreated));
 		Utils.println("%  getClockTimeUsedInMillisec()          = " + getClockTimeUsedInMillisec()          + " vs " + Utils.comma(getMaximumClockTimeInMillisec()) );
     }
-
-    // Assume the next learned clause will cover all the currently uncovered positive and none of the currently uncovered negative examples.
-	private double bestPossibleWeightedPrecision() {
-		double totalPosWgt = innerLoopTask.getTotalPosWeight();
-		double totalCoveredNegWgt = 0.0;
-		
-		for (Example ex : getCoveredNegExamples()) { totalCoveredNegWgt += ex.getWeightOnExample(); } // We only do this after every clause, so don't worry about the recomputation.
-		return totalPosWgt / (totalCoveredNegWgt + totalPosWgt);
-	}
-	private double bestPossibleWeightedRecall() {
-		return 1.0; // Ignoring m-estimates, can always cover all positives (but still left this in for completeness).
-	}
-	private double bestPossibleWeightedAccuracy() {
-		double totalPosWgt = innerLoopTask.getTotalPosWeight();
-		double totalNegWgt = innerLoopTask.getTotalNegWeight();
-		double totalCoveredNegWgt = 0.0;
-		
-		for (Example ex : getCoveredNegExamples()) { totalCoveredNegWgt += ex.getWeightOnExample(); } // We only do this after every clause, so don't worry about the recomputation.
-		return (totalPosWgt + (totalNegWgt - totalCoveredNegWgt)) / (totalPosWgt + totalNegWgt) ;
-	}
-    private double bestPossibleWeightedF1() {
-		return Utils.getF1(bestPossibleWeightedPrecision(), bestPossibleWeightedRecall());
-	}
 
     public String getWorkingDirectory() {
         return workingDirectory;
@@ -1655,20 +1561,17 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 
 	private String getCheckpointFileName() {
 
-        if ( checkpointFileName == null ) {
-            String flipFlop = isFlipFlopPosAndNegExamples() ? "_flipFlopped" : "";
-            String rrr = isRRR() ? "RRR" : "Std";
-            return getWorkingDirectory() + "/" + getPrefix() + rrr + flipFlop + getFoldInfoString() + ".chkpt.gz";
-        }
+        String flipFlop = isFlipFlopPosAndNegExamples() ? "_flipFlopped" : "";
+        String rrr = isRRR() ? "RRR" : "Std";
+        return getWorkingDirectory() + "/" + getPrefix() + rrr + flipFlop + getFoldInfoString() + ".chkpt.gz";
 
-        return checkpointFileName;
     }
 
 	private void setRRR(boolean useRRR) {
         outerLoopState.setRRR(useRRR);
     }
 
-    public final void setPrefix(String prefix) {
+    private void setPrefix(String prefix) {
         outerLoopState.setPrefix(prefix);
     }
 
@@ -1677,18 +1580,16 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     }
 
     String getAnnotationForCurrentRun() {
-    	return annotationForRun;
+    	return null;
     }
 
     private boolean isRRR() {
         return outerLoopState.isRRR();
     }
 
-    public String getPrefix() {
+    private String getPrefix() {
         return outerLoopState.getPrefix();
     }
-
-    private String directoryForGleanerFile = null; // Allow overriding of where Gleaner files go.
 
     public String getGleanerFileName() {
 
@@ -1696,7 +1597,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     		if ( gleanerFileNameFlipFlopped == null ) {
     			String rrr = isRRR() ? "RRR" : ""; // "Std";
 
-    			gleanerFileNameFlipFlopped = (directoryForGleanerFile != null ? directoryForGleanerFile : getWorkingDirectory()) + "/" + getPrefix() + rrr + "_flipFlopped" + getFoldInfoString() + "_gleaner";
+    			gleanerFileNameFlipFlopped = getWorkingDirectory() + "/" + getPrefix() + rrr + "_flipFlopped" + getFoldInfoString() + "_gleaner";
     		}
     		Utils.ensureDirExists(gleanerFileNameFlipFlopped);
     		return gleanerFileNameFlipFlopped;
@@ -1705,7 +1606,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     	if ( gleanerFileName == null ) {
 			String rrr = isRRR() ? "RRR" : ""; // "Std";
 
-			gleanerFileName = (directoryForGleanerFile != null ? directoryForGleanerFile : getWorkingDirectory()) + "/" + getPrefix() + rrr + getFoldInfoString() + "_gleaner";
+			gleanerFileName = getWorkingDirectory() + "/" + getPrefix() + rrr + getFoldInfoString() + "_gleaner";
 		}
 		Utils.ensureDirExists(gleanerFileName);
         return gleanerFileName;

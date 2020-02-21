@@ -768,11 +768,11 @@ public final class WILLSetup {
 	public static final String multiclassPredPrefix = "multiclass_";
 
 	// Maintain a list of predicates that are already added, so that we can save on time.
-	private HashSet<String> predicatesAsFacts = new HashSet<>();
-	private HashSet<Literal> addedToFactBase  = new HashSet<>();
-	private boolean disableFactBase = true;
+	private final HashSet<String> predicatesAsFacts = new HashSet<>();
+	private final HashSet<Literal> addedToFactBase  = new HashSet<>();
+	private final boolean disableFactBase = true;
 	
-	private Set<PredicateNameAndArity> backupTargetModes=new HashSet<>();
+	private final Set<PredicateNameAndArity> backupTargetModes=new HashSet<>();
 	public void removeAllTargetsBodyModes() {
 		
 		for (PredicateNameAndArity bodyMode: getInnerLooper().getBodyModes()) {
@@ -811,7 +811,6 @@ public final class WILLSetup {
 
 		if (allowRecursion || posEg.keySet().size() > 1 || negEg.keySet().size() > 1) {
 			// JWS added the negEq check since we need to work with only NEG examples (ie, on an unlabeled testset).
-			getInnerLooper().resetCachedClauseGroundings();
 			prepareFactsForJoint(posEg, negEg, predicate, only_mod_pred, forLearning);
 		}
 		prepareExamplesForTarget(posEg.get(predicate), negEg.get(predicate), predicate, forLearning);
@@ -827,7 +826,6 @@ public final class WILLSetup {
 					recomputeFacts(pred);
 				}
 			}
-			getInnerLooper().resetCachedClauseGroundings();
 		}
 		long end = System.currentTimeMillis();
 		if (debugLevel > 1) { 
@@ -1136,9 +1134,6 @@ public final class WILLSetup {
 					disableFactBase && !allowRecursion) {
 					System.currentTimeMillis();
 					for (Example eg : posEg.get(target)) {
-						if (!disableFactBase) {
-							addedToFactBase.remove(eg);
-						}
 						removeFact(eg);
 					}
 					System.currentTimeMillis();
@@ -1281,7 +1276,7 @@ public final class WILLSetup {
 		getContext().getClausebase().assertFact(eg);
 	}
 
-	public HornClauseProver getProver() {
+	private HornClauseProver getProver() {
 		return prover;
 	}
 	
@@ -1357,8 +1352,6 @@ public final class WILLSetup {
 		// Units are milliseconds.  So 3600000 = 1 hour.
 		getInnerLooper().setMaximumClockTimePerIterationInMillisec(           7200000);
 
-		getInnerLooper().overwritePrecomputeFileIfExists = true;
-
 		// Sometimes we start out with a BOOLEAN task then later turn into a regression one.
 		getInnerLooper().regressionTask = isaRegressionTaskRightAway;
 
@@ -1388,8 +1381,6 @@ public final class WILLSetup {
 		if (cmdArgs.isLearnMLN()) {
 			getOuterLooper().setLearnMLNTheory(true);
 		}
-		if (cmdArgs.isUseProbabilityWeights()) {
-		}
 
 		// Since WILL focuses on seeds to filter out candidate clauses, we need a good number here because some seeds will go on the "false" branch.  Want to have enough so that on average can find the maximally acceptable skew for the true/false branches.  Or maybe OK to miss these to save time by having a smaller set of seeds?
 		getOuterLooper().numberPosSeedsToUse = (int) Math.ceil(5 * negToPosRatio);
@@ -1409,8 +1400,6 @@ public final class WILLSetup {
 		// Recall there could be some bridgers at each interior node, so this is allowing some bridgers.
 		getOuterLooper().setMaxTreeDepthInLiterals(Math.max(4, (getOuterLooper().getMaxTreeDepth() + 1) * (getOuterLooper().innerLoopTask.maxFreeBridgersInBody + getOuterLooper().getMaxNumberOfLiteralsAtAnInteriorNode())));
 
-		// Since we won't be doing a lot of expansions, let's see all of them.
-		ChildrenClausesGenerator.modForReportingExpansions = 1;
 		// Reminder: "consider" means "expand" (i.e., remove from the OPEN list and generate its children);  "create" is a counter on children.
 		int matLitsAtNode = cmdArgs.getMaxLiteralsInAnInteriorNode() + getOuterLooper().innerLoopTask.maxFreeBridgersInBody;
 		// For reasons of time, don't want to expand too many nodes (does this setting matter if maxLits=1?).  Eg, expand the root, pick the best child, expand it, then pick the overall best unexpanded child, and repeat a few more times.
@@ -1447,7 +1436,7 @@ public final class WILLSetup {
 		return this.lastSampledWorlds;
 	}
 	
-	List<PredicateNameAndArity> getListOfPredicateAritiesForNeighboringFacts() {
+	void getListOfPredicateAritiesForNeighboringFacts() {
 		if (neighboringFactFilterList == null) {
 			Set<PredicateNameAndArity> pars = new HashSet<>();
 			String lookup;
@@ -1474,7 +1463,6 @@ public final class WILLSetup {
 			}
 			neighboringFactFilterList = new ArrayList<>(pars);
 		}
-		return neighboringFactFilterList;
 	}
 	
 	private List<PredicateNameAndArity> convertStringToPnameArity(String pname) {
@@ -1502,24 +1490,13 @@ public final class WILLSetup {
 		return pars;
 	}
 
-	List<Boolean> getBitMaskForNeighboringFactArguments(String target) {
+	void getBitMaskForNeighboringFactArguments(String target) {
 		// TODO(@hayesall): This is only used by `InferBoostedRDN`.
-		List<Boolean> bitmask = new ArrayList<>();
 		String lookup;
 		if ((lookup =  getHandler().getParameterSetting("bitMaskForNeighboringFactArgsFor" + target)) != null) {
 			lookup = lookup.replaceAll("\"", "");
-			List<String> bools = Utils.parseListOfStrings(lookup);
-			for (String bool : bools) {
-				bitmask.add(Utils.parseBoolean(bool));
-			}
-		} else {
-			bitmask.add(false); // AR
-			bitmask.add(false); // PA
-			bitmask.add(false); // SE
-			bitmask.add(true);
-			bitmask.add(true);
+			Utils.parseListOfStrings(lookup);
 		}
-		return bitmask;
 	}
 
 	/**

@@ -9,7 +9,7 @@ import java.util.Arrays;
  *
  * @author twalker
  */
-public class StreamTokenizerTAW {
+class StreamTokenizerTAW {
 
 
     /* Only one of these will be non-null */
@@ -39,7 +39,7 @@ public class StreamTokenizerTAW {
     private boolean slashSlashCommentsP = false;
     private boolean slashStarCommentsP = false;
 
-    private byte[] ctype = new byte[256];
+    private final byte[] ctype = new byte[256];
     private static final byte CT_WHITESPACE = 1;
     private static final byte CT_DIGIT = 2;
     private static final byte CT_ALPHA = 4;
@@ -451,7 +451,7 @@ public class StreamTokenizerTAW {
      * @see        java.io.StreamTokenizer#sval
      * @see        java.io.StreamTokenizer#ttype
      */
-    public int nextToken() throws IOException {
+	int nextToken() throws IOException {
         boolean done = false;
         int c = 0;
         while(!done) {
@@ -693,7 +693,7 @@ public class StreamTokenizerTAW {
      *
      * @return  the current line number of this stream tokenizer.
      */
-    public int lineno() {
+	int lineno() {
 	return LINENO;
     }
 

@@ -66,7 +66,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         result.addAll(c);
     }
 
-    public boolean add(Key key, Value e) {
+    public void add(Key key, Value e) {
         if ( map == null ) {
             map = createMap();
         }
@@ -77,7 +77,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
             map.put(key, result);
         }
 
-        return result.add(e);
+        result.add(e);
     }
 
 
@@ -120,7 +120,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         return new HashMap<>();
     }
 
-    public String toString(String prefix) {
+    private String toString(String prefix) {
         if ( map == null ) {
             return prefix + "{}";
         }
@@ -181,8 +181,8 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         }
     }
 
-    public class AllValueIterator implements Iterator<Value>{
-        Iterator<Key> allKeysIterator;
+    class AllValueIterator implements Iterator<Value>{
+        final Iterator<Key> allKeysIterator;
 
         Iterator<Value> currentSubIterator = null;
 
@@ -213,7 +213,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
                 if ( currentSubIterator != null && currentSubIterator.hasNext()) {
                     next = currentSubIterator.next();
                 }
-                else if ( currentSubIterator == null || currentSubIterator.hasNext() == false) {
+                else {
                     if ( allKeysIterator != null && allKeysIterator.hasNext() ) {
                         currentSubIterator = getValues(allKeysIterator.next()).iterator();
                     }

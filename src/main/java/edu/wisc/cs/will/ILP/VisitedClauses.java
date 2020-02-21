@@ -15,12 +15,12 @@ import java.util.Map.Entry;
  *
  */
 public class VisitedClauses extends ClosedList {
-	private LiteralComparator literalComparator; // Only need one of these even if many instances, but for safety give each instance its own since the space needed is trivial (only one comparator per ILP search).
-	private Map<Integer,Map<PredicateName,List<List<Literal>>>> canonicalClauses; // Index first on total number of args (dont bother to recur into any functions) + 97 * length.  Then hash on the predicate of the last literal.
+	private final LiteralComparator literalComparator; // Only need one of these even if many instances, but for safety give each instance its own since the space needed is trivial (only one comparator per ILP search).
+	private final Map<Integer,Map<PredicateName,List<List<Literal>>>> canonicalClauses; // Index first on total number of args (dont bother to recur into any functions) + 97 * length.  Then hash on the predicate of the last literal.
 	private int    size    =  0; // Count how many items are in this CLOSED.
 	private int    maxSize = -1; // If size gets close to this, then 1-fractionToKeep of the items are randomly deleted.  A non-pos value means "do not prune CLOSED."
-	private double fractionToKeep = 0.75; // When CLOSED reaches 90% of its maxSize, discard 25% of the items (which means it will be be about 2/3rds full).
-	private BindingList tempBindings;
+	private final double fractionToKeep = 0.75; // When CLOSED reaches 90% of its maxSize, discard 25% of the items (which means it will be be about 2/3rds full).
+	private final BindingList tempBindings;
 
 	/*
 	 * 
@@ -42,7 +42,6 @@ public class VisitedClauses extends ClosedList {
 		this.maxSize = maxSize;		
 	}
 
-
 	private void reduceSize(double fraction) { // Reduce the size to about this fraction of its current size.
 		if (fraction <= 0.0) { emptyClosedList(); return; } // Negative fractions interpreted as 'clear all.'
 		if (fraction >= 1.0) { return; }
@@ -51,38 +50,29 @@ public class VisitedClauses extends ClosedList {
 		// Walk through the hash maps and random discard some literals.
 		Set< Entry<Integer,Map<PredicateName,List<List<Literal>>>>> entrySet1 = canonicalClauses.entrySet();
 		for (Entry<Integer,Map<PredicateName,List<List<Literal>>>>  entry1 : entrySet1) {
-			Integer                                        primaryKey = entry1.getKey();
-			Map<      PredicateName,List<List<Literal>>>   hashObj1   = entry1.getValue(); // TODO delete this comment if no errors for awhile [8/1/08]  canonicalClauses.get(primaryKey);
+			Map<      PredicateName,List<List<Literal>>>   hashObj1   = entry1.getValue(); // TODO(?) delete this comment if no errors for awhile [8/1/08]  canonicalClauses.get(primaryKey);
 			Set<Entry<PredicateName,List<List<Literal>>>>  entrySet2  = hashObj1.entrySet();
-			
-			if (LearnOneClause.debugLevel > 2) { Utils.print("  The discarded hashed items (current size=" + size + ") for primary key = " + primaryKey); }
+
 			for (Entry<PredicateName, List<List<Literal>>> entry2 : entrySet2) {
 				PredicateName       secondaryKey = entry2.getKey();
 				List<List<Literal>> storedItems  = hashObj1.get(secondaryKey);
-				Iterator<List<Literal>> iter     = storedItems.iterator();					 
-
-				if (LearnOneClause.debugLevel > 2) { Utils.println("  and for secondary key = " + secondaryKey + ":"); }
+				Iterator<List<Literal>> iter     = storedItems.iterator();
 				while (iter.hasNext()) if ( Utils.random() > fractionToKeep) {
-					List<Literal> next = iter.next(); 
-					if (LearnOneClause.debugLevel > 2) { Utils.println("    " + next); }
+					iter.next();
 					iter.remove();
 					size--;
 					countIter1removes++;
 				}
 			}
 		}
-		if (LearnOneClause.debugLevel > 1 && countIter1removes > 0) { Utils.println("  Removed " + countIter1removes + " nodes from CLOSED."); }
 		if (countIter1removes > 0) { removeEmptyPortions(); } // Do some garbage collection (ie, remove portions of CLOSED that contain no literal lists.
 	}
 	
 	private void removeEmptyPortions() {
 		// Walk through the hash maps and discard if nothing underneath.
-		    // HashMap<Integer,Map<PredicateName,List<List<Literal>>>> canonicalClauses
 		Set<     Entry<Integer,Map<PredicateName,List<List<Literal>>>>> entrySet1 = canonicalClauses.entrySet();
 		Iterator<Entry<Integer,Map<PredicateName,List<List<Literal>>>>> iter1     = entrySet1.iterator();
-		int countIter1removes = 0;
-		int countIter2removes = 0;
-		
+
 		while (iter1.hasNext()) {
 			boolean                                            discardIter1 = true; // See if anything found underneath.
 			Set<     Entry<PredicateName,List<List<Literal>>>> entrySet2    = iter1.next().getValue().entrySet();
@@ -91,12 +81,13 @@ public class VisitedClauses extends ClosedList {
 			while (iter2.hasNext()) {
 				 List<List<Literal>> literals = iter2.next().getValue();
 				 
-				 if (Utils.getSizeSafely(literals) < 1) { iter2.remove(); countIter2removes++; }
+				 if (Utils.getSizeSafely(literals) < 1) { iter2.remove();
+				 }
 				 else if (discardIter1) { discardIter1 = false; } // Found something so don't discard iter1.
 			}
-			if (discardIter1) { iter1.remove(); countIter1removes++; }
+			if (discardIter1) { iter1.remove();
+			}
 		}
-		if (LearnOneClause.debugLevel > 2 && (countIter1removes + countIter2removes) > 0) { Utils.println("  Removed " + countIter2removes + " secondary keys and " + countIter1removes + " primary keys from CLOSED."); }
 	}
 	
 	private List<Literal> createCanonicalClause(SingleClauseNode clauseNode) {		
@@ -146,7 +137,6 @@ public class VisitedClauses extends ClosedList {
 				}
 				count += lit.predicateName.hashCode() / 5;  // The 91 (above) is some prime so that the sizes don't "synch with" hashcode's of adjacent predicateNames'.  The "divide by X's" are intended to help protect from int overflow.
 			}
-			if (LearnOneClause.debugLevel > 2) { Utils.println("% getPrimaryKey: count = " + Utils.comma(count) + " after " + lit); }
 		}
 		return count;
 	}
@@ -202,10 +192,8 @@ public class VisitedClauses extends ClosedList {
 		if (size1     != size2)      { return false; } // The caller already checked for size, but this is an easy way to see if ONE list equals null.
 		for (Literal lit : list1) {
 			bindings = lit.variants(list2.get(counter++), bindings);
-			if (LearnOneClause.debugLevel > 2) { Utils.println("      lit1 = " + lit + "\n      lit2 = " + list2.get(counter-1) + "\n      bindings: " + bindings); }
 			if (bindings == null) { return false; }
 		}
-		if (LearnOneClause.debugLevel > 1) { Utils.println("    variantClauses: bindings=" + bindings + "\n     lit1 = " + list1 + "\n     lit2 = " + list2); }
 		return true;
 	}
 	
@@ -213,13 +201,7 @@ public class VisitedClauses extends ClosedList {
 	{	SingleClauseNode clauseNode = (SingleClauseNode) node;
 		List<Literal>    literals   = createCanonicalClause(clauseNode);
 		List<Literal>    oldLits    = alreadyInClosedList(literals);
-
-		if (LearnOneClause.debugLevel > 2 && oldLits != null) { Utils.println("  ***** '" + node + "' is a variant of: " + oldLits); }
 		return oldLits != null;
-	}
-	List<Literal> alreadyInClosedList(HandleFOPCstrings stringHandler, Clause clause) {
-		List<Literal>    literals  = createCanonicalClause(stringHandler, clause);
-		return alreadyInClosedList(literals);
 	}
 
 	private List<Literal> alreadyInClosedList(List<Literal>    literals) {
@@ -228,29 +210,28 @@ public class VisitedClauses extends ClosedList {
 		Map<PredicateName,List<List<Literal>>> hashObj1 = canonicalClauses.get(primaryKey);
 		
 		// Pass in a clauseNode if these need to be turned on
-		//if (LearnOneClause.debugLevel > 2) { Utils.println(">>>>>> CHECK >>>>>>>>>> '" + clauseNode + "' literals='" + literals + "' primaryKey = " + primaryKey + ", secondary = " + secondaryKey); }
-		if (LearnOneClause.debugLevel > 2) { Utils.println(">>>>>> CHECK >>>>>>>>>> literals='" + literals + "' primaryKey = " + Utils.comma(primaryKey) + ", secondary = " + secondaryKey); }
 		
-		if (hashObj1 == null) { if (LearnOneClause.debugLevel > 2) { Utils.println("hashObj1 = null"); } return null; }
+		if (hashObj1 == null) {
+			return null;
+		}
 		
 		List<List<Literal>> hashObj2 = hashObj1.get(secondaryKey);
-		if (hashObj2 == null) { if (LearnOneClause.debugLevel > 2) { Utils.println("hashObj2 = null"); } return null; }
+
+		if (hashObj2 == null) {
+			return null;
+		}
 		
 		int count = Utils.getSizeSafely(literals);
 		for (List<Literal> prevLiterals : hashObj2) {
 			if (count != Utils.getSizeSafely(prevLiterals)) {  continue; } // Can't match if not same number of literals.
-			if (LearnOneClause.debugLevel > 2) { Utils.println("    Comparing to: " + prevLiterals); }
-			if (variantClauses(literals, prevLiterals)) { 
-				if (LearnOneClause.debugLevel > 2) { Utils.println("    SUCCEEDED!"); }
+			if (variantClauses(literals, prevLiterals)) {
 				return prevLiterals;
 			}
-			if (LearnOneClause.debugLevel > 2) { Utils.println("    FAILED"); }
 		}
 		return null;
 	}
 
 	public void emptyClosedList() {
-		if (LearnOneClause.debugLevel > 2 && size > 0) { Utils.println("\n^^^^^^ Clearing CLOSED ^^^^^^ (size=" + size + ")"); }
 		size = 0;
 		if (canonicalClauses != null) { canonicalClauses.clear(); }		
 	}
@@ -260,7 +241,7 @@ public class VisitedClauses extends ClosedList {
 		// Walk through the hash maps and random discard some literals.
 		Set< Entry<Integer,Map<PredicateName,List<List<Literal>>>>> entrySet1 = canonicalClauses.entrySet();
 		for (Entry<Integer,Map<PredicateName,List<List<Literal>>>>  entry1 : entrySet1) {
-			Map<               PredicateName,List<List<Literal>>>   hashObj1   = entry1.getValue(); // TODO delete this comment if no errors for awhile [8/1/08]  canonicalClauses.get(primaryKey);
+			Map<               PredicateName,List<List<Literal>>>   hashObj1   = entry1.getValue(); // TODO(?) delete this comment if no errors for awhile [8/1/08]  canonicalClauses.get(primaryKey);
 			Set<Entry<         PredicateName,List<List<Literal>>>>  entrySet2  = hashObj1.entrySet();
 			
 			for (Entry<        PredicateName, List<List<Literal>>> entry2 : entrySet2) {

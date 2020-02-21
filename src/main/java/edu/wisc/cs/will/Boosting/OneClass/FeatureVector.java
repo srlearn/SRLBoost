@@ -10,11 +10,11 @@ import java.util.List;
  * @author tkhot
  */
 public class FeatureVector {
-	private List<Double> features;
+	private final List<Double> features;
 	
 	public List<String> pathFeatures;
 	
-	public boolean usepath = true;
+	public final boolean usepath = true;
 	public FeatureVector() {
 		features = new ArrayList<>();
 		pathFeatures = new ArrayList<>();

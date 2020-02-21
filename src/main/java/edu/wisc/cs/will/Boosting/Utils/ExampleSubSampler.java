@@ -13,15 +13,14 @@ import java.util.*;
  */
 public class ExampleSubSampler {
 
-	private WILLSetup willSetup;
+	private final WILLSetup willSetup;
 
 	private boolean useTopKResidueExamples = false;
     private double  negSampleRatioForTopK = 2.0;
     private boolean sampleByRegressionSquare = false;
     private boolean influenceTrimming = false;
     private boolean histogramSampling = false;
-    private boolean removeTopNExamples = false;
-    private double  influenceAlpha = 0.8;
+	private double  influenceAlpha = 0.8;
     
 	public ExampleSubSampler(WILLSetup setup) {
 		this.willSetup = setup;
@@ -47,7 +46,7 @@ public class ExampleSubSampler {
 			histogramSampling = Boolean.parseBoolean(lookup);
 		}
 		if ((lookup =  willSetup.getHandler().getParameterSetting("removeTopEg")) != null) {
-			removeTopNExamples = Boolean.parseBoolean(lookup);
+			boolean removeTopNExamples = Boolean.parseBoolean(lookup);
 		}
 	}
 	
@@ -229,7 +228,7 @@ public class ExampleSubSampler {
 		return new ArrayList<>(topExamples);
 	}
 
-	public static class GradientComparator implements Comparator<RegressionRDNExample> {
+	static class GradientComparator implements Comparator<RegressionRDNExample> {
 
 		@Override
 		public int compare(RegressionRDNExample r1, RegressionRDNExample r2) {
@@ -245,7 +244,7 @@ public class ExampleSubSampler {
 		}
 	}
 	
-	public static class WeightComparator implements Comparator<RegressionRDNExample> {
+	static class WeightComparator implements Comparator<RegressionRDNExample> {
 
 		@Override
 		public int compare(RegressionRDNExample r1, RegressionRDNExample r2) {

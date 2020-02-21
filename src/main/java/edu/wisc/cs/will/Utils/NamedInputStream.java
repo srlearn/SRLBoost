@@ -8,8 +8,8 @@ import java.io.InputStream;
  */
 public class NamedInputStream extends InputStream {
 
-    private InputStream delegate;
-    private String name;
+    private final InputStream delegate;
+    private final String name;
 
     public NamedInputStream(InputStream delegate, String name) {
         this.delegate = delegate;

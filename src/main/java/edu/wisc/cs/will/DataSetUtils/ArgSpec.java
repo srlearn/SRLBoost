@@ -12,8 +12,8 @@ public class ArgSpec implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	public Term arg;
-	public TypeSpec typeSpec;
+	public final Term arg;
+	public final TypeSpec typeSpec;
 
 	public ArgSpec(Term arg, TypeSpec typeSpec) {
 		this.arg = arg;

@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 public class Utils {
 	
 	// For large-scale runs we do not want to create dribble (nor 'debug') files. 
-	public static Boolean doNotCreateDribbleFiles  = false;
+	public static final Boolean doNotCreateDribbleFiles  = false;
 	private static Boolean doNotPrintToSystemDotOut = false;
 
     // If the strings MYUSERNAME appear in file names, they will be replaced with these settings.
@@ -78,7 +78,7 @@ public class Utils {
      */
     private static Boolean severeErrorThrowsEnabled = null; // Should be null.  See comment.
 
-    private static Set<MessageType> filteredMessageTypes = EnumSet.noneOf(MessageType.class);
+    private static final Set<MessageType> filteredMessageTypes = EnumSet.noneOf(MessageType.class);
 
 	// These relate to determining whether or not someone is a WILL developer.
 	// WILL developers should create a file whose name is that stored by DEVELOPER_MACHINE_FILE_NAME 
@@ -99,24 +99,21 @@ public class Utils {
      * the appropriate value through the setter.
      */
     public enum Verbosity {
-        Developer(true,true,true,true,true),  // Print everything and waitHeres wait, severeError cause a throw.
-        DeveloperNoWait(true,true,false,true,false),      // Print everything, waitHeres don't wait, severeError cause a throw.
-        High(false,true,false,true,false),
-        Medium(false,true,false,false,false),   // Print everything, waitHeres don't wait, severeError just print error
-        Low(false,false,false,false,false);     // Print nothing.
+        Developer(true, true,true),  // Print everything and waitHeres wait, severeError cause a throw.
+        // Print everything, waitHeres don't wait, severeError cause a throw.
+        Medium(false, false,false)   // Print everything, waitHeres don't wait, severeError just print error
+        ;
 
-        boolean developmentRun;
-        boolean print;
-        boolean waitHere;
-        boolean severeWarningThrowsError;
-        boolean extraVerbose;
+        final boolean developmentRun;
+        final boolean print;
+        final boolean waitHere;
+        final boolean severeWarningThrowsError;
 
-        Verbosity(boolean developmentRun, boolean print, boolean waitHere, boolean severeWarningThrowsError, boolean extraVerbose) {
+        Verbosity(boolean developmentRun, boolean waitHere, boolean severeWarningThrowsError) {
             this.developmentRun = developmentRun;
-            this.print    = print;
+            this.print    = true;
             this.waitHere = waitHere;
             this.severeWarningThrowsError = severeWarningThrowsError;
-            this.extraVerbose = extraVerbose;
         }
     }
 
@@ -151,15 +148,11 @@ public class Utils {
      * If non-null, copy all printing to this stream as well.
      */
     private static PrintStream dribbleStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static PrintStream dribbleStream2      = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static PrintStream debugStream         = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static PrintStream warningStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static PrintStream warningShadowStream = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
 
     /* The random instance for all the random utility functions. */
-    private static Random randomInstance = new Random(112957);
+    private static final Random randomInstance = new Random(112957);
 
-    private static Map<String,Integer> warningCounts = new HashMap<>();
+    private static final Map<String,Integer> warningCounts = new HashMap<>();
 
 	private static BufferedReader inBufferedReader;
 
@@ -170,7 +163,7 @@ public class Utils {
      * applicable. Ends with a newline.
      *
      */
-    public static void println(String strRaw, boolean printRegardless) {
+    private static void println(String strRaw, boolean printRegardless) {
     	if (printRegardless || isVerbose() ) {
     		String str = (strRaw == null || strRaw.length() <= maxStringLength ? strRaw : strRaw.substring(0, maxStringLength) + " ... [string too long]");
     		if (!doNotPrintToSystemDotOut) { System.out.println(str); }
@@ -202,7 +195,7 @@ public class Utils {
      * Displays a string to the standard output stream and the dribble stream if
      * applicable. No newline at the end.
      */
-    public static void print(String strRaw, boolean printRegardless) {
+    private static void print(String strRaw, boolean printRegardless) {
     	if (printRegardless || isVerbose()) {
     		String str = (strRaw == null || strRaw.length() <= maxStringLength ? strRaw : strRaw.substring(0, maxStringLength) + " ...");
     		if (!doNotPrintToSystemDotOut) {System.out.print(str); }
@@ -243,17 +236,6 @@ public class Utils {
 	  System.arraycopy(args, 0, newArgs, 0, commentStart);
 	  return newArgs;
 	}
-	
-    /*
-     * Converts a list to a string that shows at most 100 elements.
-     * 
-     * @param list The list to print.
-     * @return A string representing the first 100 elements of the given list,
-     *         or null if the given list is null.
-     */
-    public static String limitLengthOfPrintedList(Collection<?> list) {
-        return limitLengthOfPrintedList(list, 100);
-    }
 
     /*
      * Converts a collection to a string that shows at most maxSize elements.
@@ -289,7 +271,7 @@ public class Utils {
      * @return A string representing the first maxSize elements of the given
      *         map, or null if the given map is null.
      */
-	public static String limitLengthOfPrintedList(Map<?,?> map, int maxItems) {
+	private static String limitLengthOfPrintedList(Map<?, ?> map, int maxItems) {
 		if (map == null) { return null; }
 		return limitLengthOfPrintedList(map.entrySet(), maxItems);
 	}
@@ -301,7 +283,6 @@ public class Utils {
 	 * Save some typing when throwing generic errors.
      */
 	public static void error(String msg) {
-        warning_println("\nERROR:   " + msg);
 		if ( CondorUtilities.isCondor() ) {
 			System.err.println("\nERROR:   " + msg);
 	        // Nice to print the calling stack so one can see what caused the error ...
@@ -328,7 +309,7 @@ public class Utils {
     /*
      * Flushes the standard output stream.
      */
-    public static void flush() {
+    private static void flush() {
         if (isVerbose() && !doNotPrintToSystemDotOut) { System.out.flush(); }
     }
 
@@ -435,7 +416,7 @@ public class Utils {
     }
     
     // Should we cache?  If we do, cache needs to be cleared whenever any of these keywords are changed.
-    private static Map<String,String> environmentVariableResolutionCache = new HashMap<>(4);
+    private static final Map<String,String> environmentVariableResolutionCache = new HashMap<>(4);
     public static String replaceWildCards(String original) {
     	if (original == null) { return null; }
     	String lookup = environmentVariableResolutionCache.get(original);
@@ -504,20 +485,20 @@ public class Utils {
     /*
      * Waits for input on standard input after displaying "Waiting for user input".
      */
-    public static boolean waitHere() {
-    	return waitHere("", false, null);
+    public static void waitHere() {
+        waitHere("", null);
     }
-    public static boolean waitHere(String msg) {
-    	return waitHere(msg, false, null);
+    public static void waitHere(String msg) {
+        waitHere(msg, null);
     }
 
     public static void waitHereErr(String msg) {
     	if ( msg != null && !msg.isEmpty()) {
     		printlnErr(msg);
-            waitHere(msg, false, null);
+            waitHere(msg, null);
             return;
     	}
-        waitHere(msg, false, null);
+        waitHere(msg, null);
     }
 
     /* Prints out the message msg, possibly waiting for user input prior to continuing.
@@ -534,7 +515,7 @@ public class Utils {
      *
      * @return False if an exception occurs while reading input from the user, true otherwise.
      */
-    public static boolean waitHere(String msg, boolean waitHereRegardless, String skipWaitString) {
+    private static void waitHere(String msg, String skipWaitString) {
 
         int occurenceCount = 1;
         if ( skipWaitString != null ) {
@@ -543,30 +524,25 @@ public class Utils {
            warningCounts.put(skipWaitString, occurenceCount);
         }
 
-    	if (!waitHereRegardless && !isWaitHereEnabled() && occurenceCount == 1) {
+    	if (!isWaitHereEnabled() && occurenceCount == 1) {
             if ( msg != null && !msg.isEmpty()) {
                 print("\n% Skipping over this 'waitHere': " + msg + "\n", true);
             }
-    		return true;
+    		return;
     	}
 
-        if (!waitHereRegardless && occurenceCount > 1) {
-            return true;
+        if (occurenceCount > 1) {
+            return;
         }
-
-        // Let's collect these in dribble files.
-        warning_println("\nWaitHere:    " + msg);
-
 
 		boolean hold = doNotPrintToSystemDotOut;
 		doNotPrintToSystemDotOut = false; // If these printout become too much, we can add a 3rd flag to override these ...
-        print("\n% WaitHere: " + msg + "\n%  ...  Hit ENTER to continue or 'e' to interrupt. ", waitHereRegardless);
+        print("\n% WaitHere: " + msg + "\n%  ...  Hit ENTER to continue or 'e' to interrupt. ", false);
         doNotPrintToSystemDotOut = hold;
 
 		if ( CondorUtilities.isCondor() ) {
 			error("\nSince this is a condor job, will exit.");
-		} else { warning_println("NOTE: Utils.java thinks this job is NOT running under Condor."); }
-		
+		}
         try {
         	if (inBufferedReader == null) { inBufferedReader = new BufferedReader(new InputStreamReader(System.in)); }
         	String readThis = inBufferedReader.readLine();
@@ -583,9 +559,7 @@ public class Utils {
         } catch (IOException e) {
             // Ignore any errors here.
         	inBufferedReader = null;  // If something went wrong, reset the reader. 
-        	return false;
         }
-        return true; // The main reason for returning values is so that waitHere's can be placed inside conditionals.
     }
 
     private static void cleanupAndExit() {
@@ -593,26 +567,6 @@ public class Utils {
         if (dribbleStream != null) {
             dribbleStream.close();
         	compressFile(dribbleFileName);
-        }
-
-        if (dribbleStream2 != null) {
-            dribbleStream2.close();
-        	compressFile(dribbleFileName2);
-        }
-
-        if (debugStream != null) {
-        	debugStream.close();
-        	compressFile(debugFileName);
-        }
-
-        if (warningStream != null) {
-        	warningStream.close();
-        	compressFile(warningFileName);
-        }
-
-        if (warningShadowStream != null) {
-        	warningShadowStream.close();
-        	compressFile(warningShadowFileName);
         }
 
         System.exit(0);
@@ -634,7 +588,7 @@ public class Utils {
      * If skipWarningString is non-null, the warning associated with that string will only be
      * printed the first time the warning occurs.
      */
-    public static void warning(String str, String skipWarningString) {
+    private static void warning(String str, String skipWarningString) {
 
         int occurenceCount = 1;
         if ( skipWarningString != null ) {
@@ -644,7 +598,6 @@ public class Utils {
         }
 
         if ( occurenceCount == 1 ) {
-        	warning_println("\nWARNING: " + str);
             println("\n***** Warning: " + str + " *****\n");
         }
     }
@@ -666,7 +619,7 @@ public class Utils {
      * printed the first time the warning occurs.
      *
      */
-    public static void warning(String str, int sleepInSeconds, String skipWarningString) {
+    private static void warning(String str, int sleepInSeconds, String skipWarningString) {
         int occurenceCount = 1;
         if ( skipWarningString != null ) {
            Integer i = warningCounts.get(skipWarningString);
@@ -675,7 +628,6 @@ public class Utils {
         }
 
         if ( occurenceCount == 1 ) {
-            warning_println("\nWARNING: " + str);
 
             // Make sure we only wait if the user is at a verbosity level where it
             // makes sense to wait.
@@ -688,7 +640,6 @@ public class Utils {
         }
     }    
     public static void severeWarning(String str) {
-        warning_println("\nSEVERE:  " + str);
     	if (isSevereErrorThrowsEnabled()) { error(str); }
     	else { println("\n% ***** Severe Warning: " + str + " *****\n", true); }
     }
@@ -752,28 +703,11 @@ public class Utils {
         }
     }
 
-    // This is one place that this class maintains state (so if two threads running, their dribble files will interfere).
-    private static String dribbleFileName2 = null;
-
     private static void closeDribbleFile() {
     	dribbleFileName = null;
     	if (dribbleStream == null) { return; }
     	dribbleStream.close();
     	dribbleStream = null;
-    }
-
-    // This is another place that this class maintains state (so if two threads running, their debug files will interfere).
-    private static String debugFileName = null;
-
-    // This is another place that this class maintains state (so if two threads running, their debug files will interfere).
-    private static String warningFileName = null;
-
-    // Also write warnings to this file (one might go into one directory and the other into a different directory).
-    private  static String warningShadowFileName = null;
-
-    private static void warning_println(String str) {
-		if (warningStream       != null) { warningStream.println(str);       }
-		if (warningShadowStream != null) { warningShadowStream.println(str); }
     }
 
     /*
@@ -1221,7 +1155,7 @@ public class Utils {
         }
     }
 
-    public static double getFBeta(double beta, double truePositives, double falsePositives, double falseNegatives) {
+    private static double getFBeta(double beta, double truePositives, double falsePositives, double falseNegatives) {
 
         double p = getPrecision(truePositives, falsePositives);
         double r = getRecall(truePositives, falseNegatives);
@@ -1241,10 +1175,6 @@ public class Utils {
     public static double getF1(double truePositives, double falsePositives, double falseNegatives) {
         return getFBeta(1, truePositives, falsePositives, falseNegatives);
     }
-
-   public static double getF1(double precision, double recall) {
-       return getFBeta(1, precision, recall);
-   }
 
     public static double getAccuracy(double truePositives, double falsePositives, double trueNegatives, double falseNegatives) {
 
@@ -1355,7 +1285,7 @@ public class Utils {
 		String result = (hadQuotesOriginally ? str : changeMarkedCharsToUnderscores(str.trim()));
 		if (!hadQuotesOriginally && result != null && result.length() > 0 && result.charAt(0) == '_') {
 			// waitHere("Starts with underscore: '" + str + "' -> '" + result + "'.");
-			if (stringHandler.usingStdLogicNotation()) {
+			if (Objects.requireNonNull(stringHandler).usingStdLogicNotation()) {
 				result = "U" + result;
 			} else {
 				result = "u" + result;  // Leading underscores have special semantics, so don't let them survive cleaning.
@@ -1517,10 +1447,10 @@ public class Utils {
     }
 
     // OK if this is global because we're simply making and never deleting directories (unless the user does so manually).
-    private static Set<String> ensured = new HashSet<>(4);
-    public static File ensureDirExists(File file) {
-    	if (file == null) { return null; }
-    	return ensureDirExists(file.getAbsolutePath());
+    private static final Set<String> ensured = new HashSet<>(4);
+    public static void ensureDirExists(File file) {
+    	if (file == null) { return; }
+        ensureDirExists(file.getAbsolutePath());
     }
     public static File ensureDirExists(String file) {
     	if (file == null) { return null; }
@@ -1588,7 +1518,7 @@ public class Utils {
     /*
 	 * Recursive remove an existing directory.
      */
-    public static boolean delete(File file) { // Also see deleteDirectory [I think I (JWS) wrote deleteDirectory and Trevor wrote this one.]
+    private static boolean delete(File file) { // Also see deleteDirectory [I think I (JWS) wrote deleteDirectory and Trevor wrote this one.]
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             assert files != null;
@@ -1601,11 +1531,11 @@ public class Utils {
         return file.delete();
     }
 
-   public static boolean delete(String fileName) {
-	   return delete(new CondorFile(fileName));
+   public static void delete(String fileName) {
+       delete(new CondorFile(fileName));
    }
 
-    public static boolean isDevelopmentRun() {
+    private static boolean isDevelopmentRun() {
         if ( developmentRun == null ) {
             setupVerbosity();
         }
@@ -1666,7 +1596,7 @@ public class Utils {
 
 		if (result) {
 			// Set the system property as well (canonicalize if already set)
-			System.setProperty(DEVELOPER_MACHINE_PROPERTY_KEY, Boolean.toString(result));
+			System.setProperty(DEVELOPER_MACHINE_PROPERTY_KEY, Boolean.toString(true));
 		}
 		return result;
     }
@@ -1720,7 +1650,7 @@ public class Utils {
         return sb.toString();
     }
 
-    public static <T,S> String toString(Map<T,S> map, String divider) {
+    private static <T,S> String toString(Map<T, S> map, String divider) {
         StringBuilder sb = new StringBuilder();
 
         boolean first = true;
@@ -1736,7 +1666,7 @@ public class Utils {
         return sb.toString();
     }
 
-    public static String toString(Object object, String divider) {
+    private static String toString(Object object, String divider) {
         if ( object == null ) {
             return null;
         }
@@ -1934,18 +1864,9 @@ public class Utils {
     private static boolean writeToGzippedFile(String fileNameRaw, String stringToWrite) throws IOException {
 		String       fileName = replaceWildCards(fileNameRaw);   
 		ensureDirExists(fileName);
-        BufferedWriter writer = null;
-        try { // Assume the caller knows that this file is big enough to warrant compression.
-        	writer = new BufferedWriter( new OutputStreamWriter(new CompressedOutputStream(fileName, true)));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new CompressedOutputStream(fileName, true)))) { // Assume the caller knows that this file is big enough to warrant compression.
 
             writer.append(stringToWrite);
-        }
-        finally {
-            try {
-                if (writer != null) {
-                    writer.close();
-                }
-            } catch (IOException ignored) { }
         }
         return true;
     }

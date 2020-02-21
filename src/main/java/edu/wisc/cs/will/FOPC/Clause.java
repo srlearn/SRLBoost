@@ -138,7 +138,6 @@ public class Clause extends Sentence implements DefiniteClause {
             if (negLiterals != null) { // Mark that is clause contains a 'cut' - this info is needed at the time the head (i.e., the positive literal) is matched and we don't want to check everything a clause is used in resolution theorem proving.
                 for (Literal lit : negLiterals) if (lit.predicateName.name.equals("!")) {
                     found = true;
-                    if (debugLevel > 1) { Utils.println("checkForCut: This clause contains a cut: " + this); }
                     break;
                 }
             }
@@ -197,12 +196,7 @@ public class Clause extends Sentence implements DefiniteClause {
 
     }
 
-	public int getArity() {
-        if (!isDefiniteClause()) throw new IllegalStateException("Clause '" + this + "' is not a definite clause.");
-        return posLiterals.get(0).getArity();
-    }
-
-    public BindingList unify(Clause that, BindingList bindingList) {
+    private BindingList unify(Clause that, BindingList bindingList) {
         if ( this.getPosLiteralCount() != that.getPosLiteralCount() || this.getNegLiteralCount() != that.getNegLiteralCount() ) {
             return null;
         }
@@ -366,13 +360,13 @@ public class Clause extends Sentence implements DefiniteClause {
 
     @Override
 	public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
-    	return collectFreeVariables(boundVariables, false, false);
+    	return collectFreeVariables(boundVariables, false);
     }
 
-    public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables, boolean skipPosLiterals, boolean skipNegLiterals) {
+    private Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables, boolean skipNegLiterals) {
 		List<Variable>  result = null;
 		
-		if (!skipPosLiterals && posLiterals != null) for (Literal lit : posLiterals) {
+		if (posLiterals != null) for (Literal lit : posLiterals) {
 			Collection<Variable> temp = lit.collectFreeVariables(boundVariables);
 			
 			if (temp != null) for (Variable var : temp) if (result == null || !result.contains(var)) {
@@ -704,12 +698,8 @@ public class Clause extends Sentence implements DefiniteClause {
 		if (precedenceOfCaller < precedence) { result.append(")"); }
 		return result.toString();
 	}
-    
-    // TODO - lineStarter needs to be passed into literals as well.
-    public String toPrettyString(String lineStarter, int precedenceOfCaller, int literalsPerRow) {
-        return toPrettyString(lineStarter, precedenceOfCaller, literalsPerRow, null);
-    }
-	public String toPrettyString(String lineStarter, int precedenceOfCaller, int literalsPerRow, BindingList bindingList) {
+
+    public String toPrettyString(String lineStarter, int precedenceOfCaller, int literalsPerRow, BindingList bindingList) {
 		int temp = stringHandler.numberOfLiteralsPerRowInPrintouts;
 		stringHandler.numberOfLiteralsPerRowInPrintouts = literalsPerRow;
 		String result = toPrettyString(lineStarter, precedenceOfCaller, bindingList);
@@ -731,7 +721,7 @@ public class Clause extends Sentence implements DefiniteClause {
     }
 
         @Override
-	public String toString(int precedenceOfCaller, BindingList bindingList) {
+        protected String toString(int precedenceOfCaller, BindingList bindingList) {
 		if (stringHandler.prettyPrintClauses) {
 			return toPrettyString("", precedenceOfCaller, 10, bindingList);
 		}

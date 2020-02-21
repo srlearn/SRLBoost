@@ -29,7 +29,7 @@ public abstract class ScoringFunction {
 		return 0;
 	}
 	
-	public void clearAnySavedInformation() {
+	void clearAnySavedInformation() {
 		// Don't make this abstract since it is unlikely that a scoring function will have something that needs resetting.
 	}
 }

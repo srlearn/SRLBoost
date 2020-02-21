@@ -18,9 +18,9 @@ import java.util.List;
  */
 public class PhiFunctionForRDN implements PhiFunction {
 
-	private double[] x;
-	private double[] p;
-	private boolean[] positiveEg;
+	private final double[] x;
+	private final double[] p;
+	private final boolean[] positiveEg;
 	
 	public PhiFunctionForRDN(ConditionalModelPerPredicate model,
 							 ClauseBasedTree tree,

@@ -16,10 +16,7 @@ import java.util.*;
  * 
  */
 public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence> {
-	private static final int debugLevel = 0;
 
-	private boolean reportUnsimplifiedClauses = true;
-	
 	private InlineManager              inlineHandler       = null;
 
 	public void setInlineHandler(InlineManager inlineHandler) {
@@ -109,8 +106,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	newNegListVars       = null; // I am not sure why this is outside the clause FOR loop, but that is the way it was when simplifyListOfLiterals's code was pulled out (to allow recursion), and so I left it that way (7/30/10).
     	for (Clause cRaw : theseClauses) {
     		Clause c = useDeterminateLiteralsToUnifyVariables(cRaw);
-
-			if (debugLevel > 1) { Utils.println("\n% SIMPLIFY\n% " + c.toPrettyString("%  ", Integer.MAX_VALUE)); }
     		List<Literal> newNegLits = simplifyListOfLiterals(c.negLiterals);
 
 			Clause newC = stringHandler.getClause(c.posLiterals, newNegLits, c.getExtraLabel());
@@ -122,7 +117,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     // It is possible some in-liners are still in a theory (eg, due to some bug).
     // So if a theory is to 'stand alone' in a new task, we need to keep the definitions of these in-liners.
     private boolean haveCollectedRemainingInLiners = false;
-    private Set<Clause> collectedSupporters = new HashSet<>(4);
+    private final Set<Clause> collectedSupporters = new HashSet<>(4);
     private void collectAnyRemainingInliners() {
     	if (haveCollectedRemainingInLiners) { return; }
     	collectedSupporters.clear();
@@ -239,24 +234,20 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			}
 			
 			if (canPrune(nLit, newNegLits)) {
-				if (debugLevel > 1) { Utils.println("% CAN PRUNE: " + nLit); }
 				continue;
 			}
 			
 			if (nLit.predicateName == numberPname && nLit.numberArgs() == 1 && nLit.getArgument(0) instanceof NumericConstant) {
-				if (debugLevel > 1) { Utils.println("% DISCARD number(#): " + nLit); }
 				continue;
 			}
 			
 			// These are only used at learning time to introduce some constants into the hypothesis space.
 			if (nLit.numberArgs() == 1 && (nLit.predicateName == interNumbPname || nLit.predicateName == interSymPname || nLit.predicateName == interListPname || nLit.predicateName == interCompoPname)) {
-				if (debugLevel > 1) { Utils.println("% DISCARD isaInteresting(#): " + nLit); }
 				continue;
 			}
 			
 			// For the binary case, we need to use a sameAs/2.  We don't want to replace, at least for numbers, since we want to support partial matches.
 			if (nLit.numberArgs() == 2 && (nLit.predicateName == interNumbPname || nLit.predicateName == interSymPname || nLit.predicateName == interListPname || nLit.predicateName == interCompoPname)) {
-				if (debugLevel > 1) { Utils.println("% Rename this isaInteresting/2 to use sameAs: " + nLit); }
 				Literal nLitSameAs = nLit.copy(false);
 				nLitSameAs.predicateName = (nLit.predicateName == interCompoPname ? sameAsPnameIL : sameAsPname);
 				newNegLits.add(nLitSameAs);
@@ -265,7 +256,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			
 			// Different's need to be treated in a more complicated manner, since we cannot bind a variable with them (whereas in sameAs/2 we can).
 			if (nLit.numberArgs() == 2 && (nLit.predicateName == diff_interNumbPname || nLit.predicateName == diff_interSymPname || nLit.predicateName == diff_interListPname || nLit.predicateName == diff_interCompoPname)) {
-				if (debugLevel > 1) { Utils.println("% Rename this isaDifferentInteresting/2 to use different: " + nLit); }
 				Literal nLitDifferent = nLit.copy(false);
 				nLitDifferent.predicateName = (nLit.predicateName == diff_interCompoPname ? differentPnameIL : differentPname);
 				Term arg2 = nLit.getArgument(1); // NOTE: this code assumes the creators of these put the variable in the second argument.
@@ -282,7 +272,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			
 			if (saveIt) for (Literal savedLit : newNegLits) {
 				if (savedLit.equals(nLit, false)) {
-					if (debugLevel > 1) { Utils.println("% DUPLICATES: '" + nLit + "' and '" + savedLit + "'."); }
 					saveIt = false; break;
 				}
 			}
@@ -361,9 +350,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// TODO(@hayesall): Deleting this `unifier` object raises a warning that there may be side effects elsewhere.
-    private Unifier          unifier        = new Unifier();
-    private StringConstant[] constantsToUse = null; // These are used to replace variables when matching for pruning.
+	private StringConstant[] constantsToUse = null; // These are used to replace variables when matching for pruning.
     private BindingList      cachedBindingListForPruning; // Used if any pruning is being considered.
     private Clause           numberedBodyForPruning;      // Also used when pruning.
     
@@ -408,12 +395,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	if (allPruners == null) { return false; }
     	
     	putPartialBodyInFormForPruning(lit, body);
-    	if (debugLevel > 0) {
-    		Utils.println(" lit:                         " + lit);
-    		Utils.println(" body:                        " + body);
-    		Utils.println(" cachedBindingListForPruning: " + cachedBindingListForPruning);
-    		Utils.println(" numberedBodyForPruning:      " + numberedBodyForPruning);
-    	}
     	Literal     initNumberedLit = (cachedBindingListForPruning == null ? lit             : lit.applyTheta(cachedBindingListForPruning.theta));
 		BindingList newBL           = bindVarsToUniqueConstants(initNumberedLit);
 		Literal     fixedLit        = initNumberedLit.applyTheta(newBL.theta);
@@ -478,15 +459,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		for (Sentence s : standardSentences) {
 			Boolean hold = stringHandler.prettyPrintClauses;
 			stringHandler.prettyPrintClauses = false;
-			if (debugLevel > 0) { 
-				Utils.println(    "%  From: '" + s.toString(Integer.MAX_VALUE) + "'");
-			}
 			List<Clause> theseClauses = s.convertToClausalForm();
-			if (debugLevel > 0) { 
-				for (Clause c : theseClauses) {
-					Utils.println("%         Clause: '" + c.toString(Integer.MAX_VALUE) + "'  containsCut=" + c.getBodyContainsCut());
-				}
-			}
 			stringHandler.prettyPrintClauses = hold;
 			addAllMainClauses(theseClauses, checkForInlinersAndSupportingClauses);
 		}
@@ -503,10 +476,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		if (clauses         == null) { clauses         = new ArrayList<>(4); }
 		if (originalClauses == null) { originalClauses = new ArrayList<>(4); }
 		originalClauses.add(clause);
-		
-		if (debugLevel > 2) { 
-			Utils.println("% AddMainClause: " + clause.toPrettyString("%    ", Integer.MAX_VALUE)); // Utils.waitHere();
-		}
 		if (checkForInlinersAndSupportingClauses != null) {
 			List<Clause> doubleResults = checkForInlinersAndSupportingClauses.handleInlinerAndSupportingClauses(clause);
 			if (doubleResults == null) { Utils.error("Should not get a NULL here using: " + clause); }
@@ -516,11 +485,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		} else {
 			clauses.add(clause);
 		}
-		if (debugLevel > 2) { 
-			Utils.println("\nCurrent Theory: " + this.toString());
-			Utils.waitHere();		
-		}
-		
 	}
 
 	private void addSupportingClause(Clause clause) {
@@ -550,7 +514,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		this.supportClauses = supportClauses;
 	}
 
-	public void setClauses(List<Clause> clauses) {
+	void setClauses(List<Clause> clauses) {
 		this.clauses= null;  
 		addAllMainClauses(clauses, inlineHandler);
 	}
@@ -562,26 +526,24 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
         }
 		return toPrettyString("", Integer.MIN_VALUE, bl);
 	}
-	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
+	protected String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		StringBuilder str = new StringBuilder(newLineStarter); // No weights on theories - instead they are on sentences.
 		if (Utils.getSizeSafely(clauses) < 1) {
 			if (Utils.getSizeSafely(supportClauses) > 0) { Utils.error("There are SUPPORTING clauses, but no regular clauses!  Supporters: " + supportClauses); }
 			return "% There are no clauses in this theory.";
 		}
-        BindingList bl = null; // Binding list to tie all variable together when printing.
 		boolean firstTime = true;
 		int counter = 1;
 		for (Clause clause : clauses) {	
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter)).append(" // Clause #").append(counter++).append(".\n\n");
 		}
 		firstTime = true;
 		counter   = 1;
 		if (Utils.getSizeSafely(supportClauses) > 0) for (Clause clause : supportClauses) {	
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Supporting Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
-		if (!reportUnsimplifiedClauses) { return str.toString(); }
 		firstTime = true;
 		counter   = 1;
 		boolean haveSimplified = somethingSimplified && (Utils.getSizeSafely(unsimplifiedClauses) +  Utils.getSizeSafely(unsimplifiedSupportClauses) > 0);
@@ -589,13 +551,13 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		else { return str.toString(); }
 		if (Utils.getSizeSafely(unsimplifiedClauses) > 0) for (Clause clause : unsimplifiedClauses) {
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Unsimplified Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter)).append(" // Clause #").append(counter++).append(".\n\n");
 		}	
 		firstTime = true;
 		counter   = 1;	
 		if (Utils.getSizeSafely(unsimplifiedSupportClauses) > 0) for (Clause clause : unsimplifiedSupportClauses) {	
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Unsimplified Supporting Clauses:\n\n"); }
-			str.append(newLineStarter).append(printClause(clause, newLineStarter, bl)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
+			str.append(newLineStarter).append(printClause(clause, newLineStarter)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
 		str.append("\n*/");
 		return str.toString();
@@ -605,8 +567,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	}
 
 
-    private String printClause(Clause clause, String newLineStarter, BindingList bl) {
-        return PrettyPrinter.print(clause, "", newLineStarter, getPrettyPrinterOptions(), bl);
+    private String printClause(Clause clause, String newLineStarter) {
+        return PrettyPrinter.print(clause, "", newLineStarter, getPrettyPrinterOptions(), null);
 
     }
 
@@ -614,9 +576,9 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
         if ( prettyPrinterOptions == null ) {
             prettyPrinterOptions = new PrettyPrinterOptions();
             prettyPrinterOptions.setMaximumLiteralsPerLine(1);
-            prettyPrinterOptions.setAlignParathesis(false);
+            prettyPrinterOptions.setAlignParathesis();
             prettyPrinterOptions.setRenameVariables(true);
-            prettyPrinterOptions.setNewLineAfterOpenParathesis(true);
+            prettyPrinterOptions.setNewLineAfterOpenParathesis();
             prettyPrinterOptions.setMaximumIndentationAfterImplication(5);
             prettyPrinterOptions.setNewLineAfterImplication(true);
         }

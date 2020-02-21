@@ -12,12 +12,11 @@ import java.util.Objects;
  * @author shavlik
  *
  */
-public class RelevantLiteral {	
+class RelevantLiteral {
 	
-	private PredicateName     pName;
+	private final PredicateName     pName;
 	private int               arity    = -1;  // If negative, any arity is fine. 
-	private int               argument = -1;  // If set, says which ARGUMENT is relevant (counts from 1).
-	private RelevanceStrength strength = RelevanceStrength.RELEVANT; // Default to saying something is relevant. 
+    private RelevanceStrength strength = RelevanceStrength.RELEVANT; // Default to saying something is relevant.
 
 	/*
 	 * Constructors for RelevantLiteral instances.
@@ -54,10 +53,7 @@ public class RelevantLiteral {
         if (this.arity != other.arity) {
             return false;
         }
-        if (this.argument != other.argument) {
-            return false;
-        }
-		return this.strength == other.strength;
+        return this.strength == other.strength;
 	}
 
     @Override
@@ -65,7 +61,9 @@ public class RelevantLiteral {
         int hash = 5;
         hash = 23 * hash + (this.pName != null ? this.pName.hashCode() : 0);
         hash = 23 * hash + this.arity;
-        hash = 23 * hash + this.argument;
+        // If set, says which ARGUMENT is relevant (counts from 1).
+        int argument = -1;
+        hash = 23 * hash + argument;
         hash = 23 * hash + (this.strength != null ? this.strength.hashCode() : 0);
         return hash;
     }

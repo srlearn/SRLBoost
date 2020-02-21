@@ -11,7 +11,7 @@ import java.util.Objects;
  */
 public class RelevantFeatureInformation implements RelevantInformation, Cloneable {
 
-    Example example;
+    private Example example;
 
     private boolean relevanceFromPositiveExample = true;
 
@@ -35,19 +35,6 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
 
     public void setRelevanceFromPositiveExample(boolean positive) {
         this.relevanceFromPositiveExample = positive;
-    }
-
-    @Override
-    public boolean isEquivalentUptoVariableRenaming(RelevantInformation info) {
-
-        boolean result = false;
-
-        if (info instanceof RelevantFeatureInformation) {
-            RelevantFeatureInformation that = (RelevantFeatureInformation) info;
-            result = this.getPredicateNameAndArity().equals(that.getPredicateNameAndArity());
-        }
-
-        return result;
     }
 
     @Override

@@ -19,7 +19,7 @@ public class Inliner {
      * the supportClauses map.
      */
     public static Sentence getInlinedSentence(Sentence sentence, HornClauseContext context) {
-        return sentence.accept(INLINER_VISITOR, new InlineData(context, null));
+        return sentence.accept(INLINER_VISITOR, new InlineData(context));
     }
 
     private static class InlinerVisitor extends DefaultFOPCVisitor<InlineData> {
@@ -198,7 +198,7 @@ public class Inliner {
         }
     }
 
-    public static class InlineData {
+    static class InlineData {
 
         InlineData parent;
 
@@ -208,9 +208,9 @@ public class Inliner {
 
         Set<PredicateNameAndArity> doNotInlineSet;
 
-        InlineData(HornClauseContext context, Collection<? extends DefiniteClause> additionalInlinableClauses) {
+        InlineData(HornClauseContext context) {
             this.context = context;
-            this.additionalInlinableClauses = additionalInlinableClauses;
+            this.additionalInlinableClauses = null;
         }
 
         InlineData(InlineData parent) {
@@ -289,7 +289,7 @@ public class Inliner {
             return result;
         }
         
-        public HornClauseContext getContext() {
+        HornClauseContext getContext() {
             if (parent != null) {
                 return parent.getContext();
             }

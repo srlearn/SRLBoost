@@ -32,17 +32,13 @@ public class ILPouterLoopState implements Serializable, Cloneable {
 
     private int            indexIntoPosSeedArray;  // When the provided list runs out, seeds are randomly chosen from the not-yet-covered positive examples.
     private Theory         stdILPtheory;           // The standard ILP theory, i.e. the best clause from each seed.
-    private int[]          posSeedIndicesToUse = null;    // This can be overridden with setSequenceOfSeedsToUse().  These three variables help to allow users to specific which examples are the seeds.
     private int            lengthPosSeedArray;
 
     private Collection<Example> coveredPosExamples; // Collect positive examples covered by at least ONE 'best clause' produced by the ILP inner loop.
     private Collection<Example> coveredNegExamples; // Also see which negative examples are covered by some clause.
 
-    private int              currentFold   = -1;
-
     private String           prefix;
     private boolean          RRR;
-    private boolean          flipFlopPosAndNegExamples = false; // BUGGY? Can be used to flip-flop the positive and negative examples before training.
 
     private Set<Example>     seedPosExamplesUsed;
     private Set<Example>     seedNegExamplesUsed;
@@ -100,9 +96,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
         }
 
         // Make sure we are working on the same fold...
-        if ( this.currentFold != otherState.currentFold ) {
-            throw new IncongruentSavedStateException("Current fold does not match. Expected = " + otherState.currentFold + ".  Found = " + this.currentFold);
-        }
 
         // Search Strategy
         if ( this.RRR != otherState.RRR ) {
@@ -204,7 +197,7 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     }
 
     int[] getPosSeedIndicesToUse() {
-        return posSeedIndicesToUse;
+        return null;
     }
 
     Theory getStdILPtheory() {
@@ -256,10 +249,10 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     }
 
     int getCurrentFold() {
-        return currentFold;
+        return -1;
     }
 
-    protected String getPrefix() {
+    String getPrefix() {
         return prefix;
     }
 
@@ -276,7 +269,8 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     }
 
     boolean isFlipFlopPosAndNegExamples() {
-        return flipFlopPosAndNegExamples;
+        // BUGGY? Can be used to flip-flop the positive and negative examples before training.
+        return false;
     }
 
     Set<Example> getNegExamplesUsedAsSeeds() {

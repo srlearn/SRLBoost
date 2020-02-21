@@ -8,14 +8,14 @@ import java.util.List;
  */
 class KernelEstimator {
 
-	private double bandwidth;
+	private final double bandwidth;
 	
 	private enum KernelFunction {
 		EPAN,
 		GAUSSIAN
 	}
 	
-	private KernelFunction kernelType;
+	private final KernelFunction kernelType;
 	
 	KernelEstimator() {
 		bandwidth = 0.5;

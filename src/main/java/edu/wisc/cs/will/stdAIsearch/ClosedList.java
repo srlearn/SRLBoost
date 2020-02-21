@@ -10,10 +10,10 @@ public abstract class ClosedList {
 
 	protected ClosedList() {}
 
-	public void setSearchTask() {
+	void setSearchTask() {
 	}
-	
-	public void clearAnySavedInformation() { }
+
+	void clearAnySavedInformation() { }
 
 	public abstract void addNodeToClosed(SearchNode node);
 

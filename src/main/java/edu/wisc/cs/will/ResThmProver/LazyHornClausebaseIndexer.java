@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.Collection;
 
@@ -10,9 +9,9 @@ import java.util.Collection;
  */
 public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<DefiniteClause>{
 
-  private HornClausebase clausebase;
+  private final HornClausebase clausebase;
 
-    private int indexWidth;
+    private final int indexWidth;
 
     private LazyGroundNthArgumentClauseIndex[] singleGroundArgIndexArray = null;
 
@@ -79,8 +78,6 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
     public void indexAssertion(DefiniteClause definiteClause) {
 
         if (definiteClause != null && definiteClause.isDefiniteClause()) {
-            
-            if ( LazyHornClausebase.DEBUG >= 3 ) Utils.println("% [ LazyHornClausebaseIndexer ]  Indexing " + definiteClause + ".");
 
             PredicateNameAndArity key = new PredicateNameAndArity(definiteClause);
 
@@ -88,7 +85,6 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
             // new clauses came along, just in case they have indexed that predicate
             // already.
 
-            indexDefiniteClauseByPredicate();
             indexDefiniteClauseByAllArgs(key, definiteClause);
             for (int i = 0; i < indexWidth && i < key.getArity(); i++) {
                 indexDefiniteClauseByNthArg(i, key, definiteClause);
@@ -209,9 +205,6 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
             return groundClauseIndex.lookupDefiniteClauses(literalToLookup);
         }
         return null;
-    }
-
-    private void indexDefiniteClauseByPredicate() {
     }
 
     private void removeDefiniteClauseByPredicate(PredicateNameAndArity key, DefiniteClause sentence) {

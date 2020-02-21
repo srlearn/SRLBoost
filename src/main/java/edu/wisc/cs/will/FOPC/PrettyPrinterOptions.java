@@ -2,8 +2,6 @@ package edu.wisc.cs.will.FOPC;
 
 public class PrettyPrinterOptions {
 
-    private int maximumTermsPerLine = -1;
-
     private int maximumLiteralsPerLine = -1;
 
     private boolean multilineOutputEnabled = true;
@@ -30,12 +28,11 @@ public class PrettyPrinterOptions {
     }
 
     int getMaximumTermsPerLine() {
-        return maximumTermsPerLine;
+        return -1;
     }
 
     int getMaximumLiteralsPerLine() {
         if ( maximumLiteralsPerLine != -1 ) return maximumLiteralsPerLine;
-        if ( maximumTermsPerLine != -1 ) return maximumTermsPerLine;
         return -1;
     }
 
@@ -67,16 +64,16 @@ public class PrettyPrinterOptions {
         return alignParathesis;
     }
 
-    void setAlignParathesis(boolean alignParathesis) {
-        this.alignParathesis = alignParathesis;
+    void setAlignParathesis() {
+        this.alignParathesis = false;
     }
 
     boolean isNewLineAfterOpenParathesis() {
         return newLineAfterOpenParathesis;
     }
 
-    void setNewLineAfterOpenParathesis(boolean newLineAfterOpenParathesis) {
-        this.newLineAfterOpenParathesis = newLineAfterOpenParathesis;
+    void setNewLineAfterOpenParathesis() {
+        this.newLineAfterOpenParathesis = true;
     }
 
     int getMaximumConsCells() {

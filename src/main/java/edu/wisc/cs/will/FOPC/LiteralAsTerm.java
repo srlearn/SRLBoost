@@ -11,9 +11,9 @@ import java.util.Map;
  * This is a dummy class that allows a Literal to be put in a place where a Term is needed.  (Used for dealing with Prolog cuts.)
  */
 public class LiteralAsTerm extends Term {
-	public Literal itemBeingWrapped;
+	public final Literal itemBeingWrapped;
 
-	protected LiteralAsTerm(HandleFOPCstrings stringHandler, Literal itemBeingWrapped) {
+	LiteralAsTerm(HandleFOPCstrings stringHandler, Literal itemBeingWrapped) {
 		this.stringHandler    = stringHandler;
 		this.itemBeingWrapped = itemBeingWrapped;
 	}
@@ -37,7 +37,7 @@ public class LiteralAsTerm extends Term {
     @Override
 	public Term copy(boolean recursiveCopy) {
 		if (recursiveCopy) { 
-			Literal newLit = itemBeingWrapped.copy(recursiveCopy);
+			Literal newLit = itemBeingWrapped.copy(true);
 			return stringHandler.getLiteralAsTerm(newLit);
 		}
 		return stringHandler.getLiteralAsTerm(itemBeingWrapped);
@@ -56,7 +56,7 @@ public class LiteralAsTerm extends Term {
     public Sentence asSentence() {
         return itemBeingWrapped;
     }
-	
+
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		final int prime = 31;

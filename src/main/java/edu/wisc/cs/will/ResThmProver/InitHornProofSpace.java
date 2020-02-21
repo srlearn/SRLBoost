@@ -58,7 +58,7 @@ public class InitHornProofSpace extends Initializer {
         Clause negatedQuery = getStringHandler().getClause(negatedQueryLiterals, false); // These are all negated (i.e., checked above), so tell Clause() that.
         
 
-        HornSearchNode negatedQueryAsRootNode = new HornSearchNode(getHornClauseProver(), negatedQuery, null, proofCount, 0);
+        HornSearchNode negatedQueryAsRootNode = new HornSearchNode(getHornClauseProver(), negatedQuery, proofCount, 0);
 
         HornSearchNode[] nodes = new HornSearchNode[1];
         nodes[0] = negatedQueryAsRootNode;
@@ -87,7 +87,7 @@ public class InitHornProofSpace extends Initializer {
 
         Clause newNegatedQuery    = getStringHandler().getClause(newQueryLiterals, false); // These are all negated (i.e., checked above), so tell Clause() that.
 
-        HornSearchNode rootNode          = new HornSearchNode(getHornClauseProver(), newNegatedQuery, null, proofCount, 0);
+        HornSearchNode rootNode          = new HornSearchNode(getHornClauseProver(), newNegatedQuery, proofCount, 0);
 
         HornSearchNode[] nodes = new HornSearchNode[2];
         nodes[0]=rootNode;
@@ -105,9 +105,6 @@ public class InitHornProofSpace extends Initializer {
             else {
                 newRuleBody.add(lit);
             }
-        }
-        if (HornClauseProver.debugLevel > 2) {
-            Utils.println("markCutLiterals: " + newRuleBody);
         }
         return newRuleBody;
     }

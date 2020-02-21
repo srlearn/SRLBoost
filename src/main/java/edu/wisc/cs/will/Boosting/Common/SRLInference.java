@@ -28,11 +28,11 @@ public abstract class SRLInference {
 	protected RelationalDependencyNetwork rdn;
 	protected JointRDNModel jointModel;
 	
-	public SRLInference(WILLSetup setup) {
+	protected SRLInference(WILLSetup setup) {
 		this.setup = setup;
 	}
 
-	public abstract ProbDistribution getExampleProbability(Example eg);
+	protected abstract ProbDistribution getExampleProbability(Example eg);
 
 	public abstract void setMaxTrees(int max);
 

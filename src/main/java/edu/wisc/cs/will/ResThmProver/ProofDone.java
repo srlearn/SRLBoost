@@ -23,7 +23,7 @@ public class ProofDone extends EndTest {
 		return result;
 	}
 	
-	public void clearAnySavedInformation(boolean insideIterativeDeepening) {
+	public void clearAnySavedInformation() {
 		goalNodeFound = null;
 	}
 

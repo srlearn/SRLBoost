@@ -9,8 +9,8 @@ import java.util.Objects;
  * @author twalker
  */
 public class ElementAndPath {
-    private SentenceOrTerm element;
-    private ElementPath path;
+    private final SentenceOrTerm element;
+    private final ElementPath path;
 
     ElementAndPath(SentenceOrTerm element, ElementPath path) {
         this.element = element;

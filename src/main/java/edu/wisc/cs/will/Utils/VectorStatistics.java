@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class VectorStatistics {
 
-	private List<double[]> datapoints;
+	private final List<double[]> datapoints;
 	
 	private int size;
 	
@@ -29,7 +29,7 @@ public class VectorStatistics {
 		}
 	}
 	
-	public double[] getMean() {
+	private double[] getMean() {
 		if (datapoints.size() == 0) {
 			Utils.error("No data points");
 			return null;

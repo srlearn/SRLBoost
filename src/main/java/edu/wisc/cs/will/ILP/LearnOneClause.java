@@ -102,9 +102,10 @@ import java.util.*;
  */
 
 public class LearnOneClause extends StateBasedSearchTask {
-	protected final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
-	boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
+	final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
+
+	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
 
 	private boolean             createCacheFiles                  = false;   // Create files that cache computations, to save time, for debugging, etc.
 	private boolean             useCachedFiles                    = false;   // Files cached (if requested):
@@ -113,13 +114,11 @@ public class LearnOneClause extends StateBasedSearchTask {
 	                                                                           //    gleaner.txt (users can name this whatever they wish)
 																			   //    the generated negative examples (same file name as used for negatives)
 
-	public    boolean             overwritePrecomputeFileIfExists   = false;
-
-	protected Object              caller     = null;                           // The instance that called this LearnOneClause instance.
+	Object              caller     = null;                           // The instance that called this LearnOneClause instance.
 	String              callerName = "unnamed caller";               // Used to annotate printing during runs.
 	private int                   dumpGleanerEveryNexpansions = -1;
 
-	private   FileParser          parser;
+	private final FileParser          parser;
 
 	private   boolean             isaTreeStructuredTask = false; // For a tree-structured task, we don't want to generalize the heads (e.g., p(X,X) might be a good rule - will need to learn this via sameAs() calls ...).
 	SingleClauseNode    currentStartingNode   = null;  // For some calculations we want to stop at this node.
@@ -129,12 +128,11 @@ public class LearnOneClause extends StateBasedSearchTask {
     private boolean             learnMultiValPredicates             = false;
     boolean			  oneClassTask		= false;
     public 	  PairWiseExampleScore occScorer			= null;
-	boolean 			  sampleForScoring  = false;
-	int				  maxExamplesToSampleForScoring = 300;
-	boolean             constantsAtLeaves = true;  // Are leaves CONSTANTS or linear models?  TODO - implement linear models, using (say) regularized least squares.
-	int                 normToUse         = 2;     // Other norms implemented: NONE
-	
-	int                 maxCrossProductSize               =1000;     // When generating candidate groundings of a literal in the child-generator, randomly seleect if more than this many.
+	final boolean 			  sampleForScoring  = false;
+	final int				  maxExamplesToSampleForScoring = 300;
+	final boolean             constantsAtLeaves = true;  // Are leaves CONSTANTS or linear models?  TODO - implement linear models, using (say) regularized least squares.
+
+	final int                 maxCrossProductSize               =1000;     // When generating candidate groundings of a literal in the child-generator, randomly seleect if more than this many.
 	int                 maxBodyLength                     =   9;     // Max length for the bodies of clauses.
 	public    int                 maxFreeBridgersInBody             = maxBodyLength; // Bridgers can run amok so limit them (only has an impact when countBridgersInLength=true).  This is implemented as follows: the first  maxBridgersInBody don't count in the length, but any excess does.
 	public    int                 maxNumberOfNewVars                =  10;     // Limit on the number of "output" variables used in a rule body.
@@ -166,7 +164,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private List<WorldState>    worldStatesContainingNoPositiveExamples = null;  // All ways of matching the target predicate in these states are known (or at least assumed) to be NEGATIVE examples.
 	private boolean             findWorldStatesContainingNoPosExamples  = false;
 	public    boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
-	private int                 skewMaxNegToPos                         = -1; // If negative, don't alter the neg-pos ratio.  TODO - handle cases where we want to limit the POS wrt NEG.
+	private final int                 skewMaxNegToPos                         = -1; // If negative, don't alter the neg-pos ratio.  TODO - handle cases where we want to limit the POS wrt NEG.
 	////////////////////////////////////////////////////////////
 	//  Variables for controlling random-rapid-restart searches (i.e., repeatedly randomly create an initial clause, then do some local search around each).
 	//    The initial clause randomly created will meet the specification on the positive and negative seeds.
@@ -199,7 +197,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	PredicateName       procDefinedForConstants        = null;  // This is used to see which constants in the positive seeds can fill some arguments in a new literal.
 	PredicateName       procDefinedNeedForNewVariables = null;  // See if these new variables ever bind in the positive seeds to some thing new in the clause (otherwise they aren't needed).  Only used if dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds=true.
 	List<List<Term>>    collectedConstantBindings;    // This is used as a temporary variable by a method below.
-	protected BindingList         bindings = new BindingList(); // Only recreate theta if needed, in order to save on creating new lists.
+	final BindingList         bindings = new BindingList(); // Only recreate theta if needed, in order to save on creating new lists.
 
 	private boolean              allowMultipleTargets       = true;
 
@@ -207,23 +205,23 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   List<List<Term>>     examplePredicateSignatures = null; // Something like [constant, function(constant), constant].
 
     public    List<Literal>        targets                    = null; // These are the actual targets determined from the examplePredicates.
-	protected List<List<ArgSpec>>  targetArgSpecs             = null; // The info about the target argument being used and the variables matched with their types.
+	List<List<ArgSpec>>  targetArgSpecs             = null; // The info about the target argument being used and the variables matched with their types.
 	List<List<Term>>     variablesInTargets         = null; // These are really 'arguments' since it is possible a mode specifies a constant be used.
 
-    protected HornClauseContext    context;
+    final HornClauseContext    context;
 
-	protected HandleFOPCstrings    stringHandler;
-	protected Unifier              unifier; // Make instances out of some things that could be 'statics' so the code is safer.
+	HandleFOPCstrings    stringHandler;
+	final Unifier              unifier; // Make instances out of some things that could be 'statics' so the code is safer.
 	private   HornClauseProver     prover; // This is initialized by getProver() so please don't use this variable directly.
 	PruneILPsearchTree   pruner = null;  // Used to prune search trees that are unlikely to pan out (called by ChildrenClausesGenerator and its extensions).
-	private Precompute           precomputer;
+	private final Precompute           precomputer;
 	private   ThresholdManager     thresholdHandler;
 	private   InlineManager        inlineHandler; // Handle the in-lining of literal bodies (should only be applied to literals that are only defined by ONE clause).
-	private TypeManagement       typeManager;
+	private final TypeManagement       typeManager;
 
 	//private   HornClauseProverChildrenGenerator ruleAndFactsHolder;
-	private   Reader               posExamplesReader; // We now also delay this in case we want to specify this is a regression task.
-	private   Reader               negExamplesReader; // Needed in case implicit negatives need to be created (we delay doing this to allow the caller to set parameters related to this neg-generation process).
+	private final Reader               posExamplesReader; // We now also delay this in case we want to specify this is a regression task.
+	private final Reader               negExamplesReader; // Needed in case implicit negatives need to be created (we delay doing this to allow the caller to set parameters related to this neg-generation process).
 
 	// Clarification on how m-estimates are currently used in this code:
 	//  All clauses are assumed to also match mEstimateNeg negative examples
@@ -233,23 +231,15 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   double               mEstimatePos = 0.1; // When computing coverage of a rule use these "m estimates."  NOTE these are also used when examples are weighted, so if total weight is small, might want to change these.
 	private   double               mEstimateNeg = 0.1; // Note: these are used in recall as well as precision.
 
-	List<Literal> requiredBodyPredicatesForAcceptableClauses = null; // See documentation for the method addRequiredBodyPredicateForAcceptableClauses.
-	int           minRequiredBodyPredicates = 0;
-	int           maxRequiredBodyPredicates = Integer.MAX_VALUE;
-
-    private long          totalProofTimeInNanoseconds = 0;
-
-	private RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
-    private Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
-
-    private Boolean relevanceEnabled = true;  // When null or false, relevance is disabled.
+	private final RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
+    private final Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
 
 	private List<ModeConstraint> modeConstraints = null;
 
     private final AdviceProcessor adviceProcessor;
     private ActiveAdvice activeAdvice = null;
 
-    private EventListenerList searchListenerList = new EventListenerList();
+    private final EventListenerList searchListenerList = new EventListenerList();
 
     private List<Sentence> facts = null; // This temporarily stores the facts between construction and initialization.  After initialization it will be null.
 
@@ -267,21 +257,12 @@ public class LearnOneClause extends StateBasedSearchTask {
 	/*
 	 * Constructs a new LearnOneClause search.
      */
-    public LearnOneClause(String            workingDir,              String prefix,
-                          Reader            posExamplesReader,       Reader negExamplesReader,
-                          Reader            backgroundClausesReader, Reader factsReader,
-                          SearchStrategy    strategy,                ScoreSingleClause scorer,
-                          SearchMonitor     monitor,                 HornClauseContext context,
-                          boolean           deferLoadingExamples) {
-        this(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundClausesReader, factsReader, strategy, scorer, null, monitor, context, deferLoadingExamples);
-    }
-
-	public LearnOneClause(String             workingDir,              String            prefix,
-                          Reader             posExamplesReader,       Reader            negExamplesReader,
-                          Reader             backgroundClausesReader, Reader            factsReader,
-                          SearchStrategy     strategy,                ScoreSingleClause scorer,
-                          PruneILPsearchTree pruner,                  SearchMonitor     monitor,
-                          HornClauseContext  context,                 boolean           deferLoadingExamples) {
+	public LearnOneClause(String workingDir, String prefix,
+						  Reader posExamplesReader, Reader negExamplesReader,
+						  Reader backgroundClausesReader, Reader factsReader,
+						  SearchStrategy strategy, ScoreSingleClause scorer,
+						  SearchMonitor monitor,
+						  HornClauseContext context, boolean deferLoadingExamples) {
 
         taskName = "LearnOneClause";
         this.stringHandler = (context == null ? null : context.getStringHandler());
@@ -307,7 +288,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         adviceProcessor = new AdviceProcessor(context, this);
 
 		// Load BK first since it is the place where 'usePrologVariables' etc is typically set.
-		if (backgroundClausesReader != null) { context.assertSentences(readBackgroundTheory(backgroundClausesReader, null)); }
+		if (backgroundClausesReader != null) { context.assertSentences(readBackgroundTheory(backgroundClausesReader)); }
 
 		Initializer              init        = new InitializeILPsearchSpace();
 		ChildrenClausesGenerator nodeGen     = new ChildrenClausesGenerator();
@@ -344,15 +325,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			}
 
             context.assertSentences(librarySentences);
-		}
-
-		if (debugLevel > 2) {
-			boolean hold = stringHandler.printVariableCounters;
-			Utils.println("\n%  The Background Rules:\n");
-            for (Clause clause : context.getClausebase().getBackgroundKnowledge()) {
-                Utils.println("%  " + clause.toPrettyString("%     ", Integer.MAX_VALUE));
-            }
-			stringHandler.printVariableCounters = hold;
 		}
 
 		Utils.println("\n%  Read the facts.");
@@ -556,12 +528,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 		
 	}
 
-	public int num_hits = 0;
-	public int num_misses = 0;
-	
-	public void resetCachedClauseGroundings() {
-		// TODO(@hayesall): Empty method that is called somewhere. Remove.
-	}
+	public final int num_hits = 0;
+	public final int num_misses = 0;
 
 	public void setMEstimateNeg(double mEstimateNeg) {
 		if (mEstimateNeg < 0.0) Utils.error("The 'm' for neg examples covered needs to be a non-negative number.  You provided: " + mEstimateNeg);
@@ -614,7 +582,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return unifier;
 	}
 
-	public void initialize() throws SearchInterrupted {
+	private void initialize() throws SearchInterrupted {
 		initialize(false);
 	}
 	public void initialize(boolean creatingConjunctiveFeaturesOnly) throws SearchInterrupted { // Make this a separate call so that caller can set some public variables if it wants to do so.
@@ -672,7 +640,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 				File f = new File(precomputeFileNameToUse);
 				Utils.println("Writing to file: " + f.getAbsolutePath());
 				/* Actually do the precomputes, writing precompute facts out to file*/
-				precomputer.processPrecomputeSpecifications(overwritePrecomputeFileIfExists, getContext().getClausebase(), precomputeThese, precomputeFileNameToUse);
+				precomputer.processPrecomputeSpecifications(getContext().getClausebase(), precomputeThese, precomputeFileNameToUse);
 				Utils.println("% Loading: " + precomputeFileNameToUse);
 				addToFacts(precomputeFileNameToUse); // Load the precomputed file.
 			}
@@ -710,7 +678,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
                 // Always save the synthetic negatives, at least for now.
                    setNegExamples(CreateSyntheticExamples.createImplicitNegExamples(worldStatesContainingNoPositiveExamples, true, "from a world-state containing no known positive examples", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames)); // TODO use a variable to set the maximum.
-                if (debugLevel > 0) { Utils.println("% Now have |negExamples| = " + Utils.comma(getNegExamples()) + ", of which " + Utils.comma(Utils.getSizeSafely(getNegExamples()) - oldNegCount) + " were created from world states containing no positive examples."); }
             }
             // See if we still need to create any random examples.
             if (!creatingConjunctiveFeaturesOnly && !regressionTask && Utils.getSizeSafely(getNegExamples()) < minNumberOfNegExamples) {
@@ -721,8 +688,6 @@ public class LearnOneClause extends StateBasedSearchTask {
                 // Always save the synthetic negatives, at least for now.
                    List<Example> negativeExamples = CreateSyntheticExamples.createImplicitNegExamples(null, usingWorldStates, "a randomly generated negative example", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames);  // Need to have set targetModes and create all the the above instances before calling this.
                    setNegExamples(negativeExamples);
-
-                   if (debugLevel > 0) { Utils.println("% Now have |negExamples| = " + Utils.getSizeSafely(getNegExamples()) + ", of which " + Utils.comma(Utils.getSizeSafely(getNegExamples()) - oldNegCount) + " were created randomly."); }
             }
             if (!regressionTask && oldNumbNegs != Utils.getSizeSafely(getNegExamples())) { createdSomeNegExamples = true; }
         }
@@ -736,23 +701,14 @@ public class LearnOneClause extends StateBasedSearchTask {
 			this.pruner = null;
 		}
 		if (!creatingConjunctiveFeaturesOnly && minNumberOfNegExamples > 0 && getNegExamples() == null) { Utils.severeWarning("Have ZERO negative examples!  Variable 'minNumberOfNegExamples' is currently set to " + minNumberOfNegExamples + "."); }
-			Utils.println("\n% Read " + Utils.comma(getPosExamples()) + " pos examples and " + Utils.comma(getNegExamples()) + " neg examples.");//  Also read (or created) " + Utils.comma(getBackgroundKnowledge()) + " ILP background rules and " + Utils.comma(getFacts()) + " facts.");
-			if (debugLevel > 1) {
-				Utils.println("% The Target Modes:");
-				if (targetModes != null) for (PredicateNameAndArity tName : targetModes) { tName.getPredicateName().reportPossibleInstantiations(); }
-				Utils.println("% The Body Modes:");
-				if (bodyModes != null)   for (PredicateNameAndArity bName : bodyModes)   { bName.getPredicateName().reportPossibleInstantiations(); }
-			}
+			Utils.println("\n% Read " + Utils.comma(getPosExamples()) + " pos examples and " + Utils.comma(getNegExamples()) + " neg examples.");
 
 			processThresholds();
 
         facts = null; // Release the temporarily stored facts so we aren't wasting memory.
         long iend = System.currentTimeMillis();
         Utils.println("% Time to init learnOneClause: " + Utils.convertMillisecondsToTimeSpan(iend-istart));
-        }		
-
-		// If nodes are sampled due to a decision-forest-like algorithm, then this might be incorrect.
-		reportModesToFile(Utils.createFileNameString(getDirectoryName(), getPrefix() + "_modesInUse" + Utils.defaultFileExtensionWithPeriod));
+        }
 	}
 
     private boolean lookForPruneOpportunities(Boolean useCachedFiles, FileParser parser, String fileName) { // Be sure to do this AFTER any precomputing is done.
@@ -807,9 +763,6 @@ public class LearnOneClause extends StateBasedSearchTask {
                                 }
                                 String newStringLine = "prune: " + prunableLiteral + ", " + clauseHead + ", warnIf(2)."; // Use '2' here, since if more than one rule, the inference is incorrect.
                                 parseThisString.append(newStringLine).append("\n");
-                                if (debugLevel > 2) {
-                                    Utils.println("\n% Inferring: '" + newStringLine + "'\n%   From: " + clause.toString(Integer.MAX_VALUE) + "."); // TODO clean up so no need for this MAX_VALUE here.
-                                }
                                 if (useCachedFiles) {
                                     printStream.println("\n" + newStringLine + " % From: " + clause.toString(Integer.MAX_VALUE) + "."); // TODO clean up so no need for this MAX_VALUE here.
                                 }
@@ -896,7 +849,6 @@ public class LearnOneClause extends StateBasedSearchTask {
             }
             if (clause != ignoreThisClause) {
 				aBinding.theta.clear();
-				assert query != null;
 				if (Unifier.UNIFIER.unify(clause.posLiterals.get(0), query, aBinding) != null) {
                     return clause;
                 }
@@ -968,10 +920,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         stringHandler.removeKnownMode(pName);
     }
 
-    private void reportModesToFile(String fileName) {
-		// TODO(@hayesall): Dead function, remove references.
-	}
-
     private int countOfSearchesPerformedWithCurrentModes = 0;  // Trevor - if you wish to see getSearchParametersString, feel free to add some reportFirstNsearches variable.  Jude
 
     @Override
@@ -994,7 +942,7 @@ public class LearnOneClause extends StateBasedSearchTask {
             }
 
             // Limit number of reports.
-            if (++countOfSearchesPerformedWithCurrentModes < 2 || debugLevel > 2) { Utils.print(getSearchParametersString()); }
+            if (++countOfSearchesPerformedWithCurrentModes < 2) { Utils.print(getSearchParametersString()); }
 			result = super.performSearch();
 
 			if ( createdActiveAdvice != null ) {
@@ -1014,12 +962,11 @@ public class LearnOneClause extends StateBasedSearchTask {
         return result;
     }
 
-    SearchResult performSearch(SingleClauseNode bestNodeFromPreviousSearch) throws SearchInterrupted {
-    	if (debugLevel > 2) { Utils.println("\n% performSearch() called."); }
+    void performSearch(SingleClauseNode bestNodeFromPreviousSearch) throws SearchInterrupted {
         if (!initialized) { initialize(); }
         ((InitializeILPsearchSpace) initializer).setBestNodeFromPreviousSearch(bestNodeFromPreviousSearch);
-        return performSearch();
-    }
+		performSearch();
+	}
 
     private String getSearchParametersString() {
         StringBuilder stringBuilder = new StringBuilder();
@@ -1159,7 +1106,6 @@ public class LearnOneClause extends StateBasedSearchTask {
      */
 	private void checkMinPosCoverage() {
         // Check the min pos coverage values...
-    	if (totalPosWeight > 0 && debugLevel > 0) { Utils.println("%     totalPosWeight = " + totalPosWeight + "  minPosCoverage = " + minPosCoverage); }
 		if (totalPosWeight > 0 && minPosCoverage > totalPosWeight) {  // Anything odd happen here if totalPosWeight < 1?
 			Utils.warning("% Should not set minPosCoverage (" + Utils.truncate(minPosCoverage) + ") to more than the total weight on the positive examples (" + Utils.truncate(totalPosWeight) + ").  Will use the maximum possible value.");
 		}
@@ -1220,7 +1166,6 @@ public class LearnOneClause extends StateBasedSearchTask {
      * @throws IllegalArgumentException Throws an IllegalArgumentException if the parameter is out of range.
      */
 	private void checkMinPrecision() throws IllegalArgumentException {
-    	if (debugLevel > 0) { Utils.println("%     maxPossiblePrecision = " +  maxPossiblePrecision() + "  minPrecision = " + minPosCoverage); }
         if (minPrecision < 0) {
         	minPrecision = 0.0;
         	Utils.warning("Should not set minPrecision (" + Utils.truncate(minPrecision) + ") to a negative value.  Will use 0.");
@@ -1269,7 +1214,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			}
 			stillInRRRphase1  = true;
 			thisBodyLengthRRR = minBodyLengthRRR + Utils.random1toN(maxBodyLengthRRR - minBodyLengthRRR);
-			if (debugLevel > 1) { Utils.println("\n***********\nPerform RRR iteration #" + i + " with the initial body length = " + thisBodyLengthRRR + " (in the ILP inner loop, created a total of " + Utils.comma(hold_nodesCreated) + " clauses so far and explored " + Utils.comma(hold_nodesExpanded) + ")\n***********"); }
 			performSearch(bestNodeFromPreviousSearch);  // No need to do a open.clear() since performSearch() does that.
 			hold_nodesExpanded += nodesConsidered;
 			hold_nodesCreated  += nodesCreated;
@@ -1444,24 +1388,12 @@ public class LearnOneClause extends StateBasedSearchTask {
 			Utils.error("Called for null query");
 			return new BindingList();
 		} // The empty list is really a body that equals the built-in predicate 'true()'.
-
-        long startTime = System.nanoTime();
-
-		BindingList result = getProver().proveConjunctiveQueryAndReturnBindings(negatedConjunctiveQuery);
-
-        totalProofTimeInNanoseconds += System.nanoTime() - startTime;
-		return result;
+		return getProver().proveConjunctiveQueryAndReturnBindings(negatedConjunctiveQuery);
 	}
 
-	protected boolean prove(List<Literal> negatedConjunctiveQuery) throws SearchInterrupted {
+	boolean prove(List<Literal> negatedConjunctiveQuery) throws SearchInterrupted {
 		if (negatedConjunctiveQuery == null) { return true; } // The empty list is really a body that equals the built-in predicate 'true()'.
-
-        long startTime = System.nanoTime();
-
-		boolean result = getProver().proveConjunctiveQuery(negatedConjunctiveQuery);
-
-        totalProofTimeInNanoseconds += System.nanoTime() - startTime;
-		return result;
+		return getProver().proveConjunctiveQuery(negatedConjunctiveQuery);
 	}
 
 	private int warningCountAboutExamples = 0;
@@ -1497,7 +1429,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			if (examplePredicates.get(i).equals(lit.getPredicateNameAndArity()) && 
 				matchingSignatures(examplePredicateSignatures.get(i), stringHandler.getSignature(lit.getArguments()))) { return true; }
 		}
-		if (debugLevel > 1) { Utils.println("matchesExistingTargetSpec false for: " + lit + "  sig = " + stringHandler.getSignature(lit.getArguments()) + "  " + Utils.limitLengthOfPrintedList(examplePredicates)); }
 		return false;
 	}
 
@@ -1565,14 +1496,14 @@ public class LearnOneClause extends StateBasedSearchTask {
 			if (arg0 instanceof Function) {
 				Function f = (Function) arg0;
 				Literal internalLit = (f).convertToLiteral(stringHandler);
-				return createExample(internalLit, lit.getArgument(1));
+				return createExample(internalLit);
 			}
 			Utils.error("Should get a literal posing as a function here, but got: " + arg0);
-		} else { return createExample(lit, null); } // Grab the outer weight.
+		} else { return createExample(lit); } // Grab the outer weight.
 		return null;
 	}
 
-	private Example createExample(Literal lit, Term annotationTerm) {
+	private Example createExample(Literal lit) {
 		if (regressionTask) {
 			double outputValue = lit.getWeightOnSentence();
 			if (lit.predicateName.name.equals(regressionExamplePredName.name)) {
@@ -1597,11 +1528,11 @@ public class LearnOneClause extends StateBasedSearchTask {
 				}
 				assert internalLit != null;
 				if (!confirmExample(internalLit)) { return null; }
-				return new RegressionExample(stringHandler, internalLit, outputValue, "Read from file.", combineLabels(sc == null ? null : sc.getName()), annotationTerm);
+				return new RegressionExample(stringHandler, internalLit, outputValue, "Read from file.", combineLabels(sc == null ? null : sc.getName()));
 			}
 			lit.setWeightOnSentence(1.0);
 			if (!confirmExample(lit)) { return null; }
-			return new RegressionExample(stringHandler, lit, outputValue, "Read from file.", null, annotationTerm);
+			return new RegressionExample(stringHandler, lit, outputValue, "Read from file.", null);
 		}
 		if (!confirmExample(lit)) { return null; }
 		return new Example(stringHandler, lit, "Read from file.", null);
@@ -1611,11 +1542,11 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return str2;
 	}
 	
-	private Theory readBackgroundTheory(Reader bkReader, String readerDirectoryName) {
+	private Theory readBackgroundTheory(Reader bkReader) {
 		if (bkReader == null) { return null; }
 		List<Sentence> sentences;
-		Utils.println("% Reading background theory from dir: " + readerDirectoryName);
-		sentences = getParser().readFOPCreader(bkReader, readerDirectoryName);
+		Utils.println("% Reading background theory from dir: " + null);
+		sentences = getParser().readFOPCreader(bkReader, null);
 		if (sentences == null) { return null; } // It is possible there are no inference rules, though some modes should have been read.
 		return new Theory(stringHandler, sentences);
 	}
@@ -1724,7 +1655,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		}
 	}
 
-	private boolean addToTargetModes(PredicateNameAndArity targetPred) {
+	private void addToTargetModes(PredicateNameAndArity targetPred) {
 
 	    PredicateSpec targetArgTypes = targetPred.getPredicateName().getTypeList().get(0);
 
@@ -1759,7 +1690,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         	Utils.println(  "%  targetArgTypes:            " + targetArgTypes);
         	Utils.println(  "%  targetArgSpecs:            " + targetArgSpecs);
         }
-        return targetExists;
 	}
 	
     private ArgSpec lookupInArgSpecList(List<ArgSpec> specs, Term term) {
@@ -1818,7 +1748,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		List<Example> posEx = getPosExamples();
 		List<Example> negEx = getNegExamples();
 
-		if (debugLevel > 1) { Utils.println("\n% Checking to see any target argument types are too general, given the training examples."); }
 		if (posEx == null && negEx == null) { Utils.waitHere("Have no examples yet!"); }
 
 		int targetPredicateArity = target.numberArgs();
@@ -1829,8 +1758,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			Type typeToUse = null;
 			boolean skipWithThisArgument = false;
 
-			if (debugLevel > 1) { Utils.println("%   Target argument #" + (i + 1) + " is of type '" + type + "'."); }
-
 			int counter = 0;
 			if (posEx != null) for (Example ex : posEx) {
 				counter++;
@@ -1839,7 +1766,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 				Term argI = ex.getArgument(i);
 				List<Type> types = stringHandler.isaHandler.getAllKnownTypesForThisTerm(argI);
 
-				if (debugLevel > 2 & counter < 25) { Utils.println("%   Argument #" + +(i + 1) + " in positive example " + counter + " is of types: " + types + "."); }
 				if (types == null)     { skipWithThisArgument = true; typeToUse = null; break; }
 				if (types.size() != 1) { skipWithThisArgument = true; typeToUse = null; break; } // Not sure what to do with multiple types.
 				if (typeToUse == null) { typeToUse = types.get(0); }
@@ -1858,7 +1784,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 				Term argI = ex.getArgument(i);
 				List<Type> types = stringHandler.isaHandler.getAllKnownTypesForThisTerm(argI);
 
-				if (debugLevel > 2 & counter < 25) { Utils.println("%   Argument #" + +(i + 1) + " in negative example " + counter + " is of types: " + types + "."); }
 				if (types == null)     { skipWithThisArgument = true; typeToUse = null; break; }
 				if (types.size() != 1) { skipWithThisArgument = true; typeToUse = null; break; } // Not sure what to do with multiple types.
 				if (typeToUse == null) { typeToUse = types.get(0); }
@@ -1870,7 +1795,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 					}
 				}
 			}
-			if (debugLevel > 2) { Utils.println("%  Analyzing the examples says that typeToUse = '" + typeToUse + "' (compared to '" + type + "')."); }
 			if (!skipWithThisArgument && typeToUse != type && stringHandler.isaHandler.isa(typeToUse, type)) {
 				// If reached here, all the arguments in the examples are know to be more constrained than the target predicate,
 				// so let's constrain the target.  TODO - should we add 'guard literals' to the learned concept?
@@ -1893,7 +1817,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 				} else {
 					newTerm = stringHandler.getNewNamedGeneratedVariable();
 				}
-				if (debugLevel > 1) { Utils.println("% traverseSignatureAndAddVariables: assign " + newTerm + " to " + typeSpec); }
 				theseTargetArgSpecs.add(new ArgSpec(newTerm, typeSpec));
 				targetArguments.add(newTerm);
 				theseVars.add(newTerm);
@@ -1927,7 +1850,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			if (!foundDifference) { return; } // Have found a matching list, so this is a duplicate and can be ignored.
 
 		}
-		if (debugLevel > 3) { Utils.println(">>> found new collectConstantBindings: " + args); }
 		collectedConstantBindings.add(args); // Should check for duplicates!
 	}
 
@@ -1938,10 +1860,10 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return getParser().getDirectoryName();
 	}
 
-	public final void setPrefix(String prefix) {
+	private void setPrefix(String prefix) {
 		getParser().setPrefix(prefix);
 	}
-	public final String getPrefix() {
+	private String getPrefix() {
 		return getParser().getPrefix();
 	}
 
@@ -2020,7 +1942,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 	}
 
 	boolean isRelevanceEnabled() {
-        return relevanceEnabled == null ? false : relevanceEnabled;
+		// When null or false, relevance is disabled.
+		return true;
     }
 
 	AdviceProcessor getAdviceProcessor() {

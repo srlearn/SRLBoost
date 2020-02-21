@@ -16,36 +16,28 @@ import java.util.Set;
  * See http://en.wikipedia.org/wiki/SLD_resolution and http://en.wikipedia.org/wiki/Horn_clause or an AI textbook.
  */
 public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
-	protected static final int debugLevel = 0;  // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
-	private   HornClauseContext context;
+	private final HornClauseContext context;
 
-	Set<PredicateName>                predefinedPredicateNamesUsedByChildCollector; // Those in those list are handled by collectChildrenActual.
+	final Set<PredicateName>                predefinedPredicateNamesUsedByChildCollector; // Those in those list are handled by collectChildrenActual.
 
 	/* Indicates level of output during proof.
      *
      * The traceLevel controls the amount of output generated
      * at each step in the proof.  This is similar to the
-     * debugLevel but instead prints out step by step information.
-     *
-     * Currently, the following levels exist:
-     * 0 - silent.
-     * 1 - Literal being expanded and abbreviated expansions.
-     * 2 - Literal being expanded and full expansions.
-     * 3 - Literal being expanded, full expansions, and all bindings (this is slow...).
      */
     private int                       traceLevel = 0;
 
-    private PredicateNameAndArityFilter  spyEntries;
+    private final PredicateNameAndArityFilter  spyEntries;
 
-	public HornClauseProver(HandleFOPCstrings stringHandler, HornClausebase factbase) {
-        this(factbase, new DepthFirstSearch(), null);
+	public HornClauseProver(HornClausebase factbase) {
+        this(factbase, new DepthFirstSearch());
 	}
 	public HornClauseProver(HornClausebase factbase, boolean redoable) {
         this(new DefaultHornClauseContext(factbase), new DepthFirstSearch(), null,redoable);
 	}
-	public HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy, ScoringFunction scorer) {
-        this(new DefaultHornClauseContext(factbase), searchStrategy, scorer, false);
+	private HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy) {
+        this(new DefaultHornClauseContext(factbase), searchStrategy, null, false);
     }
     public HornClauseProver(HornClauseContext context) {
         this(context, false);
@@ -53,7 +45,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
     public HornClauseProver(HornClauseContext context, boolean redoable) {        
         this(context, new DepthFirstSearch(), null, redoable);
     }
-    public HornClauseProver(HornClauseContext context, SearchStrategy searchStrategy, ScoringFunction scorer, boolean redoable) {
+    private HornClauseProver(HornClauseContext context, SearchStrategy searchStrategy, ScoringFunction scorer, boolean redoable) {
         this.context = context;
         taskName = "HornClauseProver";
         this.redoable = redoable;
@@ -74,7 +66,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         setMaxNodesToCreate( 10000000);
         
         verbosity = 0; // Change if debugging odd behavior.
-							
+
 		initalizeStateBasedSearchTask(myInitializer, endTest, monitor, searchStrategy, scorer, hornClauseProverChildrenGenerator, null);
 	}
 
@@ -96,11 +88,11 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		open.addToFrontOfOpenList(node); // Need to return the last item popped.
 	}
 
-    protected void initialize(List<Literal> negatedConjunctiveQuery ) {
+    private void initialize(List<Literal> negatedConjunctiveQuery) {
         ((InitHornProofSpace) initializer).loadNegatedConjunctiveQuery(negatedConjunctiveQuery, open);
     }
 
-    protected void initialize(SLDQuery query) throws IllegalArgumentException {
+    void initialize(SLDQuery query) throws IllegalArgumentException {
         initialize(query.getNegatedQueryClause().negLiterals);
     }
 
@@ -117,7 +109,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         return result;
     }
 
-	public boolean proveSimpleQuery(Literal negatedFact) throws SearchInterrupted {
+	private boolean proveSimpleQuery(Literal negatedFact) throws SearchInterrupted {
 		((InitHornProofSpace) initializer).loadNegatedSimpleQuery(negatedFact, open);
 		return performSearch().goalFound();
 	}
@@ -164,7 +156,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		BindingList  bl = proveSimpleQueryAndReturnBindings(allRaw);
 		if (bl == null) { return null; }
 		ConsCell allResults = (ConsCell) bl.lookup(var);
-		if (debugLevel > 1) { Utils.println("% Have found " + Utils.comma(allResults == null ? 0 : allResults.length()) + " unique groundings of '" + query + "'.\n"); }
 		if (allResults == null) { return null; }
 		return allResults.convertConsCellToList();
 	}

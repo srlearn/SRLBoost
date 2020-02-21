@@ -21,7 +21,7 @@ public class HiddenLiteralSamples {
 	private List<HiddenLiteralState> worldStates;
 	private List<Double>     probabilities;
 	// Only used while adding samples. Used to compute the probability of each world after sampling.
-	private List<Long>       counts;
+	private final List<Long>       counts;
 	
 	private Map<HiddenLiteralState, Integer> worldStateToIndex;
 	

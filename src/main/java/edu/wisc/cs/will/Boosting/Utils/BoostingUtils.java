@@ -2,7 +2,6 @@ package edu.wisc.cs.will.Boosting.Utils;
 
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
-import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.ProbDistribution;
@@ -57,11 +56,11 @@ public class BoostingUtils {
 	}
 
 	public static String getLabelForCurrentModel() {
-		return RunBoostedRDN.nameOfCurrentModel == null ? "" : "_" + RunBoostedRDN.nameOfCurrentModel;
+		return "";
 	}
 
 	public static String getLabelForResultsFileMarker() {
-		return RunBoostedRDN.resultsFileMarker  == null ? "" : "_" + RunBoostedRDN.resultsFileMarker;
+		return "";
 	}
 
 	public static String getModelFile(CommandLineArguments cmdArgs, String target, boolean includeExtension) {

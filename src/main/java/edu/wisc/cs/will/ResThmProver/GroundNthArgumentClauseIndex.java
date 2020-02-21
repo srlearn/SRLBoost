@@ -14,7 +14,7 @@ import java.util.*;
  *
  * @author twalker
  */
-public class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
+class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
 
     /* Index of clauses which might match a constant arg N.
      *
@@ -26,7 +26,7 @@ public class GroundNthArgumentClauseIndex<T extends DefiniteClause> {
      * This is used to as a starting place for new definiteClause lists indexed by the
      * Nth args.  This is necessary to make sure unseen
      */
-    private Map<PredicateNameAndArity, List<T>> definiteClausesWithUngroundNthArg = new HashMap<>();
+    private final Map<PredicateNameAndArity, List<T>> definiteClausesWithUngroundNthArg = new HashMap<>();
 
     private int indexedArgument;
     private int minimumClauseLengthToIndex;

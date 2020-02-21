@@ -16,10 +16,10 @@ import java.util.*;
  */
 public class NumberGroundingsCalculator {
 
-	private Unifier unifier;
-	private HornClauseProver groundings_prover;
-	private HornClauseContext context;
-	private boolean disableTrivialGndgs = false;
+	private final Unifier unifier;
+	private final HornClauseProver groundings_prover;
+	private final HornClauseContext context;
+	private final boolean disableTrivialGndgs = false;
 
 	public NumberGroundingsCalculator(HornClauseContext context) {
 		this.context = context;

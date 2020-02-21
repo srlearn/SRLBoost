@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class TermAsLiteral extends Literal {
 
-	public Term term;
+	public final Term term;
 	/*
 	 * This is a dummy class.  It is used, during parsing, to hold a term inside something of type Literal.
 	 */

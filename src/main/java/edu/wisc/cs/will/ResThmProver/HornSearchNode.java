@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 
 import java.util.Collection;
@@ -12,18 +11,16 @@ import java.util.List;
  */
 public class HornSearchNode extends SearchNode {
 
-    private static final int DEBUG = 0;
-
-	Clause      clause;
-	BindingList bindings;
-    long        parentProofCounter;
-    int         parentExpansionIndex;
+    Clause      clause;
+	final BindingList bindings;
+    final long        parentProofCounter;
+    final int         parentExpansionIndex;
 
 
-	HornSearchNode(HornClauseProver task, Clause clause, BindingList bindings, long parentProofCounter, int parentExpansionIndex) { // Used for the initial call (i.e., to create the root of the search space).
+	HornSearchNode(HornClauseProver task, Clause clause, long parentProofCounter, int parentExpansionIndex) { // Used for the initial call (i.e., to create the root of the search space).
 		super(task);
 		this.clause   = clause;
-		this.bindings = bindings; // I don't think there will ever be bindings at the root, but leave a hook in here just in case.
+		this.bindings = null; // I don't think there will ever be bindings at the root, but leave a hook in here just in case.
         this.parentProofCounter = parentProofCounter;
         this.parentExpansionIndex = parentExpansionIndex;
 	}
@@ -91,14 +88,10 @@ public class HornSearchNode extends SearchNode {
 
             if ( bindings != null && bindings.theta != null ) {
                 bl.applyThetaInPlace(bindings.theta);
-
-                if ( DEBUG >= 1 ) System.out.println(bl + ".         Applied " + clause + "'s bindings = " + bindings + ".");
             }
         }
         else {
             bl = getQueryVariables();
-
-            if ( DEBUG >= 1 ) System.out.println(bl + ".         Query Variables for goal " + clause + ".");
         }
 
         return bl;
@@ -153,25 +146,8 @@ public class HornSearchNode extends SearchNode {
     }
 
     @Override
-    public void setParentNode(SearchNode parentNode) {
-        if (parentNode != null && !(parentNode instanceof HornSearchNode)) {
-            throw new IllegalArgumentException("parentNode must be a HornSearchNode");
-        }
-
-        super.setParentNode(parentNode);
-    }
-	
-    @Override
 	public String toString() {
         return (getParentNode() == null ? "" : "parent -> ") + clause.toString();
-	}
-    
-	void reportNodePredicates() {
-		if (clause != null) {
-			Utils.print("%     Predicates in this node: ");
-			for (int i = 0; i < clause.getLength(); i++) { Utils.print(" " + clause.getIthLiteral(i).predicateName); }
-			Utils.println("");
-		}
 	}
 
 }

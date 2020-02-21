@@ -8,8 +8,8 @@ import java.util.Map;
  * @author shavlik
  */
 public class Binding extends AllOfFOPC {
-	public Variable var;
-	public Term     term;
+	public final Variable var;
+	public final Term     term;
 
 	Binding(Variable var, Term term) {
 		this.var  = var;

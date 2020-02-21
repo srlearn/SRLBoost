@@ -28,12 +28,10 @@ public class ComputeAUC {
 	// TODO use a better(more complete) regex for floats
 	private static final String  PRPattern   = ".*Area Under the Curve for Precision - Recall is ([\\d\\.eE-]+).*";
 	private static final String  ROCPattern  = ".*Area Under the Curve for ROC is ([\\d\\.eE-]+).*";
-	private static       String  defaultAUCjarLocation = "auc.jar";
-	private String jarLocation = defaultAUCjarLocation;  // USE command line argument aucJarPath to provide a different jarLocation.
-	
+
 	private double ROC = Double.NaN;
 	private double PR  = Double.NaN;
-	private double CLL;
+	private final double CLL;
 	private double minRecallForPR = 0;
 	private StringBuffer outputFromAUC;
 	private String       aucFile                       = null;
@@ -62,6 +60,8 @@ public class ComputeAUC {
 		}
 		
 		this.minRecallForPR = minRecallForPR;
+		// USE command line argument aucJarPath to provide a different jarLocation.
+		String jarLocation = "auc.jar";
 		if (aucJarLocation != null) {
 			jarLocation = aucJarLocation + "/auc.jar";
 		}

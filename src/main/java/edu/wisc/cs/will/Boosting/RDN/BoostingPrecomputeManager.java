@@ -16,7 +16,7 @@ import java.util.List;
 
 class BoostingPrecomputeManager {
 
-	private WILLSetup setup;
+	private final WILLSetup setup;
 
 	BoostingPrecomputeManager(WILLSetup setup) {
 		this.setup = setup;
@@ -24,8 +24,7 @@ class BoostingPrecomputeManager {
 
 	void recomputeFactsFor(PredicateName pName) {
 		Precompute precomputer = new Precompute();
-		Precompute.alwaysRecreatePrecomputeFiles = true;
-		FileParser parser = setup.getInnerLooper().getParser();
+        FileParser parser = setup.getInnerLooper().getParser();
 		for (int i = 0; i < parser.getNumberOfPrecomputeFiles(); i++) {
 
 			// Note that this is the set of ALL pre-computes encountered during any file reading.
@@ -35,8 +34,8 @@ class BoostingPrecomputeManager {
 				String precomputeFileNameToUse = "recomputed" + Utils.defaultFileExtensionWithPeriod;
 
 				// The method below will check if the precompute file already exists, and if so, will simply return unless overwritten.
-				precomputer.processPrecomputeSpecifications(true,
-						setup.getContext().getClausebase(),
+				precomputer.processPrecomputeSpecifications(
+                        setup.getContext().getClausebase(),
 						precomputeThese, precomputeFileNameToUse);
 				addToFacts(precomputeFileNameToUse); // Load the precomputed file.
 			}

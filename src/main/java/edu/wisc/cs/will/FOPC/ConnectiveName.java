@@ -3,7 +3,6 @@ package edu.wisc.cs.will.FOPC;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -45,9 +44,9 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
     public final static ConnectiveName NOT     = new ConnectiveName(NOTalt0);
     public final static ConnectiveName IMPLIES = new ConnectiveName(IMPLIESalt0);
 
-	public String name;
+	public final String name;
 
-	protected ConnectiveName(String name) { // This is protected because getConnectiveName(String name) should be used instead.
+	ConnectiveName(String name) { // This is protected because getConnectiveName(String name) should be used instead.
 		this.name = name;
 	}
 
@@ -103,7 +102,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 
     /* Substitutes the ConnectiveName with a SerializableConnectiveName while Serializing.
      */
-    private Object writeReplace() throws ObjectStreamException {
+    private Object writeReplace() {
         return new SerializableConnectiveName(name);
     }
     
@@ -127,11 +126,11 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
      *
      * This call will then use the readResolve method to fix up the stream.
      */
-    protected static class SerializableConnectiveName implements Serializable {
+    static class SerializableConnectiveName implements Serializable {
 
-        String name;
+        final String name;
 
-        transient public HandleFOPCstrings stringHandler;
+        transient HandleFOPCstrings stringHandler;
 
         SerializableConnectiveName(String name) {
             this.name = name;
@@ -151,7 +150,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
             this.stringHandler = fOPCInputStream.getStringHandler();
         }
 
-        public Object readResolve() throws ObjectStreamException {
+        public Object readResolve() {
             // Canonicalize the object via the string handler...
             return stringHandler.getConnectiveName(name);
         }

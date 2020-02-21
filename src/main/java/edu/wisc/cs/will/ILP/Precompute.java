@@ -9,7 +9,6 @@ import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.*;
@@ -23,8 +22,6 @@ import java.util.*;
  */
 public class Precompute {
 
-    public static boolean alwaysRecreatePrecomputeFiles = false;
-
     private int counter;
 
     private int duplicates;
@@ -32,22 +29,12 @@ public class Precompute {
     private Set<String> checked;
 
     public Precompute() {}
-    
-    private boolean precomputeFileAlreadyExists(String fileName) {
-    	return (new CondorFile(fileName)).exists() || (new CondorFile(fileName + ".gz")).exists();
-    }
 
-    public void processPrecomputeSpecifications(boolean overwritePrecomputeFileIfExists, HornClausebase clausebase, List<Sentence> sentencesToPrecompute, String fileName) {
-        List<Literal> results = null;
+    public void processPrecomputeSpecifications(HornClausebase clausebase, List<Sentence> sentencesToPrecompute, String fileName) {
         if (sentencesToPrecompute != null) {
-            File file = new CondorFile(fileName);
-            if (!alwaysRecreatePrecomputeFiles && !overwritePrecomputeFileIfExists && precomputeFileAlreadyExists(fileName)) {
-                // The caller should take care of this (and this check can be turned off at the caller).
-            }
-            else {
-                MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute = convertPrecomputeSpecificationToDefiniteClauseMap(sentencesToPrecompute);
-                results = createPrecomputedFile(clausesToPrecompute, clausebase, fileName);
-            }
+            new CondorFile(fileName);
+            MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute = convertPrecomputeSpecificationToDefiniteClauseMap(sentencesToPrecompute);
+            createPrecomputedFile(clausesToPrecompute, clausebase, fileName);
         }
     }
 
@@ -85,11 +72,11 @@ public class Precompute {
      * 				e.g., if p(x) :- q(x), r(x) IS THE ONLY CLAUSE FOR p(x) then if p(x) is in a clause, no need to consider adding q(x) and r(x).
      * 		e) remove the clause(s) used to precompute from background knowledge (so they aren't again used)
      */
-    private List<Literal> createPrecomputedFile(MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute, HornClausebase clausebase, String fileName) {
+    private void createPrecomputedFile(MapOfLists<PredicateNameAndArity, Clause> clausesToPrecompute, HornClausebase clausebase, String fileName) {
 
         List<Literal> precomputedLiterals = new ArrayList<>();
 
-        HornClauseProver prover = new HornClauseProver(clausebase.getStringHandler(), clausebase);
+        HornClauseProver prover = new HornClauseProver(clausebase);
         prover.maxSearchDepth = java.lang.Integer.MAX_VALUE;
         prover.setMaxNodesToConsider(java.lang.Integer.MAX_VALUE); // Should we limit these?
         prover.setMaxNodesToCreate(java.lang.Integer.MAX_VALUE);
@@ -235,7 +222,6 @@ public class Precompute {
             }
         }
 
-        return precomputedLiterals;
     }
 
     // This is written iteratively instead of recursively to prevent stack overflows (which have happened).

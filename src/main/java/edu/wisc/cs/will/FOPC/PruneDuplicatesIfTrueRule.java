@@ -16,9 +16,9 @@ import java.util.List;
  */
 public class PruneDuplicatesIfTrueRule implements PruningRule {
  
-    private PredicateNameAndArity prunedPredicate;
+    private final PredicateNameAndArity prunedPredicate;
 
-    private DefiniteClause condition;
+    private final DefiniteClause condition;
 
     public PruneDuplicatesIfTrueRule(PredicateNameAndArity prunedPredicate, Clause condition) {
         this.prunedPredicate = prunedPredicate;
@@ -70,9 +70,9 @@ public class PruneDuplicatesIfTrueRule implements PruningRule {
 
     private class PruneIfTrueElementFilter implements Filter<ElementAndPath> {
 
-        ElementPath pathToPrune;
+        final ElementPath pathToPrune;
 
-        SentenceOrTerm element;
+        final SentenceOrTerm element;
 
         PruneIfTrueElementFilter(ElementPath pathToPrune, SentenceOrTerm element) {
             this.pathToPrune = pathToPrune;

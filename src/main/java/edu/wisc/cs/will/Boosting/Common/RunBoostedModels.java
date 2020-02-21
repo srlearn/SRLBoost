@@ -21,13 +21,13 @@ public abstract class RunBoostedModels {
 
 	protected CommandLineArguments cmdArgs;
 
-	public void setCmdArgs(CommandLineArguments cmdArgs) {
+	private void setCmdArgs(CommandLineArguments cmdArgs) {
 		this.cmdArgs = cmdArgs;
 	}
 
 	protected WILLSetup  setup;
 	
-	public RunBoostedModels() {
+	protected RunBoostedModels() {
 		
 	}
 	
@@ -39,7 +39,7 @@ public abstract class RunBoostedModels {
 		return null;
 	}
 	
-	public void runJob() {
+	protected void runJob() {
 		if (cmdArgs.isLearnVal()) {
 			long start = System.currentTimeMillis();
 			learnModel();
@@ -56,7 +56,7 @@ public abstract class RunBoostedModels {
 		
 	}
 
-	public abstract void learn();
+	protected abstract void learn();
 	
 	protected void learnModel() {
 		setupWILLForTrain();
@@ -137,9 +137,9 @@ public abstract class RunBoostedModels {
 		}
 	}
 	
-	public abstract void loadModel();
+	protected abstract void loadModel();
 	
-	public abstract void infer();
+	protected abstract void infer();
 	protected void inferModel() {
 		if(!setupWILLForTest()) {
 			return;

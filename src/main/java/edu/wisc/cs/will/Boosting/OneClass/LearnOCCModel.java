@@ -19,15 +19,15 @@ import java.util.List;
 /*
  * @author tkhot
  */
-public class LearnOCCModel {
+class LearnOCCModel {
 
 	private String targetPredicate;
 
 	protected final static int debugLevel = 1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-	private WILLSetup setup;
+	private final WILLSetup setup;
 
-	private CommandLineArguments cmdArgs;
+	private final CommandLineArguments cmdArgs;
 	
 	private int maxTrees;
 
@@ -135,7 +135,7 @@ public class LearnOCCModel {
 			if (cmdArgs.useCheckPointing()) {
 				createCheckPointForModel(propModel, saveModelName);
 			}
-			List<FeatureVector> posFeatures = new ArrayList<FeatureVector>();
+			List<FeatureVector> posFeatures = new ArrayList<>();
 			for (RegressionRDNExample rex : newDataSet) {
 				if (rex.getOriginalValue() == 1) {
 					FeatureVector fvec = propModel.getFeatureVector(rex);
@@ -213,7 +213,6 @@ public class LearnOCCModel {
 	
 	private void dumpTheoryToFiles(Theory th, int i) {
 		String stringToPrint = (i < 0 ? "" : "\n%%%%%  WILL-Produced Tree #" + (i + 1) + " @ " + Utils.getDateTime() + ".  [" + Utils.reportSystemInfo() + "]  %%%%%\n\n");
-		if (debugLevel > 0 && i >= 0) { Utils.println(stringToPrint); }
 		File file = getWILLsummaryFile();
 		if (i >= 0) { Utils.appendString(file, stringToPrint + th.toPrettyString(), cmdArgs.useLockFiles); } 
 		else { // Write a file right away in case a run crashes.
@@ -241,7 +240,6 @@ public class LearnOCCModel {
 			Utils.writeStringToFile(stringToPrint + "\n", file); 
 		}
 		if (i >= 0) {
-			if (debugLevel > 0) { Utils.println(th.toPrettyString()); }
 			// 	Model directory is set to the working directory as the default value.
 			if (th instanceof TreeStructuredTheory) {
 				String tree_dotfile = cmdArgs.getModelDirVal() + "bRDNs/dotFiles/WILLTreeFor_" + targetPredicate + i + BoostingUtils.getLabelForCurrentModel() + ".dot";

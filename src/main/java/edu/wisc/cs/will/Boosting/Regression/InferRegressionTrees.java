@@ -17,8 +17,8 @@ import java.util.Map;
  * @author tkhot
  */
 class InferRegressionTrees {
-	private CommandLineArguments cmdArgs;	
-	private WILLSetup            setup;
+	private final CommandLineArguments cmdArgs;
+	private final WILLSetup            setup;
 	
 	InferRegressionTrees(CommandLineArguments cmdArgs, WILLSetup setup) {
 		this.cmdArgs = cmdArgs;

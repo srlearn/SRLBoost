@@ -5,8 +5,8 @@ import java.util.Collection;
 
 public abstract class DependencyNode {
 
-	protected ArrayList<DependencyNetworkEdge> parents;
-	protected ArrayList<DependencyNetworkEdge> children;
+	private final ArrayList<DependencyNetworkEdge> parents;
+	private final ArrayList<DependencyNetworkEdge> children;
 	private int numberForDOTGraph = -1;
 
 	DependencyNode() {
@@ -14,8 +14,6 @@ public abstract class DependencyNode {
 		children = new ArrayList<>();
 	}
 
-	public abstract String labelForDOT();
-	public abstract String colorForDOT() ;
 	public abstract String  textForDOT();
 	public abstract boolean ignoreNodeForDOT();
 

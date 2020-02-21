@@ -83,11 +83,11 @@ public class PredicateCollector {
     }
 
     private static class PredicateCollectorData {
-        Set<PredicateNameAndArity> predicates = new HashSet<>();
-        HornClauseContext context;
+        final Set<PredicateNameAndArity> predicates = new HashSet<>();
+        final HornClauseContext context;
         
         // Set of background knowledge predicates that have already been expanded.
-        Set<PredicateNameAndArity> closedList = new HashSet<>();
+        final Set<PredicateNameAndArity> closedList = new HashSet<>();
 
         PredicateCollectorData(HornClauseContext context) {
             this.context = context;

@@ -24,7 +24,7 @@ public class DefaultHornClausebase implements HornClausebase {
     private List<Clause> backgroundKnowledge = new LinkedList<>();
 
     // Definite clauses with no body, stored as bare Literals.
-    protected List<Literal> facts = new LinkedList<>();
+    private List<Literal> facts = new LinkedList<>();
 
     private HandleFOPCstrings stringHandler;
 
@@ -67,12 +67,12 @@ public class DefaultHornClausebase implements HornClausebase {
     private int duplicateRuleCount = 0;
 
     public DefaultHornClausebase(HandleFOPCstrings stringHandler) {
-        initializeClausebase(stringHandler, null, null, null);
+        initializeClausebase(stringHandler);
     }
 
-    private void initializeClausebase(HandleFOPCstrings stringHandler, Collection<? extends Sentence> rules, Collection<? extends Sentence> facts, ProcedurallyDefinedPredicateHandler userProcHandler) {
+    private void initializeClausebase(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
-        this.userProcedurallyDefinedPredicateHandler = userProcHandler;
+        this.userProcedurallyDefinedPredicateHandler = null;
 
         this.builtinProcedurallyDefinedPredicateHandler = new BuiltinProcedurallyDefinedPredicateHandler(stringHandler);
 
@@ -80,13 +80,6 @@ public class DefaultHornClausebase implements HornClausebase {
 
         setupDataStructures();
 
-        if (rules != null) {
-            assertBackgroundKnowledge(rules);
-        }
-
-        if (facts != null) {
-            assertFacts(facts);
-        }
     }
 
     /* Initializes the clausebase.
@@ -136,23 +129,6 @@ public class DefaultHornClausebase implements HornClausebase {
     }
 
     @Override
-    public void assertBackgroundKnowledge(Collection<? extends Sentence> sentences) {
-        for (Sentence sentence : sentences) {
-            if (sentence instanceof DefiniteClause) {
-                DefiniteClause definiteClause = (DefiniteClause) sentence;
-                assertBackgroundKnowledge(definiteClause);
-            }
-            else {
-                List<Clause> clauses = sentence.convertToClausalForm();
-                if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
-                    throw new IllegalArgumentException("Sentence '" + sentence + "' is not a definite clause.");
-                }
-                assertBackgroundKnowledge(clauses.get(0));
-            }
-        }
-    }
-
-    @Override
     public void assertFact(Literal literal) {
         if (checkFact(literal)) {
             assertions.add(literal);
@@ -160,17 +136,6 @@ public class DefaultHornClausebase implements HornClausebase {
             indexFact(literal);
 
             fireAssertion(literal);
-        }
-    }
-
-    @Override
-    public void assertFacts(Collection<? extends Sentence> sentences) {
-        for (Sentence sentence : sentences) {
-            List<Clause> clauses = sentence.convertToClausalForm();
-            if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
-                throw new IllegalArgumentException("Sentence '" + sentence + "' is not a definite clause fact.");
-            }
-            assertFact(clauses.get(0).getDefiniteClauseFactAsLiteral());
         }
     }
 
@@ -211,7 +176,7 @@ public class DefaultHornClausebase implements HornClausebase {
         }
     }
 
-    public void removeClause(DefiniteClause clauseToRemove) {
+    private void removeClause(DefiniteClause clauseToRemove) {
         assertions.remove(clauseToRemove);
         backgroundKnowledge.remove(clauseToRemove.getDefiniteClauseAsClause());
         if (clauseToRemove.isDefiniteClauseFact()) {
@@ -464,8 +429,7 @@ public class DefaultHornClausebase implements HornClausebase {
         return getIndexerForFacts().getPossibleMatchingAssertions(clauseHead, currentBinding);
     }
 
-    @Override
-    public boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity) {
+    private boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity) {
         Collection<DefiniteClause> possibleMatches = getIndexerForAllAssertions().getPossibleMatchingAssertions(predName, arity);
         return (possibleMatches != null && possibleMatches.size() > 0);
     }
@@ -634,7 +598,7 @@ public class DefaultHornClausebase implements HornClausebase {
             List<AssertRetractListener> list = listenerMap.get(pnaa);
             if (list != null) {
                 for (AssertRetractListener assertRetractListener : list) {
-                    assertRetractListener.clauseRetracted(this, clause);
+                    assertRetractListener.clauseRetracted();
                 }
             }
         }
@@ -680,7 +644,7 @@ public class DefaultHornClausebase implements HornClausebase {
             }
         }
 
-        public void clauseRetracted(HornClausebase context, DefiniteClause clause) {
+        public void clauseRetracted() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }

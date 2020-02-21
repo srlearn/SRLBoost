@@ -14,9 +14,9 @@ import java.util.Map;
  *
  * @author twalker
  */
-public class PredicateIndex<T extends DefiniteClause> {
+class PredicateIndex<T extends DefiniteClause> {
 
-    private Map<PredicateNameAndArity, List<T>> definiteClausesByPredicateIndex = new HashMap<>();
+    private final Map<PredicateNameAndArity, List<T>> definiteClausesByPredicateIndex = new HashMap<>();
 
     void indexDefiniteClause(PredicateNameAndArity key, T definiteClause) {
         List<T> definiteClausesForKey = definiteClausesByPredicateIndex.computeIfAbsent(key, k -> new ArrayList<>());

@@ -5,9 +5,9 @@ import java.util.List;
 
 public class PredicateNameAndArity {
 
-    private PredicateName predicateName;
+    private final PredicateName predicateName;
 
-    private int arity;
+    private final int arity;
 
     public PredicateNameAndArity(PredicateName predicateName, int arity) {
         this.predicateName = predicateName;

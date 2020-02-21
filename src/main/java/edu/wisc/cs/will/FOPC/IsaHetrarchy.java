@@ -9,9 +9,7 @@ public class IsaHetrarchy {
 	 * Written by shavlik.
 	 */
 
-	protected final static int debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
-	
-	private HandleFOPCstrings stringHandler; // Have a back pointer to the owner of this ISA hetrarchy.
+	private final HandleFOPCstrings stringHandler; // Have a back pointer to the owner of this ISA hetrarchy.
 	
 	private static final String WILL_ANYTHING_TYPE_NAME = "willAnything";
 	private static final String WILL_LIST_TYPE_NAME     = "willList";
@@ -19,12 +17,12 @@ public class IsaHetrarchy {
 	private static final String WILL_BOOLEAN_TYPE_NAME  = "willBoolean";
 	private static final String WILL_TOKEN_TYPE_NAME    = "willToken";
 	private static final String WILL_ATOMIC_TYPE_NAME   = "willAtomic";
-	private Type willNumberType;
+	private final Type willNumberType;
 
-	private   Type                        rootOfISA;
-	private   Map<Type,List<Type>>        isaHetrarchy; // Only LEAF nodes can be ISA more than one type.  EXTENDED (7/09) TO A HETRARCHY.
-	private   Map<Type,List<Type>>        reverseIsaHetrarchy;  // Allow quick lookup of the CHILDREN nodes.
-	private Map<String,Type>            isaTypeHash; // Used to convert strings to types.  THIS IS NOT USED TO STORE PARENTS POINTERS IN THE ISA Hetrarchy (isaHetrarchy is used for this).
+	private final Type                        rootOfISA;
+	private final Map<Type,List<Type>>        isaHetrarchy; // Only LEAF nodes can be ISA more than one type.  EXTENDED (7/09) TO A HETRARCHY.
+	private final Map<Type,List<Type>>        reverseIsaHetrarchy;  // Allow quick lookup of the CHILDREN nodes.
+	private final Map<String,Type>            isaTypeHash; // Used to convert strings to types.  THIS IS NOT USED TO STORE PARENTS POINTERS IN THE ISA Hetrarchy (isaHetrarchy is used for this).
 	
 	IsaHetrarchy(HandleFOPCstrings stringHandler) {
 		
@@ -45,12 +43,6 @@ public class IsaHetrarchy {
 		addISA(willNumberType,  getIsaType(WILL_ATOMIC_TYPE_NAME));
 		addISA(willBooleanType, getIsaType(WILL_ATOMIC_TYPE_NAME));
 		addISA(willTokenType,   getIsaType(WILL_ATOMIC_TYPE_NAME));
-		
-		if (debugLevel > 2) {
-			Utils.println("%         isa: " + Utils.limitLengthOfPrintedList(isaHetrarchy,        25));
-			Utils.println("% reverse isa: " + Utils.limitLengthOfPrintedList(reverseIsaHetrarchy, 25));
-			Utils.waitHere();
-		}
 	}
 
 	public List<Type> getAllKnownTypesForThisTerm(Term term) {
@@ -94,7 +86,6 @@ public class IsaHetrarchy {
 	}
 	
 	public void addISA(Type child, Type parent) {
-		if (debugLevel > 1) { Utils.println("addISA(" + child + ", " + parent + ")."); }
 		if (isa(child, parent)) { return; }  // Some callers check this and the following line, but not all do, so play it safe.
 		if (isa(parent, child)) { Utils.error("Cannot add '" + child + " ISA " + parent + "' because the reverse is already the case."); }
 		List<Type> otherParents = isaHetrarchy.get(child);
@@ -110,7 +101,6 @@ public class IsaHetrarchy {
 				} else if (isa(parent, otherParent)) {
 					// Want to add isa(A,C) but already have isa(A,B) and isa(C,B),
 					// so can remove the A-B link.  HOWEVER CAN ONKY DO THIS BECAUSE A-B IS A *DIRECT* LINK.  OTHERWISE MIGHT LOSE SOME ISA's.
-					if (debugLevel > 1) { Utils.println("removeISA(" + child + ", " + otherParent + ") because isa(" + parent + ", " + otherParent + ")."); }
 					parentIter.remove(); // Need to use this instead of removeISA() due to the way Java iteration works.
 					removeFromReverseISA(otherParent, child);
 				}
@@ -123,7 +113,6 @@ public class IsaHetrarchy {
 		otherParents.add(parent);		
 		addToReverseISA(parent, child);	
 		if (!isaHetrarchy.containsKey(parent)) { addISA(parent, rootOfISA); }
-		if (debugLevel > 1) { Utils.println("addISA(" + child + ", " + parent + "): isa = " + Utils.limitLengthOfPrintedList(isaHetrarchy, 25)); }
 	}
 	
 	/*
@@ -197,7 +186,6 @@ public class IsaHetrarchy {
 
 	// Collect all the instances of this type AND OF ITS CHILDREN.  A FRESH list is returned.
 	public Set<Term> getAllInstances(Type thisType) {
-		if (debugLevel > 3) { Utils.println("% knownConstantsOfThisType = " + Utils.limitLengthOfPrintedList(stringHandler.knownConstantsOfThisType, 50)); }
 		
 		// First get all the instances at this node.
 		Set<Term> results = stringHandler.getConstantsOfExactlyThisTypeAsList(thisType);

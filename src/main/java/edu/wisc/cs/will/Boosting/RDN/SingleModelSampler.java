@@ -13,9 +13,9 @@ import java.util.List;
 
 public class SingleModelSampler extends SRLInference {
 
-	private ConditionalModelPerPredicate conditionalModel;
+	private final ConditionalModelPerPredicate conditionalModel;
 
-	private boolean hasRecursion;
+	private final boolean hasRecursion;
 
 
 	public SingleModelSampler(ConditionalModelPerPredicate model, WILLSetup setup, JointRDNModel jointModel, boolean isRecursive) {

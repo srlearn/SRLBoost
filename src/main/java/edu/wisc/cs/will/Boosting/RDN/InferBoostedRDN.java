@@ -24,14 +24,14 @@ import java.util.*;
 public class InferBoostedRDN {
 
 	private boolean printExamples = false;
-	private boolean writeQueryAndResults = true;
+	private final boolean writeQueryAndResults = true;
 	private boolean useOldFileLocations = true;
 	private double  minRecallForAUCPR = 0;
 	private double minLCTrees = 20;
 	private double incrLCTrees = 2;
 	
-	private CommandLineArguments cmdArgs;	
-	private WILLSetup setup;
+	private final CommandLineArguments cmdArgs;
+	private final WILLSetup setup;
 	private JointRDNModel model;
 
 	private static final String RDNTreeStats = "RDNtreePathStats";
@@ -199,7 +199,7 @@ public class InferBoostedRDN {
 					}
 				}
 			}
-			double f1 = getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount, usingAllEgs);
+			getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount, usingAllEgs);
 		}
 	}
 
@@ -271,12 +271,12 @@ public class InferBoostedRDN {
 		}
 	}
 	
-	private void reportResultsToCollectorFile(BufferedWriter collectorBW, String modelName, String category, ProbDistribution prob, double wgt, RegressionRDNExample example) throws IOException {
+	private void reportResultsToCollectorFile(BufferedWriter collectorBW, String category, ProbDistribution prob, double wgt, RegressionRDNExample example) throws IOException {
 		if (category == null) {
-			collectorBW.append("// Results of '").append(modelName == null ? "unnamedModel" : modelName).append("'.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
+			collectorBW.append("// Results of '").append("unnamedModel").append("'.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
 			return;
 		}
-		collectorBW.append("modelPrediction(model(").append(modelName).append("), category(").append(category).append("), prob(").append(String.valueOf(prob)).append("), wgt(").append(String.valueOf(wgt)).append("), ").append(String.valueOf(example)).append(").\n").append("\n");
+		collectorBW.append("modelPrediction(model(").append(RunBoostedRDN.nameOfCurrentModel).append("), category(").append(category).append("), prob(").append(String.valueOf(prob)).append("), wgt(").append(String.valueOf(wgt)).append("), ").append(String.valueOf(example)).append(").\n").append("\n");
 	}
 
 	private String getTreeStatsFile(boolean getLocalFile) {
@@ -361,8 +361,8 @@ public class InferBoostedRDN {
 				(target.isEmpty() ? "" : "_"+target) + "." + type;
 	}
 
-	private double getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
-							  String target, int trees, boolean usingAllEgs) {
+	private void getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
+							 String target, int trees, boolean usingAllEgs) {
 		// TODO(@hayesall): Why does this return a double when the double is never used?
 
 		// We repeatedly loop over the examples, but the code at least is cleaner.
@@ -428,12 +428,12 @@ public class InferBoostedRDN {
 			resultsString += "\nrecall(   " + target + ", " + Utils.truncate(score.getRecall(),    6) + ", usingThreshold(" + threshold + ")).";
 			resultsString += "\nF1(       " + target + ", " + Utils.truncate(score.getF1(),        6) + ", usingThreshold(" + threshold + ")).";
 			if (writeQueryAndResults) { Utils.writeStringToFile(resultsString + "\n", new CondorFile(fileNameForResults)); }
-			return score.getF1();
+			score.getF1();
+			return;
 		}
 		
 		if (writeQueryAndResults) { Utils.writeStringToFile(resultsString + "\n", new CondorFile(fileNameForResults)); }
-		return -1;
-		
+
 	}
 
 	private ComputeAUC computeAUCFromEg(List<RegressionRDNExample> examples, String target) {
@@ -509,16 +509,16 @@ public class InferBoostedRDN {
 			BufferedWriter collectBuffer = new BufferedWriter(new CondorFileWriter(collectorFile)); // Clear the file if it already exists.
 			
 			Utils.println("\nwriteToCollectorFile: Writing out predictions on " + Utils.comma(examples) + " examples for '" + cmdArgs.getTargetPredVal() + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker()  + "'\n  " + fileName);
-			if (collectorFile != null) { reportResultsToCollectorFile(collectBuffer, RunBoostedRDN.nameOfCurrentModel, null, null, 0.0, null); }
+			if (collectorFile != null) { reportResultsToCollectorFile(collectBuffer, null, null, 0.0, null); }
 			for (RegressionRDNExample pex : examples) {
 				ProbDistribution prob    = pex.getProbOfExample();
 				double wgtOnEx = pex.getWeightOnExample();
 			
 				if (pex.isOriginalTruthValue()) { posCounter++; } else { negCounter++; }
-				if (collectorFile != null) { reportResultsToCollectorFile(collectBuffer, RunBoostedRDN.nameOfCurrentModel, pex.isOriginalTruthValue() ? "pos" : "neg", prob, wgtOnEx, pex); }
+				if (collectorFile != null) { reportResultsToCollectorFile(collectBuffer, pex.isOriginalTruthValue() ? "pos" : "neg", prob, wgtOnEx, pex); }
 			}
 			collectBuffer.close();
-			if (collectorFile != null) { sortLinesInPredictedProbsFile(RunBoostedRDN.nameOfCurrentModel, fileName, fileNameSorted); }
+			if (collectorFile != null) { sortLinesInPredictedProbsFile(fileName, fileNameSorted); }
 		} catch (IOException e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Something went wrong:\n   " + e);
@@ -529,12 +529,12 @@ public class InferBoostedRDN {
 		Utils.println("writeToCollectorFile:  " + fileName + "\n   |pos| = " + Utils.comma(posCounter) + "\n   |neg| = " + Utils.comma(negCounter));
 	}
 	
-	private void sortLinesInPredictedProbsFile(String modelName, String fileToRead, String fileToWrite) {
+	private void sortLinesInPredictedProbsFile(String fileToRead, String fileToWrite) {
 		Utils.ensureDirExists(fileToWrite);
 		List<Literal> lits = setup.getInnerLooper().getParser().readLiteralsInFile(fileToRead, false, false);
 		CompareProbsInModelPredictions comparator = new CompareProbsInModelPredictions();
 		lits.sort(comparator);
-		Utils.writeObjectsToFile(fileToWrite, lits, ". // #COUNT", "// Results of '" + modelName + "' sorted by the predicted probability.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
+		Utils.writeObjectsToFile(fileToWrite, lits, ". // #COUNT", "// Results of '" + RunBoostedRDN.nameOfCurrentModel + "' sorted by the predicted probability.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
 	}
 	
 	/*
@@ -545,8 +545,8 @@ public class InferBoostedRDN {
 	 * @author tkhot
 	 *
 	 */
-	public static class ValueComparator implements Comparator<String> {
-		Map<String, Double> base;
+	static class ValueComparator implements Comparator<String> {
+		final Map<String, Double> base;
 		ValueComparator(Map<String, Double> input) {
 			base = input;
 		}
@@ -679,10 +679,10 @@ public class InferBoostedRDN {
 		// Will collect the 'context' around a fact.  Turn off until we think this is needed.  It is a slow calculation.
 
 		// PredicateModes pmodes = new PredicateModes(setup.getInnerLooper());
-		List<PredicateNameAndArity> pars = setup.getListOfPredicateAritiesForNeighboringFacts();
+		setup.getListOfPredicateAritiesForNeighboringFacts();
 
 		// Should be set somewhere else
-		List<Boolean> bit_mask = setup.getBitMaskForNeighboringFactArguments(target);
+		setup.getBitMaskForNeighboringFactArguments(target);
 
 		// Write all examples to a query.db file
 		// Results/Probs to results.db

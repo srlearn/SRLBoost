@@ -36,20 +36,18 @@ import java.util.List;
  *
  */
 public class LearnBoostedRDN {
-	protected final static int debugLevel = 1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
+	private final static int debugLevel = 1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
-	private CommandLineArguments cmdArgs;
-	private ExampleSubSampler egSubSampler;
-	private WILLSetup setup;
+	private final CommandLineArguments cmdArgs;
+	private final ExampleSubSampler egSubSampler;
+	private final WILLSetup setup;
 
 	private List<RegressionRDNExample> egs    = null;
 	private String  targetPredicate          = null;
 	private int     maxTrees                 = 10;
-	private double  minGradientForSame       = 0.0002;
-	private double  minPercentageSameForStop = 0.8;
 	private String  yapSettingsFile;
 	private boolean resampleExamples        = true;
-	private boolean stopIfFewChanges        = false;
+	private final boolean stopIfFewChanges        = false;
 	private boolean performLineSearch       = false;
 	private boolean learnSingleTheory 		= false;
 	private boolean disableBoosting			= false;
@@ -325,7 +323,7 @@ public class LearnBoostedRDN {
 		}
 	}
 
-	private Collection<Literal> theseFlattenedLits = new HashSet<>(4);
+	private final Collection<Literal> theseFlattenedLits = new HashSet<>(4);
 	private RegressionTree getWILLTree(List<RegressionRDNExample> newDataSet, int i) {
 		TreeStructuredTheory th;
 		Theory thry = null;
@@ -415,9 +413,11 @@ public class LearnBoostedRDN {
 	}
 
 	private boolean doEarlyStop(List<RegressionRDNExample> old_eg_set, SingleModelSampler sampler) {
+		double minGradientForSame = 0.0002;
 		if (stopIfFewChanges && old_eg_set != null) {
 			int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
 			if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set)); }
+			double minPercentageSameForStop = 0.8;
 			return ((double) numOfEgSame / (double) old_eg_set.size()) > minPercentageSameForStop;
 		} else {
 			if(old_eg_set != null) {

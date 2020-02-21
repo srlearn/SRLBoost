@@ -19,11 +19,11 @@ import java.util.List;
 public class StateBasedSearchTask<T extends SearchNode> {
 	protected String taskName = "unnamedTask"; // Used in println's to clarify which task is being discussed.
 
-    SearchStrategy strategy;
+    private SearchStrategy strategy;
 
     public ScoringFunction scorer;
 
-    public ChildrenNodeGenerator<T> childrenGenerator;
+    public ChildrenNodeGenerator childrenGenerator;
 
     public Initializer initializer;
 
@@ -33,7 +33,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     public ClosedList closed;
 
-    boolean    addNodesToClosedListWhenCreated = true;
+    final boolean    addNodesToClosedListWhenCreated = true;
 
     public SearchMonitor searchMonitor;
 
@@ -41,11 +41,11 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     private SearchNode bestNodeVisited;
 
-    boolean stopWhenMaxNodesCreatedReached = true;
+    final boolean stopWhenMaxNodesCreatedReached = true;
 
-    boolean stopWhenMaxNodesCreatedThisIterationReached = true;
+    final boolean stopWhenMaxNodesCreatedThisIterationReached = true;
 
-    public int maxNodesToConsider = -1;
+    private int maxNodesToConsider = -1;
 
     private int maxNodesToCreate = -1;
 
@@ -53,13 +53,13 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     public int beamWidth = -1;
 
-    double minAcceptableScore = Double.NEGATIVE_INFINITY;
+    final double minAcceptableScore = Double.NEGATIVE_INFINITY;
 
-    boolean allowToTieMinAcceptableScore = true;
+    final boolean allowToTieMinAcceptableScore = true;
 
-    boolean inOpenListPutNewTiesInFront = false;
+    final boolean inOpenListPutNewTiesInFront = false;
 
-    private boolean useIterativeDeepeningDepth = false;
+    private final boolean useIterativeDeepeningDepth = false;
 
     public boolean continueTheSearch = true;
 
@@ -94,7 +94,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     private long iterationStartTimeInMillisec = -1;
 
-    protected boolean initialized = false;
+    private boolean initialized = false;
 
     /* If true, the open list is not cleared at the end of a search.
      *
@@ -106,14 +106,13 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     protected boolean      discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar = false; // If true, do a branch-and-bound search.
     double       bestScoreSeenSoFar                                    = Double.NEGATIVE_INFINITY;
-    T   nodeWithBestScore                                     = null; // The search monitor's job is to return the best answer.  This variable is only used for reporting purposes.
     public    int          nodesNotAddedToOPENsinceMaxScoreTooLow                = 0;
     public    int          nodesRemovedFromOPENsinceMaxScoreNowTooLow            = 0;
 	
     /*
      * Default constructor. Does nothing.
      */
-    public StateBasedSearchTask() {
+    protected StateBasedSearchTask() {
     }
 
     /*
@@ -167,15 +166,21 @@ public class StateBasedSearchTask<T extends SearchNode> {
         this.childrenGenerator = childrenGenerator;
         this.closed            = closed;
 
+        assert initializer != null;
         initializer.setSearchTask(this);
         if (terminator != null) { terminator.setSearchTask(); } // It isn't required there be a terminator (eg, max nodes might terminate the search).
         searchMonitor.setSearchTask(this);
         strategy.setSearchTask(this);
         if (scorer != null) { scorer.setSearchTask(); } // It isn't required that there be a node-scorer.
+
+
+        assert childrenGenerator != null;
         childrenGenerator.setSearchTask(this);
+
+
         if (closed != null) { closed.setSearchTask(); } // It isn't required that there be a closed list.
 
-        if (open == null) { open = new OpenList(this); }
+        if (open == null) { open = new OpenList<>(this); }
     }
     
     /*
@@ -192,19 +197,11 @@ public class StateBasedSearchTask<T extends SearchNode> {
             lastNodeVisited = null; // Allow this to persist across iterative deep. in case a future use arises.
 
             bestScoreSeenSoFar = Double.NEGATIVE_INFINITY;
-            nodeWithBestScore  = null;
             nodesNotAddedToOPENsinceMaxScoreTooLow     = 0;
             nodesRemovedFromOPENsinceMaxScoreNowTooLow = 0;
 
         }
         continueTheSearch = true;
-    }
-
-    /*
-     * Clears saved search information. Does nothing.
-     *
-     */
-    public void clearAnySavedInformation() {
     }
 
     /*
@@ -243,7 +240,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
                 closed.emptyClosedList();
             } // Should we allow closed lists to persist across multiple iterations?  Generally won't want to do so.  Hence another boolean would be needed.
             if (open == null) {
-                open = new OpenList(this);
+                open = new OpenList<>(this);
             }
             initializer.initializeOpen(open); // Do this AFTER clearing CLOSED.
             initialized = true;
@@ -263,13 +260,9 @@ public class StateBasedSearchTask<T extends SearchNode> {
      */
     private void resetAll(boolean withinInterativeDeepening) {
         clearAnySavedBasicSearchInformation(withinInterativeDeepening); // Explicitly call this rather than counting on subclasses to call super().
-        clearAnySavedInformation();
-        if (initializer       != null) { searchMonitor.clearAnySavedInformation(); } // Clear any remnants of any previous searches.
-        if (terminator        != null) { terminator.clearAnySavedInformation(withinInterativeDeepening);    }
-        if (searchMonitor     != null) { searchMonitor.clearAnySavedInformation(); }
-        if (strategy          != null) { strategy.clearAnySavedInformation();      }
+        if (terminator        != null) { terminator.clearAnySavedInformation();    }
         if (scorer            != null) { scorer.clearAnySavedInformation();        }
-        if (childrenGenerator != null) { childrenGenerator.clearAnySavedInformation(withinInterativeDeepening); }
+        if (childrenGenerator != null) { childrenGenerator.clearAnySavedInformation(); }
 
         initialized = false;
     }
@@ -298,7 +291,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
             return result;
         }
 		if (open == null) {
-		    open = new OpenList(this);
+		    open = new OpenList<>(this);
 		    initializer.initializeOpen(open);
 		} // Do this here so that 'verbosity' can be set before OPEN is created.
 
@@ -323,7 +316,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
         }
 
         bestScoreSeenSoFar = Double.NEGATIVE_INFINITY;
-        nodeWithBestScore  = null;
 
         sr = performSearchIteration();
 
@@ -341,10 +333,10 @@ public class StateBasedSearchTask<T extends SearchNode> {
         return search();
     }
     
-    public boolean isThereTimeLeft() {
-    	if (maximumClockTimePerIterationInMillisec == Long.MAX_VALUE) { return true; }
+    public boolean isThereNotTimeLeft() {
+    	if (maximumClockTimePerIterationInMillisec == Long.MAX_VALUE) { return false; }
 
-        return (System.currentTimeMillis() - iterationStartTimeInMillisec < maximumClockTimePerIterationInMillisec);
+        return (System.currentTimeMillis() - iterationStartTimeInMillisec >= maximumClockTimePerIterationInMillisec);
     }
     
     public String explainTimeLeft() {
@@ -390,7 +382,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
                 searchMonitor.searchEndedByMaxNodesConsidered(nodesConsidered);
             }
 
-            if (!isThereTimeLeft()) {
+            if (isThereNotTimeLeft()) {
                 done = true;
                 if (countOfWarnings++ < maxWarnings) {
                     long currentTime = System.currentTimeMillis();
@@ -454,7 +446,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
                     }
                 }
                 
-                if (verbosity > 2) { Utils.println("  task=" + taskName + "  |open| = " + open.size() + "  done=" + done + " continueTheSearch=" + continueTheSearch); }
+                if (verbosity > 2) { Utils.println("  task=" + taskName + "  |open| = " + open.size() + "  done=" + " continueTheSearch=" + continueTheSearch); }
 
                 if (open.isEmpty()) {
                     done = true;
@@ -464,7 +456,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
             if (done && !redoable) {
             	open.clear(); // Even if we worried about getting the next solution (see TAW notes below), ok to clear here since we hit limits (which prevent spending time on more solutions).
             	if (closed != null) { closed.emptyClosedList(); } // Ditto.
-            	if (verbosity > 2) { Utils.println("  task=" + taskName + ";  |open| = " + open.size() + ";  done=" + done + "; continueTheSearch=" + continueTheSearch + "."); } // "; node = " + lastNodeVisited); }
+            	if (verbosity > 2) { Utils.println("  task=" + taskName + ";  |open| = " + open.size() + ";  done=" + "; continueTheSearch=" + continueTheSearch + "."); } // "; node = " + lastNodeVisited); }
             } 
         }
         return searchMonitor.getSearchResult();

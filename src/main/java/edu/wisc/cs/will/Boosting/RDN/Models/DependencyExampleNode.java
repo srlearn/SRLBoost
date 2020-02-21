@@ -7,9 +7,9 @@ import edu.wisc.cs.will.FOPC.Literal;
  */
 public class DependencyExampleNode extends DependencyNode {
 	// Note: Literals may have variables in them
-	private Literal example;
+	private final Literal example;
 	
-	private ExampleType type;
+	private final ExampleType type;
 
 	public enum ExampleType {
 		QUERY,
@@ -29,13 +29,11 @@ public class DependencyExampleNode extends DependencyNode {
 		return example;
 	}
 
-	@Override
-	public String labelForDOT() {
+	private String labelForDOT() {
 		return example.toString();
 	}
 
-	@Override
-	public String colorForDOT() {
+	private String colorForDOT() {
 		switch(type) {
 		case QUERY: return "gray52";
 		case VARIABLIZED: return "gray62";

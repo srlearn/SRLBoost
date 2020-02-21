@@ -13,15 +13,13 @@ import java.util.Set;
  */
 public class MutuallyExclusiveModeConstraint implements ModeConstraint {
 
-    private final static int debugLevel = 0;
+    private final Set<PredicateNameAndArity> mutuallyExclusiveModes;
 
-    private Set<PredicateNameAndArity> mutuallyExclusiveModes;
+    private final int maxOccurances;
 
-    private int maxOccurances;
-
-    MutuallyExclusiveModeConstraint(Collection<PredicateNameAndArity> mutuallyExclusiveModes, int maxOccurances) {
+    MutuallyExclusiveModeConstraint(Collection<PredicateNameAndArity> mutuallyExclusiveModes) {
         this.mutuallyExclusiveModes = new HashSet<>(mutuallyExclusiveModes);
-        this.maxOccurances = maxOccurances;
+        this.maxOccurances = 1;
     }
 
     @Override
@@ -29,49 +27,39 @@ public class MutuallyExclusiveModeConstraint implements ModeConstraint {
 
         Set<PredicateNameAndArity> result = null;
 
-        if ( debugLevel >= 2) {
-            Utils.print("MutuallyExclusiveMode: Checking constraint on " + nodeBeingExpanded.getClause() + ".\n" );
-        }
-
         if (nodeBeingExpanded.bodyLength() >= maxOccurances) {
             boolean removeModes = false;
 
-            if (mutuallyExclusiveModes != null) {
-                int count = 0;
+            int count = 0;
 
-                SingleClauseNode node = nodeBeingExpanded;
-                while (node != null) {
-                    Literal lit = node.literalAdded;
-                    PredicateNameAndArity pna = lit.getPredicateNameAndArity();
-                    if (mutuallyExclusiveModes.contains(pna)) {
-                        count++;
-                    }
-
-                    if (count >= maxOccurances) {
-                        removeModes = true;
-                        break;
-                    }
-
-                    node = node.getParentNode();
+            SingleClauseNode node = nodeBeingExpanded;
+            while (node != null) {
+                Literal lit = node.literalAdded;
+                PredicateNameAndArity pna = lit.getPredicateNameAndArity();
+                if (mutuallyExclusiveModes.contains(pna)) {
+                    count++;
                 }
 
-                if (removeModes) {
-                    if (!isMutable) {
-                        result = new HashSet<>(eligibleExpansionModes);
-                    }
-
-                    for (PredicateNameAndArity predicateNameAndArity : mutuallyExclusiveModes) {
-                        assert result != null;
-                        result.remove(predicateNameAndArity);
-                        
-                    }
-
-                    if ( debugLevel >= 1 ) {
-                            Utils.print("MutuallyExclusiveModeConstrain: Removing mode " + mutuallyExclusiveModes + ".\n" );
-                        }
+                if (count >= maxOccurances) {
+                    removeModes = true;
+                    break;
                 }
 
+                node = node.getParentNode();
             }
+
+            if (removeModes) {
+                if (!isMutable) {
+                    result = new HashSet<>(eligibleExpansionModes);
+                }
+
+                for (PredicateNameAndArity predicateNameAndArity : mutuallyExclusiveModes) {
+                    assert result != null;
+                    result.remove(predicateNameAndArity);
+
+                }
+            }
+
         }
 
         return result;

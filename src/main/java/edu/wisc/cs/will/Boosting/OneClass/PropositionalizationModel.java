@@ -1,7 +1,5 @@
 package edu.wisc.cs.will.Boosting.OneClass;
 
-import edu.wisc.cs.will.Boosting.RDN.MultiClassExampleHandler;
-import edu.wisc.cs.will.Boosting.RDN.MultiClassExampleHandler.ConstantLookupList;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.Trees.FeatureTree;
@@ -20,20 +18,15 @@ import java.util.List;
  * @author tkhot
  *
  */
-public class PropositionalizationModel {
+class PropositionalizationModel {
 
 	private String predicate;
 	
 	private int numTrees;
 	
-	List<FeatureTree> treeList;
-	
-	/**
-	 * Save the constants for this predicate, if multiclass
-	 */
-	private ConstantLookupList constList = null;
-	
-	/**
+	final List<FeatureTree> treeList;
+
+    /**
 	 * Prefix for every tree used while storing the tree.
 	 * Generally set to the targetPredicate 
 	 */
@@ -181,11 +174,6 @@ public class PropositionalizationModel {
 			
 		
 		// Also reload the constants
-		if (constList != null) {
-			ConstantLookupList newConstList = new MultiClassExampleHandler.ConstantLookupList();
-			newConstList.load(setup, constList.toString());
-			setup.getMulticlassHandler().updateConstantList(predicate, newConstList);
-		}
 	}
 
 

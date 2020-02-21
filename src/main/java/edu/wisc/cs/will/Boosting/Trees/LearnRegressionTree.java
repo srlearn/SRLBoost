@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  */
 public class LearnRegressionTree {
 
-	private WILLSetup setup;
+	private final WILLSetup setup;
 	
 	public LearnRegressionTree(WILLSetup setup) {
 		this.setup = setup;

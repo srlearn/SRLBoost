@@ -11,11 +11,11 @@ public abstract class SearchStrategy {
     /*
      * The specification for a state-based search task.
      */
-    protected StateBasedSearchTask task;
+    StateBasedSearchTask task;
 
     SearchStrategy() {}
 
-    public void setSearchTask(StateBasedSearchTask task) {
+    void setSearchTask(StateBasedSearchTask task) {
         this.task = task;
     }
 
@@ -28,5 +28,4 @@ public abstract class SearchStrategy {
      */
     public abstract <T extends SearchNode> void addChildrenToOpenList(OpenList<T> open, List<T> children) throws SearchInterrupted;
 
-    public void clearAnySavedInformation() {}
 }

@@ -13,14 +13,14 @@ import java.util.List;
  * @author shavlik
  *  Holds a task for learning an interior node for a tree-structured theory.
  */
-public class TreeStructuredLearningTask implements Serializable {
+class TreeStructuredLearningTask implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private List<Example>  posExamples;
-	private List<Example>  negExamples;
+	private final List<Example>  posExamples;
+	private final List<Example>  negExamples;
 	
-	private TreeStructuredTheoryInteriorNode node;
+	private final TreeStructuredTheoryInteriorNode node;
 	private SingleClauseNode          creatingNode;
 	private double                    score;
 
@@ -34,7 +34,7 @@ public class TreeStructuredLearningTask implements Serializable {
 		return posExamples;
 	}
 
-	public List<Example> getNegExamples() {
+	List<Example> getNegExamples() {
 		return negExamples;
 	}
 

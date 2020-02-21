@@ -10,7 +10,7 @@ import java.io.Serializable;
  */
 public abstract class SearchNode implements Serializable {
 
-	private SearchNode parentNode;
+	private final SearchNode parentNode;
 
 	// Provide a back pointer.
 	transient public StateBasedSearchTask task;
@@ -29,7 +29,7 @@ public abstract class SearchNode implements Serializable {
 	/*
 	 * Create the root node, since it connects nodes to the search task.
 	 */
-	public SearchNode(StateBasedSearchTask task) {
+	protected SearchNode(StateBasedSearchTask task) {
 		this.task = task;
 		if (task == null) {
 			Utils.error("Creating a search node but have task=null.");
@@ -37,7 +37,7 @@ public abstract class SearchNode implements Serializable {
 		this.parentNode = null;		
 	}
 
-	public SearchNode(SearchNode parentNode) {
+	protected SearchNode(SearchNode parentNode) {
 		task = parentNode.task;
 		this.parentNode = parentNode;
 		depth  = parentNode.depth + 1;
@@ -50,12 +50,6 @@ public abstract class SearchNode implements Serializable {
 	// The next two are only needed when dealing with CLOSED lists.
 	// Remember that if two search nodes are equal, then their hash codes also need to be equal.
 
-	public int hashCode() {
-		// Use the built-in hash code, but leave this here as a reminder to override if needed
-		// (if two different nodes are equal, then they will need to have the same hash code [I think]).
-		return super.hashCode();
-	}
-	
 	public boolean equals(Object otherNode) {
 		// Leave this here as a reminder to override if needed.
 		return super.equals(otherNode); 
@@ -79,10 +73,6 @@ public abstract class SearchNode implements Serializable {
 
     public SearchNode getParentNode() {
         return parentNode;
-    }
-
-    public void setParentNode(SearchNode parentNode) {
-        this.parentNode = parentNode;
     }
 
 	public void setDontAddMeToOPEN(boolean dontAddMeToOPEN) {

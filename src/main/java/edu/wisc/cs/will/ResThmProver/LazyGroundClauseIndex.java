@@ -19,10 +19,10 @@ import java.util.Map;
  */
 public class LazyGroundClauseIndex {
 
-    private HornClausebase clausebase;
+    private final HornClausebase clausebase;
 
     private static int maximumIndexSizeDefault = 150;
-    private        int maximumIndexSize        = maximumIndexSizeDefault;
+    private final int maximumIndexSize        = maximumIndexSizeDefault;
 	public  static void setMaximumIndexSize(int maximumIndexSizeToUse) {
 		maximumIndexSizeDefault = maximumIndexSizeToUse;
 	}
@@ -31,9 +31,10 @@ public class LazyGroundClauseIndex {
 
     private int indicesRemoved = 0;
 
+    // TODO(@hayesall): "Queried but never updated." `indexBuilds` might be factored out.
     private Map<PredicateNameAndArity, Integer> indexBuilds;
 
-    private Map<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> definiteClausesAllArgsIndex = new LRUMap();
+    private final Map<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> definiteClausesAllArgsIndex = new LRUMap();
 
     /* Store clauses in which one or more of the args is not ground.
      *
@@ -41,7 +42,7 @@ public class LazyGroundClauseIndex {
      * all args.  This is necessary to make sure unseen term combinations
      * start with the unground clauses in their index.
      */
-    private Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundArgs = new HashMap<>();
+    private final Map<PredicateNameAndArity, DefiniteClauseList> definiteClausesWithUngroundArgs = new HashMap<>();
 
     public LazyGroundClauseIndex(HornClausebase clausebase) {
         this.clausebase = clausebase;
@@ -62,10 +63,6 @@ public class LazyGroundClauseIndex {
 
             if (headLiteral.isGrounded()) {
 
-                if (LazyHornClausebase.DEBUG >= 2) {
-                    Utils.println("% [ LazyGroundClauseIndex ]  Indexing ground clause " + definiteClause + ".");
-                }
-
                 DefiniteClauseList definiteClauseList = mapForKey.get(headLiteral.getArguments());
 
                 if (definiteClauseList == null) {
@@ -76,10 +73,6 @@ public class LazyGroundClauseIndex {
                 definiteClauseList.add(definiteClause);
             }
             else {
-
-                if (LazyHornClausebase.DEBUG >= 2) {
-                    Utils.println("% [ LazyGroundClauseIndex ]  Indexing non-ground clause " + definiteClause + ".");
-                }
 
                 // This is an non-ground literal, so we just need to throw into all of the appropriate
                 // places was well as the seed list.
@@ -98,38 +91,36 @@ public class LazyGroundClauseIndex {
         if (definiteClausesAllArgsIndex.containsKey(key)) {
             Literal headLiteral = definiteClause.getDefiniteClauseHead();
 
-            if (definiteClausesAllArgsIndex != null) {
-                Map<List<Term>, DefiniteClauseList> mapForKey = definiteClausesAllArgsIndex.get(key);
-                if (mapForKey != null) {
+            Map<List<Term>, DefiniteClauseList> mapForKey = definiteClausesAllArgsIndex.get(key);
+            if (mapForKey != null) {
 
-                    if (headLiteral.isGrounded()) {
-                        DefiniteClauseList definiteClauseList = mapForKey.get(headLiteral.getArguments());
+                if (headLiteral.isGrounded()) {
+                    DefiniteClauseList definiteClauseList = mapForKey.get(headLiteral.getArguments());
 
-                        if (definiteClauseList != null) {
-                            definiteClauseList.remove(definiteClause);
-                        }
-
-                        assert definiteClauseList != null;
-                        if (definiteClauseList.isEmpty()) {
-                            mapForKey.remove(headLiteral.getArguments());
-                        }
+                    if (definiteClauseList != null) {
+                        definiteClauseList.remove(definiteClause);
                     }
-                    else {
-                        // This is an non-ground literal, so we just need to throw into all of the appropriate
-                        // places was well as the seed list.
-                        for (DefiniteClauseList list : mapForKey.values()) {
-                            list.remove(definiteClause);
-                        }
 
-                        removeDefiniteClausesSeedDefiniteClause(key, definiteClause);
+                    assert definiteClauseList != null;
+                    if (definiteClauseList.isEmpty()) {
+                        mapForKey.remove(headLiteral.getArguments());
                     }
+                }
+                else {
+                    // This is an non-ground literal, so we just need to throw into all of the appropriate
+                    // places was well as the seed list.
+                    for (DefiniteClauseList list : mapForKey.values()) {
+                        list.remove(definiteClause);
+                    }
+
+                    removeDefiniteClausesSeedDefiniteClause(key, definiteClause);
                 }
             }
         }
     }
 
     DefiniteClauseList lookupDefiniteClauses(Literal lookupLiteral) {
-        if (definiteClausesAllArgsIndex != null && lookupLiteral != null && lookupLiteral.isGrounded()) {
+        if (lookupLiteral != null && lookupLiteral.isGrounded()) {
             PredicateNameAndArity key = lookupLiteral.getPredicateNameAndArity();
             Map<List<Term>, DefiniteClauseList> mapForKey = definiteClausesAllArgsIndex.get(key);
 
@@ -219,14 +210,6 @@ public class LazyGroundClauseIndex {
 
         indicesConstructed++;
 
-        if (LazyHornClausebase.DEBUG >= 1) {
-            if (indexBuilds == null) {
-                indexBuilds = new HashMap<>();
-            }
-
-            Integer count = indexBuilds.get(key);
-            indexBuilds.put(key, count == null ? 1 : count + 1);
-        }
 
         MapOfDefiniteClauseLists assertions = clausebase.getAssertionsMap();
         DefiniteClauseList clauses = assertions.getValues(key);

@@ -34,7 +34,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 	/*
 	 *  List of boosted trees
 	 */
-	private List<RegressionTree[]> boostedTrees;
+	private final List<RegressionTree[]> boostedTrees;
 
 	/*
 	 *  Number of trees. Generally numTrees would be the same as the boostedTrees size but one can reduce this.
@@ -45,7 +45,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 	 *  Step length for gradient.
 	 *  All models in a array of RegressionTree[] have the same stepLength.
 	 */
-	private List<Double> stepLength;
+	private final List<Double> stepLength;
 
 	/*
 	 * Predicate for which model is learnt.
@@ -78,7 +78,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 	 */
 	private List<Sentence> theory;
 
-	private RegressionTree prior_advice;
+	private final RegressionTree prior_advice;
 
 	public ConditionalModelPerPredicate(WILLSetup willsetup) {	
 		boostedTrees = new ArrayList<>(4);
@@ -130,12 +130,8 @@ public class ConditionalModelPerPredicate implements Serializable {
 
 				RegressionValueOrVector thisValue = tree[i].getRegressionValue(ex);
 				thisValue.multiply(stepLength.get(counter));
-				
-				if (sum_grad == null) {
-					sum_grad = thisValue;
-				} else {
-					sum_grad.addValueOrVector(thisValue);
-				}
+
+				sum_grad = thisValue;
 			}
 			sum_grad.multiply(1/RunBoostedRDN.numbModelsToMake);
 			total_sum_grad.addValueOrVector(sum_grad);
@@ -455,8 +451,6 @@ public class ConditionalModelPerPredicate implements Serializable {
 		if (old_head == null) {
 			Utils.error("Null old_head");
 		}
-
-		assert old_head != null;
 		if (old_head.getArguments() == null) {
 			Utils.error("Null arguments");
 		}

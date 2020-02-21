@@ -27,7 +27,7 @@ public class HiddenLiteralState {
 	 * Used Integer instead of Boolean. For multi-class examples, it indicates the index of 
 	 * the class label.
 	 */
-	private Map<String, List<RegressionRDNExample>> predNameToLiteralMap;
+	private final Map<String, List<RegressionRDNExample>> predNameToLiteralMap;
 	private Map<String, List<Integer>> predNameToAssignMap;
 	
 	// Cache the string representation of literal to assignment map;
@@ -145,10 +145,10 @@ public class HiddenLiteralState {
 	}
 	
 
-	public static class ExampleIterable implements Iterable<Literal> {
+	static class ExampleIterable implements Iterable<Literal> {
 
-		HiddenLiteralState state;
-		Integer match;
+		final HiddenLiteralState state;
+		final Integer match;
 		ExampleIterable(HiddenLiteralState state, Integer match) {
 			this.state = state;
 			this.match = match;
@@ -160,13 +160,13 @@ public class HiddenLiteralState {
 		
 	}
 	
-	public static class ExampleIterator implements Iterator<Literal> {
+	static class ExampleIterator implements Iterator<Literal> {
 
-		Iterator<String> predKeyIterator;
+		final Iterator<String> predKeyIterator;
 		String currentPred;
 		int exampleIndex;
-		HiddenLiteralState state;
-		Integer matchState;
+		final HiddenLiteralState state;
+		final Integer matchState;
 		boolean gotoNext;
 		ExampleIterator(HiddenLiteralState state, Integer match) {
 			this.state = state;

@@ -23,7 +23,8 @@ public class LazyHornClausebase implements HornClausebase {
     private HandleFOPCstrings stringHandler;
 
     private Map<PredicateNameAndArity, List<AssertRetractListener>> listenerMap = null;
-    
+
+    // TODO(@hayesall): Drop the `LazyHornClausebase.DEBUG`
     static final int DEBUG = 0;
 
     /* Index for all assertions.
@@ -81,40 +82,11 @@ public class LazyHornClausebase implements HornClausebase {
     }
 
     @Override
-    public void assertBackgroundKnowledge(Collection<? extends Sentence> sentences) {
-        for (Sentence sentence : sentences) {
-            if (sentence instanceof DefiniteClause) {
-                DefiniteClause definiteClause = (DefiniteClause) sentence;
-                assertBackgroundKnowledge(definiteClause);
-            }
-            else {
-                List<Clause> clauses = sentence.convertToClausalForm();
-                if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
-                    throw new IllegalArgumentException("Sentence '" + sentence + "' is not a definite clause.");
-                }
-                assertBackgroundKnowledge(clauses.get(0));
-            }
-        }
-    }
-
-    @Override
     public void assertFact(Literal literal) {
         if (checkFact(literal)) {
-            if ( DEBUG >= 2 ) Utils.println("% [ LazyHornClausebase ]  Asserting fact " + literal + ".");
             assertions.add(literal.getPredicateNameAndArity(), literal);
             indexerForAllAssertions.indexAssertion(literal);
             fireAssertion(literal);
-        }
-    }
-
-    @Override
-    public void assertFacts(Collection<? extends Sentence> sentences) {
-        for (Sentence sentence : sentences) {
-            List<Clause> clauses = sentence.convertToClausalForm();
-            if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
-                throw new IllegalArgumentException("Sentence '" + sentence + "' is not a definite clause fact.");
-            }
-            assertFact(clauses.get(0).getDefiniteClauseFactAsLiteral());
         }
     }
 
@@ -148,7 +120,7 @@ public class LazyHornClausebase implements HornClausebase {
         }
     }
 
-    public void removeClause(DefiniteClause clauseToRemove) {
+    private void removeClause(DefiniteClause clauseToRemove) {
         PredicateNameAndArity pnaa = clauseToRemove.getDefiniteClauseHead().getPredicateNameAndArity();
         assertions.removeValue(pnaa, clauseToRemove);
         removeFromIndexes(clauseToRemove);
@@ -297,12 +269,6 @@ public class LazyHornClausebase implements HornClausebase {
         }
     }
 
-    /* Builds the AllAssertions index, if necessary.
-     */
-    private void buildAllAssertionsIndex() {
-        // TODO(@hayesall): Empty method, remove.
-    }
-
     @Override
     public DefiniteClauseList getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBinding) {
         return getIndexerForAllAssertions().getPossibleMatchingAssertions(clauseHead, currentBinding);
@@ -320,8 +286,7 @@ public class LazyHornClausebase implements HornClausebase {
         return list == null ? null : list.getFactIterable();
     }
 
-    @Override
-    public boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity) {
+    private boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity) {
         return assertions.containsKey( new PredicateNameAndArity(predName, arity));
     }
 
@@ -433,7 +398,6 @@ public class LazyHornClausebase implements HornClausebase {
      * @return the indexerForAllAssertions
      */
     private LazyHornClausebaseIndexer getIndexerForAllAssertions() {
-        buildAllAssertionsIndex();
         return indexerForAllAssertions;
     }
 
@@ -465,7 +429,7 @@ public class LazyHornClausebase implements HornClausebase {
             List<AssertRetractListener> list = listenerMap.get(pnaa);
             if (list != null) {
                 for (AssertRetractListener assertRetractListener : list) {
-                    assertRetractListener.clauseRetracted(this, clause);
+                    assertRetractListener.clauseRetracted();
                 }
             }
         }
@@ -508,7 +472,7 @@ public class LazyHornClausebase implements HornClausebase {
             }
         }
 
-        public void clauseRetracted(HornClausebase context, DefiniteClause clause) {
+        public void clauseRetracted() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
     }

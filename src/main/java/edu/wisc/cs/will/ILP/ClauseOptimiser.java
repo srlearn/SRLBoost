@@ -15,8 +15,6 @@ import java.util.List;
  */
 public class ClauseOptimiser {
 
-    private final static int debugLevel = -1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
-
     public ClauseOptimiser() {
     }
 
@@ -37,18 +35,6 @@ public class ClauseOptimiser {
      */
     private int[] clauseToComponents(Literal head, List<Literal> body) {
         Collection<Variable> headvars = head.collectAllVariables();
-        if (debugLevel > 1) {
-            Utils.println("clauseToComponents: head = " + head);
-            if (body == null) {
-                Utils.waitHere("clauseToComponents: head = null.");
-            }
-            if (body != null) {
-                for (Literal lit : body) {
-                    Utils.println("   literal = " + lit);
-                }
-            }
-        }
-
         int[] components;
 
         components = new int[body.size()];
@@ -61,9 +47,6 @@ public class ClauseOptimiser {
             int component = i;
 
             Collection<Variable> litvars = lit.collectAllVariables();
-            if (debugLevel > 2) {
-                Utils.println("  litvars = " + litvars + " for literal " + lit);
-            }
             // mark as being in its own component
             components[i] = i;
             // literals have no variable
@@ -102,7 +85,8 @@ public class ClauseOptimiser {
             int[] components = clauseToComponents(head, body);
             int total_components = normalise_components(components);
 
-            int[] ids = new int[body.size()], map = new int[body.size()], size = new int[total_components];
+            int[] map = new int[body.size()];
+            int[] size = new int[total_components];
 
             int next_component = 0;
             for (int i = 0; i < body.size(); i++) {
@@ -112,7 +96,6 @@ public class ClauseOptimiser {
                     map[i] = next_component++;
                 }
                 component = map[components[i]];
-                ids[i] = component;
                 size[component]++;
             }
 

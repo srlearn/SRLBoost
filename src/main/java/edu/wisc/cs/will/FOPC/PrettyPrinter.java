@@ -140,7 +140,7 @@ public class PrettyPrinter {
         private PrettyPrinterVisitor() {
         }
 
-        public PPResult visitOtherSentence(Sentence otherSentence, FOPCPrettyPrinterData data) {
+        public PPResult visitOtherSentence(Sentence otherSentence) {
             return new PPResult(otherSentence.toString(), false, Integer.MAX_VALUE);
         }
 
@@ -375,13 +375,6 @@ public class PrettyPrinter {
         }
 
         public PPResult visitListAsTerm(ListAsTerm listAsTerm, FOPCPrettyPrinterData data) {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("[");
-            for (Term term : listAsTerm.objects) {
-                PPResult r = term.accept(this, data);
-                stringBuilder.append(r.resultString);
-            }
-            stringBuilder.append("]");
             return null;
         }
 
@@ -730,9 +723,9 @@ public class PrettyPrinter {
         }
     }
 
-    public static class FOPCPrettyPrinterData {
+    static class FOPCPrettyPrinterData {
 
-        Queue<PrecedenceInfo> precedenceInfo = new LinkedList<>();
+        final Queue<PrecedenceInfo> precedenceInfo = new LinkedList<>();
 
         PrettyPrinterOptions options = new PrettyPrinterOptions();
 
@@ -741,7 +734,7 @@ public class PrettyPrinter {
         int renamedVariableIndex = 0;
 
         FOPCPrettyPrinterData() {
-            pushPrecedence(0);
+            pushPrecedence();
         }
 
         void pushIndent(int additionalIndentation) {
@@ -751,8 +744,8 @@ public class PrettyPrinter {
             precedenceInfo.add(new PrecedenceInfo(newPrefix));
         }
 
-        final void pushPrecedence(int precedence) {
-            precedenceInfo.add(new PrecedenceInfo(precedence));
+        final void pushPrecedence() {
+            precedenceInfo.add(new PrecedenceInfo());
         }
 
         PrecedenceInfo getCurrentPrecedence() {
@@ -763,7 +756,7 @@ public class PrettyPrinter {
             precedenceInfo.remove();
         }
 
-        public String getPrefix() {
+        String getPrefix() {
             return getCurrentPrecedence().prefix;
         }
 
@@ -797,7 +790,7 @@ public class PrettyPrinter {
         }
     }
 
-    public static class PrecedenceInfo {
+    static class PrecedenceInfo {
 
         String prefix;
 
@@ -807,8 +800,8 @@ public class PrettyPrinter {
             this.prefix = prefix;
         }
 
-        PrecedenceInfo(int currentIndentation) {
-            this.currentIndentation = currentIndentation;
+        PrecedenceInfo() {
+            this.currentIndentation = 0;
         }
     }
 
@@ -853,11 +846,11 @@ public class PrettyPrinter {
             this.multiline = multiline;
         }
 
-        public int getPrecedence() {
+        int getPrecedence() {
             return precedence;
         }
 
-        public void setPrecedence(int precedence) {
+        void setPrecedence(int precedence) {
             this.precedence = precedence;
         }
 

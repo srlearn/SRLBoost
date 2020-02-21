@@ -6,9 +6,9 @@ import edu.wisc.cs.will.FOPC.Literal;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class DefiniteClauseToLiteralIterable implements Iterable<Literal> {
+class DefiniteClauseToLiteralIterable implements Iterable<Literal> {
 
-    private Iterable<DefiniteClause> iterable;
+    private final Iterable<DefiniteClause> iterable;
 
     DefiniteClauseToLiteralIterable(Iterable<DefiniteClause> iterable) {
         this.iterable = iterable;
@@ -18,7 +18,7 @@ public class DefiniteClauseToLiteralIterable implements Iterable<Literal> {
         return new DefiniteClauseToLiteralIterator(iterable.iterator());
     }
 
-    public static class DefiniteClauseToLiteralIterator implements Iterator<Literal> {
+    static class DefiniteClauseToLiteralIterator implements Iterator<Literal> {
 
         Iterator<DefiniteClause> iterator;
 

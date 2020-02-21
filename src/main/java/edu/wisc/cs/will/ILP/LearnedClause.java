@@ -9,17 +9,17 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
  * This is a clause with some extra information concerning how it was learned.
  */
 public class LearnedClause extends Clause {
-	private LearnOneClause   task;
-	private SingleClauseNode node;
-	private int outerLoopCycle; 
-	private int totalNumberOfPosExamplesCovered; 
-	private int numberOfPosExamplesCovered; 
-	private int newlyCoveredPosExamples;
-	private int numberOfPosExamples;
-	private int totalNumberOfNegExamplesCovered; 
-	private int numberOfNegExamplesCovered; 
-	private int newlyCoveredNegExamples;
-	private int numberOfNegExamples;
+	private final LearnOneClause   task;
+	private final SingleClauseNode node;
+	private final int outerLoopCycle;
+	private final int totalNumberOfPosExamplesCovered;
+	private final int numberOfPosExamplesCovered;
+	private final int newlyCoveredPosExamples;
+	private final int numberOfPosExamples;
+	private final int totalNumberOfNegExamplesCovered;
+	private final int numberOfNegExamplesCovered;
+	private final int newlyCoveredNegExamples;
+	private final int numberOfNegExamples;
 	
 	LearnedClause(LearnOneClause task, SingleClauseNode node, int outerLoopCycle,
 				  int totalNumberOfPosExamplesCovered, int numberOfPosExamplesCovered, int newlyCoveredPosExamples, int numberOfPosExamples,

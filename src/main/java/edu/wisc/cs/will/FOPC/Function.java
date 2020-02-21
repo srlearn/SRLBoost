@@ -11,14 +11,14 @@ import java.util.*;
  */
 public class Function extends Term implements LiteralOrFunction {
 	public  FunctionName functionName;
-	protected List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
+	List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
 	private List<String> argumentNames; // (Optional) names of the arguments.
 	private int        cached_arity      = -1;
 	int        cachedVariableCount = -1; // Only set to false if CHECKED.  (Key: -1 = unknown, 0 = false, 1 = true.)
 
-	public    Function() { // This one is only used in special circumstances, e.g. by WeightedSumModel.		
+	Function() { // This one is only used in special circumstances, e.g. by WeightedSumModel.
 	}
-	protected Function(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, TypeSpec typeSpec) {
+	Function(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, TypeSpec typeSpec) {
 		this.stringHandler = stringHandler;
 		this.functionName  = functionName;
 		this.arguments     = arguments;
@@ -27,10 +27,10 @@ public class Function extends Term implements LiteralOrFunction {
 		assert functionName != null;
 		if (functionName.name.equals("")) { Utils.error("You have not provided a function name that is the empty string!"); }
 	}
-	protected Function(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
+	Function(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
 		this(stringHandler, functionName, null, typeSpec);
 	}
-	protected Function(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
+	Function(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
 		this(stringHandler, functionName, arguments, typeSpec);
 		this.argumentNames = argumentNames;
 		sortArgumentsByName();
@@ -43,7 +43,7 @@ public class Function extends Term implements LiteralOrFunction {
 	void clearArgumentNamesInPlace() {
 		if (numberArgs() < 1) { return; }
 		if (argumentNames != null) {
-			List<String> argOrdering = functionName.getNamedArgOrdering(numberArgs());
+			List<String> argOrdering = functionName.getNamedArgOrdering();
 
 			if (argumentNames.get(0).equalsIgnoreCase("name")) {
 				removeArgument(arguments.get(0), argumentNames.get(0));
@@ -166,12 +166,8 @@ public class Function extends Term implements LiteralOrFunction {
     public Function applyTheta(BindingList bindings) {
         return (Function) super.applyTheta(bindings);
     }
-	
-	// Need for proper copying (e.g., ConsCell reused applyTheta for Function).
-	public Function getBareCopy() {
-		return stringHandler.getFunction(functionName, arguments, argumentNames, typeSpec);
-	}
-	public Function getBareCopy(List<Term> newArguments) {
+
+	Function getBareCopy(List<Term> newArguments) {
 		return stringHandler.getFunction(functionName, newArguments, argumentNames, typeSpec);
 	}
 	private Function getBareCopy(List<Term> newArguments, List<String> newArgumentNames) {
@@ -253,7 +249,7 @@ public class Function extends Term implements LiteralOrFunction {
 	public boolean equals(Object other) {
 		return equals(other, true);
 	}
-	public boolean equals(Object other, boolean considerUseStrictEqualsForFunctions) {
+	private boolean equals(Object other, boolean considerUseStrictEqualsForFunctions) {
 		if (this == other) { return true; }
 		if (considerUseStrictEqualsForFunctions && stringHandler.usingStrictEqualsForFunctions()) { return false; }
 		if (!(other instanceof Function)) { return false; }
@@ -407,7 +403,7 @@ public class Function extends Term implements LiteralOrFunction {
 	public Term getArgument(int i) {
 		return arguments.get(i);
 	}
-	public void setArguments(List<Term> arguments) {
+	void setArguments(List<Term> arguments) {
 		this.arguments = arguments;
 		sortArgumentsByName();
 	}
@@ -455,25 +451,7 @@ public class Function extends Term implements LiteralOrFunction {
 		return false;
 	}
 
-    protected void appendToString(StringBuilder sb, int precedenceOfCaller, BindingList bindingList) {
-        Term arg0 = getArgument(0);
-        sb.append( arg0.toString(precedenceOfCaller, bindingList) );
-        Term arg1 = getArgument(1);
-
-        // Be robust to ConsCell's masquerading as Function's.
-        boolean arg2isNil = (isaConsCell(arg1) && ((Function) arg1).numberArgs() == 0);
-        if (!arg2isNil) {
-            if (isaConsCell(arg1)) {
-                sb.append(", ");
-                ((Function) arg1).appendToString(sb, precedenceOfCaller, bindingList);
-            }
-            else {
-                sb.append(" | ").append(getArgument(1).toString(precedenceOfCaller, bindingList));
-            }
-        }
-    }
-
-    @Override
+	@Override
     public <Return,Data> Return accept(TermVisitor<Return,Data> visitor, Data data) {
         return visitor.visitFunction(this, data);
     }
@@ -498,11 +476,7 @@ public class Function extends Term implements LiteralOrFunction {
         return numberArgs();
     }
 
-    public Function asFunction() {
-        return this;
-    }
-
-    public FunctionName getFunctionName() {
+	public FunctionName getFunctionName() {
         return functionName;
     }
 

@@ -16,7 +16,7 @@ public class ElementRemover {
     }
 
     private static class ElementRemoverData extends ElementPositionVisitor.ElementPositionData {
-        ElementPath pathToRemove;
+        final ElementPath pathToRemove;
 
         ElementRemoverData(ElementPath pathToRemove) {
             this.pathToRemove = pathToRemove;

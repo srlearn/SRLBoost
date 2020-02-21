@@ -21,7 +21,7 @@ public abstract class ChildrenNodeGenerator<T extends SearchNode> {
 
 	protected ChildrenNodeGenerator() {}
 
-    public ChildrenNodeGenerator(StateBasedSearchTask<T> task) {
+    protected ChildrenNodeGenerator(StateBasedSearchTask<T> task) {
 		this.task = task;
 	}
 
@@ -31,5 +31,5 @@ public abstract class ChildrenNodeGenerator<T extends SearchNode> {
 	
     public abstract List<T> collectChildren(T nodeBeingExplored) throws SearchInterrupted;
 
-	public abstract void clearAnySavedInformation(boolean insideIterativeDeepening);
+	public abstract void clearAnySavedInformation();
 }

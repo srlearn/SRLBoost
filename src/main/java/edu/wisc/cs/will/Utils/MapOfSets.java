@@ -87,15 +87,15 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
         }
     }
 
-    protected Set<Value> createValueSet() {
+    Set<Value> createValueSet() {
         return new HashSet<>();
     }
 
-    protected Map<Key, Set<Value>> createMap() {
+    Map<Key, Set<Value>> createMap() {
         return new HashMap<>();
     }
 
-    public String toString(String prefix) {
+    private String toString(String prefix) {
         String result;
 
         if ( map == null ) {
@@ -167,8 +167,8 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
         }
     }
 
-    public class AllValueIterator implements Iterator<Value>{
-        Iterator<Key> allKeysIterator;
+    class AllValueIterator implements Iterator<Value>{
+        final Iterator<Key> allKeysIterator;
 
         Iterator<Value> currentSubIterator = null;
 
@@ -199,7 +199,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
                 if ( currentSubIterator != null && currentSubIterator.hasNext()) {
                     next = currentSubIterator.next();
                 }
-                else if ( currentSubIterator == null || currentSubIterator.hasNext() == false) {
+                else {
                     if ( allKeysIterator != null && allKeysIterator.hasNext() ) {
                         currentSubIterator = getValues(allKeysIterator.next()).iterator();
                     }

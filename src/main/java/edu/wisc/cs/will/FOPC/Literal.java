@@ -115,7 +115,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
             return this;
         }
         if (argumentNames != null) {
-            List<String> argOrdering = predicateName.getNamedArgOrdering(numberArgs());
+            List<String> argOrdering = predicateName.getNamedArgOrdering();
 
             if (argumentNames.get(0).equalsIgnoreCase("name")) {
                 removeArgument(arguments.get(0), argumentNames.get(0));
@@ -143,7 +143,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     private Term getArgumentByName(String name) {
         if (argumentNames == null) {
-            Utils.error("Can not find '" + name + "' in " + argumentNames);
+            Utils.error("Can not find '" + name + "' in " + null);
             return null;
         }
         if (argumentNames.size() < 1) {
@@ -298,7 +298,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         if (recursiveCopy) {
             if (arguments != null) {
                 for (Term term : arguments) {
-                    newArguments.add(term == null ? null : term.copy2(recursiveCopy, bindingList));
+                    newArguments.add(term == null ? null : term.copy2(true, bindingList));
                 }
             }
             return getBareCopy(newArguments, newArgNames);
@@ -384,7 +384,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return predicateName;
     }
 
-    public FunctionName getFunctionName() {
+    private FunctionName getFunctionName() {
         return getStringHandler().getFunctionName(predicateName.name);
     }
 
@@ -669,10 +669,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         boolean hasArgNames = (argumentNames != null);
 
         String pNameString = predicateName.toString();
-        if (debugLevel > 0) {
-        	if (predicateName.isaInlined(      numberArgs())) { pNameString += "[inlined]"; }
-            if (predicateName.isaTemporaryName(numberArgs())) { pNameString += "[temporary]"; }
-        }
         if (predicateName.printUsingInFixNotation && numberArgs() == 2) {
             int precedence = HandleFOPCstrings.getLiteralPrecedence_static(predicateName);
             if (precedenceOfCaller < precedence) {

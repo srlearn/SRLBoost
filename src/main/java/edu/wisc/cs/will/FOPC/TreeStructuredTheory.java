@@ -15,8 +15,8 @@ public class TreeStructuredTheory extends Theory {
 	private Literal                  headLiteral;
 	private TreeStructuredTheoryNode root;
 	private static int uniqueVarCounter = 1; // This is shared across multiple WILL threads, but that should be OK (if not, place counter in stringHander).
-	private static Map<String,StringConstant> flattenedVarMap = new HashMap<>(4); // Ditto.
-	private Set<Literal> uniqueFlattenedLiterals = new HashSet<>(4);
+	private static final Map<String,StringConstant> flattenedVarMap = new HashMap<>(4); // Ditto.
+	private final Set<Literal> uniqueFlattenedLiterals = new HashSet<>(4);
 	
 	private List<Clause> flattenedClauses;
 
@@ -145,13 +145,13 @@ public class TreeStructuredTheory extends Theory {
 		}
 		return result.toString();
 	}
-	public Collection<Variable> collectAllVariables() {
-		return collectFreeVariables(null);
+	private Collection<Variable> collectAllVariables() {
+		return collectFreeVariables();
 	}
 	
-	public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
-    	Collection<Variable> headVars = headLiteral.collectFreeVariables(boundVariables);
-    	Collection<Variable> rootVars = root.collectFreeVariables(       boundVariables);
+	private Collection<Variable> collectFreeVariables() {
+    	Collection<Variable> headVars = headLiteral.collectFreeVariables(null);
+    	Collection<Variable> rootVars = root.collectFreeVariables(null);
 		return Variable.combineSetsOfVariables(headVars, rootVars);
 	}
 	
@@ -195,12 +195,6 @@ public class TreeStructuredTheory extends Theory {
 			Utils.reportStackTrace(e);
 			Utils.error("Problem writing DOTFile: " + fname);
 		}
-	}
-	
-	private int inventedPredNameCounter = 0;
-
-	PredicateName getInventedPredName() {
-		return stringHandler.getPredicateName("inventedPred" + (inventedPredNameCounter++) + stringHandler.getInventedPredicateNameSuffix());
 	}
 
 	public Set<Literal> getUniqueFlattenedLiterals() {

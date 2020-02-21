@@ -21,15 +21,15 @@ public class ActiveAdvice {
 
     private static final CNFClauseCollector CLAUSE_COLLECTOR = new CNFClauseCollector();
 
-    private HandleFOPCstrings stringHandler;
+    private final HandleFOPCstrings stringHandler;
 
-    private MapOfSets<PredicateNameAndArity, ModeInfo> adviceModes = new MapOfSets<>();
+    private final MapOfSets<PredicateNameAndArity, ModeInfo> adviceModes = new MapOfSets<>();
 
-    private MapOfSets<PredicateNameAndArity, ClauseInfo> clauses = new LinkedMapOfSets<>();
+    private final MapOfSets<PredicateNameAndArity, ClauseInfo> clauses = new LinkedMapOfSets<>();
 
-    private MapOfLists<PredicateNameAndArity, Clause> supportClauses = new MapOfLists<>();
+    private final MapOfLists<PredicateNameAndArity, Clause> supportClauses = new MapOfLists<>();
 
-    private Map<PredicateNameAndArity, RelevanceInfo> adviceFeaturesAndStrengths = new LinkedHashMap<>();
+    private final Map<PredicateNameAndArity, RelevanceInfo> adviceFeaturesAndStrengths = new LinkedHashMap<>();
 
     ActiveAdvice(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
@@ -86,9 +86,9 @@ public class ActiveAdvice {
             Sentence compressedCNF = SentenceCompressor.getCompressedSentence(cnf);
 
             // Determine the final output variables...
-            Set<Variable> outputVariables = determineOutputVariables(ap, rci, compressedCNF);
+            determineOutputVariables(ap, rci, compressedCNF);
 
-            Collection<Variable> variablesInSentence = compressedCNF.collectAllVariables();
+            compressedCNF.collectAllVariables();
 
             Example example = expandedRCI.example;
             List<TypeSpec> exampleTypeSpecs = example.getTypeSpecs();
@@ -125,9 +125,6 @@ public class ActiveAdvice {
                 for (Clause existing : clauses) {
                     if (areClausesEqualUptoHeadAndVariableRenaming(existing, theNewClause)) {
                         duplicate = true;
-                        if (AdviceProcessor.debugLevel >= 1) {
-                            Utils.println("% [AdviceProcessor]  Generated advice clause " + theNewClause.getDefiniteClauseHead().getPredicateNameAndArity() + " is duplicate of " + existing.getDefiniteClauseHead().getPredicateNameAndArity() + ".  Skipping.");
-                        }
                         break;
                     }
                 }
@@ -181,13 +178,9 @@ public class ActiveAdvice {
         if (ap.isInliningEnabled()) {
             body = Inliner.getInlinedSentence(body, ap.getContext());
         }
-        //rci.toString();
-
         if (ap.isRemoveDuplicateDeterminatesEnabled()) {
             body = DuplicateDeterminateRemover.removeDuplicates(body);
         }
-
-        MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<PredicateNameAndArity, Clause>();
 
         List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body);
 
@@ -215,10 +208,6 @@ public class ActiveAdvice {
 
                     ap.getContext().assertDefiniteClause(newClause);
 
-                    if (AdviceProcessor.debugLevel >= 1) {
-                        Utils.println("% [AdviceProcessor]  Created operational clause from " + pnaa + ":");
-                        Utils.println(PrettyPrinter.print(newClause, "% [AdviceProcessor]     ", new PrettyPrinterOptions()));
-                    }
                 }
 
                 addModeAndRelevanceStrength(new PredicateNameAndArity(newName, head.getArity()), rci.getSignature(), rci.getTypeSpecs(), rci.getRelevanceStrength());
@@ -294,7 +283,7 @@ public class ActiveAdvice {
         return clause1.isEquivalentUptoVariableRenaming(clause2, new BindingList()) != null;
     }
 
-    private Set<Variable> determineOutputVariables(AdviceProcessor ap, RelevantClauseInformation rci, Sentence cnf) {
+    private void determineOutputVariables(AdviceProcessor ap, RelevantClauseInformation rci, Sentence cnf) {
 
         Variable outputVariable = null;
 
@@ -317,18 +306,11 @@ public class ActiveAdvice {
                 }
             }
 
-            if (outputVariable != null && rci.getExample().collectAllVariables().contains(outputVariable)) {
-                // If the output variable is already in the example head, just ignore it
-                // since it will be added naturally anyway.
-                outputVariable = null;
+            if (outputVariable != null) {
+                rci.getExample().collectAllVariables();
             }
-        }
-
-        if (outputVariable != null) {
-            return Collections.singleton(outputVariable);
-        }
-        else {
-            return Collections.EMPTY_SET;
+            // If the output variable is already in the example head, just ignore it
+            // since it will be added naturally anyway.
         }
     }
 
@@ -377,13 +359,13 @@ public class ActiveAdvice {
 
     public static class ModeInfo {
 
-        PredicateNameAndArity predicate;
+        final PredicateNameAndArity predicate;
 
-        List<Term> signature;
+        final List<Term> signature;
 
-        List<TypeSpec> specs;
+        final List<TypeSpec> specs;
 
-        RelevanceStrength strength;
+        final RelevanceStrength strength;
 
         double cost = Double.NaN;
 
@@ -419,9 +401,9 @@ public class ActiveAdvice {
 
     static class RelevanceInfo {
 
-        PredicateNameAndArity predicate;
+        final PredicateNameAndArity predicate;
 
-        RelevanceStrength strength;
+        final RelevanceStrength strength;
 
         RelevanceInfo(PredicateNameAndArity predicate, RelevanceStrength strength) {
             this.predicate = predicate;
@@ -433,7 +415,7 @@ public class ActiveAdvice {
 
         private Clause clause;
 
-        RelevanceStrength strength;
+        final RelevanceStrength strength;
 
         ClauseInfo(Clause clause, RelevanceStrength strength) {
             this.setClause(clause);
@@ -463,7 +445,7 @@ public class ActiveAdvice {
             return hash;
         }
 
-        public void setClause(Clause clause) {
+        void setClause(Clause clause) {
 			this.clause = clause;
 		}
 

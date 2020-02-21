@@ -12,7 +12,7 @@ import java.util.List;
  */
 class BuildPairWiseScore {
 
-	private PropositionalizationModel model;
+	private final PropositionalizationModel model;
 	
 	BuildPairWiseScore(PropositionalizationModel currModel) {
 		model = currModel;
