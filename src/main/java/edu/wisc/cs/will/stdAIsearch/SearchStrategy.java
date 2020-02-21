@@ -15,7 +15,7 @@ public abstract class SearchStrategy {
 
     SearchStrategy() {}
 
-    public void setSearchTask(StateBasedSearchTask task) {
+    void setSearchTask(StateBasedSearchTask task) {
         this.task = task;
     }
 
@@ -28,5 +28,4 @@ public abstract class SearchStrategy {
      */
     public abstract <T extends SearchNode> void addChildrenToOpenList(OpenList<T> open, List<T> children) throws SearchInterrupted;
 
-    public void clearAnySavedInformation() {}
 }

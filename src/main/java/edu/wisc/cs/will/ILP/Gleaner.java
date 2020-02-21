@@ -87,11 +87,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	}
 
 
-	public void clearAnySavedInformation() {
-		// Do NOT clear the Gleaner's when this is called, since we want them to persist across searches.
-		// Users can always create a new marker if they want a fresh Gleaner.
-	}
-	
 	void clearBestNode() { // Might want to clear this, e.g., each ILP outer loop clears this so that the bestNode PER inner loop can be found.
 		bestNode              = null;
 		bestScore             = Double.NEGATIVE_INFINITY;

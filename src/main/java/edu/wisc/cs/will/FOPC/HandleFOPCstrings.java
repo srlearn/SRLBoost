@@ -1547,10 +1547,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		Utils.println("");
 	}
 
-	// TODO(@hayesall): Drop this method
-	void recordParentVariable() {
-	}
-
 	public String getVariablePrefix() {
 		if (doVariablesStartWithQuestionMarks()) { return "?"; }
 		return "";

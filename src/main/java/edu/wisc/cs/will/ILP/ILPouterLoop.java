@@ -1269,7 +1269,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         try (ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new CondorFileOutputStream(filename)))) {
             oos.writeObject(outerLoopState); // Store outer loop state...
             oos.writeObject(getGleaner()); // Store the gleaner...
-            oos.close();
         } catch (Exception ex) {
             String msg = "Unable to write checkpoint file: " + filename + ".  Error message: " + ex.getClass().getCanonicalName() + ": " + ex.getMessage();
             Utils.error(msg);

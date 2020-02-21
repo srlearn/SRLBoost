@@ -64,7 +64,6 @@ public class Variable extends Term {
         if (typeSpec != null) {
             copy.typeSpec = (recursiveCopy ? typeSpec.copy() : typeSpec);
         }
-        stringHandler.recordParentVariable();
         return copy;
     }
 

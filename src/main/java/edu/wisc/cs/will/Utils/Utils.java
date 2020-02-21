@@ -148,10 +148,6 @@ public class Utils {
      * If non-null, copy all printing to this stream as well.
      */
     private static PrintStream dribbleStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static final PrintStream dribbleStream2      = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static final PrintStream debugStream         = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static final PrintStream warningStream       = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
-    private static final PrintStream warningShadowStream = null;  // <----- 'state' being held in this static.  BUGGY if multiple threads running.
 
     /* The random instance for all the random utility functions. */
     private static final Random randomInstance = new Random(112957);
@@ -298,7 +294,6 @@ public class Utils {
 	 * Save some typing when throwing generic errors.
      */
 	public static void error(String msg) {
-        warning_println("\nERROR:   " + msg);
 		if ( CondorUtilities.isCondor() ) {
 			System.err.println("\nERROR:   " + msg);
 	        // Nice to print the calling stack so one can see what caused the error ...
@@ -551,10 +546,6 @@ public class Utils {
             return;
         }
 
-        // Let's collect these in dribble files.
-        warning_println("\nWaitHere:    " + msg);
-
-
 		boolean hold = doNotPrintToSystemDotOut;
 		doNotPrintToSystemDotOut = false; // If these printout become too much, we can add a 3rd flag to override these ...
         print("\n% WaitHere: " + msg + "\n%  ...  Hit ENTER to continue or 'e' to interrupt. ", waitHereRegardless);
@@ -562,8 +553,7 @@ public class Utils {
 
 		if ( CondorUtilities.isCondor() ) {
 			error("\nSince this is a condor job, will exit.");
-		} else { warning_println("NOTE: Utils.java thinks this job is NOT running under Condor."); }
-		
+		}
         try {
         	if (inBufferedReader == null) { inBufferedReader = new BufferedReader(new InputStreamReader(System.in)); }
         	String readThis = inBufferedReader.readLine();
@@ -619,7 +609,6 @@ public class Utils {
         }
 
         if ( occurenceCount == 1 ) {
-        	warning_println("\nWARNING: " + str);
             println("\n***** Warning: " + str + " *****\n");
         }
     }
@@ -650,7 +639,6 @@ public class Utils {
         }
 
         if ( occurenceCount == 1 ) {
-            warning_println("\nWARNING: " + str);
 
             // Make sure we only wait if the user is at a verbosity level where it
             // makes sense to wait.
@@ -663,7 +651,6 @@ public class Utils {
         }
     }    
     public static void severeWarning(String str) {
-        warning_println("\nSEVERE:  " + str);
     	if (isSevereErrorThrowsEnabled()) { error(str); }
     	else { println("\n% ***** Severe Warning: " + str + " *****\n", true); }
     }
@@ -735,18 +722,6 @@ public class Utils {
     	if (dribbleStream == null) { return; }
     	dribbleStream.close();
     	dribbleStream = null;
-    }
-
-    // This is another place that this class maintains state (so if two threads running, their debug files will interfere).
-    private static final String debugFileName = null;
-
-    // This is another place that this class maintains state (so if two threads running, their debug files will interfere).
-    private static final String warningFileName = null;
-
-    // Also write warnings to this file (one might go into one directory and the other into a different directory).
-    private  static final String warningShadowFileName = null;
-
-    private static void warning_println(String str) {
     }
 
     /*
@@ -1194,7 +1169,7 @@ public class Utils {
         }
     }
 
-    public static double getFBeta(double beta, double truePositives, double falsePositives, double falseNegatives) {
+    private static double getFBeta(double beta, double truePositives, double falsePositives, double falseNegatives) {
 
         double p = getPrecision(truePositives, falsePositives);
         double r = getRecall(truePositives, falseNegatives);
@@ -1578,7 +1553,7 @@ public class Utils {
        delete(new CondorFile(fileName));
    }
 
-    public static boolean isDevelopmentRun() {
+    private static boolean isDevelopmentRun() {
         if ( developmentRun == null ) {
             setupVerbosity();
         }

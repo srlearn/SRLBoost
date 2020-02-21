@@ -173,9 +173,6 @@ public class Unifier extends AllOfFOPC implements Serializable {
 		return "<this is an instance of the Unifier class>";
 	}
 
-	public static void increaseUnificationCount() {
-	}
-    
 	@Override
 	public Unifier applyTheta(Map<Variable, Term> bindings) {
 		Utils.println("Why call this on a unifier?");

@@ -29,7 +29,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
     private void recordNodeCreation(T node) {
         task.nodesCreated++;
         task.nodesCreatedThisIteration++;
-        task.searchMonitor.recordNodeCreation();
         if (task.closed != null && task.addNodesToClosedListWhenCreated) {
             task.closed.addNodeToClosed(node);
         }

@@ -88,7 +88,6 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
             // new clauses came along, just in case they have indexed that predicate
             // already.
 
-            indexDefiniteClauseByPredicate();
             indexDefiniteClauseByAllArgs(key, definiteClause);
             for (int i = 0; i < indexWidth && i < key.getArity(); i++) {
                 indexDefiniteClauseByNthArg(i, key, definiteClause);
@@ -209,9 +208,6 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
             return groundClauseIndex.lookupDefiniteClauses(literalToLookup);
         }
         return null;
-    }
-
-    private void indexDefiniteClauseByPredicate() {
     }
 
     private void removeDefiniteClauseByPredicate(PredicateNameAndArity key, DefiniteClause sentence) {

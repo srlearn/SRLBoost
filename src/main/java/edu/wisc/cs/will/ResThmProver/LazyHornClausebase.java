@@ -269,12 +269,6 @@ public class LazyHornClausebase implements HornClausebase {
         }
     }
 
-    /* Builds the AllAssertions index, if necessary.
-     */
-    private void buildAllAssertionsIndex() {
-        // TODO(@hayesall): Empty method, remove.
-    }
-
     @Override
     public DefiniteClauseList getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBinding) {
         return getIndexerForAllAssertions().getPossibleMatchingAssertions(clauseHead, currentBinding);
@@ -404,7 +398,6 @@ public class LazyHornClausebase implements HornClausebase {
      * @return the indexerForAllAssertions
      */
     private LazyHornClausebaseIndexer getIndexerForAllAssertions() {
-        buildAllAssertionsIndex();
         return indexerForAllAssertions;
     }
 

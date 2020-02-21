@@ -1499,7 +1499,7 @@ public final class WILLSetup {
 		String lookup;
 		if ((lookup =  getHandler().getParameterSetting("bitMaskForNeighboringFactArgsFor" + target)) != null) {
 			lookup = lookup.replaceAll("\"", "");
-			List<String> bools = Utils.parseListOfStrings(lookup);
+			Utils.parseListOfStrings(lookup);
 		}
 	}
 

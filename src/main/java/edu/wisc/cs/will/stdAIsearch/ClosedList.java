@@ -12,7 +12,7 @@ public abstract class ClosedList {
 
 	void setSearchTask() {
 	}
-	
+
 	public void clearAnySavedInformation() { }
 
 	public abstract void addNodeToClosed(SearchNode node);

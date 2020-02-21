@@ -217,10 +217,6 @@ public class VisitedClauses extends ClosedList {
 		if (LearnOneClause.debugLevel > 2 && oldLits != null) { Utils.println("  ***** '" + node + "' is a variant of: " + oldLits); }
 		return oldLits != null;
 	}
-	List<Literal> alreadyInClosedList(HandleFOPCstrings stringHandler, Clause clause) {
-		List<Literal>    literals  = createCanonicalClause(stringHandler, clause);
-		return alreadyInClosedList(literals);
-	}
 
 	private List<Literal> alreadyInClosedList(List<Literal>    literals) {
 		Integer          primaryKey   = getPrimaryKey(  literals);

@@ -990,7 +990,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     }
 
     private BindingList unify(Literal lit1, Literal lit2, BindingList bindingList) {
-        Unifier.increaseUnificationCount();
         return unifier.unify(lit1, lit2, bindingList);
     }
 
