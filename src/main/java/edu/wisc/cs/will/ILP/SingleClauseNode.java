@@ -27,7 +27,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	private final static boolean renameAllVariablesWheneverPrinting = true;
 	
 	Literal literalAdded    = null;
-	protected double  score           = Double.NaN; // Cache these to save recomputing (recomputing fast except for regression?).
+	double  score           = Double.NaN; // Cache these to save recomputing (recomputing fast except for regression?).
 	private double  posCoverage     = -1.0;     //   Also, each child node only stores the extensions to the clause body.
 	double  negCoverage     = -1.0; // Everything is done with WEIGHTED examples (including the seeds).
 	int     numberOfNewVars = 0;    // There is a max number of new (i.e., output) variables in a clause.  This is the total all the way to the root.
@@ -47,7 +47,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	
 	private SingleClauseNode 	 startingNodeForReset = null; // Everytime we select new examples, we reset the scores but we lose the starting node information.(this is not a parent node when number of literals per node >1)
 
-	public SingleClauseNode(StateBasedSearchTask task) {
+	SingleClauseNode(StateBasedSearchTask task) {
 		super(task);
 	}
 	public SingleClauseNode(SearchNode parentNode, Literal literalAdded) {
@@ -185,7 +185,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	public Clause getClause() { // There are two climbs of the search tree, but that isn't a big deal since they are shallow.
 		return getClause(false);
 	}
-	public Clause getClause(boolean onlyGetLocalAddition) { // If onlyGetLocalAddition, stop at gettingClauseBody at current starting node.
+	private Clause getClause(boolean onlyGetLocalAddition) { // If onlyGetLocalAddition, stop at gettingClauseBody at current starting node.
 		List<Literal> headAsPosLiteralList = new ArrayList<>(8);
 		headAsPosLiteralList.add(getClauseHead());
 		return ((LearnOneClause)task).stringHandler.getClause(headAsPosLiteralList, getClauseBody(onlyGetLocalAddition), extraString);
@@ -416,7 +416,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	public List<Variable> collectAllVariables() {
 		return collectAllVariables(null);
 	}
-	public List<Variable> collectAllVariables(List<Variable> listOfVars) {		
+	private List<Variable> collectAllVariables(List<Variable> listOfVars) {
 		List<Term> args = literalAdded.getArguments();		
 		
 		if (args != null && args.size() > 0) {
@@ -1265,7 +1265,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
         RegressionInfoHolder getFalseStats() {
         	return cachedFalseStats;
         }
-        protected void reset() {
+        void reset() {
         	cachedFalseStats = null;
             
         }

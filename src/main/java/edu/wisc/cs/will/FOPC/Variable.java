@@ -17,7 +17,7 @@ public class Variable extends Term {
 
     public long counter; // This isn't used in the internal code (instead, instances are compared, not string names), but each variable has a unique counter value, and printing this can help with debugging.
 
-    protected Variable() {
+    private Variable() {
     }
     /*
      * The way this works is that a request for variable 'x' will always return the SAME instance,
@@ -26,10 +26,10 @@ public class Variable extends Term {
      * quantifier should be pushed then popped when the scope of the quantifier is exited.
      *
      */
-    protected Variable(HandleFOPCstrings stringHandler, String name, long counter, TypeSpec typeSpec) { // This is protected because getVariable(String name) should be used instead.
+    Variable(HandleFOPCstrings stringHandler, String name, long counter, TypeSpec typeSpec) { // This is protected because getVariable(String name) should be used instead.
         this(stringHandler, name, counter, typeSpec, false);
     }
-    protected Variable(HandleFOPCstrings stringHandler, String name, long counter, TypeSpec typeSpec, boolean isaGeneratedVar) { // This is protected because getVariable(String name) should be used instead.
+    Variable(HandleFOPCstrings stringHandler, String name, long counter, TypeSpec typeSpec, boolean isaGeneratedVar) { // This is protected because getVariable(String name) should be used instead.
     	this();
         this.name = name; // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.
         this.counter = 2 * counter; if (isaGeneratedVar) { this.counter++; } // Odd values indicate variables that are generated (say adding another instance variable).
@@ -57,7 +57,7 @@ public class Variable extends Term {
         return copy(recursiveCopy, false); // Other code usually deals with deciding if variables should be old or new (since in a copy, only want the FIRST occurrence in some FOPC sentence to be new).
     }
 
-    public Variable copy(boolean recursiveCopy, boolean newVar) { // June 2010: JWS added the null below to skip the check for isaConstantType since we know this is a variable (but possibly some flag changed in between?).
+    private Variable copy(boolean recursiveCopy, boolean newVar) { // June 2010: JWS added the null below to skip the check for isaConstantType since we know this is a variable (but possibly some flag changed in between?).
         Variable copy = (isaGeneratedVariable()
         					? stringHandler.getGeneratedVariable(typeSpec, getNameToUse(name), newVar)
         					: stringHandler.getExternalVariable( typeSpec, getNameToUse(name), newVar)); // If we make a copy, use the correct name for the settings of what denotes a variable.
@@ -281,7 +281,7 @@ public class Variable extends Term {
     }
 
     @Override
-    public String toString(int precedenceOfCaller, BindingList bindingList) {
+    protected String toString(int precedenceOfCaller, BindingList bindingList) {
         if (stringHandler.printTypedStrings) {
             return toTypedString();
         }

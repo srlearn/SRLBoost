@@ -699,7 +699,7 @@ public class Clause extends Sentence implements DefiniteClause {
 		if (precedenceOfCaller < precedence) { result.append(")"); }
 		return result.toString();
 	}
-    
+
     // TODO - lineStarter needs to be passed into literals as well.
     public String toPrettyString(String lineStarter, int precedenceOfCaller, int literalsPerRow) {
         return toPrettyString(lineStarter, precedenceOfCaller, literalsPerRow, null);

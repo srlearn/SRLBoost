@@ -29,7 +29,7 @@ public abstract class SearchNode implements Serializable {
 	/*
 	 * Create the root node, since it connects nodes to the search task.
 	 */
-	public SearchNode(StateBasedSearchTask task) {
+	protected SearchNode(StateBasedSearchTask task) {
 		this.task = task;
 		if (task == null) {
 			Utils.error("Creating a search node but have task=null.");
@@ -37,7 +37,7 @@ public abstract class SearchNode implements Serializable {
 		this.parentNode = null;		
 	}
 
-	public SearchNode(SearchNode parentNode) {
+	protected SearchNode(SearchNode parentNode) {
 		task = parentNode.task;
 		this.parentNode = parentNode;
 		depth  = parentNode.depth + 1;

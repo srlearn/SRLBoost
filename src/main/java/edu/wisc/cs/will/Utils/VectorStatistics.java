@@ -29,7 +29,7 @@ public class VectorStatistics {
 		}
 	}
 	
-	public double[] getMean() {
+	private double[] getMean() {
 		if (datapoints.size() == 0) {
 			Utils.error("No data points");
 			return null;

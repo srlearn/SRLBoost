@@ -45,7 +45,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     final boolean stopWhenMaxNodesCreatedThisIterationReached = true;
 
-    public int maxNodesToConsider = -1;
+    private int maxNodesToConsider = -1;
 
     private int maxNodesToCreate = -1;
 
@@ -94,7 +94,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     private long iterationStartTimeInMillisec = -1;
 
-    protected boolean initialized = false;
+    private boolean initialized = false;
 
     /* If true, the open list is not cleared at the end of a search.
      *
@@ -113,7 +113,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
     /*
      * Default constructor. Does nothing.
      */
-    public StateBasedSearchTask() {
+    protected StateBasedSearchTask() {
     }
 
     /*

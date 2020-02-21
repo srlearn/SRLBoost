@@ -9,7 +9,7 @@ import edu.wisc.cs.will.stdAIsearch.SearchNode;
  * @author shavlik
  */
 public abstract class ScoreSingleClause extends ScoringFunction {
-	protected final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
+	final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
 	ScoreSingleClause() {}
 

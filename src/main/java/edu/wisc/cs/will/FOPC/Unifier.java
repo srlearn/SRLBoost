@@ -6,8 +6,9 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+// TODO(@hayesall): Many of the `unify()` methods return `null`, this should probably be rethought.
+
 public class Unifier extends AllOfFOPC implements Serializable {
-	protected static final int debugLevel = 0;  // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
 	public final static Unifier UNIFIER = new Unifier();
     
@@ -19,30 +20,22 @@ public class Unifier extends AllOfFOPC implements Serializable {
 	// This code is basically the same as in the next method.  But save a function call (and allow different reporting when debugging).
 	public BindingList unify(Literal lit1, Literal lit2) {
 		if (lit1.predicateName == lit2.predicateName && lit1.numberArgs() == lit2.numberArgs()) {
-			if (Unifier.debugLevel > 0) { Utils.println("Consider unifying literals " + lit1 + " and " + lit2 + "."); }
-			BindingList result = unify(lit1.getArguments(), lit2.getArguments(), new BindingList());
-			if (Unifier.debugLevel > 0) { Utils.println(" Result = " + result); }
-			return result;
+			return unify(lit1.getArguments(), lit2.getArguments(), new BindingList());
 		}
 		else {
-			if (Unifier.debugLevel > 0) { Utils.println(" Literals " + lit1 + " and " + lit2 + " do not unify."); }
 			return null;
 		}
 	}
 	public BindingList unify(Literal lit1, Literal lit2, BindingList bindingList) {		
 		if (lit1.predicateName == lit2.predicateName && lit1.numberArgs() == lit2.numberArgs()) {
-			if (Unifier.debugLevel > 0) { Utils.println("Consider unifying literals " + lit1 + " and " + lit2 + " with bindings " + bindingList + "."); }
-			BindingList result =  unify(lit1.getArguments(), lit2.getArguments(), bindingList);
-			if (Unifier.debugLevel > 0) { Utils.println(" Result = " + result); }
-			return result;
+			return unify(lit1.getArguments(), lit2.getArguments(), bindingList);
 		}
 		else {
-			if (Unifier.debugLevel > 0) { Utils.println(" Literals " + lit1 + " and " + lit2 + " do not unify."); }
 			return null;  // We need to be be sure we differentiate a FAILED unification from one with no variable bindings.  NULL means failed and an empty list means success w/o needing any bindings.
 		}
 	}
 
-	public BindingList unify(Sentence s1, Sentence s2, BindingList bl) {
+	private BindingList unify(Sentence s1, Sentence s2, BindingList bl) {
         return SentenceUnifier.unify(s1,s2,bl);
     }
 
@@ -64,7 +57,6 @@ public class Unifier extends AllOfFOPC implements Serializable {
 			Term term2 = args2.get(index);
 			
 			if (term1 != term2 && term1 instanceof Constant && term2 instanceof Constant) {
-				if (Unifier.debugLevel > 1) { Utils.println("  FAILED because a pair of constants don't match: '" + term1 + "' and '" + term2 + "'."); } 
 				return null;
 			}
 		}
@@ -74,19 +66,16 @@ public class Unifier extends AllOfFOPC implements Serializable {
 			Term term2 = args2.get(index);
 			
 			bindingList = unify(term1, term2, bindingList);
-			if (bindingList == null) { 
-				if (Unifier.debugLevel > 1) { Utils.println("  FAILED when unifying the arguments."); }
+			if (bindingList == null) {
 				return null;
 			}
 		}
-		
-		if (Unifier.debugLevel > 2) { Utils.println("  Argument lists " + args1 + " and " + args2 + " unify with theta = " + bindingList); }
+
 		return bindingList;
 	}
 	
 	// The built-in EQUALS(Term1, Term2) needs to access this.
-	public BindingList unify(Term term1, Term term2, BindingList bindingList) {	
-		if (Unifier.debugLevel > 1) { Utils.println(" Consider unifying terms " + term1 + " and " + term2 + " with bindings " + bindingList + "."); }
+	public BindingList unify(Term term1, Term term2, BindingList bindingList) {
 		if (term1 instanceof Constant && term2 instanceof Constant) {			
 			return term1 == term2 ? bindingList : null;  // Could call 'equivalent' here, but save the function call since this called quite often.
 		}
@@ -104,7 +93,6 @@ public class Unifier extends AllOfFOPC implements Serializable {
 				return unify(f1.getArguments(), f2.getArguments(), bindingList);
 			}
 			else {
-				if (Unifier.debugLevel > 1) { Utils.println(" FAILED since predicate name and/or number of arguments don't match."); }
 				return null;
 			}
 		}
@@ -113,13 +101,9 @@ public class Unifier extends AllOfFOPC implements Serializable {
 			LiteralAsTerm f2 = ((LiteralAsTerm) term2);
 			
 			if (f1.itemBeingWrapped.predicateName == f2.itemBeingWrapped.predicateName && f1.itemBeingWrapped.numberArgs() == f2.itemBeingWrapped.numberArgs()) {
-				if (Unifier.debugLevel > 0) { Utils.println("Consider unifying LiteralAsTerm " + f1 + " and " + f2 + " with bindings " + bindingList + "."); }
-				BindingList result =  unify(f1.itemBeingWrapped.getArguments(), f2.itemBeingWrapped.getArguments(), bindingList);
-				if (Unifier.debugLevel > 0) { Utils.println(" Result = " + result); }
-				return result;
+				return unify(f1.itemBeingWrapped.getArguments(), f2.itemBeingWrapped.getArguments(), bindingList);
 			}
 			else {
-				if (Unifier.debugLevel > 1) { Utils.println(" FAILED since predicate name and/or number of arguments don't match."); }
 				return null;
 			}
 		}
@@ -130,7 +114,6 @@ public class Unifier extends AllOfFOPC implements Serializable {
             return unify(s1.sentence, s2.sentence, bindingList);
         }
 		else {
-			if (Unifier.debugLevel > 1) { Utils.println("  These terms do not match: " + term1 + " and " + term2); }
 			return null;
 		}
 	}
@@ -149,19 +132,15 @@ public class Unifier extends AllOfFOPC implements Serializable {
 		
 		// If anything changed in a lookup, recur (note that either of the two variables might become a more complex term after lookup.
 		if ((var != null && !var.equals(lookedupVar)) || (term != null &&!term.equals(lookedupTerm))) { // If anything changed due to a lookup, recur.
-			if (Unifier.debugLevel > 2) { Utils.println("  Recur on unify var: " +  var + " -> " + lookedupVar + " and "
-															  			         + term + " -> " + lookedupTerm); }
 			return unify(lookedupVar, lookedupTerm, bindingList);
 		}
 		else if (var != null && var.equals(term)) {
-			if (Unifier.debugLevel > 2) { Utils.println("  " + var + " and " + term + " unify with theta: " + bindingList); }
 			return bindingList;
 		}
 		// We are NOT implementing the 'occurs check' but if we did it would go here.  JWS added (7/25/10) a partial occurs check (for functions that are lists).
 		else {
 			boolean success = bindingList.addBindingFailSoftly(var, term);
 			if (!success) { return null; }
-			if (Unifier.debugLevel > 2) { Utils.println("  " + var + " and " + term + " unify with new binding " + var + ":" + term + " and theta: " + bindingList); }
 			return bindingList;
 		}
 	}
@@ -169,7 +148,7 @@ public class Unifier extends AllOfFOPC implements Serializable {
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		return toString(precedenceOfCaller, bindingList);
 	}
-	public String toString(int precedenceOfCaller, BindingList bindingList) {
+	protected String toString(int precedenceOfCaller, BindingList bindingList) {
 		return "<this is an instance of the Unifier class>";
 	}
 

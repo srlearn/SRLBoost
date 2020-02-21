@@ -11,7 +11,7 @@ import java.util.Objects;
  */
 public class RelevantFeatureInformation implements RelevantInformation, Cloneable {
 
-    Example example;
+    private Example example;
 
     private boolean relevanceFromPositiveExample = true;
 

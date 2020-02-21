@@ -1276,7 +1276,7 @@ public final class WILLSetup {
 		getContext().getClausebase().assertFact(eg);
 	}
 
-	public HornClauseProver getProver() {
+	private HornClauseProver getProver() {
 		return prover;
 	}
 	

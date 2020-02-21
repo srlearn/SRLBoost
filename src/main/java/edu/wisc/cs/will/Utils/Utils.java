@@ -163,7 +163,7 @@ public class Utils {
      * applicable. Ends with a newline.
      *
      */
-    public static void println(String strRaw, boolean printRegardless) {
+    private static void println(String strRaw, boolean printRegardless) {
     	if (printRegardless || isVerbose() ) {
     		String str = (strRaw == null || strRaw.length() <= maxStringLength ? strRaw : strRaw.substring(0, maxStringLength) + " ... [string too long]");
     		if (!doNotPrintToSystemDotOut) { System.out.println(str); }
@@ -195,7 +195,7 @@ public class Utils {
      * Displays a string to the standard output stream and the dribble stream if
      * applicable. No newline at the end.
      */
-    public static void print(String strRaw, boolean printRegardless) {
+    private static void print(String strRaw, boolean printRegardless) {
     	if (printRegardless || isVerbose()) {
     		String str = (strRaw == null || strRaw.length() <= maxStringLength ? strRaw : strRaw.substring(0, maxStringLength) + " ...");
     		if (!doNotPrintToSystemDotOut) {System.out.print(str); }
@@ -271,7 +271,7 @@ public class Utils {
      * @return A string representing the first maxSize elements of the given
      *         map, or null if the given map is null.
      */
-	public static String limitLengthOfPrintedList(Map<?,?> map, int maxItems) {
+	private static String limitLengthOfPrintedList(Map<?, ?> map, int maxItems) {
 		if (map == null) { return null; }
 		return limitLengthOfPrintedList(map.entrySet(), maxItems);
 	}
@@ -309,7 +309,7 @@ public class Utils {
     /*
      * Flushes the standard output stream.
      */
-    public static void flush() {
+    private static void flush() {
         if (isVerbose() && !doNotPrintToSystemDotOut) { System.out.flush(); }
     }
 
@@ -515,7 +515,7 @@ public class Utils {
      *
      * @return False if an exception occurs while reading input from the user, true otherwise.
      */
-    public static void waitHere(String msg, boolean waitHereRegardless, String skipWaitString) {
+    private static void waitHere(String msg, boolean waitHereRegardless, String skipWaitString) {
 
         int occurenceCount = 1;
         if ( skipWaitString != null ) {
@@ -588,7 +588,7 @@ public class Utils {
      * If skipWarningString is non-null, the warning associated with that string will only be
      * printed the first time the warning occurs.
      */
-    public static void warning(String str, String skipWarningString) {
+    private static void warning(String str, String skipWarningString) {
 
         int occurenceCount = 1;
         if ( skipWarningString != null ) {
@@ -619,7 +619,7 @@ public class Utils {
      * printed the first time the warning occurs.
      *
      */
-    public static void warning(String str, int sleepInSeconds, String skipWarningString) {
+    private static void warning(String str, int sleepInSeconds, String skipWarningString) {
         int occurenceCount = 1;
         if ( skipWarningString != null ) {
            Integer i = warningCounts.get(skipWarningString);
@@ -1522,7 +1522,7 @@ public class Utils {
     /*
 	 * Recursive remove an existing directory.
      */
-    public static boolean delete(File file) { // Also see deleteDirectory [I think I (JWS) wrote deleteDirectory and Trevor wrote this one.]
+    private static boolean delete(File file) { // Also see deleteDirectory [I think I (JWS) wrote deleteDirectory and Trevor wrote this one.]
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             assert files != null;
@@ -1654,7 +1654,7 @@ public class Utils {
         return sb.toString();
     }
 
-    public static <T,S> String toString(Map<T,S> map, String divider) {
+    private static <T,S> String toString(Map<T, S> map, String divider) {
         StringBuilder sb = new StringBuilder();
 
         boolean first = true;
@@ -1670,7 +1670,7 @@ public class Utils {
         return sb.toString();
     }
 
-    public static String toString(Object object, String divider) {
+    private static String toString(Object object, String divider) {
         if ( object == null ) {
             return null;
         }

@@ -18,7 +18,7 @@ import java.util.List;
  * @author tkhot
  *
  */
-public class PropositionalizationModel {
+class PropositionalizationModel {
 
 	private String predicate;
 	

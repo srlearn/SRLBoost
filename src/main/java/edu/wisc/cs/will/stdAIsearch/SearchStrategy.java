@@ -11,7 +11,7 @@ public abstract class SearchStrategy {
     /*
      * The specification for a state-based search task.
      */
-    protected StateBasedSearchTask task;
+    StateBasedSearchTask task;
 
     SearchStrategy() {}
 

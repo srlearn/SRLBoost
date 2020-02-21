@@ -18,7 +18,9 @@ import java.io.StreamTokenizer;
  *  
  */
 public class StreamTokenizerJWS extends StreamTokenizerTAW {
-	protected final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
+
+	// TODO(@hayesall): The `dump()` method can probably be dropped, factor out the `StreamTokenizerJWS.debugLevel`
+	private final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	
 	private final int      k;                  // Keep the last k items around.
 	private int      counter       = -1; // The location of the current token (in a "wrap around" buffer).
@@ -70,11 +72,7 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
         else if (itemsToReturn > 0) { // Have buffered items (due to pushBack's) to return.  Pop the stack.
             itemsToReturn--;
             counter = (counter + 1) % k;
-            int result = saved_ttype[counter];
-            if (debugLevel > 1) {
-                Utils.println("Got a buffered token: '" + reportCurrentToken() + "'");
-            }
-            return result;
+			return saved_ttype[counter];
         }
 
 
@@ -90,9 +88,6 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
         saved_nval[  counter] = super.nval;
         saved_lineno[counter] = super.lineno();
         itemsInBuffer = Math.min(k, itemsInBuffer + 1); // This only matters until the buffer gets full.
-        if (debugLevel > 1) {
-            Utils.println("Got a true token and counter=" + counter + " superType='" + (char) super.ttype + "' sval=" + super.sval + " line# = " + super.lineno());
-        }
         return superNextToken;
     }
 	
@@ -102,14 +97,16 @@ public class StreamTokenizerJWS extends StreamTokenizerTAW {
 	void pushBack(int n) {
 		for (int i = 0; i < n; i++) { pushBack(); }
 	}
-	
-	
-	public void pushBack() { // Pretend that something is being pushed on the stack.  If losing "future" items off the "bottom" of the stack, complain.
+
+	void pushBack() { // Pretend that something is being pushed on the stack.  If losing "future" items off the "bottom" of the stack, complain.
 		// If this error occurs, simply set 'k' to a higher value and rerun.
-		if (itemsToReturn >= k)             { if (debugLevel > 0) dump(); Utils.error("The buffered StreamTokenizerJWS has had too many push-backs and no longer has (or never had) the old items.  At line #" + lineno()); }
-		if (itemsToReturn >= itemsInBuffer) { if (debugLevel > 0) dump(); Utils.error("Cannot do another pushBack() because have not yet read enough tokens.  At line #" + lineno()); }
+		if (itemsToReturn >= k)             {
+			if (debugLevel > 0) dump(); Utils.error("The buffered StreamTokenizerJWS has had too many push-backs and no longer has (or never had) the old items.  At line #" + lineno());
+		}
+		if (itemsToReturn >= itemsInBuffer) {
+			if (debugLevel > 0) dump(); Utils.error("Cannot do another pushBack() because have not yet read enough tokens.  At line #" + lineno());
+		}
 		if (counter == 0) { counter = k - 1; } else { counter--; }
-		if (debugLevel > 2) { Utils.println("Did a pushback to '" + reportCurrentToken() + "'"); }
 		itemsToReturn++;
 	}
 	

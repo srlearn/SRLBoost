@@ -12,7 +12,7 @@ import java.util.Objects;
  * @author shavlik
  *
  */
-public class RelevantLiteral {	
+class RelevantLiteral {
 	
 	private final PredicateName     pName;
 	private int               arity    = -1;  // If negative, any arity is fine. 

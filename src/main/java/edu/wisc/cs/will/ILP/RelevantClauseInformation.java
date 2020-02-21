@@ -341,7 +341,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     }
 
-    public HandleFOPCstrings getStringHandler() {
+    private HandleFOPCstrings getStringHandler() {
         return getSentence().getStringHandler();
     }
 
@@ -591,7 +591,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return true;
     }
 
-    public void setSentence(Sentence sentence) {
+    private void setSentence(Sentence sentence) {
         this.sentence = sentence;
     }
 
@@ -612,7 +612,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         }
     }
 
-    public static class ConstantMarkerData {
+    static class ConstantMarkerData {
 
         ElementPath currentPosition = new ElementPath(0);
 
@@ -770,7 +770,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         }
     }
 
-    public static class SentenceGeneralizer {
+    static class SentenceGeneralizer {
 
         SentenceGeneralizer() {
         }

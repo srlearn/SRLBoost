@@ -34,7 +34,7 @@ public class RegressionExample extends Example  implements Serializable {
 		this.setOutputValue(outputValue);
 	}
 
-	public RegressionExample(RegressionExample copy) {
+	protected RegressionExample(RegressionExample copy) {
 		super(copy.getStringHandler(), copy, copy.provenance, copy.extraLabel);
 		this.hasRegressionVector = copy.hasRegressionVector;
 		this.originalRegressionOrProbValue = copy.originalRegressionOrProbValue;

@@ -9,7 +9,7 @@ import java.util.Arrays;
  *
  * @author twalker
  */
-public class StreamTokenizerTAW {
+class StreamTokenizerTAW {
 
 
     /* Only one of these will be non-null */
@@ -451,7 +451,7 @@ public class StreamTokenizerTAW {
      * @see        java.io.StreamTokenizer#sval
      * @see        java.io.StreamTokenizer#ttype
      */
-    public int nextToken() throws IOException {
+	int nextToken() throws IOException {
         boolean done = false;
         int c = 0;
         while(!done) {
@@ -693,7 +693,7 @@ public class StreamTokenizerTAW {
      *
      * @return  the current line number of this stream tokenizer.
      */
-    public int lineno() {
+	int lineno() {
 	return LINENO;
     }
 

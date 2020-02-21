@@ -4,7 +4,6 @@ import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 
 public class ScoreRegressionNode extends ScoreSingleClauseByAccuracy {
-	protected final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
 	// Note we ADD penalties here, since the final score gets negated.
 	private   final static double scalingPenalties = 0.1; // For regression we might want to shift the penalties since prediction errors might be smaller or larger
@@ -18,8 +17,7 @@ public class ScoreRegressionNode extends ScoreSingleClauseByAccuracy {
 
 	public double computeMaxPossibleScore(SearchNode nodeRaw) {
 		SingleClauseNode node = (SingleClauseNode)nodeRaw;
-		
-		if (debugLevel > 1) { Utils.println("%     computeMaxPossibleScore = " + (-scalingPenalties * getPenalties(node, false)) + " for " + node); }
+
 		// In best case, could end up with NO singleton variables.
 		return -scalingPenalties * getPenalties(node, false);
 	}
@@ -45,7 +43,6 @@ public class ScoreRegressionNode extends ScoreSingleClauseByAccuracy {
 		// since the determinate literal by itself is (usually) of no help.
 		SingleClauseNode node  = (SingleClauseNode)nodeRaw; 
 		if (node.endsWithBridgerLiteral()) {
-			if (debugLevel > 1) { Utils.waitHere("COMPUTE BRIDGER BONUS (" + Utils.truncate(bonusForBridgers, 3) + "): " + node); }
 			return bonusForBridgers; 
 		}
 		return 0;

@@ -12,7 +12,7 @@ public abstract class QuantifiedSentence extends Sentence {
 	public  Collection<Variable> variables;
 	public  Sentence             body;
 
-	protected QuantifiedSentence() {}
+	QuantifiedSentence() {}
 
 	@Override
 	public boolean containsTermAsSentence() {

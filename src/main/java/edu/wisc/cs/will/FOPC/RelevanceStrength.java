@@ -25,7 +25,7 @@ public enum RelevanceStrength {
 	public static RelevanceStrength getWeakestRelevanceStrength()         { return STRONGLY_IRRELEVANT; }
 
 	public static RelevanceStrength getDefaultRelevanceStrength()         { return RELEVANT;            }
-	public static RelevanceStrength getNeutralRelevanceStrength()         { return NEUTRAL;             }
+	private static RelevanceStrength getNeutralRelevanceStrength()         { return NEUTRAL;             }
 
 
 	public static RelevanceStrength getRelevanceStrengthFromString(String str) {
@@ -61,7 +61,7 @@ public enum RelevanceStrength {
 
 	}
 
-	public RelevanceStrength getWeaker() {
+	private RelevanceStrength getWeaker() {
 		int me = ordinal();
 		for (RelevanceStrength rs : RelevanceStrength.values()) {
 			int other = rs.ordinal();

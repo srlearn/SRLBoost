@@ -17,7 +17,9 @@ import java.util.*;
  *
  */
 public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQuery, SentenceOrTerm {
-	protected final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
+
+	// TODO(@hayesall): Find `Sentence.debugLevel` call chain.
+	final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	
 	final static double maxWeight     = 300.0; // Since weights are used in exp^weight, want something that avoids overflow.
 	final static double minWeight     = -maxWeight;	 // Also want to avoid underflow (note: code does not yet use this).
@@ -28,7 +30,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	/*
 	 * The Sentence class represents a well-formed formula (wff) in FOPC.
 	 */
-	protected Sentence() {}
+	Sentence() {}
 
 	public HandleFOPCstrings getStringHandler() {
 		return stringHandler;
@@ -41,7 +43,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 		return result;
 	}
 
-    public Sentence copy() {
+    Sentence copy() {
 		return copy(false);           // Default is to do a "top-level" copy.
 	}
 
@@ -49,7 +51,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
     
 	public abstract boolean containsTermAsSentence();
 
-	public final Sentence copy2(boolean recursiveCopy) {
+	private Sentence copy2(boolean recursiveCopy) {
         return copy2(recursiveCopy, new BindingList());
     }
 
@@ -60,7 +62,6 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 		Collection<Variable> freeVariables  = collectFreeVariables(boundVariables);
 		
 		if (freeVariables == null || freeVariables.size() <= 0) { return this; }
-		if (debugLevel > 1) Utils.println("Need to wrap\n " + this + "\nin a ForAll due to these free variables: " + freeVariables);
 		UniversalSentence result = new UniversalSentence(stringHandler, freeVariables, this);
 		result.wgtSentence = wgtSentence; // Pull the weight out.  (Could check if the inner weight = maxWeight, but no big deal.
 		wgtSentence = Sentence.maxWeight;
@@ -70,7 +71,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	public double getWeightOnSentence() {
 		return wgtSentence;
 	}	
-	public void setWeightOnSentence() { // Set to DEFAULT value if no arguments.
+	private void setWeightOnSentence() { // Set to DEFAULT value if no arguments.
 		wgtSentence = defaultWeight;
 	}
 	public Sentence setWeightOnSentence(double weight) {
@@ -88,40 +89,34 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	public Sentence getConjunctiveNormalForm() {
         Sentence sentence = this;
 
-		if (debugLevel > 1) { Utils.println("\nCalling convertToClausalForm.\nOriginal form:\n "     + this); }
 		// Convert equivalences to implications.   See pages 215 and 295-297 of Russell and Norvig, 2nd edition.
 		boolean containsEquivalence = sentence.containsThisFOPCtype("equivalent"); // Do some initial scanning since these steps lead to complete copying.  (I'm not sure this is a big deal ..)
 		if (containsEquivalence) { // Could also do these checks at each step, so only necessary parts are copied, but that might trade off too much time for space?
 			sentence = sentence.convertEquivalenceToImplication(); // This can produce a SET of sentences, but they'll be conjoined with an AND.
-			if (debugLevel > 1) { Utils.println("After convertEquivalenceToImplication():\n " + sentence); }
 		}
 
 		// Eliminate implications.
 		boolean containsImplications = sentence.containsThisFOPCtype("implies");
 		if (containsImplications) {
 			sentence = sentence.eliminateImplications();
-			if (debugLevel > 1) { Utils.println("After eliminateImplications():\n " + sentence); }
 		}
 
 		// Move negation inwards.
 		boolean containsNegations = sentence.containsThisFOPCtype("not");
 		if (containsNegations) {
 			sentence = sentence.moveNegationInwards();
-			if (debugLevel > 1) { Utils.println("After moveNegationInwards():\n " + sentence); }
 		}
 
 		// Skolemize.
 		boolean needToSkolemize = sentence.containsThisFOPCtype("exists") || sentence.containsThisFOPCtype("forAll");
 		if (needToSkolemize ) { // Need to do the dropUniversalQuantifiers.
 			sentence = sentence.skolemize(null);
-			if (debugLevel > 1) { Utils.println("After skolemize():\n " + sentence); }
 		}
 
 		// Distribute disjunctions over conjunctions.
 		boolean containsDisjunction = sentence.containsThisFOPCtype("or");
 		if (containsDisjunction) {
 			sentence = sentence.distributeConjunctionOverDisjunction();
-			if (debugLevel > 1) { Utils.println("After distributeDisjunctionOverConjunction():\n " + sentence); }
 		}
 
         return sentence;
@@ -130,33 +125,28 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	public List<Clause> convertToClausalForm() {
 		Sentence sentence = this;
 
-		if (debugLevel > 1) { Utils.println("\nCalling convertToClausalForm.\nOriginal form:\n "     + this); }
 		// Convert equivalences to implications.   See pages 215 and 295-297 of Russell and Norvig, 2nd edition.
 		boolean containsEquivalence = sentence.containsThisFOPCtype("equivalent"); // Do some initial scanning since these steps lead to complete copying.  (I'm not sure this is a big deal ..)
 		if (containsEquivalence) { // Could also do these checks at each step, so only necessary parts are copied, but that might trade off too much time for space?
 			sentence = sentence.convertEquivalenceToImplication(); // This can produce a SET of sentences, but they'll be conjoined with an AND.
-			if (debugLevel > 1) { Utils.println("After convertEquivalenceToImplication():\n " + sentence); }
 		}
 		
 		// Eliminate implications.
 		boolean containsImplications = sentence.containsThisFOPCtype("implies");
 		if (containsImplications) {
 			sentence = sentence.eliminateImplications();
-			if (debugLevel > 1) { Utils.println("After eliminateImplications():\n " + sentence); }
 		}
 		
 		// Move negation inwards.
 		boolean containsNegations = sentence.containsThisFOPCtype("not");
 		if (containsNegations) {
 			sentence = sentence.moveNegationInwards();
-			if (debugLevel > 1) { Utils.println("After moveNegationInwards():\n " + sentence); }
 		}
 		
 		// Skolemize.
 		boolean needToSkolemize = sentence.containsThisFOPCtype("exists") || sentence.containsThisFOPCtype("forAll");
 		if (needToSkolemize ) { // Need to do the dropUniversalQuantifiers.
 			sentence = sentence.skolemize(null);
-			if (debugLevel > 1) { Utils.println("After skolemize():\n " + sentence); }
 		}
 
 		// Distribute disjunctions over conjunctions.
@@ -166,11 +156,9 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 			sentence.setWeightOnSentence(); // Set to the max weight.
 			sentence = sentence.distributeDisjunctionOverConjunction();
 			sentence.setWeightOnSentence(holdWgt); // We don't want to distribute this top-level weight just yet (convertToListOfClauses will do so).
-			if (debugLevel > 1) { Utils.println("After distributeDisjunctionOverConjunction():\n " + sentence); }
 		}
 		
-		// Eliminate variable-name clashes. We can do this step LAST (usually it is before Skolemization). 
-		if (debugLevel > 0) { Utils.println("Clausal pre-form:\n "  + sentence); }
+		// Eliminate variable-name clashes. We can do this step LAST (usually it is before Skolemization).
 
         //sentence = sentence.standardizeVariableNames(null, newToOldBindings);
 
@@ -181,18 +169,15 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
         }
         else if(sentence instanceof Literal) {
 			List<Clause> result = sentence.convertToListOfClauses();
-			if (debugLevel > 0) { Utils.println("Clausal form:\n "  + result + "\n"); }
 			if (result != null) { for (Clause c : result) { c.checkForCut(); }} // This isolated literal could be the cut, though that is unlikely.
 			return result; // No need to rename variables since an isolated literal, and so will already have unique variables.
 		}
         else if(sentence instanceof ConnectedSentence) {
 			List<Clause> result = sentence.convertToListOfClauses();
-			if (debugLevel > 0) { Utils.println("Clausal form:\n "  + result + "\n"); }
 			if (result != null && result.size() > 1) { // Need to rename all of these.
 				List<Clause> renamedResult = new ArrayList<>(result.size());
 				for (Clause c : result) {
 					Clause newClause = (Clause) c.copyAndRenameVariables().setWeightOnSentence(c.getWeightOnSentence());
-					if (debugLevel > 1) { Utils.println("Copied form:\n "  + newClause + " from " + c); }
 					newClause.checkForCut();
 					renamedResult.add(newClause);
 				}
@@ -203,12 +188,12 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 		Utils.error("Cannot yet handle this case: " + sentence);
 		return null;
 	}
-	protected List<Clause> convertToListOfClauses() {
+	List<Clause> convertToListOfClauses() {
 		Utils.error("This should not be reached, but reached by: " + this);
 		return null;
 	}
     
-	protected Clause convertToClause() {
+	Clause convertToClause() {
         List<Clause> clauses = convertToClausalForm();
         if (clauses != null && clauses.size() == 1) {
             return clauses.get(0);

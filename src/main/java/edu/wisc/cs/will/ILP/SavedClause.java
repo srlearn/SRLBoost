@@ -11,7 +11,7 @@ import java.util.Set;
  *
  *  An entry in a Gleaner.
  */
-public class SavedClause implements Serializable {
+class SavedClause implements Serializable {
 	final long nodeCountWhenSaved;
 	final long acceptableNodeCountWhenSaved;
 	final boolean examplesFlipFlopped;
@@ -19,10 +19,10 @@ public class SavedClause implements Serializable {
 	final String clauseCreator; // Annotation about what created this clause.
 	double posCoverage;
 	double negCoverage;
-	protected double precision;
-	protected double recall;
-	protected double F1;
-	protected double score;
+	double precision;
+	double recall;
+	double F1;
+	double score;
 	Set<Example> uncoveredPos;
 	Set<Example> uncoveredNeg;
 	String ruleAsString;

@@ -29,7 +29,7 @@ public class Stopwatch {
     /*
      * Starts the watch. If the watch was already started, nothing is done.
      */
-    public void start() {
+    private void start() {
         if (startTime == -1) {
             startTime = System.currentTimeMillis();
         }
