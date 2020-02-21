@@ -6,7 +6,6 @@ import edu.wisc.cs.will.Utils.condor.chirp.ChirpClient;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,10 +18,6 @@ public class CondorFile extends File {
 
     static {
         setupChirp();
-    }
-
-    public CondorFile(URI uri) {
-        super(uri);
     }
 
     public CondorFile(File parent, String child) {

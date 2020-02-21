@@ -726,7 +726,7 @@ public class Clause extends Sentence implements DefiniteClause {
     }
 
         @Override
-	public String toString(int precedenceOfCaller, BindingList bindingList) {
+        protected String toString(int precedenceOfCaller, BindingList bindingList) {
 		if (stringHandler.prettyPrintClauses) {
 			return toPrettyString("", precedenceOfCaller, 10, bindingList);
 		}
