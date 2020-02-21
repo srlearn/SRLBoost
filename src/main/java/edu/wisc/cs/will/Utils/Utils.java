@@ -486,19 +486,19 @@ public class Utils {
      * Waits for input on standard input after displaying "Waiting for user input".
      */
     public static void waitHere() {
-        waitHere("", false, null);
+        waitHere("", null);
     }
     public static void waitHere(String msg) {
-        waitHere(msg, false, null);
+        waitHere(msg, null);
     }
 
     public static void waitHereErr(String msg) {
     	if ( msg != null && !msg.isEmpty()) {
     		printlnErr(msg);
-            waitHere(msg, false, null);
+            waitHere(msg, null);
             return;
     	}
-        waitHere(msg, false, null);
+        waitHere(msg, null);
     }
 
     /* Prints out the message msg, possibly waiting for user input prior to continuing.
@@ -515,7 +515,7 @@ public class Utils {
      *
      * @return False if an exception occurs while reading input from the user, true otherwise.
      */
-    private static void waitHere(String msg, boolean waitHereRegardless, String skipWaitString) {
+    private static void waitHere(String msg, String skipWaitString) {
 
         int occurenceCount = 1;
         if ( skipWaitString != null ) {
@@ -524,20 +524,20 @@ public class Utils {
            warningCounts.put(skipWaitString, occurenceCount);
         }
 
-    	if (!waitHereRegardless && !isWaitHereEnabled() && occurenceCount == 1) {
+    	if (!isWaitHereEnabled() && occurenceCount == 1) {
             if ( msg != null && !msg.isEmpty()) {
                 print("\n% Skipping over this 'waitHere': " + msg + "\n", true);
             }
     		return;
     	}
 
-        if (!waitHereRegardless && occurenceCount > 1) {
+        if (occurenceCount > 1) {
             return;
         }
 
 		boolean hold = doNotPrintToSystemDotOut;
 		doNotPrintToSystemDotOut = false; // If these printout become too much, we can add a 3rd flag to override these ...
-        print("\n% WaitHere: " + msg + "\n%  ...  Hit ENTER to continue or 'e' to interrupt. ", waitHereRegardless);
+        print("\n% WaitHere: " + msg + "\n%  ...  Hit ENTER to continue or 'e' to interrupt. ", false);
         doNotPrintToSystemDotOut = hold;
 
 		if ( CondorUtilities.isCondor() ) {

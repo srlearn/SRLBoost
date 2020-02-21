@@ -146,12 +146,12 @@ public class TreeStructuredTheory extends Theory {
 		return result.toString();
 	}
 	private Collection<Variable> collectAllVariables() {
-		return collectFreeVariables(null);
+		return collectFreeVariables();
 	}
 	
-	private Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
-    	Collection<Variable> headVars = headLiteral.collectFreeVariables(boundVariables);
-    	Collection<Variable> rootVars = root.collectFreeVariables(       boundVariables);
+	private Collection<Variable> collectFreeVariables() {
+    	Collection<Variable> headVars = headLiteral.collectFreeVariables(null);
+    	Collection<Variable> rootVars = root.collectFreeVariables(null);
 		return Variable.combineSetsOfVariables(headVars, rootVars);
 	}
 	

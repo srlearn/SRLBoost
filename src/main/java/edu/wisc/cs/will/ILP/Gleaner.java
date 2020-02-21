@@ -10,7 +10,6 @@ import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
-import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -70,14 +69,14 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	private long     lastReported_addsToCurrentGleaner = 0;
 
 	public Gleaner() {
-		this(null, null, null, 5000);
+		this(5000);
 	}
 
-	private Gleaner(GleanerFileNameProvider fileNameProvider, StateBasedSearchTask owner, HandleFOPCstrings stringHandler, int reportingPeriod) {
+	private Gleaner(int reportingPeriod) {
       resetAllMarkers();
-      this.fileNameProvider   = fileNameProvider;
-      this.setTaskBeingMonitored(owner);
-	  this.stringHandler      = stringHandler;
+      this.fileNameProvider   = null;
+      this.setTaskBeingMonitored(null);
+	  this.stringHandler      = null;
 	  this.reportingPeriod    = reportingPeriod; // Override the default.
 	  
 	}

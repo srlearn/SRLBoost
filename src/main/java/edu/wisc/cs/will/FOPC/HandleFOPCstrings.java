@@ -1512,8 +1512,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		Collection<Variable> vars = s.collectAllVariables();
 		if (Utils.getSizeSafely(vars) < 1) { return s; }
 		BindingList bl = renameAllVariables(vars, s);
-		Sentence newS = s.applyTheta(bl.theta);
-		return newS;
+		return s.applyTheta(bl.theta);
 	}
 
 	BindingList renameAllVariables(Collection<Variable> vars, AllOfFOPC owner) { // If owner != null, variables that only appear once are renamed to "_";

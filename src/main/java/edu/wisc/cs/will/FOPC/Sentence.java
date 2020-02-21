@@ -38,7 +38,7 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 
 	public Sentence copyAndRenameVariables() {
 		stringHandler.pushVariableHash();
-		Sentence result = copy2(true);
+		Sentence result = copy2();
 		stringHandler.popVariableHash();
 		return result;
 	}
@@ -51,8 +51,8 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
     
 	public abstract boolean containsTermAsSentence();
 
-	private Sentence copy2(boolean recursiveCopy) {
-        return copy2(recursiveCopy, new BindingList());
+	private Sentence copy2() {
+        return copy2(true, new BindingList());
     }
 
     public abstract Sentence copy2(boolean recursiveCopy, BindingList bindingList);

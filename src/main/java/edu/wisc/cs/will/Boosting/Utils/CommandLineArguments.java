@@ -217,7 +217,7 @@ public class CommandLineArguments {
 
 	private static final String useProbWts = "probWt";
 	private boolean useProbabilityWeights = false;
-	
+
 	public int getDoInferenceIfModNequalsThis() {
 		return doInferenceIfModNequalsThis;
 	}
