@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class TypeManagement {
 
-    protected final static int debugLevel = 0; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
+    private final static int debugLevel = 0; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
     private final HandleFOPCstrings stringHandler;
 

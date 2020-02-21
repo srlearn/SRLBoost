@@ -101,7 +101,7 @@ public class ConsCell extends Function implements Iterable<Term> {
 
         ConsCell c = this;
         while (c != null && !c.isNil()) {
-            first();
+            Term first = first();
 
             Term rest = c.rest();
             if (rest instanceof ConsCell) {

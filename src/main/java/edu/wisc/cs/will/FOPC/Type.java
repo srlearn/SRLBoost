@@ -13,7 +13,7 @@ import java.util.Map;
 public class Type extends AllOfFOPC implements Serializable {
 	public final String typeName;
 
-    protected Type(String typeName) {
+    Type(String typeName) {
         this.typeName = typeName;
     }
 
@@ -39,10 +39,10 @@ public class Type extends AllOfFOPC implements Serializable {
      *
      * This call will then use the readResolve method to fix up the stream.
      */
-    protected static class SerializableType implements Serializable {
+    static class SerializableType implements Serializable {
 
         final String typeName;
-        transient public HandleFOPCstrings stringHandler;
+        transient HandleFOPCstrings stringHandler;
 
         SerializableType(String type) {
             this.typeName = type;

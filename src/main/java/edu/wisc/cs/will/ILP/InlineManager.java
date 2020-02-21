@@ -61,7 +61,7 @@ public class InlineManager {
         return null;
     }
 
-	private Clause getUnifiedLiteralDefinition(int depth, Literal lit, BindingList overallBindings) {
+	private Clause getUnifiedLiteralDefinition(Literal lit, BindingList overallBindings) {
 		if (lit == null)                 { Utils.error("Literal should be NULL here."); }
 		getStringHandler().resetAllVariables(); // Need fresh variables for the following copy.
 		Clause definer = getLiteralDefinition(lit);
@@ -93,7 +93,6 @@ public class InlineManager {
 	// this clause.  (Recall that supporting literals are ones that need to accompany theories.)
 	public List<Clause> handleInlinerAndSupportingClauses(Clause c) {
 		if (c == null) { return null; }
-		boolean hold = getStringHandler().printVariableCounters;
 
 		if (!c.isDefiniteClause()) { Utils.error("This code only handle definite clauses.  It was given: " + c); }
 
@@ -211,7 +210,7 @@ public class InlineManager {
 					if (Utils.getSizeSafely(recurResults) > 0) { supporters.addAll(recurResults); }
 				}
 			} else if (isaInliner) { // Need to replace this literal.
-				Clause newDefn = getUnifiedLiteralDefinition(depth, lit, overallBindings); // This will change overallBindings.
+				Clause newDefn = getUnifiedLiteralDefinition(lit, overallBindings); // This will change overallBindings.
 				
 				List<Clause> recurResults = help_handleInlinerAndSupportingClauses(newDefn, depth + 1);
 				if (Utils.getSizeSafely(recurResults) < 1) { Utils.error("recurResults = " + recurResults + " for newliner = " + lit + "\n newDefn = " + newDefn + "\n overall bindings =" + overallBindings); }

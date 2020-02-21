@@ -281,7 +281,7 @@ public class CreateSyntheticExamples {
                                 Term arg = lit.getArguments().get(index - 1); // Recall counting from 0 here (but from 1 externally).
                                 if (arg instanceof Constant) {
                                     Constant argAsConstant = (Constant) arg;
-                                    boolean addResult = results.add(argAsConstant);
+									results.add(argAsConstant);
                                 }
                             }
                         }

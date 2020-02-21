@@ -743,10 +743,6 @@ public class CommandLineArguments {
 		this.modelDirVal = modelDirVal;
 	}
 
-	public boolean isUseProbabilityWeights() {
-		return useProbabilityWeights;
-	}
-
 	private boolean checked_resultsDirVal = false;
 
 	public String getResultsDirVal() {

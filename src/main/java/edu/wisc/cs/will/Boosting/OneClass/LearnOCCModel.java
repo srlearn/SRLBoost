@@ -19,7 +19,7 @@ import java.util.List;
 /*
  * @author tkhot
  */
-public class LearnOCCModel {
+class LearnOCCModel {
 
 	private String targetPredicate;
 

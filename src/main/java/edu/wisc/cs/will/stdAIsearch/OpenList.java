@@ -120,7 +120,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
             // TODO(?): allow '<' and '<=' the best score
             // Do not use BONUS here, since that should only impact sorting in the list.
             task.bestScoreSeenSoFar = score;
-            task.nodeWithBestScore = node;
             if (task.discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar) {
                 // TODO(?): allow '<' and '<=' the best score.
                 // Remove items from OPEN that cannot beat.

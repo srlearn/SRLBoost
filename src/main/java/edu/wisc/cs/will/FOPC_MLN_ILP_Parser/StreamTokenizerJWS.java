@@ -17,7 +17,7 @@ import java.io.StreamTokenizer;
  * If some complications arise (like the need for doingSuperCall): convert to a WRAPPER instead of an EXTENSION to StreamTokenizer.
  *  
  */
-public class StreamTokenizerJWS extends StreamTokenizerTAW {
+class StreamTokenizerJWS extends StreamTokenizerTAW {
 
 	// TODO(@hayesall): The `dump()` method can probably be dropped, factor out the `StreamTokenizerJWS.debugLevel`
 	private final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).

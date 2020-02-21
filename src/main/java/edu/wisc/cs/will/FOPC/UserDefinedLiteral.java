@@ -35,7 +35,7 @@ import edu.wisc.cs.will.ResThmProver.HornClauseContext;
  *
  * @author twalker
  */
-public interface UserDefinedLiteral {
+interface UserDefinedLiteral {
 
 
     /* Handles the processing of the procedurally defined predicate.

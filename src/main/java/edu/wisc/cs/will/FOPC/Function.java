@@ -43,7 +43,7 @@ public class Function extends Term implements LiteralOrFunction {
 	void clearArgumentNamesInPlace() {
 		if (numberArgs() < 1) { return; }
 		if (argumentNames != null) {
-			List<String> argOrdering = functionName.getNamedArgOrdering(numberArgs());
+			List<String> argOrdering = functionName.getNamedArgOrdering();
 
 			if (argumentNames.get(0).equalsIgnoreCase("name")) {
 				removeArgument(arguments.get(0), argumentNames.get(0));

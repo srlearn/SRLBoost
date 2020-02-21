@@ -1176,10 +1176,6 @@ public class Utils {
         return getFBeta(1, truePositives, falsePositives, falseNegatives);
     }
 
-   public static void getF1(double precision, double recall) {
-       getFBeta(1, precision, recall);
-   }
-
     public static double getAccuracy(double truePositives, double falsePositives, double trueNegatives, double falseNegatives) {
 
         double numerator   = truePositives                  + trueNegatives;

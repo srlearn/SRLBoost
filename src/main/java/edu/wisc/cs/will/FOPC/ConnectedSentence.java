@@ -479,7 +479,7 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 		return null;
 	}	
     @Override
-	protected Clause convertToClause() {
+	Clause convertToClause() {
 		if (ConnectiveName.isaOR(connective.name)) {
 			Clause left  = sentenceA.convertToClause();
 			Clause right = sentenceB.convertToClause();

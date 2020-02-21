@@ -29,7 +29,7 @@ public class FunctionName extends AllOfFOPC {
 		extensionalSemantics.put(inputs,output);
 	}
 
-	List<String> getNamedArgOrdering(int arity) {
+	List<String> getNamedArgOrdering() {
 		return null;
 	}
 

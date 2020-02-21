@@ -700,11 +700,7 @@ public class Clause extends Sentence implements DefiniteClause {
 		return result.toString();
 	}
 
-    // TODO - lineStarter needs to be passed into literals as well.
-    public String toPrettyString(String lineStarter, int precedenceOfCaller, int literalsPerRow) {
-        return toPrettyString(lineStarter, precedenceOfCaller, literalsPerRow, null);
-    }
-	public String toPrettyString(String lineStarter, int precedenceOfCaller, int literalsPerRow, BindingList bindingList) {
+    public String toPrettyString(String lineStarter, int precedenceOfCaller, int literalsPerRow, BindingList bindingList) {
 		int temp = stringHandler.numberOfLiteralsPerRowInPrintouts;
 		stringHandler.numberOfLiteralsPerRowInPrintouts = literalsPerRow;
 		String result = toPrettyString(lineStarter, precedenceOfCaller, bindingList);

@@ -19,7 +19,7 @@ import java.util.List;
 public class StateBasedSearchTask<T extends SearchNode> {
 	protected String taskName = "unnamedTask"; // Used in println's to clarify which task is being discussed.
 
-    SearchStrategy strategy;
+    private SearchStrategy strategy;
 
     public ScoringFunction scorer;
 
@@ -106,7 +106,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     protected boolean      discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar = false; // If true, do a branch-and-bound search.
     double       bestScoreSeenSoFar                                    = Double.NEGATIVE_INFINITY;
-    T   nodeWithBestScore                                     = null; // The search monitor's job is to return the best answer.  This variable is only used for reporting purposes.
     public    int          nodesNotAddedToOPENsinceMaxScoreTooLow                = 0;
     public    int          nodesRemovedFromOPENsinceMaxScoreNowTooLow            = 0;
 	
@@ -198,7 +197,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
             lastNodeVisited = null; // Allow this to persist across iterative deep. in case a future use arises.
 
             bestScoreSeenSoFar = Double.NEGATIVE_INFINITY;
-            nodeWithBestScore  = null;
             nodesNotAddedToOPENsinceMaxScoreTooLow     = 0;
             nodesRemovedFromOPENsinceMaxScoreNowTooLow = 0;
 
@@ -318,7 +316,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
         }
 
         bestScoreSeenSoFar = Double.NEGATIVE_INFINITY;
-        nodeWithBestScore  = null;
 
         sr = performSearchIteration();
 

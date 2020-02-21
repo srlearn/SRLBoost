@@ -39,13 +39,13 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
     private final PredicateNameAndArityFilter  spyEntries;
 
 	public HornClauseProver(HornClausebase factbase) {
-        this(factbase, new DepthFirstSearch(), null);
+        this(factbase, new DepthFirstSearch());
 	}
 	public HornClauseProver(HornClausebase factbase, boolean redoable) {
         this(new DefaultHornClauseContext(factbase), new DepthFirstSearch(), null,redoable);
 	}
-	private HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy, ScoringFunction scorer) {
-        this(new DefaultHornClauseContext(factbase), searchStrategy, scorer, false);
+	private HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy) {
+        this(new DefaultHornClauseContext(factbase), searchStrategy, null, false);
     }
     public HornClauseProver(HornClauseContext context) {
         this(context, false);

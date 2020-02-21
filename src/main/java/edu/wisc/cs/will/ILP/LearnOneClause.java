@@ -1393,22 +1393,12 @@ public class LearnOneClause extends StateBasedSearchTask {
 			Utils.error("Called for null query");
 			return new BindingList();
 		} // The empty list is really a body that equals the built-in predicate 'true()'.
-
-        long startTime = System.nanoTime();
-
-		BindingList result = getProver().proveConjunctiveQueryAndReturnBindings(negatedConjunctiveQuery);
-
-		return result;
+		return getProver().proveConjunctiveQueryAndReturnBindings(negatedConjunctiveQuery);
 	}
 
 	boolean prove(List<Literal> negatedConjunctiveQuery) throws SearchInterrupted {
 		if (negatedConjunctiveQuery == null) { return true; } // The empty list is really a body that equals the built-in predicate 'true()'.
-
-        long startTime = System.nanoTime();
-
-		boolean result = getProver().proveConjunctiveQuery(negatedConjunctiveQuery);
-
-		return result;
+		return getProver().proveConjunctiveQuery(negatedConjunctiveQuery);
 	}
 
 	private int warningCountAboutExamples = 0;
@@ -1511,14 +1501,14 @@ public class LearnOneClause extends StateBasedSearchTask {
 			if (arg0 instanceof Function) {
 				Function f = (Function) arg0;
 				Literal internalLit = (f).convertToLiteral(stringHandler);
-				return createExample(internalLit, lit.getArgument(1));
+				return createExample(internalLit);
 			}
 			Utils.error("Should get a literal posing as a function here, but got: " + arg0);
-		} else { return createExample(lit, null); } // Grab the outer weight.
+		} else { return createExample(lit); } // Grab the outer weight.
 		return null;
 	}
 
-	private Example createExample(Literal lit, Term annotationTerm) {
+	private Example createExample(Literal lit) {
 		if (regressionTask) {
 			double outputValue = lit.getWeightOnSentence();
 			if (lit.predicateName.name.equals(regressionExamplePredName.name)) {

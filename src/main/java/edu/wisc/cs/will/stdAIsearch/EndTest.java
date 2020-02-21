@@ -5,7 +5,7 @@ package edu.wisc.cs.will.stdAIsearch;
  */
 public abstract class EndTest {
 
-	public EndTest() {
+	protected EndTest() {
 	}
 
 	void setSearchTask() {

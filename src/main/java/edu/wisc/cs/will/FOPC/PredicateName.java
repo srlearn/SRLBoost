@@ -554,7 +554,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		else if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate temporary of " + name + "/" + arity + ".  Will ignore."); }		
 	}
 
-	List<String> getNamedArgOrdering(int arity) {
+	List<String> getNamedArgOrdering() {
 		return null;
 	}
 	

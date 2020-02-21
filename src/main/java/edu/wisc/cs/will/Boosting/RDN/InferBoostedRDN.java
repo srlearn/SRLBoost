@@ -545,7 +545,7 @@ public class InferBoostedRDN {
 	 * @author tkhot
 	 *
 	 */
-	public static class ValueComparator implements Comparator<String> {
+	static class ValueComparator implements Comparator<String> {
 		final Map<String, Double> base;
 		ValueComparator(Map<String, Double> input) {
 			base = input;
