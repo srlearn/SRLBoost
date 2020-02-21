@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.Collection;
 

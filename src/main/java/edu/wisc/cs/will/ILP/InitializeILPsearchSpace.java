@@ -70,14 +70,6 @@ public class InitializeILPsearchSpace extends Initializer {
 				}
 			}
 
-			if (LearnOneClause.debugLevel > 2) { 
-				Utils.println("\n%  Target #" + Utils.comma(i) + " being learned: '" + target + "',\n%  with argument types: " + specs); 
-				Utils.println("%   typeList:   " + targetPred.getTypeListForThisArity(target.numberArgs())); //Utils.waitHere();
-				Utils.println("%   varList:    " + variables);
-				Utils.println("%   specsList:  " + specs);
-
-			}
-
             if ( posSeeds == null ) throw new IllegalStateException("There are not positive seeds selected.  Maybe try LearnOneClause.selectSeedsRandomly()?");
 
             // Note the get(0) below is due to the weird List returned by getTypeListForThisArity.  The first
@@ -101,21 +93,6 @@ public class InitializeILPsearchSpace extends Initializer {
 						collectStillNeededVars(newTarget.getArguments(), varsNeeded);
 						List<ArgSpec>      newSpecs      = collectNewSpecs(specs, variables, varsNeeded);
 						Map<Type,List<Term>> newTypesMap = collectNewTypes(newSpecs);
-						if (LearnOneClause.debugLevel > 2) { 
-							Utils.println(" seed         = " + posSeed);
-							Utils.println(" old theta    = " + bl.theta);
-							Utils.println(" new theta    = " + newTheta);
-							Utils.println(" old vars     = " + variables);
-							Utils.println(" new vars     = " + varsNeeded);
-							Utils.println(" old target   = " + target);
-							Utils.println(" new target   = " + newTarget);
-							Utils.println(" old specs    = " + specs);
-							Utils.println(" new specs    = " + newSpecs);
-							Utils.println(" predSpec     = " + pSpec        + " [should not change]");
-							Utils.println(" typesPresent = " + typesPresent + " [should not change]");
-							Utils.println(" old typesMap = " + typesMap);
-							Utils.println(" new typesMap = " + newTypesMap);
-						}
 						// Check for duplicates here if more than one seed.
 						SingleClauseRootNode targetAsSearchNode2 = new SingleClauseRootNode(ilpTask, newTarget, newSpecs, varsNeeded, typesPresent, newTypesMap);
 						if (task.scorer != null) { open.insertByScoreIntoOpenList(targetAsSearchNode2); }

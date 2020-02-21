@@ -59,8 +59,8 @@ public class TypeManagement {
                     PredicateName targetPredicate = targetLiterals.get(i).predicateName;
                     assert targetArgSpecs != null;
                     List<ArgSpec> argSpecs = targetArgSpecs.get(i);
-                    recordTypedConstantsFromTheseExamples(printStream, posExamples, "positive", targetPredicate, argSpecs);
-                    recordTypedConstantsFromTheseExamples(printStream, negExamples, "negative", targetPredicate, argSpecs);
+                    recordTypedConstantsFromTheseExamples(printStream, posExamples, targetPredicate, argSpecs);
+                    recordTypedConstantsFromTheseExamples(printStream, negExamples, targetPredicate, argSpecs);
                 }
             }
             checkThatTypesOfAllConstantsAreKnown(printStream, backgroundFacts);
@@ -257,15 +257,13 @@ public class TypeManagement {
         }
     }
 
-    private void recordTypedConstantsFromTheseExamples(PrintStream printStream, List<Example> examples, String exampleType, PredicateName targetPredicate, List<ArgSpec> targetArgSpecs) {
+    private void recordTypedConstantsFromTheseExamples(PrintStream printStream, List<Example> examples, PredicateName targetPredicate, List<ArgSpec> targetArgSpecs) {
 
         if (examples == null) {
             return;
         }
 
         // Collect all the constants in the specified set of examples.
-        int countOfAdds = 0;
-        int countOfDups = 0;
         for (Literal ex : examples) {
             if (targetPredicate != ex.predicateName) { // && warningCounter++ < 10) {
                 // This would be handled later by the next call to recordTyped...
@@ -282,10 +280,8 @@ public class TypeManagement {
                     }
                     ArgSpec spec = targetArgSpecs.get(counter);
                     if (addNewConstant(printStream, stringHandler, arg, spec.typeSpec.isaType, ex)) {
-                        countOfAdds++;
                     }
                     else {
-                        countOfDups++;
                     }
                     counter++;
                 }

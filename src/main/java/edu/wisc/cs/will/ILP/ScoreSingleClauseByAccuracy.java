@@ -3,7 +3,6 @@ package edu.wisc.cs.will.ILP;
 import edu.wisc.cs.will.FOPC.Constant;
 import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.Variable;
-import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 

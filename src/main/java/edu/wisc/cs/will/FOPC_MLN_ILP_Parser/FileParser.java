@@ -230,7 +230,6 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  */
 public class FileParser {
 
-	// TODO(@hayesall): Find the call chain where `FileParser.debugLevel` is referenced from.
 	protected final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
 	private                 boolean dontPrintUnlessImportant = true;
@@ -263,11 +262,6 @@ public class FileParser {
 
 	public FileParser(HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
-	}
-	public FileParser(HandleFOPCstrings stringHandler, boolean dontPrintUnlessImportant) {
-		this.stringHandler = stringHandler;
-		this.dontPrintUnlessImportant               = dontPrintUnlessImportant;
-		this.stringHandler.dontPrintUnlessImportant = dontPrintUnlessImportant;
 	}
 
 	public List<Sentence> getSentencesToPrecompute(int index) {

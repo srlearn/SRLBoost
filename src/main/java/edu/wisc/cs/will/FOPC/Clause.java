@@ -138,7 +138,6 @@ public class Clause extends Sentence implements DefiniteClause {
             if (negLiterals != null) { // Mark that is clause contains a 'cut' - this info is needed at the time the head (i.e., the positive literal) is matched and we don't want to check everything a clause is used in resolution theorem proving.
                 for (Literal lit : negLiterals) if (lit.predicateName.name.equals("!")) {
                     found = true;
-                    if (debugLevel > 1) { Utils.println("checkForCut: This clause contains a cut: " + this); }
                     break;
                 }
             }

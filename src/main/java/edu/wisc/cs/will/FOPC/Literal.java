@@ -669,10 +669,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         boolean hasArgNames = (argumentNames != null);
 
         String pNameString = predicateName.toString();
-        if (debugLevel > 0) {
-        	if (predicateName.isaInlined(      numberArgs())) { pNameString += "[inlined]"; }
-            if (predicateName.isaTemporaryName(numberArgs())) { pNameString += "[temporary]"; }
-        }
         if (predicateName.printUsingInFixNotation && numberArgs() == 2) {
             int precedence = HandleFOPCstrings.getLiteralPrecedence_static(predicateName);
             if (precedenceOfCaller < precedence) {

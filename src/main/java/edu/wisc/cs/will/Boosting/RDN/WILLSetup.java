@@ -1400,8 +1400,6 @@ public final class WILLSetup {
 		// Recall there could be some bridgers at each interior node, so this is allowing some bridgers.
 		getOuterLooper().setMaxTreeDepthInLiterals(Math.max(4, (getOuterLooper().getMaxTreeDepth() + 1) * (getOuterLooper().innerLoopTask.maxFreeBridgersInBody + getOuterLooper().getMaxNumberOfLiteralsAtAnInteriorNode())));
 
-		// Since we won't be doing a lot of expansions, let's see all of them.
-		ChildrenClausesGenerator.modForReportingExpansions = 1;
 		// Reminder: "consider" means "expand" (i.e., remove from the OPEN list and generate its children);  "create" is a counter on children.
 		int matLitsAtNode = cmdArgs.getMaxLiteralsInAnInteriorNode() + getOuterLooper().innerLoopTask.maxFreeBridgersInBody;
 		// For reasons of time, don't want to expand too many nodes (does this setting matter if maxLits=1?).  Eg, expand the root, pick the best child, expand it, then pick the overall best unexpanded child, and repeat a few more times.

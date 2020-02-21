@@ -179,6 +179,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		return c;
 	}
 
+	// TODO(@hayesall): `reportSearchStats()` method can likely be removed.
 	private void reportSearchStats() {
 		Utils.print("% Gleaner has visited " + Utils.comma(nodeCounterAll) + " ILP clauses, of which " + Utils.comma(nodeCounterAcceptable) + " met the acceptability specs.");
 		if (addsToGlobalGleaner  > lastReported_addsToGlobalGleaner)  { 

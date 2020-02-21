@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 
 import java.util.Collection;
@@ -149,14 +148,6 @@ public class HornSearchNode extends SearchNode {
     @Override
 	public String toString() {
         return (getParentNode() == null ? "" : "parent -> ") + clause.toString();
-	}
-    
-	void reportNodePredicates() {
-		if (clause != null) {
-			Utils.print("%     Predicates in this node: ");
-			for (int i = 0; i < clause.getLength(); i++) { Utils.print(" " + clause.getIthLiteral(i).predicateName); }
-			Utils.println("");
-		}
 	}
 
 }

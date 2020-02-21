@@ -18,9 +18,6 @@ import java.util.*;
  */
 public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQuery, SentenceOrTerm {
 
-	// TODO(@hayesall): Find `Sentence.debugLevel` call chain.
-	final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
-	
 	final static double maxWeight     = 300.0; // Since weights are used in exp^weight, want something that avoids overflow.
 	final static double minWeight     = -maxWeight;	 // Also want to avoid underflow (note: code does not yet use this).
     private final static double defaultWeight = maxWeight + 1.0; // The default weight is 'infinity.'  (Note: the Example class has a weight as well; since these two weights have different semantics, we use two long names.)
@@ -237,11 +234,8 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 
     public boolean isGrounded() { return !containsVariables(); }
     public Term asTerm()        { return getStringHandler().getSentenceAsTerm(this, ""); }
-    public Sentence asSentence() {
-        return this;
-    }
 
-    /* Attempts to convert a sentence into a single clause.
+	/* Attempts to convert a sentence into a single clause.
      *
      * Converts the sentence to clauses via the convertToClausalForm() method.
      * If the clausal form contains a single clause, that clause is returned.

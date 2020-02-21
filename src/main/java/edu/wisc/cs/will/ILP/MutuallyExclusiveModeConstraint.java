@@ -13,8 +13,6 @@ import java.util.Set;
  */
 public class MutuallyExclusiveModeConstraint implements ModeConstraint {
 
-    private final static int debugLevel = 0;
-
     private final Set<PredicateNameAndArity> mutuallyExclusiveModes;
 
     private final int maxOccurances;
@@ -28,10 +26,6 @@ public class MutuallyExclusiveModeConstraint implements ModeConstraint {
     public Set<PredicateNameAndArity> applyConstraint(SingleClauseNode nodeBeingExpanded, Set<PredicateNameAndArity> eligibleExpansionModes, boolean isMutable) {
 
         Set<PredicateNameAndArity> result = null;
-
-        if ( debugLevel >= 2) {
-            Utils.print("MutuallyExclusiveMode: Checking constraint on " + nodeBeingExpanded.getClause() + ".\n" );
-        }
 
         if (nodeBeingExpanded.bodyLength() >= maxOccurances) {
             boolean removeModes = false;
@@ -64,10 +58,6 @@ public class MutuallyExclusiveModeConstraint implements ModeConstraint {
                     result.remove(predicateNameAndArity);
 
                 }
-
-                if ( debugLevel >= 1 ) {
-                        Utils.print("MutuallyExclusiveModeConstrain: Removing mode " + mutuallyExclusiveModes + ".\n" );
-                    }
             }
 
         }

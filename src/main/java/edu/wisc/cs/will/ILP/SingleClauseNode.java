@@ -32,7 +32,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	double  negCoverage     = -1.0; // Everything is done with WEIGHTED examples (including the seeds).
 	int     numberOfNewVars = 0;    // There is a max number of new (i.e., output) variables in a clause.  This is the total all the way to the root.
 	List<Type>                 typesPresent = null; // Keep track of the different types of terms added by this node.  If there is a need to reduce the size of nodes, could compute this when needed from the map below.
-	List<AnnotatedLiteral>   dontReconsider = null; // If something is discarded at some point, don't reconsider it further down the search tree.  DON'T COPY (in buildNewAncestor) THIS WHEN REMOVING AN INTERMEDIATE LITERAL SINCE THAT INTERMEDIATE LITERAL MIGHT BE THE REASON FOR AN ENTRY (SO NEED TO RECREATE THE ONES THAT SHOULD HAVE BEEN KEPT).
+	private List<AnnotatedLiteral>   dontReconsider = null; // If something is discarded at some point, don't reconsider it further down the search tree.  DON'T COPY (in buildNewAncestor) THIS WHEN REMOVING AN INTERMEDIATE LITERAL SINCE THAT INTERMEDIATE LITERAL MIGHT BE THE REASON FOR AN ENTRY (SO NEED TO RECREATE THE ONES THAT SHOULD HAVE BEEN KEPT).
 	int                predicateOccurrences = 0;    // Count of how often this literal's predicate has occurred (this is a CUMULATIVE count from this node, assuming this predicate was added here, to the root).
 	int    predicateOccurrencesPerFixedVars = 0;    // Count of how often this literal's predicate has occurred FOR THESE + and # variables (also a CUMULATIVE count).  This is how Aleph limits counts.
 	List<Literal>            canonicalForm  = null; // Once put into a canonical form, cache it.
@@ -138,8 +138,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		bindings = ((LearnOneClause) task).unifier.unify(target, ex, bindings);		
 		if (bindings == null) { return false; }
 		List<Literal> query = bindings.applyTheta(clauseBody);
-		boolean  result = theILPtask.prove(query);
-		return result;
+		return theILPtask.prove(query);
 	}
 	
 	// Recursively climb to the root collecting all the literals.  Remember that the root holds the HEAD literal, and hence shouldn't be collected here.
@@ -439,14 +438,11 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	
 	boolean acceptableCoverageOnPosSeeds() throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
-		double posSeedWgtedCount = 0.0;
+		double posSeedWgtedCount;
 	
 		if (theILPtask.totalWeightOnPosSeeds > 0.0 && theILPtask.seedPosExamples != null) {
-			posSeedWgtedCount = wgtedCountOfPosExamplesCovered(theILPtask.seedPosExamples);			
-
-			if (posSeedWgtedCount < theILPtask.clausesMustCoverFractPosSeeds * theILPtask.totalWeightOnPosSeeds) {
-				return false;
-			}
+			posSeedWgtedCount = wgtedCountOfPosExamplesCovered(theILPtask.seedPosExamples);
+			return !(posSeedWgtedCount < theILPtask.clausesMustCoverFractPosSeeds * theILPtask.totalWeightOnPosSeeds);
 		} else { // Comment this out if we really want this case.
 			Utils.waitHere("Why totalWeightOnPosSeeds = " + theILPtask.totalWeightOnPosSeeds + " and |theILPtask.seedPosExamples| = " + Utils.comma(theILPtask.seedPosExamples));
 		}
@@ -459,10 +455,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 
 		if (theILPtask.totalWeightOnNegSeeds > 0 && theILPtask.seedNegExamples != null) {
 			negSeedWgtedCount = wgtedCountOfNegExamplesCovered(theILPtask.seedNegExamples);
-			
-			if (negSeedWgtedCount >= theILPtask.clausesMustNotCoverFractNegSeeds * theILPtask.totalWeightOnNegSeeds) {
-				return false;
-			}
+
+			return !(negSeedWgtedCount >= theILPtask.clausesMustNotCoverFractNegSeeds * theILPtask.totalWeightOnNegSeeds);
 		}
 		return true;
 	}
@@ -807,11 +801,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	// Also, if requireThatAllRequiredHeadArgsAppearInBody=true, see if this requirement is met.
 	boolean acceptableClauseExtraFilter(LearnOneClause thisTask) {
 		if (thisTask.requireThatAllRequiredHeadArgsAppearInBody && !allRequiredHeadArgsAppearInBody(thisTask)) { return false; }
-		if (!allTheseArgsAppearinBody(getRequiredVariablesInBody()))    { return false; }
-		// TODO need a better design here. 
-		int counter = 0;
-		boolean accept = true;
-		return true;
+		return allTheseArgsAppearinBody(getRequiredVariablesInBody());
+		// TODO need a better design here.
 	}
 	
 	private Collection<Variable> getRequiredVariablesInBody() {

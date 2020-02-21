@@ -324,7 +324,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 
 	}
 	
-	void disableMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars) {
+	void disableMode(List<Term> signature, List<TypeSpec> typeSpecs) {
         if (Utils.getSizeSafely(signature) != Utils.getSizeSafely(typeSpecs)) {
             Utils.waitHere(this + " sig = " + signature + " specs = " + typeSpecs);
         }
@@ -547,6 +547,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 
 	List<String> getNamedArgOrdering() {
+		// TODO(@hayesall): This always returns a null List<String>
 		return null;
 	}
 	

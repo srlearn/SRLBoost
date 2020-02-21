@@ -19,7 +19,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 	private   static final boolean reportPredicateUsage = true;
 	private                int     callCounter          = 0;
 	private   static final int     callCounterMOD       = 10000; // Every N predicate-usage counts, report predicate usage.
-	public    static       int     modForReportingExpansions = 10; // Every so often, report the node being expanded.
+
 	private final Set<PredicateName>   predicatesMarked     = new HashSet<>(4); // TODO - add code to RESET.  But might not be necessary since not a large number of predicates.
 	
 	public    static final int       numberofConstantsToCreate = 100;

@@ -138,9 +138,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
         "L","M","N","P","Q","R","S","T","U","W","X","Y","Z" }; // I DROPPED "V" since it means "OR"
     private static final int alphabet2Size = alphabet2.length;
 
-	// Collect user-defined predicates.  These have priority over built-ins if there is a name collision (hence users can overwrite existing ones if they wish).
-	private final Map<PredicateName,Map<Integer,UserDefinedLiteral>> userAddedProcDefinedPredicates = null;
-
 	private final Set<String> filesLoaded = new HashSet<>(8);
 
     // This group records information used by the MLN code.
@@ -185,6 +182,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
         standardPredicateNames = new StandardPredicateNames(this);
 
+        // TODO(@hayesall): What is `recordHandler` doing, and why is it never used?
 		RecordHandler recordHandler = new RecordHandler();
 		isaHandler          = new IsaHetrarchy(this);
 		mathHandler         = new DoBuiltInMath(this);
@@ -351,8 +349,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public boolean usingStdLogicNotation() { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.lowercase; }
 
 
-	// TODO - note that useStdLogicNotation still impacts how FOPC sentences are printed even if variablesStartWithQuestionMarks=true.  NEED TO CLEAN UP.
-	private final Boolean answerTo_printUsingStdLogicNotation = null; // CAN SET THIS TO OVERRIDE.
 	boolean printUsingStdLogicNotation() {
 		return usingStdLogicNotation();
 	}
@@ -860,12 +856,12 @@ public final class HandleFOPCstrings implements CallbackRegister {
         }
 	}
 	private void disableModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars) {
-        if (typedLiteral != null ) disableModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types, maxOccurrences, maxPerInputVars);
+        if (typedLiteral != null ) disableModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types);
 	}
-	private void disableModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars) {
+	private void disableModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types) {
         if ( predicate != null ) {
             recordPredicatesWithDisabledModes(predicate);
-            predicate.getPredicateName().disableMode(signature, types, maxOccurrences, maxPerInputVars);
+            predicate.getPredicateName().disableMode(signature, types);
         }
 	}
 
@@ -1532,13 +1528,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return fopc.countVarOccurrencesInFOPC(v);
 	}
 
-	public void reportVarsInFOPC(Sentence s) {
-		Collection<Variable> vars = s.collectAllVariables();
-		Utils.println("% Variables in: " + s);
-		for (Variable var : vars) { Utils.print(" " + var.getName() + ":" + var.counter); }
-		Utils.println("");
-	}
-
 	public String getVariablePrefix() {
 		if (doVariablesStartWithQuestionMarks()) { return "?"; }
 		return "";
@@ -1745,7 +1734,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
         this.inventedPredicateNameSuffix = inventedPredicateNameSuffix;
     }
 
-	UserDefinedLiteral getUserDefinedLiteral(PredicateName pName, int arity) {
+	UserDefinedLiteral getUserDefinedLiteral() {
+		// TODO(@hayesall): `getUserDefinedLiteral` always returns null;
 		return null;
 	}
 

@@ -6,7 +6,6 @@ import java.util.Map;
  * @author shavlik
  */
 public abstract class AllOfFOPC {
-	final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 	final static int defaultPrecedence = Integer.MIN_VALUE;  // This plays it safe and uses a lot of parentheses.
 	public          static boolean renameVariablesWhenPrinting = false;
 	static final boolean truncateStrings             = true; // Prevent printing very long strings if true.

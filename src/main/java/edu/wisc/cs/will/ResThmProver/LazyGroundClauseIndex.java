@@ -31,6 +31,7 @@ public class LazyGroundClauseIndex {
 
     private int indicesRemoved = 0;
 
+    // TODO(@hayesall): "Queried but never updated." `indexBuilds` might be factored out.
     private Map<PredicateNameAndArity, Integer> indexBuilds;
 
     private final Map<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> definiteClausesAllArgsIndex = new LRUMap();

@@ -17,7 +17,6 @@ import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.stdAIsearch.*;
-import edu.wisc.cs.will.DataSetUtils.WorldState;
 
 import javax.swing.event.EventListenerList;
 import java.io.*;
@@ -104,7 +103,6 @@ import java.util.*;
 
 public class LearnOneClause extends StateBasedSearchTask {
 
-	// TODO(@hayesall): Find `LearnOneClause.debugLevel` call chain.
 	final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
 	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
@@ -232,9 +230,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	//    precision = 3 of 3+2+1 and recall = 3 of 7+1
 	private   double               mEstimatePos = 0.1; // When computing coverage of a rule use these "m estimates."  NOTE these are also used when examples are weighted, so if total weight is small, might want to change these.
 	private   double               mEstimateNeg = 0.1; // Note: these are used in recall as well as precision.
-
-	final int           minRequiredBodyPredicates = 0;
-	final int           maxRequiredBodyPredicates = Integer.MAX_VALUE;
 
 	private final RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
     private final Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
