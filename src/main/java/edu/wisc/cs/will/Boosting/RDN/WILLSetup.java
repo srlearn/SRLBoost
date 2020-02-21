@@ -1352,8 +1352,6 @@ public final class WILLSetup {
 		// Units are milliseconds.  So 3600000 = 1 hour.
 		getInnerLooper().setMaximumClockTimePerIterationInMillisec(           7200000);
 
-		getInnerLooper().overwritePrecomputeFileIfExists = true;
-
 		// Sometimes we start out with a BOOLEAN task then later turn into a regression one.
 		getInnerLooper().regressionTask = isaRegressionTaskRightAway;
 

@@ -675,7 +675,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 							if (num == 0) {
 								Utils.waitHere("Number of groundings = 0 for " + posEx + " with " + parent.getClause());
 							}
-							double output = ((RegressionExample) posEx).getOutputValue(); // Need to do everything with weighted counts.
+							((RegressionExample) posEx).getOutputValue();
 							cachedLocalRegressionInfoHolder.getFalseStats().addFailureExample(posEx, num, fraction*posEx.getWeightOnExample());
 						}
 					} 
@@ -890,13 +890,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		
 		return getParentNode().variableAppearsInThisClause(var);
 	}
-	
-	private boolean containsThisPredicate(PredicateName pName, int arity) {
-		if (literalAdded.predicateName == pName && literalAdded.numberArgs() == arity) { return true; }
-		if (getParentNode() == null) { return false; }
-		return getParentNode().containsThisPredicate(pName, arity);
-	}
-	
+
 	// If this literal is already in the clause or in the "dontReconsider" list, then it should be skipped over.
 	boolean dontConsiderThisLiteral(boolean discardDuplicateLiterals, Literal candidate, Map<Term, Type> newTermsInLiteral) {
 		if (discardDuplicateLiterals && literalAdded != null && literalAdded.equals(candidate)) { 

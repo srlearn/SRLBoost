@@ -890,7 +890,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		return result;
 	}
 		
-	public void clearAnySavedInformation(boolean insideIterativeDeepening) {
+	public void clearAnySavedInformation() {
 		if (newTypesPresentInChild    != null) { newTypesPresentInChild.clear();    }
 		if (newTypesPresentInChildMap != null) { newTypesPresentInChildMap.clear(); }
 		if (existingTermsOfTypeMap    != null) { existingTermsOfTypeMap.clear();    }

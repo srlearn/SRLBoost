@@ -40,11 +40,8 @@ public class RunBoostedRDN extends RunBoostedModels {
 	public static final int numbModelsToMake = 1;
 
 	// "Run1"; // NOTE: file names will look best if this starts with a capital letter.  If set (ie, non-null), will write testset results out.
-	public static final String nameOfCurrentModel = null;
+	static final String nameOfCurrentModel = null;
 
-	// Allow caller to put extra markers in results file names.
-	public static final String resultsFileMarker = null;
-	
 	public void learn() {
 		fullModel = new JointRDNModel();
 		String yapFile;

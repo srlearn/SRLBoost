@@ -22,8 +22,6 @@ import java.util.*;
  */
 public class Precompute {
 
-    public static boolean alwaysRecreatePrecomputeFiles = false;
-
     private int counter;
 
     private int duplicates;

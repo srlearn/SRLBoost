@@ -18,7 +18,6 @@ package edu.wisc.cs.will.ILP;
 
 
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
-import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.*;
@@ -103,11 +102,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 	public  int            max_total_nodesCreated        = Integer.MAX_VALUE;
     public  int            numberPosSeedsToUse           = 1;
 	private int            numberNegSeedsToUse           = 0;
-	
-	final double         minimalAcceptablePrecision    = 0.0; // If these cannot be met, even if the next clause learned covers ALL uncovered positive and covers NO negatives, then abort.
-	final double         minimalAcceptableRecall       = 0.0;
-	final double         minimalAcceptableAccuracy     = 0.0;
-	final double         minimalAcceptableF1           = 0.0; // TODO - handle F(beta).
 
     ///////////////////////////////////////////////////////////////////
 	// Parameters that are used when learning tree-structured theories.
@@ -125,12 +119,10 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 	public  boolean        writeGleanerFilesToDisk       = false; // Write 'gleaner' files periodically.
 	private String         gleanerFileName               = null;  // Please don't use this directly.  Null indicates the use of a default value.
 	private String         gleanerFileNameFlipFlopped    = null;  // Put the gleaner results for the flip-flopped case here.
-	private final String         annotationForRun              = null;
 
-	private boolean        checkpointEnabled             = false; // Write 'gleaner' files periodically.
-	private final String         checkpointFileName            = null;  // Please don't use this directly.  Null indicates the use of a default value.
+    private boolean        checkpointEnabled             = false; // Write 'gleaner' files periodically.
 
-	// All of the fields below are now in the ILPouterLoopState object.
+    // All of the fields below are now in the ILPouterLoopState object.
 	// Any information needed to restart a run in the middle (from the chkpt)
     // must reside in the ILPouterLoopState object.
 	//
@@ -679,8 +671,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                             // Since 'maxTreeDepthInLiterals' includes bridgers, count them as well.
                             if (atMaxDepth) { Utils.println("%   Creating a TRUE-branch and FALSE-branch leaves because level = "  + interiorNode.getLevel() + " >= " + maxTreeDepthInInteriorNodes); }
 							// If false, then sort by TOTAL score of the examples reaching that node.
-							boolean sortTreeStructedNodesByMeanScore = true;
-							if (atMaxDepth || goodEnoughFitTrueBranch ||
+                            if (atMaxDepth || goodEnoughFitTrueBranch ||
                                 newClause.getLength()   >  maxTreeDepthInLiterals || // We use '>' here since we don't count the head literal in depth.
                                 wgtedCountTrueBranchPos <  2.1 * innerLoopTask.getMinPosCoverage() ||
                                 wgtedCountTrueBranchPos <  outerLoopState.getOverallMinPosWeight()) {
@@ -1121,7 +1112,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		
 		int countOfPosKept = 0;
         // TODO integrate this better if we decide to keep it.
-        boolean useSamplingWithReplacementOnPos = (RunBoostedRDN.numbModelsToMake > 1);
         // TODO - should this also be sampling with replacement of the expected number to collect?  Correctly no duplicates, but number collected can vary.
         if (numbOrigPosExamples > 0) for (Example eg : origPosExamples) { // Should we ignore this positive example?
             if (samplePositiveProb >= 0 && samplePositiveProb < 1 && Utils.random() > samplePositiveProb) {	continue; }
@@ -1561,26 +1551,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		Utils.println("%  getClockTimeUsedInMillisec()          = " + getClockTimeUsedInMillisec()          + " vs " + Utils.comma(getMaximumClockTimeInMillisec()) );
     }
 
-    // Assume the next learned clause will cover all the currently uncovered positive and none of the currently uncovered negative examples.
-	private double bestPossibleWeightedPrecision() {
-		double totalPosWgt = innerLoopTask.getTotalPosWeight();
-		double totalCoveredNegWgt = 0.0;
-		
-		for (Example ex : getCoveredNegExamples()) { totalCoveredNegWgt += ex.getWeightOnExample(); } // We only do this after every clause, so don't worry about the recomputation.
-		return totalPosWgt / (totalCoveredNegWgt + totalPosWgt);
-	}
-	private double bestPossibleWeightedRecall() {
-		return 1.0; // Ignoring m-estimates, can always cover all positives (but still left this in for completeness).
-	}
-	private void bestPossibleWeightedAccuracy() {
-
-        for (Example ex : getCoveredNegExamples()) {
-        } // We only do this after every clause, so don't worry about the recomputation.
-    }
-    private void bestPossibleWeightedF1() {
-        Utils.getF1(bestPossibleWeightedPrecision(), bestPossibleWeightedRecall());
-    }
-
     public String getWorkingDirectory() {
         return workingDirectory;
     }
@@ -1620,8 +1590,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     private String getPrefix() {
         return outerLoopState.getPrefix();
     }
-
-    private final String directoryForGleanerFile = null; // Allow overriding of where Gleaner files go.
 
     public String getGleanerFileName() {
 

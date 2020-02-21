@@ -46,7 +46,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Map<Integer,Double>            cost                       = null;  // See if this predicate/arity has a cost (default is 1.0).  Costs are used for scoring clauses.
 	private   boolean                        costIsFinal                = false; // Is the cost frozen?
 	private   Map<Integer,RelevanceStrength> relevance                  = null;  // See if this predicate/arity has a relevance (default is NEUTRAL).  
-	private final Map<Integer,List<String>>      namedArgumentOrdering      = null;  // When getting rid of named arguments, this is the order argument should be placed (if null, then use alphabetic ordering).
 	private   Map<Integer,Map<Integer, List<Object>>> constrainsType    = null;  // Record if this literal constrains the type of one of its arguments.
 
     /* Map from non-operation arities to operational predicates.
@@ -676,7 +675,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		Map<Integer,Type> firstLookUp = determinateSpec.get(arity);
 		if (firstLookUp == null) { return -1; } // This means "not found."
 		for (Integer key : firstLookUp.keySet()) {
-			Type type = firstLookUp.get(key);
+			firstLookUp.get(key);
 			return key;
 		}
 		return -1; // Did not find what we sought, so return -1 to indicate "not found."

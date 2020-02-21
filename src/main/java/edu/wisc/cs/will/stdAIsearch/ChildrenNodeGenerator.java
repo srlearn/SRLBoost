@@ -31,5 +31,5 @@ public abstract class ChildrenNodeGenerator<T extends SearchNode> {
 	
     public abstract List<T> collectChildren(T nodeBeingExplored) throws SearchInterrupted;
 
-	public abstract void clearAnySavedInformation(boolean insideIterativeDeepening);
+	public abstract void clearAnySavedInformation();
 }

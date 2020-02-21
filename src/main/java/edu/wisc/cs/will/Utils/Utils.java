@@ -236,17 +236,6 @@ public class Utils {
 	  System.arraycopy(args, 0, newArgs, 0, commentStart);
 	  return newArgs;
 	}
-	
-    /*
-     * Converts a list to a string that shows at most 100 elements.
-     * 
-     * @param list The list to print.
-     * @return A string representing the first 100 elements of the given list,
-     *         or null if the given list is null.
-     */
-    public static String limitLengthOfPrintedList(Collection<?> list) {
-        return limitLengthOfPrintedList(list, 100);
-    }
 
     /*
      * Converts a collection to a string that shows at most maxSize elements.
@@ -713,9 +702,6 @@ public class Utils {
             error("Unable to successfully open this file for writing:\n " + fileName + ".\nError message: " + e.getMessage());
         }
     }
-
-    // This is one place that this class maintains state (so if two threads running, their dribble files will interfere).
-    private static final String dribbleFileName2 = null;
 
     private static void closeDribbleFile() {
     	dribbleFileName = null;

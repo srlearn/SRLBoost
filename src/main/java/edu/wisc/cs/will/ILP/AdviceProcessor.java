@@ -411,7 +411,7 @@ public class AdviceProcessor {
             Set<RelevantClauseInformation> groundAdviceForExample = entry.getValue();
 
             for (RelevantClauseInformation rci : groundAdviceForExample) {
-                RelevantClauseInformation newRCI = rci.getGeneralizeRelevantInformation(); //.getSimplified(context, null);
+                RelevantClauseInformation newRCI = rci.getGeneralizeRelevantInformation();
 
                 result.put(example, newRCI);
             }

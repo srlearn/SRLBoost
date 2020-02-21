@@ -1053,7 +1053,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     }
 
     @Override
-    public void clearAnySavedInformation(boolean insideIterativeDeepening) {
+    public void clearAnySavedInformation() {
         // We want the theory to persist across searches.
     }
 

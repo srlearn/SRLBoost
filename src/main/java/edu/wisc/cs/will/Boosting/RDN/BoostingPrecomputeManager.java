@@ -24,8 +24,7 @@ class BoostingPrecomputeManager {
 
 	void recomputeFactsFor(PredicateName pName) {
 		Precompute precomputer = new Precompute();
-		Precompute.alwaysRecreatePrecomputeFiles = true;
-		FileParser parser = setup.getInnerLooper().getParser();
+        FileParser parser = setup.getInnerLooper().getParser();
 		for (int i = 0; i < parser.getNumberOfPrecomputeFiles(); i++) {
 
 			// Note that this is the set of ALL pre-computes encountered during any file reading.

@@ -13,7 +13,6 @@ public class FunctionName extends AllOfFOPC {
 	public final String  name;
 	private Map<List<Constant>,Constant> extensionalSemantics;
 	boolean printUsingInFixNotation = false;
-	private final Map<Integer,List<String>> namedArgumentOrdering = null;  // When getting rid of named arguments, this is the order argument should be placed (if null, then use alphabetic ordering).
 
 	FunctionName(String name) { // This is protected because getFunctionName(String name) should be used instead.
 		this.name = name;

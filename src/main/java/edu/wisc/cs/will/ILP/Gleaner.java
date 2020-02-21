@@ -400,7 +400,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 			
 			StringBuilder buffer;
 			for (Object marker : markerList) {
-				String str = null;
 				buffer = new StringBuilder();
 				buffer.append("<gleaner><marker>").append(marker).append("</marker>");
 				Map<Integer,SavedClause> thisGleaner = gleaners.get(marker);

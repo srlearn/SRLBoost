@@ -228,7 +228,9 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *
  *
  */
-public class FileParser {  
+public class FileParser {
+
+	// TODO(@hayesall): Find the call chain where `FileParser.debugLevel` is still referenced from.
 	protected final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
 	private                 boolean dontPrintUnlessImportant = true;
@@ -3140,9 +3142,8 @@ public class FileParser {
         ConsCell tail = null;
 
         Term t;
-        String name;
 
-        boolean done = false;
+		boolean done = false;
 
         // We check immediate for a closing bracket to
         // support literals written as:  x() although

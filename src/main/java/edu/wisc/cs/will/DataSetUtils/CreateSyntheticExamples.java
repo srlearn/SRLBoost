@@ -15,6 +15,8 @@ import java.util.*;
  *
  */
 public class CreateSyntheticExamples {
+
+	// TODO(@hayesall): Find the call chain where `CreateSyntheticExamples.debugLevel` is referenced from.
 	protected final static int debugLevel = 0; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
 	public static List<WorldState> createWorldStatesWithNoPosExamples(HandleFOPCstrings stringHandler,

@@ -264,7 +264,7 @@ public class StateBasedSearchTask<T extends SearchNode> {
         clearAnySavedBasicSearchInformation(withinInterativeDeepening); // Explicitly call this rather than counting on subclasses to call super().
         if (terminator        != null) { terminator.clearAnySavedInformation();    }
         if (scorer            != null) { scorer.clearAnySavedInformation();        }
-        if (childrenGenerator != null) { childrenGenerator.clearAnySavedInformation(withinInterativeDeepening); }
+        if (childrenGenerator != null) { childrenGenerator.clearAnySavedInformation(); }
 
         initialized = false;
     }

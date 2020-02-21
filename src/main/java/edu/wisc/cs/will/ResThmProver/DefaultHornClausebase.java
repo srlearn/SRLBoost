@@ -128,22 +128,6 @@ public class DefaultHornClausebase implements HornClausebase {
         }
     }
 
-    private void assertBackgroundKnowledge(Collection<? extends Sentence> sentences) {
-        for (Sentence sentence : sentences) {
-            if (sentence instanceof DefiniteClause) {
-                DefiniteClause definiteClause = (DefiniteClause) sentence;
-                assertBackgroundKnowledge(definiteClause);
-            }
-            else {
-                List<Clause> clauses = sentence.convertToClausalForm();
-                if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
-                    throw new IllegalArgumentException("Sentence '" + sentence + "' is not a definite clause.");
-                }
-                assertBackgroundKnowledge(clauses.get(0));
-            }
-        }
-    }
-
     @Override
     public void assertFact(Literal literal) {
         if (checkFact(literal)) {
@@ -152,16 +136,6 @@ public class DefaultHornClausebase implements HornClausebase {
             indexFact(literal);
 
             fireAssertion(literal);
-        }
-    }
-
-    private void assertFacts(Collection<? extends Sentence> sentences) {
-        for (Sentence sentence : sentences) {
-            List<Clause> clauses = sentence.convertToClausalForm();
-            if (clauses.size() != 1 || !clauses.get(0).isDefiniteClause()) {
-                throw new IllegalArgumentException("Sentence '" + sentence + "' is not a definite clause fact.");
-            }
-            assertFact(clauses.get(0).getDefiniteClauseFactAsLiteral());
         }
     }
 

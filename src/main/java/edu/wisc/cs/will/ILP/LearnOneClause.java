@@ -114,8 +114,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	                                                                           //    gleaner.txt (users can name this whatever they wish)
 																			   //    the generated negative examples (same file name as used for negatives)
 
-	public    boolean             overwritePrecomputeFileIfExists   = false;
-
 	protected Object              caller     = null;                           // The instance that called this LearnOneClause instance.
 	String              callerName = "unnamed caller";               // Used to annotate printing during runs.
 	private int                   dumpGleanerEveryNexpansions = -1;
@@ -133,8 +131,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	final boolean 			  sampleForScoring  = false;
 	final int				  maxExamplesToSampleForScoring = 300;
 	final boolean             constantsAtLeaves = true;  // Are leaves CONSTANTS or linear models?  TODO - implement linear models, using (say) regularized least squares.
-	final int                 normToUse         = 2;     // Other norms implemented: NONE
-	
+
 	final int                 maxCrossProductSize               =1000;     // When generating candidate groundings of a literal in the child-generator, randomly seleect if more than this many.
 	int                 maxBodyLength                     =   9;     // Max length for the bodies of clauses.
 	public    int                 maxFreeBridgersInBody             = maxBodyLength; // Bridgers can run amok so limit them (only has an impact when countBridgersInLength=true).  This is implemented as follows: the first  maxBridgersInBody don't count in the length, but any excess does.
@@ -234,11 +231,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   double               mEstimatePos = 0.1; // When computing coverage of a rule use these "m estimates."  NOTE these are also used when examples are weighted, so if total weight is small, might want to change these.
 	private   double               mEstimateNeg = 0.1; // Note: these are used in recall as well as precision.
 
-	final List<Literal> requiredBodyPredicatesForAcceptableClauses = null; // See documentation for the method addRequiredBodyPredicateForAcceptableClauses.
 	final int           minRequiredBodyPredicates = 0;
 	final int           maxRequiredBodyPredicates = Integer.MAX_VALUE;
-
-    private long          totalProofTimeInNanoseconds = 0;
 
 	private final RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
     private final Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
@@ -1402,7 +1396,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 		BindingList result = getProver().proveConjunctiveQueryAndReturnBindings(negatedConjunctiveQuery);
 
-        totalProofTimeInNanoseconds += System.nanoTime() - startTime;
 		return result;
 	}
 
@@ -1413,7 +1406,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 		boolean result = getProver().proveConjunctiveQuery(negatedConjunctiveQuery);
 
-        totalProofTimeInNanoseconds += System.nanoTime() - startTime;
 		return result;
 	}
 
@@ -1964,7 +1956,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 	boolean isRelevanceEnabled() {
 		// When null or false, relevance is disabled.
-		Boolean relevanceEnabled = true;
 		return true;
     }
 

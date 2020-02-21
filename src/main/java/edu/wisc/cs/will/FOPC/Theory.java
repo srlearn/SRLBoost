@@ -564,7 +564,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			if (Utils.getSizeSafely(supportClauses) > 0) { Utils.error("There are SUPPORTING clauses, but no regular clauses!  Supporters: " + supportClauses); }
 			return "% There are no clauses in this theory.";
 		}
-        BindingList bl = null; // Binding list to tie all variable together when printing.
 		boolean firstTime = true;
 		int counter = 1;
 		for (Clause clause : clauses) {	
@@ -577,7 +576,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			if (firstTime) { firstTime = false; str.append("\n% ").append(newLineStarter).append("Supporting Clauses:\n\n"); }
 			str.append(newLineStarter).append(printClause(clause, newLineStarter)).append(" // Supporting Clause #").append(counter++).append(".\n\n");
 		}
-		boolean reportUnsimplifiedClauses = true;
 		firstTime = true;
 		counter   = 1;
 		boolean haveSimplified = somethingSimplified && (Utils.getSizeSafely(unsimplifiedClauses) +  Utils.getSizeSafely(unsimplifiedSupportClauses) > 0);
