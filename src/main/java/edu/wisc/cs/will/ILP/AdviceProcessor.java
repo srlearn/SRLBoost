@@ -18,8 +18,6 @@ import java.util.Map.Entry;
  */
 public class AdviceProcessor {
 
-    public static final int debugLevel = 0;
-
     /* Original Relevance statements, prior to generalization.
      *
      * This list contains the original relevance statements prior to generalization.
@@ -181,72 +179,30 @@ public class AdviceProcessor {
         //   ex2 => { adviceC }
         MapOfSets<Example, RelevantClauseInformation> exampleToAdviceMap = createExampleToAdviceMap(relevantClauses);
 
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor] All Grounded-Clauses Advice Map:" + "\n");
-            Utils.print(exampleToAdviceMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
-
         // This will also remove any relevance that is not associate with an current relevanceFromPositiveExample or negative example.
         MapOfSets<Example, RelevantClauseInformation> activeExampleToAdviceMap = createActiveExampleMap(exampleToAdviceMap, positiveExamples, negativeExamples, RelevanceStrength.getWeakestRelevanceStrength());
 
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor] All Active Clauses (with duplicates):" + "\n");
-            Utils.print(activeExampleToAdviceMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
         return filterDuplicateRelevance(activeExampleToAdviceMap);
     }
 
     private MapOfSets<Example, RelevantClauseInformation> createPerPieceMap(MapOfSets<Example, RelevantClauseInformation> filteredGroundedPerPieceMap) {
 
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor] Filtered Grounded Clauses:\n");
-            Utils.print(filteredGroundedPerPieceMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
         MapOfSets<Example, RelevantClauseInformation> generalizedPerPieceMap = createExampleToGeneralizedMap(filteredGroundedPerPieceMap);
         //Tag the possible set of output variables on the PerPiece map
         collectOutputVariables(generalizedPerPieceMap);
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor]  Generalized Per Piece Map:\n");
-            Utils.print(generalizedPerPieceMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
-        MapOfSets<Example, RelevantClauseInformation> splitPerPieceMap = createExampleToSplitVariableMap(generalizedPerPieceMap);
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor]  Example Split Per Piece:" + "\n");
-            Utils.print(splitPerPieceMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
-        return splitPerPieceMap;
+
+        return createExampleToSplitVariableMap(generalizedPerPieceMap);
     }
 
     private MapOfSets<Example, RelevantClauseInformation> createPerExampleMap(MapOfSets<Example, RelevantClauseInformation> filteredGroundedPerPieceMap) {
         MapOfSets<Example, RelevantClauseInformation> grounedPerExampleAdviceMap = createExampleToPerExampleAdviceMap(filteredGroundedPerPieceMap);
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor] Duplicates-Removed Grounded-Clauses To Conjoined Advice Map:\n");
-            Utils.print(grounedPerExampleAdviceMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
+
         MapOfSets<Example, RelevantClauseInformation> generalizedPerExampleConjunctiveMap = createExampleToGeneralizedMap(grounedPerExampleAdviceMap);
         //Tag the possible set of output variables on the PerExample map
         collectOutputVariables(generalizedPerExampleConjunctiveMap);
 
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor]  Generalized Clauses To Conjoined Advice Map:\n");
-            Utils.print(generalizedPerExampleConjunctiveMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
-        MapOfSets<Example, RelevantClauseInformation> splitPerExampleMap = createExampleToSplitVariableMap(generalizedPerExampleConjunctiveMap);
-
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor]  Example To Split-Clauses Advice Map:" + "\n");
-            Utils.print(splitPerExampleMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
         // That way, if duplicates occur, the highest relevance levels will be kept.
-        return splitPerExampleMap;
+        return createExampleToSplitVariableMap(generalizedPerExampleConjunctiveMap);
     }
 
     private void processRelevantFeatures(ActiveAdvice activeAdvice, RelevanceStrength relevanceStrength, List<? extends Example> positiveExamples, List<? extends Example> negativeExamples) {
@@ -272,50 +228,27 @@ public class AdviceProcessor {
 
         MapOfSets<Example, RelevantModeInformation> exampleToAdviceMap = createExampleToAdviceMap(relevantModes);
 
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor]  All Relevant Mode Map:" + "\n");
-            Utils.print(exampleToAdviceMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
 
         // Update the ground examples relevanceFromPositiveExample/negative status according to the positiveExample/negativeExamples lists.
         // This will also remove any relevance that is not associate with an current relevanceFromPositiveExample or negative example.
         MapOfSets<Example, RelevantModeInformation> activeExampleToAdviceMap = createActiveExampleMap(exampleToAdviceMap, positiveExamples, negativeExamples, relevanceStrength);
 
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor]  All Active Relevant Mode (with duplicates):" + "\n");
-            Utils.print(activeExampleToAdviceMap.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
 
         // Filter out duplicate relevance statements that exist on multiple examples.
         MapOfSets<Example, RelevantModeInformation> filteredGroundedRelevance = filterDuplicateRelevance(activeExampleToAdviceMap);
 
-        if (debugLevel >= 2) {
-            Utils.print("% [AdviceProcessor]  Filtered Relevant Mode:\n");
-            Utils.print(filteredGroundedRelevance.toString("% [AdviceProcessor]   "));
-            Utils.print("\n");
-        }
 
         for (Set<RelevantModeInformation> set : filteredGroundedRelevance.values()) {
             for (RelevantModeInformation rmi : set) {
-                PredicateNameAndArity predicateNameAndArity = rmi.getPredicateNameAndArity();
-                List<Term> signature = rmi.getSignature();
-                List<TypeSpec> typeSpecList = rmi.getTypeSpecs();
+                rmi.getPredicateNameAndArity();
+                rmi.getSignature();
+                rmi.getTypeSpecs();
                 RelevanceStrength rs = rmi.getRelevanceStrength();
 
                 if ( relevanceStrength == null || relevanceStrength.isEqualOrWeaker(rs) ) {
-
-                    if (debugLevel >= 1) {
-                        Utils.println("% [AdviceProcessor] Relevant Mode: " + predicateNameAndArity + "(" + typeSpecList + "), " + rs + ".");
-                    }
                     activeAdvice.addAdviceMode(this, rmi);
                 }
             }
-        }
-
-        if (debugLevel >= 2) {
-            Utils.println("% [AdviceProcessor]  Call to processRelevantModes() completed.\n");
         }
     }
 
@@ -327,45 +260,23 @@ public class AdviceProcessor {
         boolean save = AllOfFOPC.renameVariablesWhenPrinting;
         AllOfFOPC.renameVariablesWhenPrinting = true;
 
-        int uniqueCount = 0;
-        int groundCount = 0;
-
         for (Map.Entry<Example, Set<T>> entry : activeExampleToAdviceMap.entrySet()) {
             for (T rci : entry.getValue()) {
 
-                T generalizedRCI = (T) rci.getGeneralizeRelevantInformation();//.getSimplified(context, null);
+                T generalizedRCI = (T) rci.getGeneralizeRelevantInformation();
 
                 if (!generalizedRCI.isValidAdvice(this)) {
-                    if (debugLevel >= 2) {
-                        Utils.println("% [AdviceProcessor] " + "   INVALID ADVICE #" + (groundCount) + ":");
-                        Utils.println(rci.toString("% [AdviceProcessor]      "));
-                    }
+
                 }
                 else {
 
                     Map<T, T> appropriateList = rci.isRelevanceFromPositiveExample() ? positiveGeneralizedRelevance : negativeGeneralizedRelevance;
 
-                    if (debugLevel >= 2) {
-                        Utils.println("% [AdviceProcessor] " + "   GROUND #" + (groundCount) + ":");
-                        Utils.println(generalizedRCI.toString("% [AdviceProcessor]      "));
-                    }
-
                     boolean addIt = false;
-                    int index;
-                    if ((index = getIndexOfSubsumedRelevanceClauseInformation(appropriateList.keySet(), generalizedRCI)) == -1) {
+                    if (getIndexOfSubsumedRelevanceClauseInformation(appropriateList.keySet(), generalizedRCI) == -1) {
 
                         addIt = true;
 
-                        if (debugLevel >= 2) {
-                            Utils.println("% [AdviceProcessor] " + "   UNIQUE #" + (uniqueCount++) + ":");
-                            Utils.println(rci.toString("% [AdviceProcessor]      "));
-                        }
-                    }
-                    else {
-                        if (debugLevel >= 2) {
-                            Utils.println("% [AdviceProcessor] " + "   DUPLICATE of #" + (index) + ".  Original Advice:");
-                            Utils.println(rci.toString("% [AdviceProcessor]      "));
-                        }
                     }
 
                     if (addIt) {
@@ -374,8 +285,6 @@ public class AdviceProcessor {
                             Entry<T, T> e = it.next();
                             RelevantInformation relevantInformation = e.getKey();
                             if (generalizedRCI.subsumes(relevantInformation)) {
-                                if ( debugLevel >= 1 ) Utils.println("% [AdviceProcessor] SUBSUMPTION!  REMOVING: ");
-                                if ( debugLevel >= 1 ) Utils.println(e.getValue().toString("% [AdviceProcessor]      "));
                                 it.remove();
                             }
                         }
@@ -383,13 +292,7 @@ public class AdviceProcessor {
                         appropriateList.put(generalizedRCI, rci);
                     }
                 }
-
-                groundCount++;
             }
-        }
-
-        if (debugLevel >= 2) {
-            Utils.println("\n% [AdviceProcessor] Final Unique Clauses:\n");
         }
 
         MapOfSets<Example, T> uniqueGroundRelevance = new LinkedMapOfSets<>();
@@ -402,14 +305,7 @@ public class AdviceProcessor {
             uniqueGroundRelevance.put(entry.getValue().getExample(), entry.getValue());
         }
 
-        for (Set<T> set : uniqueGroundRelevance.values()) {
-            for (RelevantInformation relevantInformation : set) {
-                if (debugLevel >= 2) {
-                    Utils.println(relevantInformation.toString("% [AdviceProcessor]      "));
-                }
-            }
-        }
-        if ( debugLevel >= 2 )Utils.println("% [AdviceProcessor] ");
+        uniqueGroundRelevance.values();
 
         AllOfFOPC.renameVariablesWhenPrinting = save;
 
@@ -551,10 +447,6 @@ public class AdviceProcessor {
                         if (rci.getRelevanceStrength().isEqualOrStronger(minimumRelevance)) {
                             result.put(newExample, rci);
                         }
-                    }
-                    else if (debugLevel >= 2) {
-                        Utils.println("% [AdviceProcessor] " + "   INVALID ADVICE:");
-                        Utils.println(rci.toString("% [AdviceProcessor]      "));
                     }
                 }
             }
@@ -798,18 +690,12 @@ public class AdviceProcessor {
     }
 
     void retractRelevanceAdvice() {
-        int modeCount = 0;
-        int clauseCount = 0;
         if (assertedRelevanceModes.size() > 0) {
             if (learnOneClause != null && constraint != null) {
                 learnOneClause.removeModeConstraint(constraint);
                 constraint = null;
             }
             for (PredicateNameAndArity predicateNameAndArity : assertedRelevanceModes) {
-                modeCount++;
-                if (debugLevel >= 3) {
-                    Utils.println("% [AdviceProcessor] retractRelevanceAdvice: retracted mode for " + predicateNameAndArity + ".");
-                }
                 stringHandler.removePredicateWithKnownModes(predicateNameAndArity);
                 if (learnOneClause != null) {
                     learnOneClause.removeBodyMode(predicateNameAndArity);
@@ -819,18 +705,11 @@ public class AdviceProcessor {
 
         if (assertedRelevanceClauses.size() > 0) {
             for (PredicateNameAndArity predicateNameAndArity : assertedRelevanceClauses) {
-                if (debugLevel >= 3) {
-                    Utils.println("% [AdviceProcessor] retractRelevanceAdvice: retracted clause definition for " + predicateNameAndArity + ".");
-                }
-                clauseCount++;
                 context.getClausebase().retractAllClausesForPredicate(predicateNameAndArity);
             }
             assertedRelevanceClauses = new HashSet<>();
         }
 
-        if (debugLevel >= 1) {
-            Utils.println("% [AdviceProcessor] Retracted " + clauseCount + " clauses and " + modeCount + " modes.");
-        }
         else if (Utils.getSizeSafely(assertedRelevanceModes) > 0) {
             Utils.println("% [AdviceProcessor] retractRelevanceAdvice: there are " + Utils.comma(assertedRelevanceModes) + " assertedRelevanceModes to retract.");
         }
@@ -843,23 +722,16 @@ public class AdviceProcessor {
         for (ActiveAdvice.RelevanceInfo relevanceInfo : activeAdvice.getFeatureRelevances()) {
             if (relevanceInfo.strength.isEqualOrStronger(minimumStrength)) {
                 PredicateNameAndArity pnaa = relevanceInfo.predicate;
-                RelevanceStrength oldStrength = pnaa.getPredicateName().getRelevance(pnaa.getArity());
+                pnaa.getPredicateName().getRelevance(pnaa.getArity());
                 getStringHandler().setRelevance(pnaa.getPredicateName(), pnaa.getArity(), relevanceInfo.strength);
-                if (debugLevel >= 3) {
-                    Utils.println("% [AdviceProcessor] Setting Feature Relevance for " + pnaa + " to " + relevanceInfo.strength);
-                }
             }
         }
-
-        int modeCount = 0;
-        int clauseCount = 0;
 
         for (ModeInfo modeInfo : activeAdvice.getModes()) {
             if (modeInfo.strength.isEqualOrStronger(minimumStrength)) {
                 if (assertedRelevanceModes.contains(modeInfo.predicate)) {
                     System.out.println("Doh!");
                 }
-                modeCount++;
                 stringHandler.recordModeWithTypes(modeInfo.predicate, modeInfo.signature, modeInfo.specs, 1, Integer.MAX_VALUE, false);
                 if (!Double.isNaN(modeInfo.cost)) {
                     modeInfo.predicate.setCost(modeInfo.cost);
@@ -872,9 +744,6 @@ public class AdviceProcessor {
                 if (!modeInfo.predicate.isInlined()) {
                     modeInfo.predicate.markAsSupportingPredicate(true);
                 }
-                if (debugLevel >= 3) {
-                    Utils.println("% [AdviceProcessor] Set mode for " + modeInfo.predicate + " to " + modeInfo.specs + ".");
-                }
             }
         }
 
@@ -882,15 +751,11 @@ public class AdviceProcessor {
             if (!context.getClausebase().checkForPossibleMatchingBackgroundKnowledge(entry.getKey().getPredicateName(), entry.getKey().getArity())) {
                 for (ActiveAdvice.ClauseInfo clauseInfo : entry.getValue()) {
                     if (clauseInfo.strength.isEqualOrStronger(minimumStrength)) {
-                        clauseCount++;
 
                         context.assertDefiniteClause(clauseInfo.getClause());
 
                         assertedRelevanceClauses.add(clauseInfo.getClause().getDefiniteClauseHead().getPredicateNameAndArity());
 
-                        if (debugLevel >= 3) {
-                            Utils.println("% [AdviceProcessor] Asserted clause " + clauseInfo.getClause().toPrettyString("% [AdviceProcessor]                     ", Integer.MAX_VALUE, 1) + ".");
-                        }
                     }
                 }
             }
@@ -904,9 +769,6 @@ public class AdviceProcessor {
 
                     assertedRelevanceClauses.add(clause.getDefiniteClauseHead().getPredicateNameAndArity());
 
-                    if (debugLevel >= 3) {
-                        Utils.println("% [AdviceProcessor] Asserted clause " + clause.toPrettyString("% [AdviceProcessor]                     ", Integer.MAX_VALUE, 1) + ".");
-                    }
                 }
             }
         }
@@ -914,9 +776,6 @@ public class AdviceProcessor {
 
         applyModeConstraint();
 
-        if (debugLevel >= 1) {
-            Utils.println("% [AdviceProcessor]  Asserted " + clauseCount + " clauses and " + modeCount + " modes.");
-        }
     }
 
     private void applyModeConstraint() {
@@ -945,8 +804,6 @@ public class AdviceProcessor {
 
         if (!relevantModes.contains(rfi)) {
             relevantModes.add(rfi);
-
-            if ( debugLevel >= 1 ) Utils.print("% [AdviceProcessor] Added Relevant Mode Advice: " + rfi + "\n");
         }
     }
 
@@ -1029,21 +886,20 @@ public class AdviceProcessor {
 
                         addGroundedAdvice(new Example(relevantLiteral), relevantClause, strength);
                     } catch (ClassCastException castException) {
-                        //	Utils.reportStackTrace(castException);
                         Utils.waitHere(castException + "\nIllegal relevantClause specification '" + clause + "'.\nMust be fact of form: relevant_clause(Example, Clause, RelevantStrength.");
                     }
                     break;
                 case "relevant_unsplitable_index":
                     try {
                         NumericConstant indexConstant = (NumericConstant) lit.getArgument(0);
-                        int index = indexConstant.value.intValue();
+                        indexConstant.value.intValue();
 
                     } catch (ClassCastException castException) {
                         Utils.waitHere(castException + "\nIllegal relevantClause specification '" + clause + "'.  Must be fact of form relevant_clause(Example, Clause, RelevantStrength.");
                     }
                     break;
                 case "relevant_feature": {
-                    Example relevantLiteral = new Example((Function) lit.getArgument(0));
+                    new Example((Function) lit.getArgument(0));
 
                     String nameAndArityString = ((StringConstant) lit.getArgument(1)).getBareName();
                     int index = nameAndArityString.indexOf("/");
@@ -1051,8 +907,8 @@ public class AdviceProcessor {
                     String arityString = nameAndArityString.substring(index + 1);
                     int arity = Integer.parseInt(arityString);
 
-                    PredicateNameAndArity pnaa = stringHandler.getPredicate(name, arity);
-                    RelevanceStrength strength = RelevanceStrength.valueOf(((StringConstant) lit.getArgument(2)).getBareName().toUpperCase());
+                    stringHandler.getPredicate(name, arity);
+                    RelevanceStrength.valueOf(((StringConstant) lit.getArgument(2)).getBareName().toUpperCase());
                     break;
                 }
                 case "relevant_mode": {
