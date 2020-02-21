@@ -1769,7 +1769,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		List<Example> posEx = getPosExamples();
 		List<Example> negEx = getNegExamples();
 
-		if (debugLevel > 1) { Utils.println("\n% Checking to see any target argument types are too general, given the training examples."); }
 		if (posEx == null && negEx == null) { Utils.waitHere("Have no examples yet!"); }
 
 		int targetPredicateArity = target.numberArgs();
@@ -1780,8 +1779,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			Type typeToUse = null;
 			boolean skipWithThisArgument = false;
 
-			if (debugLevel > 1) { Utils.println("%   Target argument #" + (i + 1) + " is of type '" + type + "'."); }
-
 			int counter = 0;
 			if (posEx != null) for (Example ex : posEx) {
 				counter++;
@@ -1790,7 +1787,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 				Term argI = ex.getArgument(i);
 				List<Type> types = stringHandler.isaHandler.getAllKnownTypesForThisTerm(argI);
 
-				if (debugLevel > 2 & counter < 25) { Utils.println("%   Argument #" + +(i + 1) + " in positive example " + counter + " is of types: " + types + "."); }
 				if (types == null)     { skipWithThisArgument = true; typeToUse = null; break; }
 				if (types.size() != 1) { skipWithThisArgument = true; typeToUse = null; break; } // Not sure what to do with multiple types.
 				if (typeToUse == null) { typeToUse = types.get(0); }
@@ -1809,7 +1805,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 				Term argI = ex.getArgument(i);
 				List<Type> types = stringHandler.isaHandler.getAllKnownTypesForThisTerm(argI);
 
-				if (debugLevel > 2 & counter < 25) { Utils.println("%   Argument #" + +(i + 1) + " in negative example " + counter + " is of types: " + types + "."); }
 				if (types == null)     { skipWithThisArgument = true; typeToUse = null; break; }
 				if (types.size() != 1) { skipWithThisArgument = true; typeToUse = null; break; } // Not sure what to do with multiple types.
 				if (typeToUse == null) { typeToUse = types.get(0); }
@@ -1821,7 +1816,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 					}
 				}
 			}
-			if (debugLevel > 2) { Utils.println("%  Analyzing the examples says that typeToUse = '" + typeToUse + "' (compared to '" + type + "')."); }
 			if (!skipWithThisArgument && typeToUse != type && stringHandler.isaHandler.isa(typeToUse, type)) {
 				// If reached here, all the arguments in the examples are know to be more constrained than the target predicate,
 				// so let's constrain the target.  TODO - should we add 'guard literals' to the learned concept?
@@ -1844,7 +1838,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 				} else {
 					newTerm = stringHandler.getNewNamedGeneratedVariable();
 				}
-				if (debugLevel > 1) { Utils.println("% traverseSignatureAndAddVariables: assign " + newTerm + " to " + typeSpec); }
 				theseTargetArgSpecs.add(new ArgSpec(newTerm, typeSpec));
 				targetArguments.add(newTerm);
 				theseVars.add(newTerm);
@@ -1878,7 +1871,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			if (!foundDifference) { return; } // Have found a matching list, so this is a duplicate and can be ignored.
 
 		}
-		if (debugLevel > 3) { Utils.println(">>> found new collectConstantBindings: " + args); }
 		collectedConstantBindings.add(args); // Should check for duplicates!
 	}
 

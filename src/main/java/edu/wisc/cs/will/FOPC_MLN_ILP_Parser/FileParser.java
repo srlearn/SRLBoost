@@ -360,7 +360,7 @@ public class FileParser {
 			int counter = 0;
 			while (tokenizer.nextToken() != StreamTokenizer.TT_EOF) {
 				tokenizer.pushBack();
-				Literal lit = processLiteral(false); counter++; if (debugLevel > 1) { Utils.println("% readLiteralsInFile:   " + lit + " // #" + Utils.comma(counter)); }
+				Literal lit = processLiteral(false); counter++;
 				results.add(lit);
 				peekEOL(true); // Suck up an optional EOL.
 			}			
@@ -376,8 +376,6 @@ public class FileParser {
 			Utils.reportStackTrace(e);
 			Utils.error("Unable to successfully parse this file: " + fileName + ".\n  Have read " + Utils.comma(results) + " literals.\nNOTE THIS METHOD DOES NOT HANDLE PARSER INSTRUCTIONS!\nError message: " + e.getMessage());
 		}
-		
-		if (debugLevel > 0) { Utils.println("% readLiteralsInFile: Have read " + Utils.comma(results) + " literals from: " + fName); }
 		return results;
 	}
 
@@ -568,7 +566,6 @@ public class FileParser {
 			while (tokenRead != StreamTokenizer.TT_EOF) {  // TODO discard this test code below
 
 				nextSentence = null;
-				if (debugLevel > 0) { Utils.println("At line #" + Utils.comma(tokenizer.lineno()) + " of '" + fileNameForErrorReporting + "' and read '" + tokenizer.reportCurrentToken() + "'."); }
 				// Use this very carefully!
 				// If true, will avoid copying sentences as recursive calls, due to imports, return.
 				switch (tokenRead) {
@@ -718,9 +715,7 @@ public class FileParser {
 						throw new ParsingException("This is not a valid FOPC sentence: '" + nextSentence + ".'  It contains a logical term where a logical sentence should appear.");
 					}
 					Sentence finalSentence = nextSentence.wrapFreeVariables(); // Add any implicit ForAll.
-					if (debugLevel > 0) { Utils.println("Read sentence: " + finalSentence + "."); }
 					listOfSentencesReadOrCreated.add(finalSentence);
-					if (debugLevel > 0) if ((listOfSentencesReadOrCreated.size() % 10000) == 0) { Utils.println("%    " + Utils.comma(listOfSentencesReadOrCreated.size()) + " items so far from " + fileNameForErrorReporting + "."); }
 				}
 				stringHandler.resetAllVariables(); // Clear cache of variables, since old ones (if any) now out of scope.
 				tokenRead = tokenizer.nextToken();
@@ -741,8 +736,6 @@ public class FileParser {
 			Utils.reportStackTrace(e);
 			Utils.error("Unable to successfully parse this file: " + fileNameForErrorReporting + ".\nError message: " + e.getMessage());
 		}
-		if (debugLevel > 0) { Utils.println("Read " + Utils.comma(listOfSentencesReadOrCreated) + " FOPC sentences from " + fileNameForErrorReporting + " (and any imports inside of it)."); }
-		if (debugLevel > 1 && Utils.getSizeSafely(listOfSentencesReadOrCreated) > 0) for (Sentence s : listOfSentencesReadOrCreated) { Utils.println("  " + s + "."); }
 		checkDirectoryName(hold_directoryName);
 
 		if (holdVarIndicator != null) { // If previously set, revert to that setting.
@@ -882,7 +875,6 @@ public class FileParser {
 			else {
 				rhs.functionName.addExtensionalDefinition(null, lhs);
 			}
-			if (debugLevel > 1) { Utils.println("Define: " + lhs + " = " + rhs + "."); }
 
 		}
 		else { throw new ParsingException("Expecting an '=' if the specification of the semantics of a function, but read '" +  reportLastItemRead()); }
@@ -909,7 +901,6 @@ public class FileParser {
 	}
 
 	private Literal processInfixLiteral(Term firstTerm, String inFixOperatorName, boolean argumentsMustBeTyped) throws ParsingException, IOException {
-		if (debugLevel > 1) { Utils.println("In processInfixLiteral.  First term = '" + firstTerm + "' and in-fix operator = '" + inFixOperatorName + "'."); }
 		Term secondTerm;
         
         if (inFixOperatorName.equalsIgnoreCase("is")) {
@@ -918,29 +909,21 @@ public class FileParser {
         else {
             secondTerm = processTerm(argumentsMustBeTyped);
         }
-        
-		if (debugLevel > 2) { Utils.println("  second term: '" + secondTerm + "'."); }
+
 		List<Term>    args   = new ArrayList<>(2);
 		PredicateName pName  = stringHandler.getPredicateName(inFixOperatorName); pName.printUsingInFixNotation = true;
         args.add(firstTerm);
         args.add(secondTerm);
-		Literal       result = stringHandler.getLiteral(pName, args);
-		if (debugLevel > 2) { Utils.println(" literal: " + result); }
-		return result;
+		return stringHandler.getLiteral(pName, args);
 	}
 
 	private Term processIS(boolean argumentsMustBeTyped) throws ParsingException, IOException {
-		if (debugLevel > 2) { Utils.println("\nSTART processIS."); }
-		Term result = processMathExpression(null, argumentsMustBeTyped, false);
-		if (debugLevel > 2) { Utils.println("FINAL RESULT of processIS: " + result); }
-		return result;
+		return processMathExpression(null, argumentsMustBeTyped, false);
 	}
 
 	// This version is used if peeking ahead sees a '/' etc, e.g., 'p(x/y/z, 5)' or 'p(f(x)+f(y))'.
 	private Term processMathExpression(boolean argumentsMustBeTyped) throws ParsingException, IOException {
-		Term result = processMathExpression(null, argumentsMustBeTyped, true);
-		if (debugLevel > 2) { Utils.println("FINAL RESULT of processMathExpression: " + result); }
-		return result;
+		return processMathExpression(null, argumentsMustBeTyped, true);
 	}
 
 	private Term processMathExpression(Term initialTerm, boolean argumentsMustBeTyped, boolean insideLeftParen) throws ParsingException, IOException  {
@@ -950,15 +933,12 @@ public class FileParser {
 		List<AllOfFOPC> accumulator = new ArrayList<>(4);
 		boolean         lookingForTerm = true;
 		if (initialTerm != null) {
-			accumulator.add(initialTerm);  if (debugLevel > 2) { Utils.println("INIT processMathExpression.\n  processMathExpression('" + initialTerm + "'): accumulator = " + accumulator); }
+			accumulator.add(initialTerm);
 			lookingForTerm = false;
 		}
 		while (true) {
 			int tokenRead = getNextToken();
-			if (debugLevel > 2) { Utils.println(" token read: '" + reportLastItemRead() + "'"); }
 			if (processPossibleConnective(tokenRead) != null) {  // A logical connective (e.g., 'and') ends an "X is Y + Z, p(X), ..."
-
-				if (debugLevel > 2) { Utils.println("   this token ('" + reportLastItemRead() + "') indicates the end of the math expression (so the accumulator should be compacted into one term)."); }
 				if (insideLeftParen) { throw new ParsingException("Unexpectedly read '" + reportLastItemRead() + " when inside a left parenthesis in a 'X is ...' expressions."); }
 
 				tokenizer.pushBack(); // Return the connective.
@@ -969,7 +949,7 @@ public class FileParser {
 				case '{':
 				case '[':
 					Term resultLeftParens = processMathExpression(argumentsMustBeTyped); // Parse up the closing right parenthesis.
-					accumulator.add(resultLeftParens);   if (debugLevel > 2) { Utils.println("  called processMathExpression('" + reportLastItemRead() + "') =  " + resultLeftParens + "', accumulator = " + accumulator); }
+					accumulator.add(resultLeftParens);
 					if (!lookingForTerm) { throw new ParsingException("Encountered two terms in a row: '" + resultLeftParens + "'."); } // Could let this be implicit multiplication?
 					lookingForTerm = false;
 					break;
@@ -978,13 +958,11 @@ public class FileParser {
 				case ']':
 					// These are ok since we now allow p(x/y).    if (!insideLeftParen) { throw new ParsingException("Read a right parenthesis unexpectedly."); }
 					if (!insideLeftParen) { tokenizer.pushBack(); }
-					if (debugLevel > 2) { Utils.println("   this closing-paren token ('" + reportLastItemRead() + "') indicates the current accumulator should be compressed into one token."); }
 					return convertAccumulatorToTerm(accumulator);
 				case '.':
 				case ';':
 					if (insideLeftParen) { throw new ParsingException("Read an EOL ('" + tokenRead + "') unexpectedly."); }
 					tokenizer.pushBack();
-					if (debugLevel > 2) { Utils.println("   this EOL token ('" + reportLastItemRead() + "') indicates the current accumulator should be compressed into one token."); }
 					return convertAccumulatorToTerm(accumulator);
 				case '+': // These are the only in-fix operators currently known to the system (other than 'is').
 					if (accumulator.isEmpty()) { break; } // Discard any leading + signs.
@@ -997,13 +975,12 @@ public class FileParser {
 					if (fName == null) { fName = stringHandler.getFunctionName(String.valueOf((char) tokenRead)); }
 					// OK if '-' is the first item.
 					if (lookingForTerm && accumulator.size() > 0) { throw new ParsingException("Encountered two operators in a row: '" + reportLastItemRead() + "'."); }
-					accumulator.add(fName);  if (debugLevel > 2) { Utils.println("  processMathExpression('" + reportLastItemRead() + "'): accumulator = " + accumulator); }
+					accumulator.add(fName);
 					lookingForTerm = true;
 					break;
 				case StreamTokenizer.TT_WORD:
-					if (debugLevel > 2) { Utils.println("  will call processRestOfTerm('" + reportLastItemRead() + "'): accumulator = " + accumulator); }
 					Term resultWord = processRestOfTerm(tokenRead, argumentsMustBeTyped, true);
-					accumulator.add(resultWord);  if (debugLevel > 2) { Utils.println("  processMathExpression('" + reportLastItemRead() + "'): accumulator = " + accumulator); }
+					accumulator.add(resultWord);
 					if (!lookingForTerm) { throw new ParsingException("Encountered two terms in a row (missing comma?): '" + resultWord + "'.  Accumulator=" + accumulator); }
 					lookingForTerm = false;
 					break;
@@ -1023,7 +1000,6 @@ public class FileParser {
 	private Term convertAccumulatorToTerm(List<AllOfFOPC> accumulator) throws ParsingException {
 		if (accumulator == null || accumulator.isEmpty()) { throw new ParsingException("Have an empty mathematical expression following an instance of 'X is ...'"); }
 		while (accumulator.size() > 1) {
-			if (debugLevel > 2) { Utils.println("  convertAccumulatorToTerm: " + accumulator); }
 			//  First find the lowest-precedence operator.
 			int lowestPrecedence  = Integer.MAX_VALUE;
 			int countOfLowestItem = -1;
@@ -1048,10 +1024,8 @@ public class FileParser {
 				args.add(rightArg);
 				Function funct = stringHandler.getFunction(fName, args, null);
 				accumulator.add(   countOfLowestItem + 2, funct); // Add after the two items combined.
-				if (debugLevel > 2) { Utils.println("    ['-'] after adding  '" + funct + "' accumulator = " + accumulator); }
 				AllOfFOPC removed1 = accumulator.remove(countOfLowestItem + 1); // Do this in the proper order so shifting doesn't mess up counting.
 				AllOfFOPC removed2 = accumulator.remove(countOfLowestItem);
-				if (debugLevel > 2) { Utils.println("    ['-'] after removing '" + removed1 + "' and '" + removed2 + "' accumulator = " + accumulator); }
 			}
 			else {
 				if (countOfLowestItem < 1 || countOfLowestItem > accumulator.size() - 2) { Utils.error("Operators cannot be in the first or last positions: " + accumulator); }
@@ -1062,11 +1036,9 @@ public class FileParser {
 				args.add(rightArg);
 				Function funct = stringHandler.getFunction(fName, args, null);
 				accumulator.add(   countOfLowestItem + 2, funct); // Add after the three items combined.
-				if (debugLevel > 2) { Utils.println("          after adding  '" + funct + "' accumulator = " + accumulator); }
 				AllOfFOPC removed1 = accumulator.remove(countOfLowestItem + 1); // Do this in the proper order so shifting doesn't mess up counting.
 				AllOfFOPC removed2 = accumulator.remove(countOfLowestItem);
 				AllOfFOPC removed3 = accumulator.remove(countOfLowestItem - 1);
-				if (debugLevel > 2) { Utils.println("          after removing '" + removed1 + "', '" + removed2 + "' and '" + removed3 + "' accumulator = " + accumulator); }
 			}
 		}
 		return (Term) accumulator.get(0);
@@ -1078,7 +1050,6 @@ public class FileParser {
 			return null;
 		}
 		while (accumulator.size() > 1) {
-			if (debugLevel > 2) { Utils.println("  convertAccumulatorToFOPC: " + accumulator); }
 			//  First find the lowest-precedence operator.
 			int lowestPrecedence  = Integer.MAX_VALUE;
 			int countOfLowestItem = -1;
@@ -1258,7 +1229,6 @@ public class FileParser {
 				case 3: pName.setIsaInterval_3D(arity, boundariesAtEnd); stringHandler.needPruner = true; break;
 				default: throw new ParsingException("Can only handle 1, 2, or 3D interval specifications (which involve 3, 6, or 9 arguments, respectively), but have read arity =: '" + arity + ".");
 			}
-			if (debugLevel > 1) { Utils.println("isaInterval: " + pName + "/" + arity + "."); }
 			return;
 		}
 		throw new ParsingException("Expecting the name of a predicate in an 'isaInterval' but read: '" + reportLastItemRead() + "'.");
@@ -1366,9 +1336,6 @@ public class FileParser {
 			tokenRead = getNextToken();
 			if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in an 'supportingLiteral' specification, but got: '" + reportLastItemRead() + "'."); }
 			int arity = readInteger();
-
-
-			if (debugLevel > 1) { Utils.println("supportingLiteral: " + pName + "/" + arity ); }
 			pName.markAsSupportingPredicate(arity, false);
 			return;
 		}
@@ -1462,8 +1429,6 @@ public class FileParser {
 
 			stringHandler.getTypedFreeVariablesAndUniquelyName(terms, null, freeVars, freeVarNames, typeSpecs, true);		// These will not maintain the World-State positions since the arguments names are probably not in the file being read.
 			typedHeadLiteral = stringHandler.getLiteral(newPname, convertToListOfTerms(freeVars), freeVarNames).clearArgumentNamesInPlace(); // BUGGY if we want to keep argument names ...
-
-			if (debugLevel > 1) { Utils.println("\n% line #" + tokenizer.lineno() + ", processRelevantAND: typedHeadLiteral = " + typedHeadLiteral + ", " + bodyTerms + "\n%    freeVars=" + freeVars + " specs=" + typeSpecs); }
 		} else {
 			typeSpecs = typedHeadLiteral.getTypeSpecs();
 		}
@@ -1485,17 +1450,6 @@ public class FileParser {
 		if (listOfSentences == null) { throw new ParsingException("Should not have an empty list!"); } // This holds the read-in clauses.  If reset here, the new list will be lost.
 		listOfSentences.add(newC);
 		stringHandler.resetAllVariables();
-		if (debugLevel > 1) {
-			Utils.println("\n% " + newC.toString(Integer.MAX_VALUE) + ". // Added to background knowledge (size = " + Utils.comma(listOfSentences) + ") by processRelevantAND.");
-		}
-		if (debugLevel > 1) {
-			Utils.println("% inline:   " + newPname  + "/");
-			Utils.println("% relevant: " + newPname  + "/" + arity + ", " + strength);
-			Utils.print(  "% mode:     " + newPname  + "(");
-			boolean addComma = false;
-			for (TypeSpec ps : typeSpecs) { if (addComma) { Utils.print(", "); } else { addComma = true; } Utils.print(ps.toString()); }
-			Utils.println(")");
-		}
 		if (autoNegate) {
 			Literal nottypedHeadLiteral = createNegatedVersion(typedHeadLiteral);
 			processRelevantNOT(listOfSentences, nottypedHeadLiteral, typedHeadLiteral, Objects.requireNonNull(strength).getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); // Prevent infinite loops.
@@ -1543,7 +1497,6 @@ public class FileParser {
 			stringHandler.getTypedFreeVariablesAndUniquelyName(terms, null, freeVars, freeVarNames, typeSpecs, true);		// These will not maintain the World-State positions since the arguments names are probably not in the file being read.
 			typedHeadLiteral = stringHandler.getLiteral(newPname, convertToListOfTerms(freeVars), freeVarNames).clearArgumentNamesInPlace(); // BUGGY if we want to keep argument names ...
 
-			if (debugLevel > 1) { Utils.println("\n% line #" + tokenizer.lineno() + ", processRelevantOR: typedHeadLiteral = " + typedHeadLiteral + ", " + bodyTerms + "\n%    freeVars=" + freeVars + " specs=" + typeSpecs); }
 		} else {
 			typeSpecs = typedHeadLiteral.getTypeSpecs();
 		}
@@ -1552,7 +1505,6 @@ public class FileParser {
 		// Create a P :- Q for each argument to the OR.  P is *not* an in-liner, due to the combinatorics involved.
 		// If a term is a LIST such as [Q, R, S] then add P :- Q, R, S.
 		// If a term is an AND(P, Q, R), treat the same as it being [Q, R, S].
-		if (debugLevel > 1) { Utils.println(""); }
 		for (Term term : bodyTerms) {
 			Clause newC = stringHandler.getClause(typedHeadLiteral, true);
 			newC.negLiterals = new ArrayList<>(1);
@@ -1575,22 +1527,11 @@ public class FileParser {
 			} else { throw new Error("Cannot handle this term in processRelevantOR" + term); }
 			if (listOfSentences == null) { throw new ParsingException("Should not have an empty list!"); }
 			listOfSentences.add(newC); // This holds the read-in clauses.
-			if (debugLevel > 1) {
-				Utils.println("\n% " + newC.toString(Integer.MAX_VALUE) + ". // Added to background knowledge (size = " + Utils.comma(listOfSentences) + ") by processRelevantOR.");
-			}
 		}
 		if (typedHeadLiteralWasNULL) { newPname.markAsSupportingPredicate(arity, false); } // This is NOT inlined, but it is supporting (i.e., it is not a clause-head that is in the BK; instead we generated it).  We need to keep disjuncts around in theories - flattening into clauses could otherwise lead to a combinatorial explosion.
 		stringHandler.setRelevance(newPname, arity, strength);
 		stringHandler.recordModeWithTypes(typedHeadLiteral, stringHandler.getConstantSignatureThisLong(arity), typeSpecs, max, maxPerInputVars);
 		stringHandler.resetAllVariables();
-		if (debugLevel > 1) {
-			Utils.println( "% marked as a supporting literal: " + newPname + "/" + arity);
-			Utils.println( "% relevant: " + newPname + "/" + arity + ", " + strength);
-			Utils.print(   "% mode:     " + newPname + "(");
-			boolean addComma = false;
-			for (TypeSpec ps : typeSpecs) { if (addComma) { Utils.print(", "); } else { addComma = true; } Utils.print(ps.toString()); }
-			Utils.println(")");
-		}
 		if (autoNegate) {
 			Literal notTypedHeadLiteral = createNegatedVersion(typedHeadLiteral);
 			processRelevantNOT(listOfSentences, notTypedHeadLiteral, typedHeadLiteral, Objects.requireNonNull(strength).getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); // Prevent infinite loops.
@@ -1641,9 +1582,6 @@ public class FileParser {
 
 			stringHandler.getTypedFreeVariablesAndUniquelyName(terms, null, freeVars, freeVarNames, typeSpecs, true);		// These will not maintain the World-State positions since the arguments names are probably not in the file being read.
 			typedHeadLiteral = stringHandler.getLiteral(newPname, convertToListOfTerms(freeVars), freeVarNames).clearArgumentNamesInPlace(); // BUGGY if we want to keep argument names ...
-
-
-			if (debugLevel > 1) { Utils.println("\n% line #" + tokenizer.lineno() + ": processRelevantNOT:  typedHeadLiteral = " + typedHeadLiteral + ", innerLit = " + innerLit + "\n%    freeVars=" + freeVars + " specs=" + typeSpecs); }
 		} else {
 			typeSpecs = typedHeadLiteral.getTypeSpecs();
 		}
@@ -1658,15 +1596,7 @@ public class FileParser {
 		stringHandler.recordModeWithTypes(typedHeadLiteral, stringHandler.getConstantSignatureThisLong(arity), typeSpecs, max, maxPerInputVars);
 		if (listOfSentences == null) { throw new ParsingException("Should not have an empty list!"); }
 		listOfSentences.add(newC); // This holds the read-in clauses.
-		if (debugLevel > 1) {
-			Utils.println("\n% " + newC.toString(Integer.MAX_VALUE) + ". // Added to background knowledge (size = " + Utils.comma(listOfSentences) + ") by processRelevantNOT.");
-		}
 		stringHandler.resetAllVariables();
-		if (debugLevel > 1) {
-			Utils.println("% inline:   " + newPname + "/" + arity);
-			Utils.println("% relevant: " + newPname + "/" + arity + ", " + strength);
-			Utils.println("% mode:     " + newPname + "(" + newPname.getTypeList() + ")");
-		}
 		if (createNegatedVersion) { processRelevantLiteral(listOfSentences, innerLit, strength.getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); } // Prevent infinite loops.
 	}
 
@@ -1722,7 +1652,6 @@ public class FileParser {
 		PredicateName pName = innerLit.predicateName;
 
 		stringHandler.setRelevance(pName, arity, strength);
-		if (debugLevel > 1) { Utils.println("% relevant: " + pName + "/" + arity + ", " + strength); }
 
 		if (createNegatedVersion) { processRelevantNOT(listOfSentences, null, innerLit, strength, max, maxPerInputVars, false); } // Prevent infinite loops.
 	}
@@ -2010,8 +1939,6 @@ public class FileParser {
 
 			tokenRead = getNextToken();
 			double cost = processNumber(tokenRead);
-
-			if (debugLevel > 1) { Utils.println("cost: " + pName + "/" + arity + ", " + cost); }
 			pName.setCost(arity, cost, isFinal);
 			return;
 		}
@@ -2028,14 +1955,12 @@ public class FileParser {
 			tokenRead = getNextToken();
 			if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in a '" + directiveName + "' specification, but got: '" + reportLastItemRead() + "'."); }
 			if (checkAndConsume('#')) {
-				if (debugLevel > 1) { Utils.println("Read that " + pName + " can be unknown for any number of arguments."); }
 				if      (directiveName.equalsIgnoreCase("okIfUnknown"))                    { pName.setCanBeAbsent(-1); } // -1 means "any arity"
 				else if (directiveName.equalsIgnoreCase("dontComplainAboutMultipleTypes")) { pName.setDontComplainAboutMultipleTypes(-1); }
 				else { throw new ParsingException("Cannot process directiveName=" + directiveName+ "."); } // This is a programmer, rather than user, error.
 			}
 			else {
 				int arity = readInteger();
-				if (debugLevel > 1) { Utils.println("Read that " + pName + "/" + arity + " can be unknown."); }
 				if (directiveName.equalsIgnoreCase("okIfUnknown"))                         { pName.setCanBeAbsent(arity); }
 				else if (directiveName.equalsIgnoreCase("dontComplainAboutMultipleTypes")) { pName.setDontComplainAboutMultipleTypes(arity); }
 				else { throw new ParsingException("Cannot process directiveName=" + directiveName+ "."); } // This is a programmer, rather than user, error.
@@ -2089,7 +2014,6 @@ public class FileParser {
 		if (sentencesToPrecompute == null) { initializeSentencesToPrecompute(); }
 		sentencesToPrecompute[index].add(sentenceToPrecompute);
 		setFileNameForSentencesToPrecompute(index, fileNameToUse, usingDefaultName);
-		if (debugLevel > 1) { Utils.println("% precompute" + (index > 0 ? index : "") + ": " + sentenceToPrecompute + "\n%  Will be written to: " + fileNameToUse); }
 	}
 
 	private void initializeSentencesToPrecompute() {
@@ -2190,7 +2114,6 @@ public class FileParser {
 		boolean result = (currentWord.equalsIgnoreCase("inf") || currentWord.equalsIgnoreCase("infinity"));
 
 		if (result && checkAndConsume('(')) { // Allow inf() to be a predicate.
-			if (debugLevel > 1 && result) { Utils.println("pushing back the infinity because an open paren is next."); }
 			tokenizer.pushBack();
 			return false;
 		}
@@ -2198,11 +2121,10 @@ public class FileParser {
 	}
 
 	private double processNumber(int tokenRead) throws ParsingException, IOException {
-		if (debugLevel > 1) { Utils.println("processNumber: " + reportLastItemRead()  + "  [tokenRead = " + tokenRead + ", " + StreamTokenizer.TT_WORD + "]"); } 
 		int countOfBackupsNeeded = 0;
 		int negate               = 1;
 		if (tokenRead == '@') {  // A leading @ indicates the value needs to be looked up in the list of set parameters.
-			tokenRead       = getNextToken();
+			getNextToken();
 			String wordRead = tokenizer.sval();
 			String setting  = stringHandler.getParameterSetting(wordRead);
 			if (setting     == null) { throw new ParsingException(" Read '@" + wordRead + "', but '" + wordRead + "' has not been set."); }
@@ -2211,17 +2133,15 @@ public class FileParser {
 			negate    = -1;
 			Utils.println("processNumber: have a '-'");
 			countOfBackupsNeeded++;
-			tokenRead = getNextToken();
+			getNextToken();
 			if (atInfinity()) { return Double.NEGATIVE_INFINITY; }
 		} else if (tokenRead == '+')  { // Allow a plus sign.
-			if (debugLevel > 1) { Utils.println("processNumber: have a '+'"); }
 			countOfBackupsNeeded++;
-			tokenRead = getNextToken();
+			getNextToken();
 			if (atInfinity()) { return Double.POSITIVE_INFINITY; }
 		}
 
 		if (tokenizer.ttype() != StreamTokenizer.TT_WORD) {
-			if (debugLevel > 1) { Utils.println("processNumber: do not have a number"); }
 			tokenizer.pushBack(countOfBackupsNeeded); // Return to where the processNumber() started.
 			return Double.NaN;
 		}
@@ -2440,14 +2360,12 @@ public class FileParser {
 		if (isaLibraryFile) {
 			// Don't load a file more than once.
 			if (stringHandler.haveLoadedThisFile(newFileName, true)) {
-				if (debugLevel > 1) { Utils.println(PARSER_VERBOSE_LIBRARY_LOADING, "Have already loaded " + newFileName + "."); }
 				return null;
 			}
 			result = loadThisLibrary(newParser, newFileName);
 		} else {
 			String file2load = Utils.createFileNameString(directoryName, newFileName);
 			if (stringHandler.haveLoadedThisFile(file2load, true)) {
-				if (debugLevel > 1) { Utils.println(PARSER_VERBOSE_FILE_INCLUDES, "Have already loaded " + file2load + "."); }
 				return null;
 			}
 			if (!dontPrintUnlessImportant) { Utils.println(PARSER_VERBOSE_FILE_INCLUDES, "% loadThisFile: directoryName = " + directoryName + ", newFileName = " + newFileName + ", file2load = " + file2load); }
@@ -2543,7 +2461,7 @@ public class FileParser {
 		String beforeIsa = getPossiblyQuotedString(tokenRead);
 
 		tokenRead = getNextToken();
-		String afterIsa = null;
+		String afterIsa;
 		if (tokenRead != StreamTokenizer.TT_WORD) { Utils.error("Expecting 'isa' or the name of a type, but got: '" + reportLastItemRead() + "'.  beforeIsa=" + beforeIsa); }
 		if (tokenizer.sval().equalsIgnoreCase("isa")) {  // If the optional isa is present, suck it up.
 			tokenRead = getNextToken();
@@ -2559,7 +2477,6 @@ public class FileParser {
 		Type parent = stringHandler.isaHandler.getIsaType(afterIsa);
 
 		stringHandler.isaHandler.addISA(child, parent);
-		if (debugLevel > 0) { Utils.println("Read this ISA: " + beforeIsa + " isa " + afterIsa + "."); }
 		if (++isaCounter % 10000 == 0) { Utils.println("%     Read ISA #" + Utils.comma(isaCounter) + ": " + beforeIsa + " isa " + afterIsa + "."); }
 	}
 
@@ -2610,7 +2527,6 @@ public class FileParser {
 			peekEOL(true); // Suck up an optional EOL.
 		}
 
-    	if (debugLevel > 0) { Utils.println("Read the type specification: " + typeName + " = " + constants); }
 		if (containsDotDotDot) {
 			List<Constant> expandedConstants = new ArrayList<>(2 * constants.size());
 			int previous = Integer.MIN_VALUE;
@@ -2641,7 +2557,6 @@ public class FileParser {
 				}
 				else { throw new ParsingException("When '...' is present, all types must be number.  You provided: '" + c + "'."); }
 			}
-			if (debugLevel > 2) { Utils.println("  The expands to: " + typeName + " = " + expandedConstants); }
 			stringHandler.recordPossibleTypes(typeName, expandedConstants);
 		}
 		else {
@@ -2711,13 +2626,6 @@ public class FileParser {
 
         listOfSentences.add(stringHandler.getClause(stringHandler.getLiteral("mode", typedHeadLiteral.convertToFunction(stringHandler)), true));
 
-		if (debugLevel > 1) {
-			Utils.print("READ " + (thisIsaNoMode ? "noMode" : "mode") + ": " + typedHeadLiteral);
-			if (targetPred != null)   { Utils.print(" target=" + targetPred + "/" + arity); }
-			if (max             < Integer.MAX_VALUE) { Utils.print(" max=" + max); }
-			if (maxPerInputVars < Integer.MAX_VALUE) { Utils.print(" maxPerInputVars=" + maxPerInputVars); }
-			Utils.println(".");
-		}
 		// Do NOT skipToEOL() here since that is what ended the while loop.
 	}
 
@@ -2732,7 +2640,9 @@ public class FileParser {
 		int arity = readInteger();
 
 		tokenRead = getNextToken();
-		if (tokenRead == ',') { tokenRead = getNextToken(); } // OK if there are some commas separating the items.
+		if (tokenRead == ',') {
+			getNextToken();
+		} // OK if there are some commas separating the items.
 		currentWord = tokenizer.reportCurrentToken();
 		if (!currentWord.equalsIgnoreCase("arg")) { throw new ParsingException("Expecting to read: 'arg' but instead read '" + reportLastItemRead() + "'."); }
 		tokenRead    = getNextToken();
@@ -2740,7 +2650,9 @@ public class FileParser {
 		int position = readInteger();
 		if (position < 1 || position > arity) { throw new ParsingException("Expecting to read an integer between 1 and " + arity + ", but instead read '" + position + "."); }
 		tokenRead    = getNextToken();
-		if (tokenRead == ',') { tokenRead = getNextToken(); }
+		if (tokenRead == ',') {
+			getNextToken();
+		}
 		Type type = stringHandler.isaHandler.getIsaType(tokenizer.reportCurrentToken());
 		boolean pruneIfNoEffect = false;
 		if (!atEOL()) {
@@ -2753,9 +2665,6 @@ public class FileParser {
 			pruneIfNoEffect = true;
 		}
 		predicate.addConstrainsArgumentType(arity, position, type, pruneIfNoEffect);
-		if (debugLevel > 1) {
-			Utils.println("%   READ constrains: " + predicate + "/" + arity + " at arg #" + position + " to type '" + type + "'." + (pruneIfNoEffect ? "  If the pruning has no impact, prune this literal.": ""));
-		}
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2795,10 +2704,6 @@ public class FileParser {
             type = stringHandler.isaHandler.getIsaType(typeAsString);
         }
 		predicate.setDeterminateInfo(arity, position, type);
-        
-		if (debugLevel > 1) {
-			Utils.println("%   READ determinate: " + predicate+ "/" + arity + " at arg #" + position + " with type = '" + type + "'.");
-		}
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2824,9 +2729,6 @@ public class FileParser {
 		if (position < 1 || position > arity) { throw new ParsingException("Expecting to read an integer between 1 and " + arity + ", but instead read '" + position + "."); }
 
 		predicate.addFunctionAsPred(prefix, arity, position);
-		if (debugLevel > 1) {
-			Utils.println("%   READ " + prefix + "FunctionAsPred: " + predicate+ "/" + arity + " at arg #" + position + "'.");
-		}
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2841,9 +2743,6 @@ public class FileParser {
 		int arity = readInteger();
 
 		predicate.addBridger(arity);
-		if (debugLevel > 1) {
-			Utils.println("%   READ bridger: " + predicate + "/" + arity + ".");
-		}
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2858,9 +2757,6 @@ public class FileParser {
 		int arity = readInteger();
 
 		predicate.addTemporary(arity);
-		if (debugLevel > 1) {
-			Utils.println("%   READ temporary: " + predicate + "/" + arity + ".");
-		}
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2875,9 +2771,6 @@ public class FileParser {
 		int arity = readInteger();
 
 		predicate.addInliner(arity);
-		if (debugLevel > 1) {
-			Utils.println("%   READ inline: " + predicate + "/" + arity + ".");
-		}
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2886,12 +2779,9 @@ public class FileParser {
 		int           tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate   = stringHandler.getPredicateName(currentWord);
-		tokenRead = getNextToken();
+		getNextToken();
 
 		predicate.addFilter();
-		if (debugLevel > 1) {
-			Utils.println("%   READ filter: " + predicate + ".  tokenRead = " + tokenRead);
-		}
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2906,9 +2796,6 @@ public class FileParser {
 		int arity = readInteger();
 
 		predicate.addQueryPred(arity);
-		if (debugLevel > 1) {
-			Utils.println("%   READ query predicate: " + predicate + "/" + arity + ".");
-		}
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2923,9 +2810,6 @@ public class FileParser {
 		int arity = readInteger();
 
 		predicate.addHiddenPred(arity);
-		if (debugLevel > 1) {
-			Utils.println("%   READ hidden predicate: " + predicate+ "/" + arity + ".");
-		}
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2979,9 +2863,6 @@ public class FileParser {
             literalsToThreshold = new HashSet<>(4);
         }
         literalsToThreshold.add(stringHandler.getLiteralToThreshold(typedHeadLiteral.predicateName, typedHeadLiteral.getArguments(), position, maxCuts, createTiles, firstArgIsExampleID));
-        if (debugLevel > 1) {
-            Utils.println("%   READ threshold: " + typedHeadLiteral + " at arg #" + position + " with maxCuts = '" + maxCuts + "', createTiles='" + createTiles + "', and firstArgIsExampleID='" + firstArgIsExampleID + "'.");
-        }
 	}
 
 	private int getNextToken() throws IOException {
@@ -3064,7 +2945,6 @@ public class FileParser {
 		catch (IOException e) {
 			return false; // If at EOF, no need to throw an exception.  Just say nothing to peek at.  TODO - make sure this cant lead to an infinite loop of peek's.
 		}
-		if (debugLevel > 2) { Utils.println("  peeking at: '" + reportLastItemRead() + "' vs. '" + charValue + "'."); }
 		if (tokenRead == (int)charValue) { return true; }
 		tokenizer.pushBack();
 		return false;
@@ -3482,7 +3362,6 @@ public class FileParser {
 		TypeSpec typeSpec  = null;
 		boolean  skippedOverPlusSign = false;
 
-		if (debugLevel > 1) { Utils.println("PRT: processRestOfTerm: '" + reportLastItemRead() + "'."); }
 		if (argumentsMustBeTyped || atTypeSpec()) { // Also look for OPTIONAL typed terms.
 			typeSpec  = getTypeSpec(tokenRead, tokenizer);
 			if (!checkAndConsume(':')) { // Just a type specification here, so done with the term.
@@ -3514,7 +3393,6 @@ public class FileParser {
 		if (!isaPossibleTermName(tokenRead)) { throw new ParsingException("Expecting a term or literal name but read: '" + reportLastItemRead() + "'."); }
 
 		// See if the next word read can be viewed as an integer or double.
-		if (debugLevel > 1) { Utils.println("process rest of term: have tokenRead = " + tokenRead); }
 		double resultAsNumber = processNumber(tokenRead);
 		if (Utils.isaNumber(resultAsNumber)) {
 			return convertToNumericConstant(stringHandler, typeSpec, negate * resultAsNumber);
@@ -3817,14 +3695,11 @@ public class FileParser {
 			int tokenRead = getNextToken();
 			if (commaEndsSentence && insideLeftParenCount == 0 && tokenRead == ',') { // Sometimes want to read ONE argument as a sentence - e.g., the 2nd argument to findAll.
 				Sentence resultComma = convertAccumulatorToFOPC(accumulator);
-				if (debugLevel > 2) { Utils.println("PFS: Return @comma result: '" + resultComma + "' (with insideLeftParenCount=" + insideLeftParenCount + ")\n"); }
 				tokenizer.pushBack();
 				return resultComma;
 			}
-			if (debugLevel > 1) { Utils.println("PFS: process FOPC: '" + reportLastItemRead() + "' (with insideLeftParenCount=" + insideLeftParenCount + ")"); }
 			ConnectiveName connective = processPossibleConnective(tokenRead);
 			if (connective != null) { // OK to have NOT or '~' be the first item and OK to have any number of NOT's in a row.
-            	if (debugLevel > 2) { Utils.println("PFS: read connective: " + connective); }
     			if (!lookingForConnective && accumulator.size() > 0 && !ConnectiveName.isaNOT(connective.name)) { throw new ParsingException("Encountered two logical connectives in a row: '" + accumulator.get(accumulator.size() - 1) + "' and '" + connective + "'."); }
             	if (accumulator.isEmpty() && !ConnectiveName.isaNOT(connective.name)) {  throw new ParsingException("Encountered '" + connective + "' as the FIRST connective."); }
             	accumulator.add(connective);
@@ -3856,15 +3731,11 @@ public class FileParser {
             				if (insideLeftParenCount == 0) {
             					tokenizer.pushBack(); // Push this back.  This right parenthesis closes an outer call.
             				}
-            				Sentence resultLeftParen = convertAccumulatorToFOPC(accumulator);
-            				if (debugLevel > 2) { Utils.println("PFS: Return @rightParen result: '" + resultLeftParen + "' (with insideLeftParenCount=" + insideLeftParenCount + ")\n"); }
-            				return resultLeftParen;
+							return convertAccumulatorToFOPC(accumulator);
             			case '.':
             			case ';':
             				tokenizer.pushBack(); // Push this back.  It might be used to close several quantifiers.  If doing a top-level call, that call can such this up.
-            				Sentence resultEOL =  convertAccumulatorToFOPC(accumulator);
-            				if (debugLevel > 2) { Utils.println("PFS: Return @EOL result: '" + resultEOL + "' (with insideLeftParenCount=" + insideLeftParenCount + ")\n"); }
-            				return resultEOL;
+							return convertAccumulatorToFOPC(accumulator);
             			case '!': // Prolog's 'cut'.
             				PredicateName pName = stringHandler.standardPredicateNames.cut;
             				Literal lit = stringHandler.getLiteral(pName);
@@ -3886,13 +3757,11 @@ public class FileParser {
             	}
             	lookingForConnective = true;
             }
-            if (debugLevel > 2) { Utils.println("PFS: FOPC-sentence accumulator: " + accumulator + " (insideLeftParenCount=" + insideLeftParenCount + ")" ); }
 		}
 	}
 
 	private Sentence processFOPC_sentenceFromThisToken(int insideLeftParenCount) throws ParsingException, IOException {
 		String currentWord = getPredicateOrFunctionName(); // This will only be called if reading a string (which might be representing a number).
-		if (debugLevel > 1) { Utils.println("PFStoken: process FOPC from: '" + currentWord + "' (with insideLeftParenCount=" + insideLeftParenCount + ")"); }
 		// Quantifiers are scoped to go to the next EOL unless parenthesis limit the scope.
 		if (currentWord.equalsIgnoreCase("ForAll")) {
 			List<Variable> variables = readListOfVariables();
@@ -3906,7 +3775,6 @@ public class FileParser {
 			}
 			UniversalSentence uSent = stringHandler.getUniversalSentence(variables, body);
 			stringHandler.unstackTheseVariables(variables);
-			if (debugLevel > 2) { Utils.println("PFStoken: Return @ForAll result: '" + uSent + "' (with insideLeftParenCount=" + insideLeftParenCount + ")\n"); }
 			return uSent;
 		}
 		else if (currentWord.equalsIgnoreCase("ThereExists") || currentWord.equalsIgnoreCase("Exists") || currentWord.equalsIgnoreCase("Exist")) { // Note: 'Exist' allowed since that is what Alchemy uses.
@@ -3921,7 +3789,6 @@ public class FileParser {
 			}
 			ExistentialSentence eSent = stringHandler.getExistentialSentence(variables, body);
 			stringHandler.unstackTheseVariables(variables);
-			if (debugLevel > 2) { Utils.println("PFStoken: Return @Exists result: '" + eSent + "' (with insideLeftParenCount=" + insideLeftParenCount + ")\n"); }
 			return eSent;
 		}
         else {
@@ -3935,7 +3802,6 @@ public class FileParser {
             tokenizer.pushBack(); // Undo the getNextToken() that checked for an infix predicate.
 
             if (possibleTerm instanceof NumericConstant) { // If reading a number and not in an in-fix (e.g., '5 <= 6') then interpret as a weighted sentence.
-                if (debugLevel > 2) { Utils.println("PFStoken: Processing this number: " + possibleTerm); }
                 Sentence sent;
                 if (insideLeftParenCount > 0) {
                     if (insideLeftParenCount > 1) { throw new ParsingException("Possibly too many left parentheses before a weight."); }

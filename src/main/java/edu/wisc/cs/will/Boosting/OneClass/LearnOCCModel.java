@@ -213,7 +213,6 @@ public class LearnOCCModel {
 	
 	private void dumpTheoryToFiles(Theory th, int i) {
 		String stringToPrint = (i < 0 ? "" : "\n%%%%%  WILL-Produced Tree #" + (i + 1) + " @ " + Utils.getDateTime() + ".  [" + Utils.reportSystemInfo() + "]  %%%%%\n\n");
-		if (debugLevel > 0 && i >= 0) { Utils.println(stringToPrint); }
 		File file = getWILLsummaryFile();
 		if (i >= 0) { Utils.appendString(file, stringToPrint + th.toPrettyString(), cmdArgs.useLockFiles); } 
 		else { // Write a file right away in case a run crashes.
@@ -241,7 +240,6 @@ public class LearnOCCModel {
 			Utils.writeStringToFile(stringToPrint + "\n", file); 
 		}
 		if (i >= 0) {
-			if (debugLevel > 0) { Utils.println(th.toPrettyString()); }
 			// 	Model directory is set to the working directory as the default value.
 			if (th instanceof TreeStructuredTheory) {
 				String tree_dotfile = cmdArgs.getModelDirVal() + "bRDNs/dotFiles/WILLTreeFor_" + targetPredicate + i + BoostingUtils.getLabelForCurrentModel() + ".dot";
