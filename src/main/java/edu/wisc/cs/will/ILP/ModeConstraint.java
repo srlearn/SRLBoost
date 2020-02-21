@@ -8,7 +8,7 @@ import java.util.Set;
  *
  * @author twalker
  */
-public interface ModeConstraint {
+interface ModeConstraint {
 
     /* Applies the mode constraint to the set of possible expansion modes.
      *

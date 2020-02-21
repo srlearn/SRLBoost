@@ -219,7 +219,7 @@ public class MultiClassExampleHandler {
 			return constantIndex.get(constList);
 		}
 
-		public int size() {
+		int size() {
 			return constants.size();
 		}
 		private final List<ArgumentList<Term>> constants ;
@@ -288,7 +288,7 @@ public class MultiClassExampleHandler {
 		}
 	}
 
-	public static class ArgumentList<T> extends ArrayList<T> {
+	static class ArgumentList<T> extends ArrayList<T> {
 
 		private static final long serialVersionUID = 5435503324007711494L;
 

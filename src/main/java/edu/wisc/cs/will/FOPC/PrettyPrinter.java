@@ -723,7 +723,7 @@ public class PrettyPrinter {
         }
     }
 
-    public static class FOPCPrettyPrinterData {
+    static class FOPCPrettyPrinterData {
 
         final Queue<PrecedenceInfo> precedenceInfo = new LinkedList<>();
 
@@ -756,7 +756,7 @@ public class PrettyPrinter {
             precedenceInfo.remove();
         }
 
-        public String getPrefix() {
+        String getPrefix() {
             return getCurrentPrecedence().prefix;
         }
 
@@ -790,7 +790,7 @@ public class PrettyPrinter {
         }
     }
 
-    public static class PrecedenceInfo {
+    static class PrecedenceInfo {
 
         String prefix;
 
@@ -846,11 +846,11 @@ public class PrettyPrinter {
             this.multiline = multiline;
         }
 
-        public int getPrecedence() {
+        int getPrecedence() {
             return precedence;
         }
 
-        public void setPrecedence(int precedence) {
+        void setPrecedence(int precedence) {
             this.precedence = precedence;
         }
 

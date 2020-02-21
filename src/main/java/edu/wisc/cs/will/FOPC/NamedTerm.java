@@ -10,7 +10,7 @@ import java.util.Comparator;
  * @author shavlik
  *
  */
-public class NamedTerm {
+class NamedTerm {
 	public final Term   term;
 	public final String name;
 	

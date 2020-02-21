@@ -13,7 +13,7 @@ import java.util.Map;
 public class LiteralAsTerm extends Term {
 	public final Literal itemBeingWrapped;
 
-	protected LiteralAsTerm(HandleFOPCstrings stringHandler, Literal itemBeingWrapped) {
+	LiteralAsTerm(HandleFOPCstrings stringHandler, Literal itemBeingWrapped) {
 		this.stringHandler    = stringHandler;
 		this.itemBeingWrapped = itemBeingWrapped;
 	}

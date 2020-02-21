@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * @author twalker
  */
-public class PredicateIndex<T extends DefiniteClause> {
+class PredicateIndex<T extends DefiniteClause> {
 
     private final Map<PredicateNameAndArity, List<T>> definiteClausesByPredicateIndex = new HashMap<>();
 

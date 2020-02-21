@@ -75,7 +75,7 @@ public class ObjectAsTerm extends Term {
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		return toString(precedenceOfCaller, bindingList);
 	}
-	public String toString(int precedenceOfCaller, BindingList bindingList) {
+	protected String toString(int precedenceOfCaller, BindingList bindingList) {
 		return "objectAsTerm(" + item + ")";
 	}
 	@Override

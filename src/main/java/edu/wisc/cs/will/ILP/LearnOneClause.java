@@ -103,7 +103,9 @@ import java.util.*;
  */
 
 public class LearnOneClause extends StateBasedSearchTask {
-	protected final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
+
+	// TODO(@hayesall): Find `LearnOneClause.debugLevel` call chain.
+	final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
 	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
 
@@ -114,7 +116,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	                                                                           //    gleaner.txt (users can name this whatever they wish)
 																			   //    the generated negative examples (same file name as used for negatives)
 
-	protected Object              caller     = null;                           // The instance that called this LearnOneClause instance.
+	Object              caller     = null;                           // The instance that called this LearnOneClause instance.
 	String              callerName = "unnamed caller";               // Used to annotate printing during runs.
 	private int                   dumpGleanerEveryNexpansions = -1;
 
@@ -197,7 +199,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	PredicateName       procDefinedForConstants        = null;  // This is used to see which constants in the positive seeds can fill some arguments in a new literal.
 	PredicateName       procDefinedNeedForNewVariables = null;  // See if these new variables ever bind in the positive seeds to some thing new in the clause (otherwise they aren't needed).  Only used if dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds=true.
 	List<List<Term>>    collectedConstantBindings;    // This is used as a temporary variable by a method below.
-	protected final BindingList         bindings = new BindingList(); // Only recreate theta if needed, in order to save on creating new lists.
+	final BindingList         bindings = new BindingList(); // Only recreate theta if needed, in order to save on creating new lists.
 
 	private boolean              allowMultipleTargets       = true;
 
@@ -205,13 +207,13 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   List<List<Term>>     examplePredicateSignatures = null; // Something like [constant, function(constant), constant].
 
     public    List<Literal>        targets                    = null; // These are the actual targets determined from the examplePredicates.
-	protected List<List<ArgSpec>>  targetArgSpecs             = null; // The info about the target argument being used and the variables matched with their types.
+	List<List<ArgSpec>>  targetArgSpecs             = null; // The info about the target argument being used and the variables matched with their types.
 	List<List<Term>>     variablesInTargets         = null; // These are really 'arguments' since it is possible a mode specifies a constant be used.
 
-    protected final HornClauseContext    context;
+    final HornClauseContext    context;
 
-	protected HandleFOPCstrings    stringHandler;
-	protected final Unifier              unifier; // Make instances out of some things that could be 'statics' so the code is safer.
+	HandleFOPCstrings    stringHandler;
+	final Unifier              unifier; // Make instances out of some things that could be 'statics' so the code is safer.
 	private   HornClauseProver     prover; // This is initialized by getProver() so please don't use this variable directly.
 	PruneILPsearchTree   pruner = null;  // Used to prune search trees that are unlikely to pan out (called by ChildrenClausesGenerator and its extensions).
 	private final Precompute           precomputer;
@@ -585,7 +587,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return unifier;
 	}
 
-	public void initialize() throws SearchInterrupted {
+	private void initialize() throws SearchInterrupted {
 		initialize(false);
 	}
 	public void initialize(boolean creatingConjunctiveFeaturesOnly) throws SearchInterrupted { // Make this a separate call so that caller can set some public variables if it wants to do so.
@@ -1399,7 +1401,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return result;
 	}
 
-	protected boolean prove(List<Literal> negatedConjunctiveQuery) throws SearchInterrupted {
+	boolean prove(List<Literal> negatedConjunctiveQuery) throws SearchInterrupted {
 		if (negatedConjunctiveQuery == null) { return true; } // The empty list is really a body that equals the built-in predicate 'true()'.
 
         long startTime = System.nanoTime();
@@ -1873,10 +1875,10 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return getParser().getDirectoryName();
 	}
 
-	public final void setPrefix(String prefix) {
+	private void setPrefix(String prefix) {
 		getParser().setPrefix(prefix);
 	}
-	public final String getPrefix() {
+	private String getPrefix() {
 		return getParser().getPrefix();
 	}
 

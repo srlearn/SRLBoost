@@ -120,7 +120,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         return new HashMap<>();
     }
 
-    public String toString(String prefix) {
+    private String toString(String prefix) {
         if ( map == null ) {
             return prefix + "{}";
         }
@@ -181,7 +181,7 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         }
     }
 
-    public class AllValueIterator implements Iterator<Value>{
+    class AllValueIterator implements Iterator<Value>{
         final Iterator<Key> allKeysIterator;
 
         Iterator<Value> currentSubIterator = null;

@@ -13,7 +13,7 @@ import java.util.Map;
  *
  */
 public class ListAsTerm extends Term {
-	protected final List<Term> objects;
+	final List<Term> objects;
 	private boolean processItemsInList; // If false, leave the items in 'objects' untouched.
 
 	/*
@@ -132,7 +132,7 @@ public class ListAsTerm extends Term {
 
     
 
-	public String toString(int precedenceOfCaller, BindingList bindingList) {
+	protected String toString(int precedenceOfCaller, BindingList bindingList) {
         if ( objects == null ) {
             return "listAsTerm([])";
         }

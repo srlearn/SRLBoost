@@ -198,7 +198,7 @@ public class Inliner {
         }
     }
 
-    public static class InlineData {
+    static class InlineData {
 
         InlineData parent;
 
@@ -289,7 +289,7 @@ public class Inliner {
             return result;
         }
         
-        public HornClauseContext getContext() {
+        HornClauseContext getContext() {
             if (parent != null) {
                 return parent.getContext();
             }
