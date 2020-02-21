@@ -23,7 +23,8 @@ public class LazyHornClausebase implements HornClausebase {
     private HandleFOPCstrings stringHandler;
 
     private Map<PredicateNameAndArity, List<AssertRetractListener>> listenerMap = null;
-    
+
+    // TODO(@hayesall): Drop the `LazyHornClausebase.DEBUG`
     static final int DEBUG = 0;
 
     /* Index for all assertions.
@@ -83,7 +84,6 @@ public class LazyHornClausebase implements HornClausebase {
     @Override
     public void assertFact(Literal literal) {
         if (checkFact(literal)) {
-            if ( DEBUG >= 2 ) Utils.println("% [ LazyHornClausebase ]  Asserting fact " + literal + ".");
             assertions.add(literal.getPredicateNameAndArity(), literal);
             indexerForAllAssertions.indexAssertion(literal);
             fireAssertion(literal);

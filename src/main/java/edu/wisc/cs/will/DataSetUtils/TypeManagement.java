@@ -16,8 +16,6 @@ import java.util.*;
  */
 public class TypeManagement {
 
-    private final static int debugLevel = 0; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
-
     private final HandleFOPCstrings stringHandler;
 
     private Map<PredicateName, Set<Type>> beenWarnedHashMap;
@@ -90,9 +88,6 @@ public class TypeManagement {
                 Integer length = Utils.getSizeSafely(specs.getSignature());
                 sizes.add(length);
             }
-            if (debugLevel > 10) {
-                Utils.println("\n% Predicate '" + predName + "' can have the following arities: " + sizes);
-            }
 
             for (Integer argSize : sizes) {
                 boolean firstTime = true;
@@ -106,21 +101,12 @@ public class TypeManagement {
                     help_collectImplicitTypeConstantsViaModeAndFactInspection(ambiguous, specs.getSignature(), predName, 0, firstTime, specs.getTypeSpecList(), argTypes);
                     firstTime = false; // The second (and subsequent) time around we need to see if the types are the same, e.g. may only differ in terms of +/-/# etc, which doesn't matter here.
                 }
-                if (debugLevel > 10) {
-                    Utils.println("% '" + predName + "' sig = " + predName.getPredicateName().getTypeListForThisArity(argSize).get(0).getSignature() + " types = " + predName.getPredicateName().getTypeListForThisArity(argSize).get(0).getTypeSpecList() + " argTypes = " + argTypes); //Utils.waitHere();
-                }
                 if (ambiguous.size() < size) {
-                    if (debugLevel > 0) {
-                        Utils.println("%  Predicate '" + predName + "/" + argSize + "' can have the following encountered types: " + argTypes);
-                    }
                     adds = 0;
                     dups = 0;
                     inHash = 0;
                     int counter = 0;
                     int countMatches = 0;
-                    if (debugLevel > 0) {
-                        Utils.println("%  Have inferred the type of " + Utils.comma(adds) + " constants and encountered " + Utils.comma(inHash) + " already in the hash table whose types were already known, as well as " + Utils.comma(dups) + " types that were already known via inheritance.");
-                    }
 
                     if (backgroundFacts != null) {
                         for (Sentence sentence : backgroundFacts) {
@@ -134,9 +120,6 @@ public class TypeManagement {
                                 }
                             }
                         }
-                    }
-                    if (debugLevel > 0) {
-                        Utils.println("%  Have inferred (checked " + Utils.comma(countMatches) + "/" + Utils.comma(counter) + ") the type of " + Utils.comma(adds) + " constants and encountered " + Utils.comma(inHash) + " already in the hash table whose types were already known, as well as " + Utils.comma(dups) + " types that were already known via inheritance.");
                     }
                 }
             }
@@ -272,9 +255,6 @@ public class TypeManagement {
         if (untypedConstantFound) {
             Utils.warning("checkThatTypesOfAllConstantsAreKnown: Note that there were some constants whose type was not known (see list above or in dribble file).");
         }
-        if (debugLevel > 0) {
-            Utils.println("\n% Have confirmed that the type is known for each constant in the facts file that matches at least one provided mode.");
-        }
     }
 
     private void recordTypedConstantsFromTheseExamples(PrintStream printStream, List<Example> examples, String exampleType, PredicateName targetPredicate, List<ArgSpec> targetArgSpecs) {
@@ -321,9 +301,6 @@ public class TypeManagement {
                 }
             }
         }
-        if (debugLevel > 0) {
-            Utils.println("  Have recorded " + Utils.comma(countOfAdds) + " new typed constants from the " + Utils.comma(examples) + " " + exampleType + " examples.  Ignored " + Utils.comma(countOfDups) + " duplications.");
-        }
     }
 
     private int reportCounter = 0;
@@ -334,9 +311,6 @@ public class TypeManagement {
         }
         PredicateName predName = generator.predicateName;
         int predArity = generator.numberArgs();
-        if (debugLevel > 1) {
-            Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "Constant '" + constant + "' is being marked as type '" + type + "' by PredicateName = '" + predName + "' which has types = " + predName.getTypeList());
-        }
         String name = constant.toString();
         if (name == null) {
             Utils.error("Have no name for this constant: '" + constant + "' from " + generator);
@@ -346,9 +320,6 @@ public class TypeManagement {
         Set<Term> knownConstants = stringHandler.getConstantsOfExactlyThisType(type);
 
         if (knownConstants != null && knownConstants.contains(constant)) {
-            if (debugLevel > 1) {
-                Utils.println("Already in the map.");
-            }
             return false;
         } // Already in the map.
         if (stringHandler.getTypesOfConstant(constant, false) != null) { // See if any types of this constant are already known.
@@ -359,12 +330,6 @@ public class TypeManagement {
                     // If the new type is a superclass of an existing type, don't add.
                     if (stringHandler.isaHandler.isa(existing, type)) {
                         reportCounter++;
-                        if (reportCounter <= 25 && debugLevel > 1) {
-                            Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "%    Term '" + constant + "' is already known to be of type '" + existing + ",' so ignoring that it is of parent type '" + type + ".'");
-                            if (reportCounter == 25) {
-                                Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "% (Future reports will be suppressed since 25 have been reported.)");
-                            }
-                        }
                         return false;
                     }
 
@@ -404,10 +369,8 @@ public class TypeManagement {
         }
         Map<Type, Literal> lookup1b = addedConstantHashMap.get(constant);  // See if this constant has been already assigned to another type, and if so report the literal that caused it to be so.
         if (lookup1b != null && !lookup1b.containsKey(type)) { // Just report the FIRST conflict, since the others can be traced back from the reports (i.e., the first one doesn't know it is a duplicate).
-            if (/* !surpressWarning && */!predName.dontComplainAboutMultipleTypes(predArity) && !dontWorryAboutTheseTypes(lookup1b)) {
-                if (debugLevel > 1) {
-                    Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "%                    Constant '" + constant + "' was initially marked " + lookup1b);
-                }
+            if (!predName.dontComplainAboutMultipleTypes(predArity)) {
+                dontWorryAboutTheseTypes(lookup1b);
             }
         }
         if (lookup1b == null) {
@@ -420,31 +383,24 @@ public class TypeManagement {
         // Possibly this line should be much earlier in this method, but the other warnings can be helpful.
         Type newType = stringHandler.isaHandler.getIsaType(constant.toString());
         if (newType != type && !stringHandler.isaHandler.okToAddToIsa(newType, type)) { // OK to add constant with same name as type.
-            if (debugLevel > 1) {
-                Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "Not OK to add '" + newType + "' isa '" + type + "'.");
-            }
             return false;
         }
         if (printStream != null) {
             printStream.println("isa: " + constant + " isa " + type + ";");
         }
-        if (debugLevel > 1) {
-            Utils.println("addNewConstantOfThisType: '" + constant + "' isa '" + type + "'");
-        }
         stringHandler.addNewConstantOfThisType(constant, type);
         return true;
     }
 
-    private boolean dontWorryAboutTheseTypes(Map<Type, Literal> types) {
+    private void dontWorryAboutTheseTypes(Map<Type, Literal> types) {
         if (types == null) {
-            return true;
+            return;
         }
         for (Type type : types.keySet()) {
             if (!dontWorryAboutThisType(type)) {
-                return false;
+                return;
             }
         }
-        return true;
     }
 
     private boolean dontWorryAboutTheseTypes(List<Type> types) {

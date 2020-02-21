@@ -106,9 +106,6 @@ public class InitHornProofSpace extends Initializer {
                 newRuleBody.add(lit);
             }
         }
-        if (HornClauseProver.debugLevel > 2) {
-            Utils.println("markCutLiterals: " + newRuleBody);
-        }
         return newRuleBody;
     }
 

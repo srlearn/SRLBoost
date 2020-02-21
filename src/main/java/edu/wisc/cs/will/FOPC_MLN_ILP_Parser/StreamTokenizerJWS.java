@@ -19,9 +19,6 @@ import java.io.StreamTokenizer;
  */
 class StreamTokenizerJWS extends StreamTokenizerTAW {
 
-	// TODO(@hayesall): The `dump()` method can probably be dropped, factor out the `StreamTokenizerJWS.debugLevel`
-	private final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
-	
 	private final int      k;                  // Keep the last k items around.
 	private int      counter       = -1; // The location of the current token (in a "wrap around" buffer).
 	private int      itemsInBuffer =  0;
@@ -100,12 +97,6 @@ class StreamTokenizerJWS extends StreamTokenizerTAW {
 
 	void pushBack() { // Pretend that something is being pushed on the stack.  If losing "future" items off the "bottom" of the stack, complain.
 		// If this error occurs, simply set 'k' to a higher value and rerun.
-		if (itemsToReturn >= k)             {
-			if (debugLevel > 0) dump(); Utils.error("The buffered StreamTokenizerJWS has had too many push-backs and no longer has (or never had) the old items.  At line #" + lineno());
-		}
-		if (itemsToReturn >= itemsInBuffer) {
-			if (debugLevel > 0) dump(); Utils.error("Cannot do another pushBack() because have not yet read enough tokens.  At line #" + lineno());
-		}
 		if (counter == 0) { counter = k - 1; } else { counter--; }
 		itemsToReturn++;
 	}
@@ -116,33 +107,37 @@ class StreamTokenizerJWS extends StreamTokenizerTAW {
 	 * marks.
 	 */
 	String svalQuoted() {
-		if (counter < 0)                     { if (debugLevel > 0) dump(); Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
+		if (counter < 0)                     {
+			Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
 		return saved_sval[counter];
 	}
 
 	String sval() { // In the existing code these are not methods (presumably for speed reasons), but need to convert in order to buffer.
 		if (holdStringcounter >= 0){ return holdString; }
-		if (counter < 0)                     { if (debugLevel > 0) dump(); Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
-		if (saved_ttype[counter] != TT_WORD) { if (debugLevel > 0) dump(); Utils.error("Shouldn't ask for a WORD when the type != TT_WORD.  Read '" + reportCurrentToken() + "' at line #" + lineno()); }
+		if (counter < 0)                     {
+			Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
+		if (saved_ttype[counter] != TT_WORD) {
+			Utils.error("Shouldn't ask for a WORD when the type != TT_WORD.  Read '" + reportCurrentToken() + "' at line #" + lineno()); }
 		return saved_sval[counter];
 	}
 	
 	double nval() { // In the existing code these are not methods (presumably for speed reasons), but need to convert in order to buffer.
 		if (counter < 0)                                                   { Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
-		if (saved_ttype[counter] != TT_NUMBER) { if (debugLevel > 0) dump(); Utils.error("Shouldn't ask for a NUMBER when the type != TT_NUMBER.  Read '" + reportCurrentToken() + "' at line #" + lineno()); }
+		if (saved_ttype[counter] != TT_NUMBER) {
+			Utils.error("Shouldn't ask for a NUMBER when the type != TT_NUMBER.  Read '" + reportCurrentToken() + "' at line #" + lineno()); }
 		return saved_nval[counter];
 	}
 	
 	int ttype() { // In the existing code these are not methods (presumably for speed reasons), but need to convert in order to buffer.
 		if (holdStringcounter >= 0) { return StreamTokenizer.TT_WORD; }
-		if (counter < 0) { if (debugLevel > 0) dump(); Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
+		if (counter < 0) {
+			Utils.error("Need to call nextToken() before reading the stream's contents.  At line #" + lineno()); }
 		return saved_ttype[counter];
 	}
 	
 	public int lineno() {
 		// DO NOT use lineno() here as would lead to infinitely recursive calls.
 		if (counter < 0) {
-			dump();
 			Utils.error("Need to call nextToken() before reading the stream's contents."); }
 		return saved_lineno[counter];
 	}
@@ -152,20 +147,5 @@ class StreamTokenizerJWS extends StreamTokenizerTAW {
 		if (ttype() == TT_WORD)    { return sval(); }
 		if (ttype() == TT_NUMBER)  { return Double.toString(nval()); }
 		return String.valueOf((char) ttype());
-	}
-	
-	private void dump() {
-		Utils.println("The contexts of the StreamTokenizer buffer (of size = " + itemsInBuffer + "):");
-		int topOfBuffer    = (counter + itemsToReturn) % k;
-		for (int i = 0; i < k; i++) {
-			int index =  (topOfBuffer - i + k) % k; // Add the k so that no need to take mods of negative numbers.
-			if (index >= itemsInBuffer) { continue; }
-			Utils.print("  [" + index + "]");  if (index >= itemsInBuffer) { Utils.println("   <uninitialized>"); continue; }
-			if  (index == counter) Utils.print("@"); // This is the current token.
-			else                   Utils.print(" ");
-			if (saved_ttype[index] == TT_WORD)   Utils.println("  word   =  " + saved_sval[index]);
-			if (saved_ttype[index] == TT_NUMBER) Utils.println("  number =  " + saved_nval[index]);
-			if (saved_ttype[index] != TT_WORD && saved_ttype[index] != TT_NUMBER) Utils.println("  ttype  =  " + (char)saved_ttype[index]);
-		}
 	}
 }

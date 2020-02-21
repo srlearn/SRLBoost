@@ -16,7 +16,6 @@ import java.util.Set;
  * See http://en.wikipedia.org/wiki/SLD_resolution and http://en.wikipedia.org/wiki/Horn_clause or an AI textbook.
  */
 public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
-	static final int debugLevel = 0;  // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
 	private final HornClauseContext context;
 
@@ -26,13 +25,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
      *
      * The traceLevel controls the amount of output generated
      * at each step in the proof.  This is similar to the
-     * debugLevel but instead prints out step by step information.
-     *
-     * Currently, the following levels exist:
-     * 0 - silent.
-     * 1 - Literal being expanded and abbreviated expansions.
-     * 2 - Literal being expanded and full expansions.
-     * 3 - Literal being expanded, full expansions, and all bindings (this is slow...).
      */
     private int                       traceLevel = 0;
 
@@ -74,7 +66,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         setMaxNodesToCreate( 10000000);
         
         verbosity = 0; // Change if debugging odd behavior.
-							
+
 		initalizeStateBasedSearchTask(myInitializer, endTest, monitor, searchStrategy, scorer, hornClauseProverChildrenGenerator, null);
 	}
 
@@ -164,7 +156,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		BindingList  bl = proveSimpleQueryAndReturnBindings(allRaw);
 		if (bl == null) { return null; }
 		ConsCell allResults = (ConsCell) bl.lookup(var);
-		if (debugLevel > 1) { Utils.println("% Have found " + Utils.comma(allResults == null ? 0 : allResults.length()) + " unique groundings of '" + query + "'.\n"); }
 		if (allResults == null) { return null; }
 		return allResults.convertConsCellToList();
 	}

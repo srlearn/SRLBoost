@@ -29,13 +29,11 @@ class PruneILPsearchTree {
 		// Can set to Integer.MAX_VALUE to in effect turn off this reporting.
 		int pruneReportInterval = 10000;
 		if (pruneBasedOnIntervalAnalysis(node)) {
-			if (LearnOneClause.debugLevel > 2) { Utils.println("*** PRUNE " + node + " based on overlapping-interval analysis.");}
 			nodesPrunedDueToIntervalAnalysis++;
 			if (nodesPrunedDueToIntervalAnalysis % pruneReportInterval == 0) { Utils.println("% Have pruned " + Utils.comma(nodesPrunedDueToIntervalAnalysis) + " nodes due to overlapping-interval analysis."); }
 			return true;
 		}
 		if (pruneBasedOnSingletonHeads(node)) {
-			if (LearnOneClause.debugLevel > 2) { Utils.println("*** PRUNE " + node + " based on 'prune' instructions.");}
 			nodesPrunedDueToSingleClauseAnalysis++;
 			ILPouterLoop caller = (task.caller instanceof ILPouterLoop ? (ILPouterLoop) task.caller : null);
 			if (nodesPrunedDueToSingleClauseAnalysis % pruneReportInterval == 0) { 
@@ -71,7 +69,6 @@ class PruneILPsearchTree {
 		if (parent == null) { return false; }
 		MapOfLists<PredicateNameAndArity, Pruner> pruners = pName.getPruners(lit.getArity());
 		if (pruners == null) { return false; }
-		if (LearnOneClause.debugLevel > 1) { Utils.println("%  pruners for '" + pName + "' lit=" + lit + " [parent=" + parent + "] = " + pruners); }
 		
 		ChildrenClausesGenerator childrenGenerator = ((ChildrenClausesGenerator) task.childrenGenerator);
 		Literal       initNumberedLit    = (childrenGenerator.cachedBindingListForPruning == null ? lit : lit.applyTheta(childrenGenerator.cachedBindingListForPruning.theta));
@@ -82,7 +79,6 @@ class PruneILPsearchTree {
 		List<Pruner>  prunersMatchingNULL = pruners.getValues(null);
 		if (prunersMatchingNULL != null) { // NOTE: there might be MULTIPLE pruners associated with NULL, eg f(x,0) and f(x,1).
 			for (Pruner pruner : prunersMatchingNULL) if (pruner.isaMatch(numberedLit, null)) { // Don't worry about counts in this case.
-				if (LearnOneClause.debugLevel > 1) { Utils.println("% Pruning '" + numberedLit + "', which needs no matcher in the clause body."); }
                 return true;
 			}
 		}
@@ -99,7 +95,6 @@ class PruneILPsearchTree {
 			PredicateNameAndArity parentPredicateNameAndArity = numberedBodyLit.getPredicateNameAndArity();
 		    List<Pruner>  matchingPruners = pruners.getValues(parentPredicateNameAndArity);
 		    if (matchingPruners != null) { // Have a possible hit.
-		    	if (LearnOneClause.debugLevel > 1) { Utils.println("FOUND SOME MATCHING PRUNERS: " + matchingPruners); }
 		        for (Pruner pruner : matchingPruners) if (pruner.isaMatch(numberedLit, numberedBodyLit)) {
 				    	Literal regBodyLit = parentBody.get(bodyCounter);
 				    	// TODO the below is buggy if FACTS DIRECTLY added about the parent predicate!
@@ -108,7 +103,6 @@ class PruneILPsearchTree {
 				    		int matchingRulesCount = countMatchingDefiniteClauses(regBodyLit, task.getBackgroundKnowledge(), task.unifier, true);
 				            Utils.error("This pruner's count (" + Utils.comma(pruner.warnIfPresentLiteralCount) + ") is violated: '" + pruner + "'.  matchingRulesCount=" + Utils.comma(matchingRulesCount));
 		                }
-		                if (LearnOneClause.debugLevel > 1) { Utils.println("% Pruning '" + numberedLit + "' because of '" + numberedBodyLit + "'"); } //  + " due to: '" + pruner + "'."); }
 		                return true;
 		            }
 		    }
@@ -177,8 +171,6 @@ class PruneILPsearchTree {
 								if (lower2 instanceof NumericConstant && upper2 instanceof NumericConstant) {
 									double lower2asDouble = ((NumericConstant) lower2).value.doubleValue();
 									double upper2asDouble = ((NumericConstant) upper2).value.doubleValue();
-									
-									if (LearnOneClause.debugLevel > 1) { Utils.println("  Comparing [" + lower2asDouble + "," + upper2asDouble + ") to [" + lower1asDouble + "," + upper1asDouble + ")"); }
 									if (upper2asDouble <= lower1asDouble || lower2asDouble >= upper1asDouble) { return true; } // Cannot satisfy both intervals, so might as well prune.
 									if (lower2asDouble >= lower1asDouble && upper2asDouble <= upper1asDouble) { return true; } // This new interval is subsumed by the old one, so no need to add it (i.e., will always be true).
 								}

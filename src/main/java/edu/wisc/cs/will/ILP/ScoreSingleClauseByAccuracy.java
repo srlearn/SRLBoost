@@ -42,13 +42,6 @@ public class ScoreSingleClauseByAccuracy extends ScoreSingleClause {
 		 */
 		// This gets NEGATED below, i.e. this should be a POS number and it is a PENALTY.
 		double multiplerForBodyCost = 0.0000100;
-		if (ScoreSingleClauseByAccuracy.debugLevel > 2) {
-			if (bodyCost        > 0.0) { Utils.println("%       bodyCost             = +" + multiplerForBodyCost + " * " + Utils.truncate(bodyCost,        3)); }
-			if (singletonVars   > 0.0) { Utils.println("%       countOfSingletonVars = +" + multiplierForSingletonVars + " * " + Utils.truncate(singletonVars,   3)); }
-			if (repeatedLits    > 0.0) { Utils.println("%       repeatedliterals     = -" + multiplerForBodyCost + " * " + Utils.truncate(repeatedLits,    3)); }
-			if (uniqueVars      > 0.0) { Utils.println("%       unique vars          = +" + multiplierForUniqueVars + " * " + Utils.truncate(uniqueVars,      3)); }
-			if (uniqueConstants > 0.0) { Utils.println("%       unique constants     = +" + multiplierForUniqueConstants + " * " + Utils.truncate(uniqueConstants, 3)); }
-		}
 				
 		return                              multiplerForBodyCost * bodyCost
 			 + (includeSingletonCount     ? multiplierForSingletonVars * singletonVars : 0.0)
@@ -59,8 +52,6 @@ public class ScoreSingleClauseByAccuracy extends ScoreSingleClause {
 
 	public double computeMaxPossibleScore(SearchNode nodeRaw) throws SearchInterrupted {
 		SingleClauseNode node  = (SingleClauseNode)nodeRaw;
-		
-		if (ScoreSingleClauseByAccuracy.debugLevel > 1) { Utils.println("%     computeMaxPossibleScore = " + (node.maxPrecision() - getPenalties(node, false)) + " for " + node); }
 		return node.maxPrecision() - getPenalties(node, false); // In best case, could end up with NO singleton variables.
 	}
 	
@@ -68,8 +59,6 @@ public class ScoreSingleClauseByAccuracy extends ScoreSingleClause {
 		SingleClauseNode node  = (SingleClauseNode)nodeRaw;
 		if (!Double.isNaN(node.score)) { return node.score; }
 		double           score = node.precision() - getPenalties(node, true); // Add small penalties as a function of length and the number of singleton vars (so shorter better if accuracy the same).
-
-		if (ScoreSingleClauseByAccuracy.debugLevel > 1) { Utils.println("%     Score = " + Utils.truncate(score, 3) + " (precision = " + Utils.truncate(node.precision(), 3) + ") for clause:  " + node); }
 		node.score = score;
 		return score;
 	}

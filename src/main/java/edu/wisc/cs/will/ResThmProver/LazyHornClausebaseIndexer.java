@@ -79,8 +79,6 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
     public void indexAssertion(DefiniteClause definiteClause) {
 
         if (definiteClause != null && definiteClause.isDefiniteClause()) {
-            
-            if ( LazyHornClausebase.DEBUG >= 3 ) Utils.println("% [ LazyHornClausebaseIndexer ]  Indexing " + definiteClause + ".");
 
             PredicateNameAndArity key = new PredicateNameAndArity(definiteClause);
 

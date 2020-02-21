@@ -322,9 +322,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         setMaxOccurrences(arity, max); // Always do these to catch user errors where the same spec is given, once with a max and another time w/o.
         setMaxOccurrencesPerInputVars(arity, pSpec, maxPerInputVars);
 
-        if (debugLevel > 1) {
-            Utils.println("  recordMode: " + this + " sig=" + signature + " specs=" + typeSpecs + " max=" + Utils.comma(max) + " maxPerInputVars=" + Utils.comma(maxPerInputVars));
-        }
 	}
 	
 	void disableMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars) {
@@ -334,10 +331,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 
         int arity = Utils.getSizeSafely(signature);
         addToDeSpecTypeList(arity);
-
-        if (debugLevel > 1) {
-            Utils.println("  disableMode: " + this + " sig=" + signature + " specs=" + typeSpecs + " max=" + Utils.comma(max) + " maxPerInputVars=" + Utils.comma(maxPerInputVars));
-        }
 	}
 	
 	private void addToTypeListForILP(PredicateSpec pSpec, boolean warnIfDup) {
@@ -358,7 +351,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			return;
 		}
 		typeSpecList.add(pSpec);
-		if (debugLevel > 1) { Utils.println("  typeList for '" + name + "': " + typeSpecList); }
 	}	
 	
 	private void addToTypeListForMLN(PredicateSpec pSpec) {

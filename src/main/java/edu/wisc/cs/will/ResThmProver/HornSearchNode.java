@@ -12,9 +12,7 @@ import java.util.List;
  */
 public class HornSearchNode extends SearchNode {
 
-    private static final int DEBUG = 0;
-
-	Clause      clause;
+    Clause      clause;
 	final BindingList bindings;
     final long        parentProofCounter;
     final int         parentExpansionIndex;
@@ -91,14 +89,10 @@ public class HornSearchNode extends SearchNode {
 
             if ( bindings != null && bindings.theta != null ) {
                 bl.applyThetaInPlace(bindings.theta);
-
-                if ( DEBUG >= 1 ) System.out.println(bl + ".         Applied " + clause + "'s bindings = " + bindings + ".");
             }
         }
         else {
             bl = getQueryVariables();
-
-            if ( DEBUG >= 1 ) System.out.println(bl + ".         Query Variables for goal " + clause + ".");
         }
 
         return bl;

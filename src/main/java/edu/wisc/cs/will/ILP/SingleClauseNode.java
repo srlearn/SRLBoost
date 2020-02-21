@@ -64,7 +64,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		this.typesMap        = typesMap;
 		this.typesOfNewTerms = typesOfNewTerms;
 		Map<Integer,List<Object>> constraints = literalAdded.predicateName.getConstrainsArgumentTypes(literalAdded.numberArgs());
-		if (LearnOneClause.debugLevel > 2 && constraints != null) { Utils.println("constraints: " + constraints + " for " + literalAdded); }
 		if (constraints != null) {
 			LearnOneClause theTask = (LearnOneClause) task;
 			for (Integer argNumber : constraints.keySet()) {
@@ -74,10 +73,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				Type    newType         = (Type)    (constraints.get(argNumber).get(0)); // Use a list to pass back two things (not worth creating another class just for this ...).
 				boolean pruneIfNoEffect = (Boolean) (constraints.get(argNumber).get(1));
 				if (theTask.stringHandler.isaHandler.isa(oldType, newType)) {  // Nothing to do, since already of this type.
-					if (LearnOneClause.debugLevel > 2) { Utils.println("%  New literal '" + literalAdded + "' constrains argument #" + argNumber + " (" + argN + ")\n% from type = '" + oldType + "' to type '" + newType + "', but '" + oldType + "' is more specific, so this has no effect."); }
 					if (pruneIfNoEffect) { pruneMe = true; }
 				} else if (theTask.stringHandler.isaHandler.isa(newType, oldType)) {
-					if (LearnOneClause.debugLevel > 2) { Utils.println("%  New literal '" + literalAdded + "' constrains argument #" + argNumber + " (" + argN + ")\n% from type = '" + oldType + "' to type '" + newType + "'."); }
 					// Update the type list stored at this node, overriding what is at a parent.
 					if ( this.typesPresent    == null)        { this.typesPresent    = new ArrayList<>(1); }
 					if ( this.typesOfNewTerms == null)        { this.typesOfNewTerms = new HashMap<>(4); }
@@ -88,9 +85,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 					newList.add(argN);  
 					this.typesMap.put(newType, newList);
 					this.typesOfNewTerms.put(argN, newType);
-					if (LearnOneClause.debugLevel > 2) { Utils.println("% NOW getTypeOfThisTerm(argN)=" + getTypeOfThisTerm(argN)); }
 				} else {
-					if (LearnOneClause.debugLevel > 2) { Utils.println("%  New literal '" + literalAdded + "' constrains argument #" + argNumber + " (" + argN + ")\n%  from type = '" + oldType + "' to type '" + newType + "', but '" + oldType + "' is not more general than '" + newType + "', so this has no effect."); }
 					if (pruneIfNoEffect) { pruneMe = true; }
 				}
 			}
@@ -108,7 +103,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		typesOfNewTerms.put(term, type);
 	}
 	private Type getTypeOfThisTerm(Term arg) {
-		if (LearnOneClause.debugLevel > 1) { Utils.println("what is current type of '" + arg + "'?   typesOfNewTerms: " + typesOfNewTerms + " for " + this); }
 		if (typesOfNewTerms != null) {
 			Type types = typesOfNewTerms.get(arg);
 			if (types != null) { return types; }
@@ -145,7 +139,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (bindings == null) { return false; }
 		List<Literal> query = bindings.applyTheta(clauseBody);
 		boolean  result = theILPtask.prove(query);
-		if (LearnOneClause.debugLevel > 2 && !result) { Utils.println("%       " + query + " is false"); }
 		return result;
 	}
 	
@@ -205,7 +198,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (theTask.stringHandler.getPredicatesHaveCosts()) {
 			double total = 0.0;
 			for (Literal lit : getClauseBody()) {  // TODO: use recursion instead of getting the clause body?
-				if (LearnOneClause.debugLevel > 2) { Utils.println("%            cost = " + Utils.truncate(lit.predicateName.getCost(lit.numberArgs()), 3) +  " for lit = " + lit.predicateName + "/" + lit.numberArgs()); }
 				total += lit.predicateName.getCost(lit.numberArgs());
 			}
 			return total;
@@ -374,9 +366,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				singletons.add(var);
 			}
 			if (copiesOfVar <  1) { Utils.error("Bug in countOfSingletonVars! " + allVars + "  " + this); }
-		}		
-		
-		if (LearnOneClause.debugLevel > 2) { Utils.println("*** These '" + singletons + "' are the singleton variables in " + this); }
+		}
 		return singletons;
 	}
 	
@@ -452,17 +442,14 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		double posSeedWgtedCount = 0.0;
 	
 		if (theILPtask.totalWeightOnPosSeeds > 0.0 && theILPtask.seedPosExamples != null) {
-			if (LearnOneClause.debugLevel > 1) { Utils.println("   Score this on pos seeds: " + toString()); }
 			posSeedWgtedCount = wgtedCountOfPosExamplesCovered(theILPtask.seedPosExamples);			
 
-			if (posSeedWgtedCount < theILPtask.clausesMustCoverFractPosSeeds * theILPtask.totalWeightOnPosSeeds) { 
-				if (LearnOneClause.debugLevel > 2) { Utils.println("   Discard '" + toString() + "' because not enough pos seed examples covered: " + posSeedWgtedCount + " of the total wgt'ed sum of " + theILPtask.totalWeightOnPosSeeds); }
+			if (posSeedWgtedCount < theILPtask.clausesMustCoverFractPosSeeds * theILPtask.totalWeightOnPosSeeds) {
 				return false;
 			}
 		} else { // Comment this out if we really want this case.
 			Utils.waitHere("Why totalWeightOnPosSeeds = " + theILPtask.totalWeightOnPosSeeds + " and |theILPtask.seedPosExamples| = " + Utils.comma(theILPtask.seedPosExamples));
 		}
-		if (LearnOneClause.debugLevel > 1 && theILPtask.seedPosExamples != null) { Utils.println("    Covers " + posSeedWgtedCount + " of the total wgt'ed sum (" + theILPtask.totalWeightOnPosSeeds + ") of pos seed examples.  " + this); }
 		return true;
 	}
 	
@@ -471,15 +458,12 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		double negSeedWgtedCount = 0;
 
 		if (theILPtask.totalWeightOnNegSeeds > 0 && theILPtask.seedNegExamples != null) {
-			if (LearnOneClause.debugLevel > 1) { Utils.println("   Score this on neg seeds: " + toString()); }
 			negSeedWgtedCount = wgtedCountOfNegExamplesCovered(theILPtask.seedNegExamples);
 			
-			if (negSeedWgtedCount >= theILPtask.clausesMustNotCoverFractNegSeeds * theILPtask.totalWeightOnNegSeeds) { 
-				if (LearnOneClause.debugLevel > 1) { Utils.println("  Discard '" + toString() + "' because too many neg seed examples covered:" + negSeedWgtedCount + " of total weighted sum of " + theILPtask.totalWeightOnNegSeeds); }
+			if (negSeedWgtedCount >= theILPtask.clausesMustNotCoverFractNegSeeds * theILPtask.totalWeightOnNegSeeds) {
 				return false;
 			}
 		}
-		if (LearnOneClause.debugLevel > 1 && theILPtask.seedNegExamples != null) { Utils.println("    Covers " + negSeedWgtedCount + " of " + theILPtask.seedNegExamples.size() + " neg seed examples."); }
 		return true;
 	}
 
@@ -493,10 +477,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		int    counter              = 0;
 		double minCount             = theILPtask.getMinPosCoverage();
 		for (Example posEx : theILPtask.getPosExamples()) if (parent == null || !parent.posExampleAlreadyExcluded(posEx)) { // Don't check HERE (i.e., start at parent) since we don't want to call computCoverage).
-			if (LearnOneClause.debugLevel > 2) { Utils.println("  consider " + posEx + " [" + clauseBody + "]"); }
 			if (proveExample(theILPtask, target, clauseBody, posEx, theILPtask.bindings)) { 
 				counter += posEx.getWeightOnExample();
-				if (LearnOneClause.debugLevel > 2) { Utils.println("    TRUE #" + counter); }
 			}
 			if (counter >= minCount) { return true; }
 		}
@@ -721,9 +703,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				!Utils.diffDoubles(getPosCoverage(), theILPtask.totalPosWeight) && negCoverage <= 0.0
 				&& acceptableClauseExtraFilter(theILPtask)) { 
 			// Be careful that setting this doesn't mess up what is being kept as the best node.  TODO - make sure that if the score of a perfect clause is insufficient (eg, m-estimate of accuracy is too low), this is caught early on.
-			if (LearnOneClause.debugLevel > 0) { 
-				Utils.println("%  Have found a perfect and acceptable clause, so can stop searching:\n% " + this); 
-			}
 			theILPtask.continueTheSearch = false;
 		}
 	}
@@ -807,24 +786,19 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		// So don't discard node just because they don't score that well.  Instead, look for the BEST possible score, and only
 		// if that is too low can a node be ignored, since it can't be improved enough.
 		// Also note that a node that took too long to evaluate will have posCoverage = negCoverage = 0 and this method will say it cannot be improved.
-		if (getPosCoverage() <  theILPtask.getMinPosCoverage()) { 
-			if (LearnOneClause.debugLevel > 1) { Utils.println("%  Do not expand since " + getPosCoverage() + " is below minimal positive weighted coverage of " + theILPtask.getMinPosCoverage()+ ".\n%    " + this); }
+		if (getPosCoverage() <  theILPtask.getMinPosCoverage()) {
 			return false;  // to do: also check if if it is possible to get minAcc (due to minEstimate)
 		}
 		
 		if (thisTask.regressionTask) { return true; } // All tests BELOW here do no apply to categorization. 
 		
 		double bestPrecisionPossible = maxPrecision();
-		if (bestPrecisionPossible <  theILPtask.minPrecision) { 
-			if (LearnOneClause.debugLevel > 1) { Utils.println("%  Do not expand since cannot reach minimal precision of " + theILPtask.minPrecision + ".  The best possible precision (due to m-estimates) is " + bestPrecisionPossible + ".\n%    " + this); }
+		if (bestPrecisionPossible <  theILPtask.minPrecision) {
 			return false;
 		}
 		if (!acceptableClauseExtraFilter(thisTask)) { return true; } // If a clause doesn't meet the 'acceptability' test, it can presumably be improved (e.g., might need to extend it, even if precision is 100%).
-		if (negCoverage <= theILPtask.stopExpansionWhenAtThisNegCoverage) {
-			if (LearnOneClause.debugLevel > 1) { Utils.println("%  Do not expand since no negative examples are covered.\n%    " + this); }
-			return false;  // If no negs covered, adding literals wont help.
-		}
-		return true; // Still some neg's that could be eliminated.		
+		return !(negCoverage <= theILPtask.stopExpansionWhenAtThisNegCoverage);  // If no negs covered, adding literals wont help.
+		// Still some neg's that could be eliminated.
 	}
 	
 	// This allows the user to say when a clause is acceptable for reasons other than recall, precision, or length.
@@ -837,7 +811,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		// TODO need a better design here. 
 		int counter = 0;
 		boolean accept = true;
-		if (LearnOneClause.debugLevel > 0 && !accept) {  Utils.println("%  Unacceptable rule because # of literals (" + counter + ") is not in [" + thisTask.minRequiredBodyPredicates+ ", " + thisTask.maxRequiredBodyPredicates + "].\n%    " + this); } 
 		return true;
 	}
 	
@@ -861,12 +834,9 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	private boolean allRequiredHeadArgsAppearInBody(LearnOneClause thisTask) {
 		SingleClauseRootNode root = getRootNode();
 		if (root.targetArgSpecs == null) { Utils.error("Need mapFromTermToArgSpec to be set!"); }
-		if (LearnOneClause.debugLevel > 1) { Utils.println("% targetArgSpecs = " + root.targetArgSpecs); }
 		for (ArgSpec argSpec : root.targetArgSpecs) if (argSpec.arg instanceof Variable) {
-			if (LearnOneClause.debugLevel > 1) { Utils.println("  Variable " + argSpec.arg + " has type " + argSpec.typeSpec); }
 			if ((thisTask.allTargetVariablesMustBeInHead || argSpec.typeSpec.mustBeBound()) 
-					&& !variableAppearsInThisClause((Variable) argSpec.arg)) { 
-				if (LearnOneClause.debugLevel > 0) {  Utils.println("%  Unacceptable rule because it is missing this required head var: '" + argSpec.arg + "'\n%    " + this); }
+					&& !variableAppearsInThisClause((Variable) argSpec.arg)) {
 					return false;
 			}
 		}	
@@ -877,7 +847,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (Utils.getSizeSafely(requiredVars) < 1) { return true; }
 		for (Variable var : requiredVars) {
 			if (!variableAppearsInThisClause(var)) {
-				if (LearnOneClause.debugLevel > 0) {  Utils.println("Unacceptable rule because it is missing this required head var: '" + var + "'.\n " + this); }
 				return false; 
 			}
 		}
@@ -893,13 +862,11 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 
 	// If this literal is already in the clause or in the "dontReconsider" list, then it should be skipped over.
 	boolean dontConsiderThisLiteral(boolean discardDuplicateLiterals, Literal candidate, Map<Term, Type> newTermsInLiteral) {
-		if (discardDuplicateLiterals && literalAdded != null && literalAdded.equals(candidate)) { 
-			if (LearnOneClause.debugLevel > 2) { Utils.println("  CANNOT ADD: '" + candidate + "' since already in clause."); }
+		if (discardDuplicateLiterals && literalAdded != null && literalAdded.equals(candidate)) {
 			return true; 
 		}
 		if (dontReconsider != null) {
-			for (AnnotatedLiteral badLit : dontReconsider) if (badLit.equals(candidate, newTermsInLiteral)) { 
-				if (LearnOneClause.debugLevel > 2) { Utils.println("  CANNOT ADD: '" + candidate + " [with new terms=" + newTermsInLiteral + "]' since '" + badLit + "' in clause's bad list."); }
+			for (AnnotatedLiteral badLit : dontReconsider) if (badLit.equals(candidate, newTermsInLiteral)) {
 				return true;
 			}
 		}
@@ -1045,11 +1012,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 
 		if (getRegressionInfoHolder().totalExampleWeightAtSuccess() < theILPtask.getMinPosCoverage() ||
 			getRegressionInfoHolder().totalExampleWeightAtFailure() < theILPtask.getMinPosCoverage()) {
-			if (LearnOneClause.debugLevel > 2) {
-				Utils.println("regressionFit:\n weightedCountOfExamplesThatSucceed = " + getRegressionInfoHolder().totalExampleWeightAtSuccess() 
-									      + "\n weightedCountOfExamplesThatFail    = " + getRegressionInfoHolder().totalExampleWeightAtFailure()
-									      + "\n getMinPosCoverage                  = " + theILPtask.getMinPosCoverage());
-			}
 			return Double.POSITIVE_INFINITY;  // Bad clauses get posCoverage=0 and we don't want to keep such clauses.  Remember we NEGATE the score, so a high score here is bad.
 		}
 

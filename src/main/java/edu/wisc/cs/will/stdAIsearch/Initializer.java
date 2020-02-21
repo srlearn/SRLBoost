@@ -11,7 +11,7 @@ public abstract class Initializer {
 
 	protected Initializer() {}
 
-	public void setSearchTask(StateBasedSearchTask task) {
+	void setSearchTask(StateBasedSearchTask task) {
 		this.task = task;
 	}
 	

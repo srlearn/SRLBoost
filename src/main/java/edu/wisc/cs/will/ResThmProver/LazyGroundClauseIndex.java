@@ -62,10 +62,6 @@ public class LazyGroundClauseIndex {
 
             if (headLiteral.isGrounded()) {
 
-                if (LazyHornClausebase.DEBUG >= 2) {
-                    Utils.println("% [ LazyGroundClauseIndex ]  Indexing ground clause " + definiteClause + ".");
-                }
-
                 DefiniteClauseList definiteClauseList = mapForKey.get(headLiteral.getArguments());
 
                 if (definiteClauseList == null) {
@@ -76,10 +72,6 @@ public class LazyGroundClauseIndex {
                 definiteClauseList.add(definiteClause);
             }
             else {
-
-                if (LazyHornClausebase.DEBUG >= 2) {
-                    Utils.println("% [ LazyGroundClauseIndex ]  Indexing non-ground clause " + definiteClause + ".");
-                }
 
                 // This is an non-ground literal, so we just need to throw into all of the appropriate
                 // places was well as the seed list.
@@ -217,14 +209,6 @@ public class LazyGroundClauseIndex {
 
         indicesConstructed++;
 
-        if (LazyHornClausebase.DEBUG >= 1) {
-            if (indexBuilds == null) {
-                indexBuilds = new HashMap<>();
-            }
-
-            Integer count = indexBuilds.get(key);
-            indexBuilds.put(key, count == null ? 1 : count + 1);
-        }
 
         MapOfDefiniteClauseLists assertions = clausebase.getAssertionsMap();
         DefiniteClauseList clauses = assertions.getValues(key);
