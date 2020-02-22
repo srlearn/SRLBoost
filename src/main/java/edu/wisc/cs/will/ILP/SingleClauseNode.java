@@ -952,8 +952,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	double regressionFitForMLNs() {
 		LearnOneClause  theILPtask = (LearnOneClause) task;
-		
-		if (!theILPtask.constantsAtLeaves) { Utils.error("Have not yet implemented constantsAtLeaves = false."); }
+
 		if (this.timedOut) {
 			Utils.println("Giving INF score for " + this.getClause() +
 					" as it timed out. The examples on true and false branch are incorrect.");
@@ -998,8 +997,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	private double regressionFit(boolean computeWeightedAverage) { // This is the expected variance after this node is evaluated (divided by the wgt'ed number of examples if computeWeightedAverage=true).
 		LearnOneClause  theILPtask = (LearnOneClause) task;
-		
-		if (!theILPtask.constantsAtLeaves) { Utils.error("Have not yet implemented constantsAtLeaves = false."); }
 
 		if (getRegressionInfoHolder().totalExampleWeightAtSuccess() < theILPtask.getMinPosCoverage() ||
 			getRegressionInfoHolder().totalExampleWeightAtFailure() < theILPtask.getMinPosCoverage()) {

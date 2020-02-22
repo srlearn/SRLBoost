@@ -578,7 +578,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                                                              newlyCoveredNegExamples, getNumberOfNegExamples());
 
                         if (learningTreeStructuredTheory) {
-                            if (!innerLoopTask.constantsAtLeaves) { Utils.error("Have not yet implemented constantsAtLeaves = false."); }
 
                             if (LearnOneClause.debugLevel > 1) {
                                 Utils.println("\n% New full clause: "  + newClause);
@@ -820,11 +819,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                     }
                 }
 
-
-                if (writeGleanerFilesToDisk && getGleanerFileName() != null) {
-                    ((Gleaner) innerLoopTask.searchMonitor).dumpCurrentGleaner(getGleanerFileName(), innerLoopTask);
-                }
-
                 // Increment clock time used.
                 long clockTimeUsed = getClockTimeUsedInMillisec();
                 clockTimeUsed += stopwatch.getTotalTimeInMilliseconds();
@@ -870,12 +864,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                 }
             }
 
-
-
-            // To be safe, dump one last time.
-            if (getGleanerFileName() != null && writeGleanerFilesToDisk) {
-                ((Gleaner) innerLoopTask.searchMonitor).dumpCurrentGleaner(getGleanerFileName(),innerLoopTask);
-            }
             if (holdBodyModes != null) { innerLoopTask.setBodyModes(holdBodyModes); holdBodyModes = null; }
             Theory finalTheory = produceFinalTheory();
 
@@ -938,11 +926,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 
 	private double computeVarianceOverTheseExamples(Collection<Example> currentExamples) {
 		if (innerLoopTask.regressionTask) {
-			
-			if (!innerLoopTask.constantsAtLeaves) {
-				Utils.error("createLeafNodeFromCurrentExamples: This method assumes we have constants at leaves in regression trees.");
-			}
-			
+
 			if (Utils.getSizeSafely(currentExamples) < 1) {
 				Utils.error("Should not reach here with ZERO examples!");
 				return -1;

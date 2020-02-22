@@ -117,7 +117,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 	Object              caller     = null;                           // The instance that called this LearnOneClause instance.
 	String              callerName = "unnamed caller";               // Used to annotate printing during runs.
-	private int                   dumpGleanerEveryNexpansions = -1;
 
 	private final FileParser          parser;
 
@@ -131,7 +130,6 @@ public class LearnOneClause extends StateBasedSearchTask {
     public 	  PairWiseExampleScore occScorer			= null;
 	final boolean 			  sampleForScoring  = false;
 	final int				  maxExamplesToSampleForScoring = 300;
-	final boolean             constantsAtLeaves = true;  // Are leaves CONSTANTS or linear models?  TODO - implement linear models, using (say) regularized least squares.
 
 	final int                 maxCrossProductSize               =1000;     // When generating candidate groundings of a literal in the child-generator, randomly seleect if more than this many.
 	int                 maxBodyLength                     =   9;     // Max length for the bodies of clauses.
@@ -165,7 +163,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private List<WorldState>    worldStatesContainingNoPositiveExamples = null;  // All ways of matching the target predicate in these states are known (or at least assumed) to be NEGATIVE examples.
 	private boolean             findWorldStatesContainingNoPosExamples  = false;
 	public    boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
-	private final int                 skewMaxNegToPos                         = -1; // If negative, don't alter the neg-pos ratio.  TODO - handle cases where we want to limit the POS wrt NEG.
 	////////////////////////////////////////////////////////////
 	//  Variables for controlling random-rapid-restart searches (i.e., repeatedly randomly create an initial clause, then do some local search around each).
 	//    The initial clause randomly created will meet the specification on the positive and negative seeds.
@@ -591,17 +588,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 			chooseTargetMode();
 		}
 
-		// TODO(?): remove or comment this out at some point.
-		for (int i = 0; i < getParser().getNumberOfPrecomputeFiles(); i++) {
-			List<Sentence> precomputeThese = getParser().getSentencesToPrecompute(i);
-			if (Utils.getSizeSafely(precomputeThese) > 0) {
-				Utils.println("\n% Precompute #" + i + "'s requests: '" + replaceWildCardsForPrecomputes(getParser().getFileNameForSentencesToPrecompute(i)) + "'");
-				for (Sentence s : precomputeThese) { Utils.println("%   " + s.toString(Integer.MAX_VALUE)); }
-			}
-		}
-
 		/* for each precompute file to output, precompute all the corresponding rules... */
 		for (int i = 0; i < getParser().getNumberOfPrecomputeFiles(); i++) {
+			// TODO(@hayesall): This appears to be where precomputes are handled.
 			List<Sentence> precomputeThese = getParser().getSentencesToPrecompute(i); // Note that this is the set of ALL precompute's encountered during any file reading.
 			if (Utils.getSizeSafely(precomputeThese) > 0) {
 				String precomputeFileNameToUse = replaceWildCardsForPrecomputes(getParser().getFileNameForSentencesToPrecompute(i));
@@ -617,12 +606,18 @@ public class LearnOneClause extends StateBasedSearchTask {
 				addToFacts(precomputeFileNameToUse); // Load the precomputed file.
 			}
 		}
-		
 
+		// TODO(@hayesall): What is `prune.txt`?
 		String pruneFileNameToUse = Utils.createFileNameString(getDirectoryName(), "prune.txt");
+
 		// The method below will check if the prune file already exists, and if so, will simply return true.
-			boolean pruneFileAlreadyExists = lookForPruneOpportunities(useCachedFiles, getParser(), pruneFileNameToUse);
-		if (pruneFileAlreadyExists && useCachedFiles) { addToFacts(pruneFileNameToUse); } // Load the prune file, if it exists.
+		boolean pruneFileAlreadyExists = lookForPruneOpportunities(useCachedFiles, getParser(), pruneFileNameToUse);
+
+		if (pruneFileAlreadyExists && useCachedFiles) {
+			// Load the prune file, if it exists.
+			addToFacts(pruneFileNameToUse);
+		}
+
 		Utils.println("\n% Started collecting constants");
 		long start = System.currentTimeMillis();
 		// The following will see if the old types file exists.
@@ -910,7 +905,7 @@ public class LearnOneClause extends StateBasedSearchTask {
             else {
                 if ( getActiveAdvice() != null ) {
                     createdActiveAdvice = adviceProcessor.processAdvice(currentRelevanceStrength, posExamples, negExamples);
-                } 
+                }
             }
 
             // Limit number of reports.
@@ -1274,14 +1269,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         return false;
     }
 
-	public void setDumpGleanerEveryNexpansions(int dumpGleanerEveryNexpansions) {
-		this.dumpGleanerEveryNexpansions = dumpGleanerEveryNexpansions;
-	}
-
-	int getDumpGleanerEveryNexpansions() {
-		return dumpGleanerEveryNexpansions;
-	}
-
 	/*
 	 * If fewer than minWgtedCoverage or more than maxWgtedCoverage, can
 	 * stop and return null since this node is unacceptable.
@@ -1547,6 +1534,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	}
 
 	private void addToFacts(String factsFileName) {
+		// TODO(@hayesall): Drop support for `.gz` files.
 		try {
 			boolean isCompressed = false;
 			if (!Utils.fileExists(factsFileName)) {
@@ -1564,6 +1552,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 			Utils.error("Cannot find this file: " + factsFileName);
 		}
 	}
+
 	private void addToFacts(Reader factsReader, String readerDirectory) {
 		List<Sentence> moreFacts = readFacts(factsReader, readerDirectory, true);
 		if (moreFacts == null) { return; }

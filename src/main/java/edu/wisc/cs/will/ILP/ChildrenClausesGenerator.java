@@ -680,12 +680,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		if (thisTask.probOfDroppingChild > 0 && children.size() >= thisTask.minChildrenBeforeRandomDropping) {
 			children.removeIf(sn -> Utils.random() < thisTask.probOfDroppingChild);
 		}
-		
-		// If we made it this far, let's NOT peak at 'time left' since we might get a new best-node quickly by fully scoring the children.
-		if (thisTask.getDumpGleanerEveryNexpansions() > 0  && thisTask.getNodesConsidered() % thisTask.getDumpGleanerEveryNexpansions() == 0) {
-			((Gleaner) thisTask.searchMonitor).dumpCurrentGleaner(thisTask);
-		}
-
 		return children;
 	}
 	
