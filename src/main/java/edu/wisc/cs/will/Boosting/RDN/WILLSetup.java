@@ -32,6 +32,8 @@ import java.util.*;
 public final class WILLSetup {
 
 	private static final int debugLevel = 0;
+
+	// TODO(@hayesall): The `WILLSetup.outerLooper` ILPouterLoop is touched by quite a few functions.
 	private ILPouterLoop outerLooper;
 
 	// These are meant for ease of access and should never be modified.

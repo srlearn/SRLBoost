@@ -103,6 +103,7 @@ import java.util.*;
 
 public class LearnOneClause extends StateBasedSearchTask {
 
+	// TODO(@hayesall): This `LearnOneClause.debugLevel` is called into from the Gleaner and OuterLooper
 	final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
 
 	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
@@ -343,7 +344,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 
         // Wait until initialize() is called, in case some things need to be set.  
 		if (!deferLoadingExamples && posExamplesReader != null) { 
-			readExamples(posExamplesReader, negExamplesReader, skewMaxNegToPos);
+			readExamples(posExamplesReader, negExamplesReader);
 			closeWithoutException(posExamplesReader);
 			if (negExamplesReader       != null) closeWithoutException(negExamplesReader);
 		}
@@ -352,7 +353,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 		Utils.println("\n%  LearnOneClause initialized.");
 	}
 
-    private void readExamples(Reader positiveReader, Reader negativeReader, int skewMaxNegToPosToUse) {
+    private void readExamples(Reader positiveReader, Reader negativeReader) {
+		// TODO(@hayesall): `skewMaxNegToPosUse` is always -1, dropping the code related to this.
         if (posExamples == null) {
             setPosExamples(positiveReader == null ? null : readExamples(positiveReader, getDirectoryName()));
         }
@@ -362,42 +364,8 @@ public class LearnOneClause extends StateBasedSearchTask {
         if (posExamples == null && positiveReader != null) {
             Utils.error("You should provide some positive examples.  None were found in reader '" + positiveReader + "'.");
         }
-        
-        if (skewMaxNegToPosToUse > 0) {
-        	int numberPos = Utils.getSizeSafely(posExamples);
-        	int numberNeg = Utils.getSizeSafely(negExamples);
-        	
-        	double ratio = numberNeg / (1.0 * numberPos);
-        	if (ratio > skewMaxNegToPosToUse) {
-        		Utils.println("\n% Need to sample the negatives so the skew goes from " + Utils.truncate(ratio, 1) + ":1 to " + Utils.truncate(skewMaxNegToPosToUse, 1) + ":1.");
-        		
-        		int desiredNumberOfNeg = numberPos * skewMaxNegToPosToUse;
-        		List<Example>   newNeg = new ArrayList<>(desiredNumberOfNeg);
-        		double      probToKeep = (3.0 + desiredNumberOfNeg * 1.05) / numberNeg; // Grab a few extra so we can be likely to have enough (since deleting will maintain example order but adding doesn't).
-        		int         numberKept = 0;
-        		for (Example ex : negExamples) if (Utils.random() < probToKeep) {
-        			newNeg.add(ex);
-        			numberKept++;
-        		}
-        		Utils.println("% Have to randomly delete " + Utils.comma(numberNeg - desiredNumberOfNeg) + " of " + Utils.comma(numberNeg) + " negative examples.");
-        		// See if we have the correct number.  If we need to ADD more there, the example ordering will not be preserved, but that should be OK.
-        		int tries = 10 * (desiredNumberOfNeg - numberKept);
-        		while (numberKept < desiredNumberOfNeg && tries > 0) { // If we need a few more, do so, but put a limit on it.
-        			tries--;
-        			Example newEx = negExamples.get(Utils.random0toNminus1(numberNeg));
-        			if (!newNeg.contains(newEx)) { // See if this is a new one.
-        				newNeg.add(newEx);
-            			numberKept++;
-        			}        				
-        		}
-        		while (numberKept > desiredNumberOfNeg) { // If we have too many, discard some randomly.
-        			newNeg.remove(Utils.random0toNminus1(numberKept)); // This is inefficient since an ArrayList ...
-        			numberKept--;
-        		}
-        		setNegExamples(newNeg);
-        	}
-        }
-    }
+
+	}
     // cth: Added so that previous gleaner can be grabbed from the LearnOneClause object
     // needed to make Gleaner setting persistent
     final SearchMonitor getGleaner() {
@@ -419,6 +387,10 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 
 	private void checkForSetParameters() {
+
+		// TODO(@hayesall): Are any of these parameters mentioned in the public documentation?
+		// 		Anything removed from here will potentially free up other methods for removal.
+
 		String vStr;
 
 		vStr = stringHandler.getParameterSetting("discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar");
@@ -595,7 +567,7 @@ public class LearnOneClause extends StateBasedSearchTask {
                 // This causes the posExamplesThatFailedHere to be incomplete, if not set to false.
                 stopWhenUnacceptableCoverage = false;
             }
-            readExamples(posExamplesReader, negExamplesReader, skewMaxNegToPos);
+            readExamples(posExamplesReader, negExamplesReader);
             if (posExamplesReader       != null) closeWithoutException(posExamplesReader);
 			if (negExamplesReader       != null) closeWithoutException(negExamplesReader);
             checkForSetParameters();
@@ -1045,7 +1017,6 @@ public class LearnOneClause extends StateBasedSearchTask {
     }
 
 	void checkIfAcceptableClausePossible() throws IllegalArgumentException {
-		// TODO(@hayesall): Return value was never used in this function. There may be a bug somewhere if it relied on this.
 		checkMinPosCoverage();
 		checkMinPrecision();
 	}
@@ -1105,6 +1076,7 @@ public class LearnOneClause extends StateBasedSearchTask {
      * fix the value to a reasonable value anyway.
      */
 	private void checkMinPosCoverage() {
+		// TODO(@hayesall): This function prints warnings, but does not do anything.
         // Check the min pos coverage values...
 		if (totalPosWeight > 0 && minPosCoverage > totalPosWeight) {  // Anything odd happen here if totalPosWeight < 1?
 			Utils.warning("% Should not set minPosCoverage (" + Utils.truncate(minPosCoverage) + ") to more than the total weight on the positive examples (" + Utils.truncate(totalPosWeight) + ").  Will use the maximum possible value.");
