@@ -139,10 +139,6 @@ public class ConsCell extends Function implements Iterable<Term> {
     }
 
     static <T> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items) {
-        return convertListToConsCell(stringHandler, items, null);
-    }
-
-    private static <T> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items, TypeSpec typeSpec) {
         if (items == null) {
             return null;
         }
@@ -711,7 +707,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         // Collect the items in THIS that are in OTHER.
         List<Term> result = new ArrayList<>(1); // Assume no duplicates in 'this'.
         if (this.numberArgs() == 0) {
-            return convertListToConsCell(stringHandler, result, typeSpec);
+            return convertListToConsCell(stringHandler, result);
         }
         Term       first  = getArgument(0);
         ConsCell   rest   = ensureIsaConsCell(stringHandler, getArgument(1));
@@ -728,7 +724,7 @@ public class ConsCell extends Function implements Iterable<Term> {
                 rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
             }
         }
-        return convertListToConsCell(stringHandler, result, typeSpec); // Just use the original typeSpec (TODO - what if OTHER doesn't match?).
+        return convertListToConsCell(stringHandler, result); // Just use the original typeSpec (TODO - what if OTHER doesn't match?).
     }
 
     ConsCell union(ConsCell other) { // NOTE: since a Set is used, the order of the result is arbitrary.
@@ -757,7 +753,7 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
         List<Term> resultAsList = new ArrayList<>(result.size());
         resultAsList.addAll(resultAsList);
-        return convertListToConsCell(stringHandler, resultAsList, typeSpec); // Just use the original typeSpec (TODO - what if OTHER doesn't match?).
+        return convertListToConsCell(stringHandler, resultAsList); // Just use the original typeSpec (TODO - what if OTHER doesn't match?).
     }
 
     // Cache this calculation to save time.

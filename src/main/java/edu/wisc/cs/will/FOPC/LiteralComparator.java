@@ -1,7 +1,5 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.Utils.Utils;
-
 import java.util.Comparator;
 
 /*
@@ -13,11 +11,12 @@ public class LiteralComparator implements Comparator<Literal> {
 	}
 
 	public int compare(Literal lit0, Literal lit1) {
+		// TODO(@hayesall): Suspicious `(lit0 == lit1)` before null check.
 		if (lit0 == lit1) { return 0; }
-		if (lit0 == null || lit1 == null) { Utils.error("Should not call LiteralComparator.compare with a lit=null."); }
 
 		assert lit0 != null;
 		assert lit1 != null;
+
 		int int0 = lit0.predicateName.hashCode();
 		int int1 = lit1.predicateName.hashCode();
 		

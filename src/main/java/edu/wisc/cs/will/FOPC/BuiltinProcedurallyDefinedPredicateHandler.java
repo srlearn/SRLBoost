@@ -213,9 +213,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
         // Handle the odd ones...
         if ( predicateName == stringHandler.standardPredicateNames.print )    return true; // These are for allCollector arities...
         if ( predicateName == stringHandler.standardPredicateNames.write )    return true;
-        if ( predicateName == stringHandler.standardPredicateNames.waitHere ) return true;
-
-		return stringHandler.getUserDefinedLiteral() != null;
+		return predicateName == stringHandler.standardPredicateNames.waitHere;
 	}
 	
 	/*
@@ -226,12 +224,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 		List<Term>    args = literal.getArguments();
 		int       numbArgs = literal.numberArgs();
 
-		UserDefinedLiteral match = context.getStringHandler().getUserDefinedLiteral();
-        
-        // Trevor: should we set stringHandler=context.getStringHandler() here?  JWS (6/11)
-        if ( match != null ) {
-			return match.handleUserDefinedLiteral(literal, unifier, bindingList, context);
-		}
+		// Trevor: should we set stringHandler=context.getStringHandler() here?  JWS (6/11)
 		if ((pred == stringHandler.standardPredicateNames.unify || pred == stringHandler.standardPredicateNames.unify2) && numbArgs == 2) {
 			return unifier.unify(args.get(0), args.get(1), bindingList);
 		}

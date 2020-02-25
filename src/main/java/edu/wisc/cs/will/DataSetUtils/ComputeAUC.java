@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.DataSetUtils;
 
-import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
@@ -69,7 +68,7 @@ public class ComputeAUC {
 			Utils.error("\nThis jar cannot be found: " + jarLocation + "\n Set path with `-aucJarPath [LOCATION]`\n");
 		}
 		if (extraMarker == null) { extraMarker = ""; }
-		aucFile = useDirectoryForTempFile + temporaryFileForAUC + extraMarker + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker() + Utils.defaultFileExtensionWithPeriod;
+		aucFile = useDirectoryForTempFile + temporaryFileForAUC + extraMarker + Utils.defaultFileExtensionWithPeriod;
 		File  f = Utils.ensureDirExists(aucFile);
 		if (f == null) {
 			Utils.waitHere("The jar file doesn't exist: " + aucFile);
@@ -193,8 +192,8 @@ public class ComputeAUC {
 			if (outputFromAUC.length() < 1) { 
 				Utils.waitHere("Never collected any AUC output!"); 
 			} else {
-				outputFromAUC_txtfile         = Utils.replaceWildCards(workingDir + "/outputFromAUC"          + extraMarker + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker() + Utils.defaultFileExtensionWithPeriod);
-				outputFromAUCfiltered_txtfile = Utils.replaceWildCards(workingDir + "/outputFromAUC_FILTERED" + extraMarker + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker() + Utils.defaultFileExtensionWithPeriod);
+				outputFromAUC_txtfile         = Utils.replaceWildCards(workingDir + "/outputFromAUC"          + extraMarker + Utils.defaultFileExtensionWithPeriod);
+				outputFromAUCfiltered_txtfile = Utils.replaceWildCards(workingDir + "/outputFromAUC_FILTERED" + extraMarker + Utils.defaultFileExtensionWithPeriod);
 				Utils.writeStringToFile(outputFromAUC_unfiltered.toString(),  Utils.ensureDirExists(outputFromAUC_txtfile));
 				Utils.writeStringToFile(outputFromAUC.toString(),             Utils.ensureDirExists(outputFromAUCfiltered_txtfile));
 			}

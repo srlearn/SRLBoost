@@ -54,10 +54,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return sentence;
     }
 
-    public Example getExample() {
-        return example;
-    }
-
     private ConnectedSentence getImpliedSentence() {
         return example.getStringHandler().getConnectedSentence(getSentence(), ConnectiveName.IMPLIES, example);
     }
@@ -291,9 +287,9 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     }
 
-    List<RelevantClauseInformation> expandNonOperationalPredicates(HornClauseContext context) {
+    List<RelevantClauseInformation> expandNonOperationalPredicates() {
 
-        List<? extends Sentence> sentences = NonOperationalExpander.getExpandedSentences(context, sentence);
+        List<? extends Sentence> sentences = NonOperationalExpander.getExpandedSentences(sentence);
 
         int expansionCount = sentences.size();
 
@@ -321,10 +317,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     @Override
     public String toString() {
-        return toString("");
-    }
 
-    public String toString(String prefix) {
         BindingList bl;
         bl = new BindingList();
 
@@ -335,9 +328,9 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         ppo.setNewLineAfterImplication(true);
 
         String exampleString = PrettyPrinter.print(example, "", "", ppo, bl);
-        String sentenceString = PrettyPrinter.print(sentence, prefix + "  ", prefix + "  ", ppo, bl);
+        String sentenceString = PrettyPrinter.print(sentence, "  ", "  ", ppo, bl);
 
-        return prefix + exampleString + (isRelevanceFromPositiveExample() ? "" : ", NEGATION") + ", advice = \n" + sentenceString;
+        return exampleString + (isRelevanceFromPositiveExample() ? "" : ", NEGATION") + ", advice = \n" + sentenceString;
 
     }
 
@@ -351,11 +344,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     private void setConstantsSplit(boolean constantsSplit) {
         this.constantsSplit = constantsSplit;
-    }
-
-    boolean isContainsAllAdvicePieces() {
-        // TODO(@hayesall): Method always returns true.
-        return true;
     }
 
     void setOriginalRelevanceStrength(RelevanceStrength relevanceStrength) {
@@ -413,9 +401,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         if (this.isConstantsSplit() != other.isConstantsSplit()) {
             return false;
         }
-        if (this.isContainsAllAdvicePieces() != other.isContainsAllAdvicePieces()) {
-            return false;
-        }
         return Objects.equals(this.mappings, other.mappings);
     }
 
@@ -428,7 +413,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         hash = 59 * hash + (this.getRelevanceStrength() != null ? this.getRelevanceStrength().hashCode() : 0);
         hash = 59 * hash + (this.getTypeSpecList() != null ? this.getTypeSpecList().hashCode() : 0);
         hash = 59 * hash + (this.isConstantsSplit() ? 1 : 0);
-        hash = 59 * hash + (this.isContainsAllAdvicePieces() ? 1 : 0);
         hash = 59 * hash + (this.mappings != null ? this.mappings.hashCode() : 0);
         return hash;
     }
@@ -515,72 +499,68 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
         Set<PredicateNameAndArity> usedPredicate = PredicateCollector.collectPredicates(sentence, ap.getContext());
 
-        if ( ap.isVerifyAllPredicateExist() ) {
-            for (PredicateNameAndArity pnaa : usedPredicate) {
-                // We want to check that all predicates that are used are defined in the clausebase.
-                // However, if it is a non-operational, we assume the operationals are defined somewhere.
-                if (!pnaa.isNonOperational() && !ap.getContext().getClausebase().isDefined(pnaa) && !pnaa.getPredicateName().name.startsWith("linked")) {
-                    Utils.waitHere("Unknown predicate name in advice: " + pnaa + ".");
-                	return false;
-                }
+        for (PredicateNameAndArity pnaa : usedPredicate) {
+            // We want to check that all predicates that are used are defined in the clausebase.
+            // However, if it is a non-operational, we assume the operationals are defined somewhere.
+            if (!pnaa.isNonOperational() && !ap.getContext().getClausebase().isDefined(pnaa) && !pnaa.getPredicateName().name.startsWith("linked")) {
+                Utils.waitHere("Unknown predicate name in advice: " + pnaa + ".");
+                return false;
             }
         }
 
-        if (ap.isVerifyInputsToFunctionsAsPredAreBoundEnabled()) {
-            // Look for Singleton variables that occur as inputs to Functions...
+        // Look for Singleton variables that occur as inputs to Functions...
 
-            Sentence s = getImpliedSentence();
+        Sentence s = getImpliedSentence();
 
-            Collection<Variable> headVariables = example.collectAllVariables();
-
-
-            Map<Variable, Integer> counts = VariableCounter.countVariables(sentence);
-
-            PositionData positions = null;
+        Collection<Variable> headVariables = example.collectAllVariables();
 
 
-            for (Map.Entry<Variable, Integer> entry : counts.entrySet()) {
-                if (entry.getValue() == 1) {
-                    // Here is a singleton.  See if it is an argument to a functionAsPred.
+        Map<Variable, Integer> counts = VariableCounter.countVariables(sentence);
 
-                    // What we are going to do here is look up the position of the
-                    // variable in the sentence.  Once we have the position, we will
-                    // grap the variables "parent", i.e., the literal or function that
-                    // is using it.  Once we have the literal/function, we will first
-                    // check if it is a FunctionAsPred.  If it is, we will check if
-                    // the singleton variable is in the output position.  If it isn't,
-                    // we will assume that the advice was improperly bound and toss it.
-                    Variable v = entry.getKey();
+        PositionData positions = null;
 
-                    if (!headVariables.contains(v)) {
+        for (Map.Entry<Variable, Integer> entry : counts.entrySet()) {
+            if (entry.getValue() == 1) {
+                // Here is a singleton.  See if it is an argument to a functionAsPred.
 
-                        if (positions == null) {
-                            positions = new PositionData();
-                            ElementPositionVisitor<PositionData> epv = new ElementPositionVisitor<>(new PositionRecorder());
-                            s.accept(epv, positions);
-                        }
+                // What we are going to do here is look up the position of the
+                // variable in the sentence.  Once we have the position, we will
+                // grap the variables "parent", i.e., the literal or function that
+                // is using it.  Once we have the literal/function, we will first
+                // check if it is a FunctionAsPred.  If it is, we will check if
+                // the singleton variable is in the output position.  If it isn't,
+                // we will assume that the advice was improperly bound and toss it.
+                Variable v = entry.getKey();
 
-                        ElementPath path = positions.elementToPathMap.getValue(v, 0);
+                if (!headVariables.contains(v)) {
 
-                        ElementPath parentPath = path.getParent();
+                    if (positions == null) {
+                        positions = new PositionData();
+                        ElementPositionVisitor<PositionData> epv = new ElementPositionVisitor<>(new PositionRecorder());
+                        s.accept(epv, positions);
+                    }
 
-                        AllOfFOPC parent = positions.pathToElementMap.get(parentPath);
+                    ElementPath path = positions.elementToPathMap.getValue(v, 0);
 
-                        if (parent instanceof LiteralOrFunction) {
-                            LiteralOrFunction literalOrFunction = (LiteralOrFunction) parent;
-                            PredicateName pn = literalOrFunction.getPredicateName();
+                    ElementPath parentPath = path.getParent();
 
-                            if (pn.isDeterminateOrFunctionAsPred(literalOrFunction.getArity())) {
-                                // Damn output indices count from 1!!!!
-                                if (pn.getDeterminateOrFunctionAsPredOutputIndex(literalOrFunction.getArity()) - 1 != path.getIndex() && !literalOrFunction.getPredicateName().name.equals("ilField_Composite_name")) {
-                                    // The ilField_Composite_name is a total hack for the BL project.  ilField_Composite_name is a function, but it is one
-                                    // in which can either translate from argument 1 to 2 as in: ilField_Composite_name(world, nonSymbol, ?Symbol, state),
-                                    // or translate from argument 2 to 1: ilField_Composite_name(world, nonSymbol, ?Symbol, state).
-                                    // Thus, either argument could be unbound.  We really need a pruning rule for this, but
-                                    // until I get around to writing pruning for the AdviceProcessor, I think I will just hack this up.
-                                	Utils.waitHere("isVerifyInputsToFunctionsAsPredAreBoundEnabled caused invalid advice: " + pn + ".");
-                                    return false;
-                                }
+                    AllOfFOPC parent = positions.pathToElementMap.get(parentPath);
+
+                    if (parent instanceof LiteralOrFunction) {
+                        LiteralOrFunction literalOrFunction = (LiteralOrFunction) parent;
+                        PredicateName pn = literalOrFunction.getPredicateName();
+
+                        if (pn.isDeterminateOrFunctionAsPred(literalOrFunction.getArity())) {
+                            // Damn output indices count from 1!!!!
+                            if (pn.getDeterminateOrFunctionAsPredOutputIndex(literalOrFunction.getArity()) - 1 != path.getIndex() && !literalOrFunction.getPredicateName().name.equals("ilField_Composite_name")) {
+                                // The ilField_Composite_name is a total hack for the BL project.  ilField_Composite_name is a function, but it is one
+                                // in which can either translate from argument 1 to 2 as in: ilField_Composite_name(world, nonSymbol, ?Symbol, state),
+                                // or translate from argument 2 to 1: ilField_Composite_name(world, nonSymbol, ?Symbol, state).
+                                // Thus, either argument could be unbound.  We really need a pruning rule for this, but
+                                // until I get around to writing pruning for the AdviceProcessor, I think I will just hack this up.
+                                // TODO(@hayesall): `isVerifyInputsToFunctionsAsPredAreBoundEnabled` was dropped since it was always true, this might be dropped as well.
+                                Utils.waitHere("isVerifyInputsToFunctionsAsPredAreBoundEnabled caused invalid advice: " + pn + ".");
+                                return false;
                             }
                         }
                     }
@@ -603,7 +583,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         outputVariables.add(e);
     }
 
-    Set<Variable> getOutputVariables() {
+    private Set<Variable> getOutputVariables() {
         if (outputVariables == null) {
             return Collections.EMPTY_SET;
         }
@@ -619,14 +599,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         final Set<ElementPath> constantPositions;
 
         ConstantMarkerData() {
-            this(null);
-        }
-
-        ConstantMarkerData(Set<ElementPath> constantPositions) {
-            if (constantPositions == null) {
-                constantPositions = new HashSet<>();
-            }
-            this.constantPositions = constantPositions;
+            this.constantPositions = new HashSet<>();
         }
 
         void markCurrentPositionAsConstant() {

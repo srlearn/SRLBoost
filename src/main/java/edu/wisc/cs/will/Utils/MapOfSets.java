@@ -95,7 +95,9 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
         return new HashMap<>();
     }
 
-    private String toString(String prefix) {
+    @Override
+    public String toString() {
+
         String result;
 
         if ( map == null ) {
@@ -129,15 +131,8 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
             result = stringBuilder.toString();
         }
 
-        return Utils.getStringWithLinePrefix(result, prefix);
+        return Utils.getStringWithLinePrefix(result, "");
     }
-
-    @Override
-    public String toString() {
-        return toString("");
-    }
-
-
 
     @Override
     public boolean equals(Object obj) {

@@ -9,13 +9,11 @@ public abstract class ScoringFunction {
 
 	protected ScoringFunction() {}
 
-	void setSearchTask() {
-	}
-
 	public abstract double scoreThisNode(SearchNode node) throws SearchInterrupted;
 
 	public double computeMaxPossibleScore(SearchNode node) throws SearchInterrupted {
 		// THESE ARE HERE TO TRAP SOME ODD BEHAVIOR ThAT POPPED UP ONCE WITH ILP SEARCH.  Can delete later (current date = 7/31/08).
+		// TODO(@hayesall): Comment suggests this can be removed, factor out.
 		Utils.waitHere("Wrong computeMaxPossibleScore?");
 		Utils.error("Shouldn't happen?");
 		return Double.POSITIVE_INFINITY;
@@ -28,8 +26,5 @@ public abstract class ScoringFunction {
 		// Might want to override the regular score to play tricks with insertion into OPEN (eg, used in ILP code).
 		return 0;
 	}
-	
-	void clearAnySavedInformation() {
-		// Don't make this abstract since it is unlikely that a scoring function will have something that needs resetting.
-	}
+
 }

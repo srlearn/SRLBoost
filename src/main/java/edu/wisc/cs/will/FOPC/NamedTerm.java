@@ -1,7 +1,5 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.Utils.Utils;
-
 import java.util.Comparator;
 
 /*
@@ -36,11 +34,13 @@ class NamedTerm {
 		NamedTermComparator() {}
 
 		public int compare(NamedTerm o1, NamedTerm o2) {
+			// TODO(@hayesall): Suspicious to return `(o1 == o2)` before the null check.
+
 			if (o1 == o2) { return 0;}
-			if (o1 == null || o2 == null) { Utils.error("Should not have a null name being compared to a non-null name."); }
 
 			assert o2 != null;
 			assert o1 != null;
+
 			if (o1.name == null && o2.name == null ) { return 0; }
 			if (o1.name == null) { return 1; }
 			if (o2.name == null) { return -1; }

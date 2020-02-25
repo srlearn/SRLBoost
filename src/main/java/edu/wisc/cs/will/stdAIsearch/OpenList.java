@@ -34,7 +34,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
 
         task.nodesConsidered++;
         task.nodesConsideredThisIteration++;
-        task.searchMonitor.recordNodeExpansion();
         return popped;
     }
 

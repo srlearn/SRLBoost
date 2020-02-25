@@ -10,11 +10,6 @@ public abstract class ClosedList {
 
 	protected ClosedList() {}
 
-	void setSearchTask() {
-	}
-
-	void clearAnySavedInformation() { }
-
 	public abstract void addNodeToClosed(SearchNode node);
 
 	public abstract boolean alreadyInClosedList(SearchNode node);

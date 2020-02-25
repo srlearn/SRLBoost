@@ -218,7 +218,7 @@ public class AdviceProcessor {
 
         for (Set<RelevantFeatureInformation> set : filteredGroundedRelevance.values()) {
             for (RelevantFeatureInformation rfi : set) {
-                activeAdvice.addFeatureRelevance(rfi.getPredicateNameAndArity(), rfi.getRelevanceStrength());
+                activeAdvice.addFeatureRelevance(rfi.getRelevanceStrength());
 
             }
         }
@@ -298,11 +298,11 @@ public class AdviceProcessor {
         MapOfSets<Example, T> uniqueGroundRelevance = new LinkedMapOfSets<>();
 
         for (Entry<T, T> entry : positiveGeneralizedRelevance.entrySet()) {
-            uniqueGroundRelevance.put(entry.getValue().getExample(), entry.getValue());
+            uniqueGroundRelevance.put(null, entry.getValue());
         }
 
         for (Entry<T, T> entry : negativeGeneralizedRelevance.entrySet()) {
-            uniqueGroundRelevance.put(entry.getValue().getExample(), entry.getValue());
+            uniqueGroundRelevance.put(null, entry.getValue());
         }
 
         uniqueGroundRelevance.values();
@@ -317,7 +317,7 @@ public class AdviceProcessor {
         MapOfSets<Example, T> exampleToAdviceSetMap = new LinkedMapOfSets<>();
 
         for (T rci : relevantInformationList) {
-            exampleToAdviceSetMap.put(rci.getExample(), rci);
+            exampleToAdviceSetMap.put(null, rci);
         }
 
         return exampleToAdviceSetMap;
@@ -382,13 +382,11 @@ public class AdviceProcessor {
             RelevantClauseInformation conjunct = null;
 
             for (RelevantClauseInformation anRCI : entry.getValue()) {
-                if (anRCI.isContainsAllAdvicePieces()) {
-                    if (conjunct == null) {
-                        conjunct = anRCI;
-                    }
-                    else {
-                        conjunct = conjunct.getConjunction(anRCI);
-                    }
+                if (conjunct == null) {
+                    conjunct = anRCI;
+                }
+                else {
+                    conjunct = conjunct.getConjunction(anRCI);
                 }
             }
 
@@ -478,13 +476,11 @@ public class AdviceProcessor {
         for (Map.Entry<Example, Set<RelevantClauseInformation>> entry : exampleToSplitVariableMap.entrySet()) {
             RelevantClauseInformation conjunct = null;
             for (RelevantClauseInformation anRCI : entry.getValue()) {
-                if (anRCI.isContainsAllAdvicePieces()) {
-                    if (conjunct == null) {
-                        conjunct = anRCI;
-                    }
-                    else {
-                        conjunct = conjunct.getConjunction(anRCI);
-                    }
+                if (conjunct == null) {
+                    conjunct = anRCI;
+                }
+                else {
+                    conjunct = conjunct.getConjunction(anRCI);
                 }
             }
 
@@ -807,32 +803,8 @@ public class AdviceProcessor {
         }
     }
 
-    boolean isOutputArgumentsEnabled() {
-        return false;
-    }
-
     public HornClauseContext getContext() {
         return learnOneClause.getContext();
-    }
-
-    boolean isInliningEnabled() {
-        return true;
-    }
-
-    boolean isRemoveDuplicateDeterminatesEnabled() {
-        return true;
-    }
-
-    boolean isVerifyAllPredicateExist() {
-        return true;
-    }
-
-    boolean isVerifyInputsToFunctionsAsPredAreBoundEnabled() {
-        return true;
-    }
-
-    boolean isRemoveDoubleNegationEnabled() {
-        return true;
     }
 
     List<PruningRule> getPruningRules() {

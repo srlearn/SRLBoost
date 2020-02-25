@@ -29,20 +29,8 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
     }
 
     @Override
-    public String toString(String prefix) {
-        return prefix + example + " : " + mode + ", " + getRelevanceStrength();
-    }
-
-    @Override
     public String toString() {
-        return toString("");
-    }
-
-
-
-    @Override
-    public Example getExample() {
-        return example;
+        return example + " : " + mode + ", " + getRelevanceStrength();
     }
 
     public boolean isRelevanceFromPositiveExample() {

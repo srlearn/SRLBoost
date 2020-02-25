@@ -66,6 +66,7 @@ public class DefaultHornClausebaseIndexer<T extends DefiniteClause> implements H
 
     @Override
     public final void resetIndex() {
+        // TODO(@hayesall): `indexWidth` is always 2.
         singleGroundArgIndexArray = (GroundNthArgumentClauseIndex<T>[])new GroundNthArgumentClauseIndex[indexWidth];
         predicateIndex = null;
         groundClauseIndex = null;

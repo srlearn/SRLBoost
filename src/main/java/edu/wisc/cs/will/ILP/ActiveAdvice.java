@@ -2,7 +2,6 @@ package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
 import edu.wisc.cs.will.FOPC.visitors.DefiniteClauseCostAggregator;
 import edu.wisc.cs.will.FOPC.visitors.DuplicateDeterminateRemover;
 import edu.wisc.cs.will.FOPC.visitors.Inliner;
@@ -17,9 +16,7 @@ import java.util.*;
 /*
  * @author twalker
  */
-public class ActiveAdvice {
-
-    private static final CNFClauseCollector CLAUSE_COLLECTOR = new CNFClauseCollector();
+class ActiveAdvice {
 
     private final HandleFOPCstrings stringHandler;
 
@@ -37,9 +34,7 @@ public class ActiveAdvice {
 
     void addAdviceClause(AdviceProcessor ap, String name, RelevantClauseInformation rci, List<Clause> clauses) throws IllegalArgumentException {
 
-        if (ap.isInliningEnabled()) {
-            rci = rci.getInlined(ap.getContext());
-        }
+        rci = rci.getInlined(ap.getContext());
 
         // When removing double negation by failures
         // and removing duplicate determinates, we have to iteration
@@ -47,13 +42,9 @@ public class ActiveAdvice {
         // in additional simplications by the other visitor.
         while (true) {
             RelevantClauseInformation start = rci;
-            if (ap.isRemoveDoubleNegationEnabled()) {
-                rci = rci.removeDoubleNegations();
-            }
+            rci = rci.removeDoubleNegations();
 
-            if (ap.isRemoveDuplicateDeterminatesEnabled()) {
-                rci = rci.removeDuplicateDeterminates();
-            }
+            rci = rci.removeDuplicateDeterminates();
 
             rci = rci.applyPruningRules(ap);
 
@@ -63,7 +54,7 @@ public class ActiveAdvice {
         }
 
         MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<>();
-        List<RelevantClauseInformation> expandedRCIs = rci.expandNonOperationalPredicates(ap.getContext());
+        List<RelevantClauseInformation> expandedRCIs = rci.expandNonOperationalPredicates();
 
         // We will add all of the support clauses...just for the hell of it...
         for (Map.Entry<PredicateNameAndArity, List<Clause>> entry : supportClausesForExpansions.entrySet()) {
@@ -84,9 +75,6 @@ public class ActiveAdvice {
 
             Sentence cnf = sentence.getConjunctiveNormalForm();  // This may still have AND connectives.
             Sentence compressedCNF = SentenceCompressor.getCompressedSentence(cnf);
-
-            // Determine the final output variables...
-            determineOutputVariables(ap, rci, compressedCNF);
 
             compressedCNF.collectAllVariables();
 
@@ -174,15 +162,11 @@ public class ActiveAdvice {
         Sentence body = implication.getSentenceA();
         Literal head = ((DefiniteClause) implication.getSentenceB()).getDefiniteClauseHead();
 
+        body = Inliner.getInlinedSentence(body, ap.getContext());
+        body = DuplicateDeterminateRemover.removeDuplicates(body);
 
-        if (ap.isInliningEnabled()) {
-            body = Inliner.getInlinedSentence(body, ap.getContext());
-        }
-        if (ap.isRemoveDuplicateDeterminatesEnabled()) {
-            body = DuplicateDeterminateRemover.removeDuplicates(body);
-        }
-
-        List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body);
+        // TODO(@hayesall): `ap.getContext()` is the only use for `getExpandedSentences()`
+        List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(body);
 
         if (expansions.size() == 1 && expansions.get(0).equals(body)) {
             // No sentences...
@@ -224,8 +208,8 @@ public class ActiveAdvice {
         return clauses;
     }
 
-    void addFeatureRelevance(PredicateNameAndArity key, RelevanceStrength value) {
-        adviceFeaturesAndStrengths.put(key, new RelevanceInfo(key, value));
+    void addFeatureRelevance(RelevanceStrength value) {
+        adviceFeaturesAndStrengths.put(null, new RelevanceInfo(value));
     }
 
     private ModeInfo addModeAndRelevanceStrength(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> headSpecList, RelevanceStrength relevanceStrength) {
@@ -281,58 +265,6 @@ public class ActiveAdvice {
         clause2 = clause2.getStringHandler().getClause(Collections.singletonList(newHead2), clause2.getNegativeLiterals());
 
         return clause1.isEquivalentUptoVariableRenaming(clause2, new BindingList()) != null;
-    }
-
-    private void determineOutputVariables(AdviceProcessor ap, RelevantClauseInformation rci, Sentence cnf) {
-
-        Variable outputVariable = null;
-
-        if (ap.isOutputArgumentsEnabled()) {
-            List<Clause> separatedClauses = CLAUSE_COLLECTOR.getClauses(cnf);
-
-            Set<Variable> allPossibleOutputVariables = rci.getOutputVariables();
-
-            for (Clause clause : separatedClauses) {
-                Variable last = getLastOutputVariable(clause, allPossibleOutputVariables);
-                if (last != null) {
-                    if (outputVariable == null) {
-                        outputVariable = last;
-                    }
-                    else if (!last.equals(outputVariable)) {
-                        outputVariable = null;
-                        Utils.println("% [AdviceProcessor] Unable to match last output variables in OR-ed clause.");
-                        break;
-                    }
-                }
-            }
-
-            if (outputVariable != null) {
-                rci.getExample().collectAllVariables();
-            }
-            // If the output variable is already in the example head, just ignore it
-            // since it will be added naturally anyway.
-        }
-    }
-
-    /* Returns the variable, from a set of possible variables, that occurs last in a clause.
-     */
-    private Variable getLastOutputVariable(Clause clause, Set<Variable> possibleLastVariables) {
-
-        for (int i = clause.getPosLiteralCount() - 1; i >= 0; i--) {
-            Literal literal = clause.getPosLiteral(i);
-            for (int j = literal.getArity() - 1; j >= 0; j--) {
-                Term term = literal.getArgument(j);
-
-                if (term instanceof Variable) {
-                    Variable v = (Variable) term;
-                    if (possibleLastVariables.contains(v)) {
-                        return v;
-                    }
-                }
-            }
-        }
-
-        return null;
     }
 
     @Override
@@ -405,8 +337,8 @@ public class ActiveAdvice {
 
         final RelevanceStrength strength;
 
-        RelevanceInfo(PredicateNameAndArity predicate, RelevanceStrength strength) {
-            this.predicate = predicate;
+        RelevanceInfo(RelevanceStrength strength) {
+            this.predicate = null;
             this.strength = strength;
         }
     }
@@ -459,22 +391,4 @@ public class ActiveAdvice {
         }
     }
 
-    public static class CNFClauseCollector extends DefaultFOPCVisitor<List<Clause>> {
-
-        List<Clause> getClauses(Sentence compressCNFSentence) {
-            List<Clause> list = new ArrayList<>();
-
-            compressCNFSentence.accept(this, list);
-
-            return list;
-        }
-
-        @Override
-        public Sentence visitClause(Clause clause, List<Clause> data) {
-
-            data.add(clause);
-
-            return super.visitClause(clause, data);
-        }
-    }
 }

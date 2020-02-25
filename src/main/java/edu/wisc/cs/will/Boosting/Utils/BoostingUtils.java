@@ -55,20 +55,12 @@ public class BoostingUtils {
 		return (modelNumber > 0 ? "Model" + modelNumber : ""); // Model 0 is only implicitly named, in case we only want one model.
 	}
 
-	public static String getLabelForCurrentModel() {
-		return "";
-	}
-
-	public static String getLabelForResultsFileMarker() {
-		return "";
-	}
-
 	public static String getModelFile(CommandLineArguments cmdArgs, String target, boolean includeExtension) {
 		String filename = cmdArgs.getModelDirVal() + "bRDNs/" + target;
 		if (cmdArgs.getModelFileVal() != null) {
 			 filename += "_" + cmdArgs.getModelFileVal();
 		}
-		filename += getLabelForCurrentModel() + (includeExtension ? ".model" : "");
+		filename += (includeExtension ? ".model" : "");
 		Utils.ensureDirExists(filename);
 		return filename;
 	}

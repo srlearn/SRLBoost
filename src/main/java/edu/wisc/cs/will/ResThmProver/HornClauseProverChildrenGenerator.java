@@ -473,7 +473,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     Utils.error("Expected term of negation to be Function or SentenceAsTerm.");
                 }
 
-                assert negationContents != null;
                 if (negationContents.getNegLiteralCount() == 0) {
                     negationContents = stringHandler.getClause(negationContents.getNegativeLiterals(), negationContents.getPositiveLiterals());
                 }
@@ -595,7 +594,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 Literal answerLiteral = getStringHandler().getLiteral(collectorPred, resultArgs);
 
                 HornSearchNode collectNode = createChildWithMultipleNewLiterals(hornSearchNode, collectorLiterals, queryLiterals, null);
-                HornSearchNode answerNode = createChildWithSingleNewLiteral(hornSearchNode, answerLiteral, queryLiterals, null);
+                HornSearchNode answerNode = createChildWithSingleNewLiteral(hornSearchNode, answerLiteral, queryLiterals);
 
                 children = new ArrayList<>(1);
                 children.add(collectNode);
@@ -710,7 +709,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, bindingList));
 
                     // The second child allows for the backtracking over the retract to remove multiple clauses from the clausebase.
-                    children.add(createChildWithSingleNewLiteral(hornSearchNode, negatedLiteral, queryLiterals, null));
+                    children.add(createChildWithSingleNewLiteral(hornSearchNode, negatedLiteral, queryLiterals));
                     return children;
                 }
                 else {
@@ -1065,21 +1064,17 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), bindingList, proofCounter, expansion);
     }
 
-    private HornSearchNode createChildWithSingleNewLiteral(HornSearchNode hornSearchNode, Literal newLiteral, List<Literal> queryLiterals, BindingList bindingList) {
+    private HornSearchNode createChildWithSingleNewLiteral(HornSearchNode hornSearchNode, Literal newLiteral, List<Literal> queryLiterals) {
 
         int expansion = getNextExpansion();
 
-        if (bindingList != null) {
-            bindingList = bindingList.copy();
-        }
-
-        List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, proofCounter, expansion, bindingList);
+        List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, proofCounter, expansion, null);
 
         if (newLiteral != null) {
             newQueryLiterals.add(0, newLiteral);
         }
 
-        return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), bindingList, proofCounter, expansion);
+        return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), null, proofCounter, expansion);
     }
 
     private HornSearchNode createChildWithNoNewLiterals(HornSearchNode hornSearchNode, List<Literal> queryLiterals, BindingList bindingList) {

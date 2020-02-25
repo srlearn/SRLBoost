@@ -90,13 +90,7 @@ public class RegressionVectorInfoHolderForRDN extends RegressionInfoHolderForRDN
 		((BranchVectorStats)falseStats).addNumVectorOutput(numGrndg, output, weight);
 	}
 
-	@Override
-	public double variance() {
-		return (weightedVarianceAtSuccess() + weightedVarianceAtFailure()) / (totalExampleWeightAtSuccess() + totalExampleWeightAtFailure());
-		//return trueStats.getWeightedVariance() + falseStats.getWeightedVariance();
-	}
-
-	@Override
+    @Override
 	public void populateExamples(LearnOneClause task, SingleClauseNode caller) throws SearchInterrupted {
 		  if (!task.regressionTask) { Utils.error("Should call this when NOT doing regression."); }
           if (caller.getPosCoverage() < 0.0) { caller.computeCoverage(); }

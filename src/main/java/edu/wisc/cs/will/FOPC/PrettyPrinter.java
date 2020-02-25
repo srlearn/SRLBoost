@@ -262,41 +262,33 @@ public class PrettyPrinter {
 
             }
             else {
-                if (data.options.isPrintClausesAsImplications()) {
-                    PPResult negResult = prettyPrintLiterals(clause.getNegativeLiterals(), data);
-                    PPResult posResult = prettyPrintLiterals(clause.getPositiveLiterals(), data);
 
-                    result = new PPResult(negResult.getResultString() + " -> " + posResult.getResultString(), negResult.isMultiline() || posResult.isMultiline(), 1200);
+                PPResult posResult = prettyPrintLiterals(clause.getPositiveLiterals(), data);
+
+                data.pushIndent(posResult.getMaximumWidth() + 4);
+
+                PPResult negResult = prettyPrintLiterals(clause.getNegativeLiterals(), data);
+
+                data.popIndent();
+
+                String prefix = spaces(Math.min(posResult.getMaximumWidth() + 4, data.options.getMaximumIndentationAfterImplication()));
+
+                StringBuilder stringBuilder = new StringBuilder();
+
+                stringBuilder.append(posResult.getResultString()).append(" :- ");
+
+                if (negResult.isMultiline() || posResult.isMultiline()) {
+                    if (data.options.isNewLineAfterImplication()) {
+                        stringBuilder.append("\n").append(prefix);
+                    }
+                    appendWithPrefix(stringBuilder, negResult.resultString, prefix);
                 }
                 else {
+                    stringBuilder.append(negResult.resultString);
 
-                    PPResult posResult = prettyPrintLiterals(clause.getPositiveLiterals(), data);
-
-                    data.pushIndent(posResult.getMaximumWidth() + 4);
-
-                    PPResult negResult = prettyPrintLiterals(clause.getNegativeLiterals(), data);
-
-                    data.popIndent();
-
-                    String prefix = spaces(Math.min(posResult.getMaximumWidth() + 4, data.options.getMaximumIndentationAfterImplication()));
-
-                    StringBuilder stringBuilder = new StringBuilder();
-
-                    stringBuilder.append(posResult.getResultString()).append(" :- ");
-
-                    if (negResult.isMultiline() || posResult.isMultiline()) {
-                        if (data.options.isNewLineAfterImplication()) {
-                            stringBuilder.append("\n").append(prefix);
-                        }
-                        appendWithPrefix(stringBuilder, negResult.resultString, prefix);
-                    }
-                    else {
-                        stringBuilder.append(negResult.resultString);
-
-                    }
-
-                    result = new PPResult(stringBuilder.toString(), negResult.isMultiline() || posResult.isMultiline(), 1200);
                 }
+
+                result = new PPResult(stringBuilder.toString(), negResult.isMultiline() || posResult.isMultiline(), 1200);
             }
 
             return result;
@@ -413,11 +405,11 @@ public class PrettyPrinter {
                     totalWidth += tpp.getMaximumWidth();
                 }
 
-                multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > data.options.getMaximumLineWidth() - data.getCurrentIndentation());
+                multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > 130 - data.getCurrentIndentation());
 
                 String prefix = "";
 
-                int maximumWidth = data.options.getMaximumLineWidth() - data.getCurrentIndentation();
+                int maximumWidth = 130 - data.getCurrentIndentation();
 
                 int currentWidth = 0;
                 int termsOnLine = 0;
@@ -516,7 +508,7 @@ public class PrettyPrinter {
 
             }
 
-            multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > data.options.getMaximumLineWidth() - data.getCurrentIndentation());
+            multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > 130 - data.getCurrentIndentation());
 
             String prefix = spaces(1);
 
@@ -524,14 +516,11 @@ public class PrettyPrinter {
                 stringBuilder.append("\n").append(prefix);
             }
 
-            int maximumWidth = data.options.getMaximumLineWidth() - data.getCurrentIndentation();
+            int maximumWidth = 130 - data.getCurrentIndentation();
 
             int currentWidth = 0;
-            int termsOnLine = 0;
 
             boolean lastWasMultiline = false;
-
-            int maxTermsPerLine = data.options.getMaximumTermsPerLine();
 
 
             for (int i = 0; i < list.size(); i++) {
@@ -549,15 +538,13 @@ public class PrettyPrinter {
                         if (lastWasMultiline || tpp.multiline) {
                             stringBuilder.append("\n").append(prefix);
                             currentWidth = 0;
-                            termsOnLine = 0;
                             lastWasMultiline = tpp.multiline;
                             multiline = true;
                         }
                         else {
-                            if (currentWidth + tpp.getMaximumWidth() >= maximumWidth || (maxTermsPerLine > 0 && termsOnLine >= maxTermsPerLine)) {
+                            if (currentWidth + tpp.getMaximumWidth() >= maximumWidth) {
                                 stringBuilder.append("\n").append(prefix);
                                 currentWidth = 0;
-                                termsOnLine = 0;
                                 multiline = true;
                             }
                             lastWasMultiline = false;
@@ -571,7 +558,6 @@ public class PrettyPrinter {
                 // of the PPResult string.  However, if we are printing multiline
                 // statements, we will automatically add a
                 currentWidth += tpp.getMaximumWidth();
-                termsOnLine++;
             }
 
             if (multiline && data.options.isAlignParathesis()) {
@@ -595,7 +581,7 @@ public class PrettyPrinter {
                 stringBuilder.append(pred);
             }
 
-            int maxTermsPerLine = data.options.getMaximumTermsPerLine();
+            int maxTermsPerLine = -1;
 
             if ("\\+".equals(pred)) {
                 // Special handling of negation.  We should really generalize this
@@ -659,7 +645,7 @@ public class PrettyPrinter {
                     totalWidth += tpp.getMaximumWidth();
                 }
 
-                multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > data.options.getMaximumLineWidth() - data.getCurrentIndentation());
+                multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > 130 - data.getCurrentIndentation());
 
                 String prefix = spaces(pred.length() + 1);
 
@@ -667,7 +653,7 @@ public class PrettyPrinter {
                     stringBuilder.append("\n").append(prefix);
                 }
 
-                int maximumWidth = data.options.getMaximumLineWidth() - data.getCurrentIndentation();
+                int maximumWidth = 130 - data.getCurrentIndentation();
 
                 int currentWidth = 0;
                 int termsOnLine = 0;

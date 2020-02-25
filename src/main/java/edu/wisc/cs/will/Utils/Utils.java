@@ -133,7 +133,7 @@ public class Utils {
      *
      * This does not (and should not) include a . prior to the extension.
      */
-    public static final String defaultFileExtension           = "txt";
+    private static final String defaultFileExtension           = "txt";
     public static final String defaultFileExtensionWithPeriod = "." + defaultFileExtension;
 
     /*
@@ -152,9 +152,7 @@ public class Utils {
     /* The random instance for all the random utility functions. */
     private static final Random randomInstance = new Random(112957);
 
-    private static final Map<String,Integer> warningCounts = new HashMap<>();
-
-	private static BufferedReader inBufferedReader;
+    private static BufferedReader inBufferedReader;
 
 	private static final int maxStringLength = 25000;
 
@@ -271,12 +269,9 @@ public class Utils {
      * @return A string representing the first maxSize elements of the given
      *         map, or null if the given map is null.
      */
-	private static String limitLengthOfPrintedList(Map<?, ?> map, int maxItems) {
+	public static String limitLengthOfPrintedList(Map<?, ?> map) {
 		if (map == null) { return null; }
-		return limitLengthOfPrintedList(map.entrySet(), maxItems);
-	}
-	public static String limitLengthOfPrintedList(Map<?,?> map) {
-		return limitLengthOfPrintedList(map, 100);
+		return limitLengthOfPrintedList(map.entrySet(), 100);
 	}
 
     /*
@@ -425,8 +420,8 @@ public class Utils {
         lookup = original;
 
 		lookup = !lookup.contains("MYUSERNAME") ? lookup : lookup.replaceAll("MYUSERNAME", getMyUserName()); // Break into multiple lines so we can localize bugs better.
-    	lookup = !lookup.contains("MYPATHPREFIX") ? lookup : lookup.replaceAll("MYPATHPREFIX",     getMyPathPrefix());
-    	lookup = !lookup.contains("SHAREDPATHPREFIX") ? lookup : lookup.replaceAll("SHAREDPATHPREFIX", getSharedPathPrefix());
+    	lookup = !lookup.contains("MYPATHPREFIX") ? lookup : lookup.replaceAll("MYPATHPREFIX",     "MYPATHPREFIXisUnset");
+    	lookup = !lookup.contains("SHAREDPATHPREFIX") ? lookup : lookup.replaceAll("SHAREDPATHPREFIX", "SHAREDPATHPREFIXisUnset");
     	lookup = !lookup.contains("MYSCRATCHDIR") ? lookup : lookup.replaceAll("MYSCRATCHDIR",     getMyScratchDir());
     	environmentVariableResolutionCache.put(original, lookup);
     	return lookup;
@@ -471,13 +466,8 @@ public class Utils {
     	if (MYUSERNAME == null) { setMyUserName(getUserName(true)); } 	// Probably no need for quoteReplacement on MYUSERNAME, but do on all for consistency/simplicity.
     	return MYUSERNAME;
     }
-    private static String getMyPathPrefix() {
-        return "MYPATHPREFIXisUnset";
-    }
-    private static String getSharedPathPrefix() {
-        return "SHAREDPATHPREFIXisUnset";
-    }
-	private static String getMyScratchDir() {
+
+    private static String getMyScratchDir() {
     	if (MYSCRATCHDIR == null) { setMyScratchDir(help_getScratchDirForUser()); } // Will get into an infinite loop without the "help_" prefix.
     	return MYSCRATCHDIR;
 	}
@@ -486,19 +476,16 @@ public class Utils {
      * Waits for input on standard input after displaying "Waiting for user input".
      */
     public static void waitHere() {
-        waitHere("", null);
-    }
-    public static void waitHere(String msg) {
-        waitHere(msg, null);
+        waitHere("");
     }
 
     public static void waitHereErr(String msg) {
     	if ( msg != null && !msg.isEmpty()) {
     		printlnErr(msg);
-            waitHere(msg, null);
+            waitHere(msg);
             return;
     	}
-        waitHere(msg, null);
+        waitHere(msg);
     }
 
     /* Prints out the message msg, possibly waiting for user input prior to continuing.
@@ -515,27 +502,15 @@ public class Utils {
      *
      * @return False if an exception occurs while reading input from the user, true otherwise.
      */
-    private static void waitHere(String msg, String skipWaitString) {
-
-        int occurenceCount = 1;
-        if ( skipWaitString != null ) {
-           Integer i = warningCounts.get(skipWaitString);
-           if ( i != null ) occurenceCount = i+1;
-           warningCounts.put(skipWaitString, occurenceCount);
-        }
-
-    	if (!isWaitHereEnabled() && occurenceCount == 1) {
+    public static void waitHere(String msg) {
+        if (!isWaitHereEnabled()) {
             if ( msg != null && !msg.isEmpty()) {
                 print("\n% Skipping over this 'waitHere': " + msg + "\n", true);
             }
     		return;
-    	}
-
-        if (occurenceCount > 1) {
-            return;
         }
 
-		boolean hold = doNotPrintToSystemDotOut;
+        boolean hold = doNotPrintToSystemDotOut;
 		doNotPrintToSystemDotOut = false; // If these printout become too much, we can add a 3rd flag to override these ...
         print("\n% WaitHere: " + msg + "\n%  ...  Hit ENTER to continue or 'e' to interrupt. ", false);
         doNotPrintToSystemDotOut = hold;
@@ -546,7 +521,6 @@ public class Utils {
         try {
         	if (inBufferedReader == null) { inBufferedReader = new BufferedReader(new InputStreamReader(System.in)); }
         	String readThis = inBufferedReader.readLine();
-        //	println("read: " + readThis);
         	if (readThis != null && readThis.startsWith("e")) { // This had been 'interrupt' instead of 'error' but then these might not be immediately caught, and doing just that is the intent of an 'e' being pressed.
         		try {
         			error("You requested the current run be interrupted by returning something that starts with 'e' (for 'esc' or 'error' or 'elmo' or 'ebola').");
@@ -589,17 +563,8 @@ public class Utils {
      * printed the first time the warning occurs.
      */
     private static void warning(String str, String skipWarningString) {
-
-        int occurenceCount = 1;
-        if ( skipWarningString != null ) {
-           Integer i = warningCounts.get(skipWarningString);
-           if ( i != null ) occurenceCount = i+1;
-           warningCounts.put(skipWarningString, occurenceCount);
-        }
-
-        if ( occurenceCount == 1 ) {
-            println("\n***** Warning: " + str + " *****\n");
-        }
+        // TODO(@hayesall): `skipWarningString` String is factored out, but the signature is still used.
+        println("\n***** Warning: " + str + " *****\n");
     }
 
     /*
@@ -620,25 +585,16 @@ public class Utils {
      *
      */
     private static void warning(String str, int sleepInSeconds, String skipWarningString) {
-        int occurenceCount = 1;
-        if ( skipWarningString != null ) {
-           Integer i = warningCounts.get(skipWarningString);
-           if ( i != null ) occurenceCount = i+1;
-           warningCounts.put(skipWarningString, occurenceCount);
+        // TODO(@hayesall): `skipWarningString` string is factored out of the body, but signature is still used.
+        // Make sure we only wait if the user is at a verbosity level where it
+        // makes sense to wait.
+        if ( isWaitHereEnabled() ) {
+            println("\n***** Warning: " + str + " (Waiting " + sleepInSeconds + " seconds.) *****\n");
+            sleep(sleepInSeconds);
+        } else {
+            println("\n***** Warning: " + str + " *****\n");
         }
-
-        if ( occurenceCount == 1 ) {
-
-            // Make sure we only wait if the user is at a verbosity level where it
-            // makes sense to wait.
-            if ( isWaitHereEnabled() ) {
-                println("\n***** Warning: " + str + " (Waiting " + sleepInSeconds + " seconds.) *****\n");
-                sleep(sleepInSeconds);
-            } else {
-                println("\n***** Warning: " + str + " *****\n");
-            }
-        }
-    }    
+    }
     public static void severeWarning(String str) {
     	if (isSevereErrorThrowsEnabled()) { error(str); }
     	else { println("\n% ***** Severe Warning: " + str + " *****\n", true); }

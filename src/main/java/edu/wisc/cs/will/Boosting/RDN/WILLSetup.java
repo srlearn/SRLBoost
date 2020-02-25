@@ -32,6 +32,8 @@ import java.util.*;
 public final class WILLSetup {
 
 	private static final int debugLevel = 0;
+
+	// TODO(@hayesall): The `WILLSetup.outerLooper` ILPouterLoop is touched by quite a few functions.
 	private ILPouterLoop outerLooper;
 
 	// These are meant for ease of access and should never be modified.
@@ -908,7 +910,6 @@ public final class WILLSetup {
 			Utils.error("No specs for " + pName);
 		}
 		// Just take the first spec to get the number of arguments.
-		assert specs != null;
 		int numArgs = specs.get(0).getArity();
 		List<Term> args = new ArrayList<>();
 		for (int i = 0; i < numArgs; i++) {
@@ -1318,18 +1319,8 @@ public final class WILLSetup {
 			Utils.reportStackTrace(e);
 			Utils.error("Encountered a problem: " + e);
 		}
-		
-		Gleaner gleaner = (Gleaner) getInnerLooper().searchMonitor;
 
-		getOuterLooper().writeGleanerFilesToDisk = true;
-
-		getOuterLooper().setCheckpointEnabled(false);
-
-		getInnerLooper().setDumpGleanerEveryNexpansions(1000);
-
-		gleaner.reportingPeriod             =   1000;
-
-		getInnerLooper().maxSearchDepth     =  10000;
+        getInnerLooper().maxSearchDepth     =  10000;
 		getInnerLooper().verbosity          =      0;
 
 		getInnerLooper().maxNumberOfNewVars =      7;
@@ -1367,9 +1358,6 @@ public final class WILLSetup {
 			getInnerLooper().setMinPosCoverageAsFraction(minFractionOnBranches);   // For a clause to be acceptable, it needs to cover at least this fraction of the examples (and not more than 1 minus this fraction).
 		}
 
-		// TODO(@hayesall): `setMinPosCoverage` is called twice with different arguments.
-		// For a clause to be acceptable, it needs to cover at least this fraction of the examples.
-		getInnerLooper().setMinPosCoverage(minFractionOnBranches);
 		// The next line overrides the one immediately above this comment.
 		// Need to be careful here, since data might be quite skewed.  Should really be something like 10% of the majority category.
 		getInnerLooper().setMinPosCoverage(3);

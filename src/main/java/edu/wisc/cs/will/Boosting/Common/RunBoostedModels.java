@@ -146,14 +146,8 @@ public abstract class RunBoostedModels {
 		}
 		beforeInfer();
 		infer();
-		afterInfer();
 	}
-	
 
-	private void afterInfer() {
-		
-		
-	}
 
 	private void beforeInfer() {
 		loadModel();

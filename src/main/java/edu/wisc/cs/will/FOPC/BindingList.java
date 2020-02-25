@@ -169,6 +169,7 @@ public class BindingList extends AllOfFOPC {
 		}
 		if (Function.isaConsCell(term)) {
 			ConsCell consCell =  ConsCell.ensureIsaConsCell(term.stringHandler, term);
+			assert consCell != null;
 			if (consCell.memberViaEq(var)) {
 				if (errorIfProblem) { Utils.error("This would be circular: " + var + " -> " + term); }
 				return false;

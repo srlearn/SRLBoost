@@ -111,22 +111,13 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
     public Literal clearArgumentNamesInPlace() {
+        // TODO(@hayesall): Multiple `null` checks, this method might be simplified.
         if (numberArgs() < 1) {
             return this;
         }
         if (argumentNames != null) {
-            List<String> argOrdering = predicateName.getNamedArgOrdering();
-
             if (argumentNames.get(0).equalsIgnoreCase("name")) {
                 removeArgument(arguments.get(0), argumentNames.get(0));
-            }
-
-            if (argOrdering != null) {
-                List<Term> newArgs = new ArrayList<>(numberArgs());
-                for (String argName : argOrdering) {
-                    newArgs.add(getArgumentByName(argName));
-                }
-                arguments = newArgs;
             }
         }
         argumentNames = null;
@@ -139,24 +130,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
             }
         }
         return this;
-    }
-
-    private Term getArgumentByName(String name) {
-        if (argumentNames == null) {
-            Utils.error("Can not find '" + name + "' in " + null);
-            return null;
-        }
-        if (argumentNames.size() < 1) {
-            Utils.error("Can not find '" + name + "' in " + argumentNames);
-            return null;
-        }
-        for (int i = 0; i < numberArgs(); i++) {
-            if (argumentNames.get(i).equalsIgnoreCase(name)) {
-                return arguments.get(i);
-            }
-        }
-        Utils.error("Can not find '" + name + "' in " + argumentNames);
-        return null;
     }
 
     public boolean isaBridgerLiteral() { // TODO need to check allCollector other vars are bound?
@@ -249,7 +222,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
                 if (arg == null) {
                     Utils.error("Has an arg=null: " + this);
                 }
-                newArguments.add(arg == null ? null : arg.applyTheta(theta));
+                newArguments.add(arg.applyTheta(theta));
             }
         }
         return getBareCopy(newArguments);

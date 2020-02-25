@@ -21,14 +21,7 @@ public class PrettyPrinterOptions {
     private boolean newLineAfterImplication = false;
 
     public PrettyPrinterOptions() {
-    }
-
-    int getMaximumLineWidth() {
-        return 130;
-    }
-
-    int getMaximumTermsPerLine() {
-        return -1;
+        // TODO(@hayesall): Empty constructor.
     }
 
     int getMaximumLiteralsPerLine() {
@@ -54,10 +47,6 @@ public class PrettyPrinterOptions {
 
     public void setRenameVariables(boolean renameVariables) {
         this.renameVariables = renameVariables;
-    }
-
-    boolean isPrintClausesAsImplications() {
-        return false;
     }
 
     boolean isAlignParathesis() {

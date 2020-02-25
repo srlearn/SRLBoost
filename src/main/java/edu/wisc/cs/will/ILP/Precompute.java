@@ -133,7 +133,6 @@ public class Precompute {
                         Utils.error("Have no clauses for this to-be-precomputed predicate: " + pName);
                     }
 
-                    assert clauses != null;
                     for (Clause c : clauses) {
                         int currentCounter = counter;
                         int currentDuplicates = duplicates;
@@ -268,9 +267,8 @@ public class Precompute {
      * @return The matching fact, if one exists. Otherwise null.
      */
     private Literal matchingFactExists(HornClausebase clausebase, Literal query) {
-        if (query == null) {
-            Utils.error("Cannot have query=null here.");
-        }
+
+        assert query != null;
 
         BindingList bindings = new BindingList(); // Note: the unifier can change this.  But save on creating a new one for each fact.
         Iterable<Literal> factsToUse = clausebase.getPossibleMatchingFacts(query, null);
@@ -278,7 +276,6 @@ public class Precompute {
         if (factsToUse != null) {
             for (Literal fact : factsToUse) {
                 bindings.theta.clear(); // Revert to the empty binding list.
-                assert query != null;
                 if (Unifier.UNIFIER.unify(fact, query, bindings) != null) {
                     return fact;
                 }
@@ -306,9 +303,8 @@ public class Precompute {
      * @return The matching clause head if one exists, otherwise null.
      */
     private Clause matchingClauseHeadExists(Literal query, Clause ignoreThisClause, Iterable<Clause> listOfClauses) {
-        if (query == null) {
-            Utils.error("Cannot have query=null here.");
-        }
+        assert query != null;
+
         if (listOfClauses == null) {
             return null;
         }
@@ -320,7 +316,6 @@ public class Precompute {
             }
             if (clause != ignoreThisClause) {
                 bindings.theta.clear();
-                assert query != null;
                 if (Unifier.UNIFIER.unify(clause.posLiterals.get(0), query, bindings) != null) {
                     return clause;
                 }

@@ -16,15 +16,12 @@ public class Function extends Term implements LiteralOrFunction {
 	private int        cached_arity      = -1;
 	int        cachedVariableCount = -1; // Only set to false if CHECKED.  (Key: -1 = unknown, 0 = false, 1 = true.)
 
-	Function() { // This one is only used in special circumstances, e.g. by WeightedSumModel.
-	}
 	Function(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, TypeSpec typeSpec) {
 		this.stringHandler = stringHandler;
 		this.functionName  = functionName;
 		this.arguments     = arguments;
 		this.setTypeSpec(typeSpec);
 		if (functionName == null) {         Utils.error("You have not provided a function name!"); }
-		assert functionName != null;
 		if (functionName.name.equals("")) { Utils.error("You have not provided a function name that is the empty string!"); }
 	}
 	Function(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
@@ -43,16 +40,8 @@ public class Function extends Term implements LiteralOrFunction {
 	void clearArgumentNamesInPlace() {
 		if (numberArgs() < 1) { return; }
 		if (argumentNames != null) {
-			List<String> argOrdering = functionName.getNamedArgOrdering();
-
 			if (argumentNames.get(0).equalsIgnoreCase("name")) {
 				removeArgument(arguments.get(0), argumentNames.get(0));
-			}
-
-			if (!(argOrdering == null)) {
-				List<Term> newArgs = new ArrayList<>(numberArgs());
-				for (String argName : argOrdering) { newArgs.add(getArgumentByName(argName)); }
-				arguments = newArgs;
 			}
 		}
 		argumentNames = null;
@@ -62,20 +51,6 @@ public class Function extends Term implements LiteralOrFunction {
 		}
 	}
 
-	private Term getArgumentByName(String name) {
-		if (argumentNames == null)    {
-			Utils.error("Cannot find '" + name + "' in " + null + " of " + this);
-			return null; } 
-		if (argumentNames.size() < 1) {
-			Utils.error("Cannot find '" + name + "' in " + argumentNames);
-			return null; }
-		for (int i = 0; i < numberArgs(); i++) {
-			if (argumentNames.get(i).equalsIgnoreCase(name)) { return arguments.get(i); }
-		}
-		Utils.error("Cannot find '" + name + "' in " + argumentNames + " of " + this);
-		return null;
-	}
-	
 	public int numberArgs() {
 		if (cached_arity < 0) { setNumberArgs(); }
 		return cached_arity;
@@ -157,7 +132,7 @@ public class Function extends Term implements LiteralOrFunction {
                 if (arg == null) {
                     Utils.error("Has an arg=null: " + this);
                 }
-                newArguments.add(arg == null ? null : arg.applyTheta(theta));
+                newArguments.add(arg.applyTheta(theta));
             }
         }
 		return getBareCopy(newArguments);
@@ -245,13 +220,9 @@ public class Function extends Term implements LiteralOrFunction {
 	}
 
 	// Are these two literals identical even if not the same instance?  Can be overridden by stringHandler.useStrictEqualsForLiterals
-    @Override
+	@Override
 	public boolean equals(Object other) {
-		return equals(other, true);
-	}
-	private boolean equals(Object other, boolean considerUseStrictEqualsForFunctions) {
 		if (this == other) { return true; }
-		if (considerUseStrictEqualsForFunctions && stringHandler.usingStrictEqualsForFunctions()) { return false; }
 		if (!(other instanceof Function)) { return false; }
 		
 		Function otherAsFunction = (Function) other;

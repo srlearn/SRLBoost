@@ -8,7 +8,6 @@ import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode.PredicateType;
 import edu.wisc.cs.will.Boosting.RDN.Models.GroundDependencyNetwork;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
-import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.PredicateName;
@@ -78,7 +77,7 @@ public class JointModelSampler extends SRLInference {
 		// query predicate as parent, we should sample in the order {sameTitle, sameBib}.
 		Collection<String> orderedPredicates = getOrderedPredicates(originalJointExamples.keySet());
 		// Print after getting the order, as we print the order in the DOT file too.
-		String rdnDotFile = setup.cmdArgs.getModelDirVal() + "bRDNs/dotFiles/rdn" + BoostingUtils.getLabelForCurrentModel() + ".dot";
+		String rdnDotFile = setup.cmdArgs.getModelDirVal() + "bRDNs/dotFiles/rdn.dot";
 		printNetwork(rdn, rdnDotFile);
 
 		// Making a copy of the original map, since we will update the map to handle multi-class examples. 
@@ -385,8 +384,9 @@ public class JointModelSampler extends SRLInference {
 										Map<String,List<Example>> negEgs) {
 
 		// All examples are passed in, so reset the example list.
+		assert examples != null;
 
-		if (examples == null || examples.isEmpty()) {
+		if (examples.isEmpty()) {
 			Utils.error("Expected non-null and non-empty example list");
 		}
 
@@ -398,7 +398,6 @@ public class JointModelSampler extends SRLInference {
 
 		int numberValues = setup.getMulticlassHandler().numConstantsForPredicate(target);
 
-		assert examples != null;
 		for (RegressionRDNExample rex : examples) {
 			if (!rex.predicateName.name.equals(target) && !rex.predicateName.name.equals(WILLSetup.multiclassPredPrefix + target)) {
 				Utils.error("Found example: '" + rex + "'\nwhile sampling for " + target);

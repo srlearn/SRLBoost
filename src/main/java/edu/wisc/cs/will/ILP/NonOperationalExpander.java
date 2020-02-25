@@ -3,7 +3,6 @@ package edu.wisc.cs.will.ILP;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
 import edu.wisc.cs.will.FOPC.visitors.ReplaceLiteralsVisitor;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfSets;
 
 import java.util.*;
@@ -17,7 +16,7 @@ class NonOperationalExpander {
 
     private NonOperationalExpander() {}
 
-    static List<? extends Sentence> getExpandedSentences(HornClauseContext context, Sentence sentence) {
+    static List<? extends Sentence> getExpandedSentences(Sentence sentence) {
 
         List<Sentence> results;
 
@@ -29,7 +28,7 @@ class NonOperationalExpander {
             results = Collections.singletonList(sentence);
         }
         else {
-            List<Clause> expansionCombinations = getNonOperationalCombinations(collectorData.literals, new ExpansionData2(context));
+            List<Clause> expansionCombinations = getNonOperationalCombinations(collectorData.literals, new ExpansionData2());
 
             results = new ArrayList<>();
 
@@ -147,14 +146,12 @@ class NonOperationalExpander {
 
     private static class ExpansionData2 {
 
-        HornClauseContext context;
-
         ExpansionData2 parent;
 
         MapOfSets<PredicateNameAndArity, ExistingExpansion> existingExpansionsMap;
 
-        ExpansionData2(HornClauseContext context) {
-            this.context = context;
+        ExpansionData2() {
+            // TODO(@hayesall): Empty constructor.
         }
 
         ExpansionData2(ExpansionData2 parent) {

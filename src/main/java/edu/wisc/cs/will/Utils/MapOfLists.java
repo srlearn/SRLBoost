@@ -120,22 +120,23 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         return new HashMap<>();
     }
 
-    private String toString(String prefix) {
+    @Override
+    public String toString() {
         if ( map == null ) {
-            return prefix + "{}";
+            return "{}";
         }
         else {
             StringBuilder stringBuilder = new StringBuilder();
 
             for (Entry<Key, List<Value>> entry : map.entrySet()) {
-                stringBuilder.append(prefix).append(entry.getKey()).append(" => ");
+                stringBuilder.append(entry.getKey()).append(" => ");
 
                 boolean first = true;
                 for (Value value : entry.getValue()) {
                     if (!first) {
                         stringBuilder.append(",");
                     }
-                    stringBuilder.append("\n").append(prefix).append("   ").append(value);
+                    stringBuilder.append("\n").append("   ").append(value);
 
                     first = false;
                 }
@@ -145,11 +146,6 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
             }
             return stringBuilder.toString();
         }
-    }
-
-    @Override
-    public String toString() {
-        return toString("");
     }
 
     @Override

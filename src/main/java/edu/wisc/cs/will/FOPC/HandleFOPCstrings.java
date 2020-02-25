@@ -184,6 +184,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
         // TODO(@hayesall): What is `recordHandler` doing, and why is it never used?
 		RecordHandler recordHandler = new RecordHandler();
+
 		isaHandler          = new IsaHetrarchy(this);
 		mathHandler         = new DoBuiltInMath(this);
 		listHandler         = new DoBuiltInListProcessing(this);
@@ -726,7 +727,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
                     Utils.error("Negated literal to have single argument of type Function or SentenceAsTerm.  Literal: " + negationByFailure + ".");
                 }
 
-				assert clause != null;
 				if ( clause.getPosLiteralCount() != 0 && clause.getNegLiteralCount() != 0 ) {
                     Utils.error("Negation-by-failure content clause contains both positive and negative literals!");
                 }
@@ -838,7 +838,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		getTypeList(typedLiteral.getArguments(), types);
 		List<Term> signature = getSignature(typedLiteral.getArguments());
 		if (thisIsaNoMode) {
-			disableModeWithTypes(typedLiteral, signature, types, maxOccurrences, maxPerInputVars);
+			disableModeWithTypes(typedLiteral, signature, types);
 		} else {
 			recordModeWithTypes(typedLiteral, signature, types, maxOccurrences, maxPerInputVars, true);
 		}
@@ -855,7 +855,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
             predicate.getPredicateName().recordMode(signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
         }
 	}
-	private void disableModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars) {
+	private void disableModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types) {
         if (typedLiteral != null ) disableModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types);
 	}
 	private void disableModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types) {
@@ -870,11 +870,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// Collect the argument types in the order they appear in a traversal of the literal's arguments ('types' are only at LEAVES).
 	// TODO: but seems functions also need to be typed for proper operation ...
 	private void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs) {
-		getTypeList(arguments, typeSpecs, false);
-	}
-	private void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs, boolean skipConstants) {
 		for (Term spec : arguments) {
-			if (skipConstants && spec instanceof Constant) { continue; }
 			if (spec.typeSpec != null) { typeSpecs.add(spec.typeSpec); } // NOTE: we do NOT want to skip duplicates!
 			else if (spec instanceof Function) {
 				getTypeList(((Function) spec).getArguments(), typeSpecs);
@@ -1135,15 +1131,16 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	}
 
 	public Term getVariableOrConstant(TypeSpec spec, String name) {
-		return getVariableOrConstant(spec, name, false); // The default is to NOT create new variables.
-	}
-	private Term getVariableOrConstant(TypeSpec spec, String name, boolean createNewVariable) {
-		if (isaConstantType(name)) { return getStringConstant(spec, name); } else { return getExternalVariable(spec, name, createNewVariable); }
+		if (isaConstantType(name)) {
+			return getStringConstant(spec, name);
+		}
+		return getExternalVariable(spec, name, false);
 	}
 
 	public Term getVariableOrConstant(String name) {
 		return getVariableOrConstant(name, false);
 	}
+
 	public Term getVariableOrConstant(String name, boolean createNewVariable) {
 		String typeIfNumber = isaNumericConstant(name);
 
@@ -1240,16 +1237,22 @@ public final class HandleFOPCstrings implements CallbackRegister {
     public StringConstant getStringConstant(String name, boolean cleanString) {
 		return getStringConstant(null, name, cleanString);
 	}
+
+
 	private StringConstant getStringConstant(TypeSpec spec, String name) {
 		// If false, will not clean and will always wrap in quote marks EVEN IF NO QUOTES ORIGINALLY.
 		return getStringConstant(spec, name, true);
 	}
+
+
 	public StringConstant getStringConstant(TypeSpec spec, String name, boolean cleanString) {
 		return getStringConstant(spec, (doVariablesStartWithQuestionMarks() || !cleanString ? name : Utils.setFirstCharToRequestedCase(name, usingStdLogicNotation())), cleanString, true);
 	}
+
 	private StringConstant getStringConstant(TypeSpec spec, String nameRaw, boolean cleanString, boolean complainIfWrongCase) {
+
 		if (cleanString && !isaConstantType(nameRaw)) {
-			if (complainIfWrongCase) { Utils.error("Since variableIndicator = " + variableIndicator  + ", '" + nameRaw + "' is not a constant."); }
+			Utils.error("Since variableIndicator = " + variableIndicator  + ", '" + nameRaw + "' is not a constant.");
 			// The caller can handler the error (e.g., the parser might want to report the line number).
 			return null;
 		}
@@ -1322,13 +1325,13 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public NumericConstant getNumericConstant(int value) {
 		return getNumericConstant(null, value);
 	}
-	public NumericConstant getNumericConstant(long value) {
+	NumericConstant getNumericConstant(long value) {
 		return getNumericConstant(null, value);
 	}
-	public NumericConstant getNumericConstant(TypeSpec spec, int value) {
+	NumericConstant getNumericConstant(TypeSpec spec, int value) {
 		return getNumericConstant(spec, value, NumericConstant.isaInteger, Integer.toString(value)); // So '1' and '1.0' match, convert everything to a double.
 	}
-	public NumericConstant getNumericConstant(TypeSpec spec, long value) {
+	NumericConstant getNumericConstant(TypeSpec spec, long value) {
 		return getNumericConstant(spec, value, NumericConstant.isaLong,       Long.toString(value));
 	}
 	public NumericConstant getNumericConstant(double value) {
@@ -1339,7 +1342,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return getNumericConstant(spec, value, ncType, (ncType == NumericConstant.isaInteger ? Integer.toString((int) value) : Double.toString(value)));
 	}
 
-	public NumericConstant getNumericConstant(TypeSpec spec, float value) {
+	NumericConstant getNumericConstant(TypeSpec spec, float value) {
 		return getNumericConstant(spec, (double) value);
 	}
 	private NumericConstant getNumericConstant(TypeSpec spec, Number value, int type, String stringVersion) {
@@ -1706,12 +1709,16 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private final Map<String,SetParamInfo> hashOfSetParameters = new HashMap<>(4);
 	// If doing joint inference, one target would be evidence for other predicate
 	// So it may have more than one mode for target. This prevents the error check.
+
+	// TODO(@hayesall): `dontComplainIfMoreThanOneTargetModes` is declared false, but `RDN.WILLSetup` initializes `stringHandler.dontComplainIfMoreThanOneTargetModes = true;`
 	public boolean dontComplainIfMoreThanOneTargetModes = false;
 
 	public void recordSetParameter(String paramName, String paramValue) {
 		hashOfSetParameters.put(paramName, new SetParamInfo(paramValue));
 	}
+
 	public String getParameterSetting(String paramName) {
+		// TODO(@hayesall): This `getParameterSetting` is used extremely frequently through the codebase.
 		SetParamInfo lookup = hashOfSetParameters.get(paramName);
 		if (lookup == null) { return null; }
 		return lookup.parameterValue;
@@ -1734,11 +1741,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
         this.inventedPredicateNameSuffix = inventedPredicateNameSuffix;
     }
 
-	UserDefinedLiteral getUserDefinedLiteral() {
-		// TODO(@hayesall): `getUserDefinedLiteral` always returns null;
-		return null;
-	}
-
 	public boolean haveLoadedThisFile(String fileName, boolean recordLoaded) {
 		if (filesLoaded.contains(fileName)) { return true; }
 		if (recordLoaded) { filesLoaded.add(fileName); }
@@ -1755,10 +1757,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	boolean usingStrictEqualsForFunctions() {
 		return useStrictEqualsForFunctions;
 	}
-	boolean usingStrictEqualsForClauses() {
-		// If 'true,' only say clauses  are equal if they are '=='.
-		return false;
-	}
+
 	public void setUseStrictEqualsForLiterals(boolean value) {
 		useStrictEqualsForLiterals = value;
 	}

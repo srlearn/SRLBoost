@@ -229,9 +229,6 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *
  */
 public class FileParser {
-
-	protected final static int debugLevel = 0;   // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
-
 	private                 boolean dontPrintUnlessImportant = true;
     
     public          static final boolean allowSingleQuotes        = true; // If true, can use single quotes to wrap strings.
@@ -245,7 +242,6 @@ public class FileParser {
 	private static final String will_notPred_prefix  = "wiNOT_";
 
 	private              int maxWarnings  = 100; // This can be reset via 'setParameter maxWarnings = 10'
-	private              int warningCount =   0;
 
 	public final HandleFOPCstrings  stringHandler;
 	private StreamTokenizerJWS tokenizer;
@@ -255,7 +251,6 @@ public class FileParser {
 	private String             directoryName      = null;
 	private String             prefix             = null;
 	private String             fileName           = null;
-	private int                isaCounter         =    0; // Since there can be many of these, report progress.  Could inherit this from import's, but not that necessary (and then should really pass in the current counter as well).
 
 	private final boolean treatAND_OR_NOTasRegularNames = false; // If true, treat AND and OR as function or predicate names.  (Used for IL parsing, for example.)
 
@@ -311,6 +306,7 @@ public class FileParser {
 	public List<Literal> readLiteralsInFile(String fName, boolean readQuietly) {
 		return readLiteralsInFile(fName, readQuietly, false);
 	}
+
 	public List<Literal> readLiteralsInFile(String fNameRaw, boolean readQuietly, boolean okIfNoSuchFile) {
 		String fName = Utils.replaceWildCards(fNameRaw);
 		if (okIfNoSuchFile && !(new CondorFile(fName).exists())) { return null; }
@@ -368,7 +364,6 @@ public class FileParser {
 			Utils.error("Unable to successfully read this file: " + fName);
 		}
 		catch (Exception e) {
-			Utils.println("\nEncountered errors during parse:");
 			Utils.reportStackTrace(e);
 			Utils.error("Unable to successfully parse this file: " + fileName + ".\n  Have read " + Utils.comma(results) + " literals.\nNOTE THIS METHOD DOES NOT HANDLE PARSER INSTRUCTIONS!\nError message: " + e.getMessage());
 		}
@@ -385,7 +380,6 @@ public class FileParser {
 		else if (directoryName == null) {
 			directoryName = newDirectoryName;
 		} else if (!directoryName.equals(newDirectoryName)) {
-			if (!dontPrintUnlessImportant) { Utils.println(PARSER_VERBOSE_FILE_INCLUDES, "% Formerly current directory name was:\n%   " +  directoryName + "\n% but now it is being set to:\n%   " + newDirectoryName); }
 			directoryName = newDirectoryName;
 		}
 	}
@@ -413,7 +407,6 @@ public class FileParser {
 			Utils.error("Unable to successfully read this file:\n  " + fName + "\n Error message: " + e.getMessage());
 		}
 		catch (Exception e) {
-			Utils.println("\nEncountered errors during parse:");
 			Utils.reportStackTrace(e);
 			Utils.error("Unable to successfully parse this file: " + fileName + ".  Error message: " + e.getMessage());
 		}
@@ -438,16 +431,12 @@ public class FileParser {
                      		if (!f.exists()) {
                      			f =  new CondorFile(fileName + ".gz");
                      			if (!f.exists()) {
-                     				// The calling code should handle error.
-                     				Utils.println("Cannot find '" + fileName + "', even after considering several possible extensions.");
                      				throw new FileNotFoundException();
                      			}
                      			String newFileName = Utils.unzipFileIfNeeded(fileName + ".gz"); // TODO - can we do this without unzipping?
                      			if (newFileName != null) {
                      				f = new CondorFile(newFileName); // This should be same as fileName.
                      				if (!f.exists()) {
-                     					// The calling code should handle error.
-                     					Utils.println("Cannot find '" + fileName + "', even after considering several possible extensions.");
                      					throw new FileNotFoundException();
                      				}
                      			}
@@ -535,7 +524,6 @@ public class FileParser {
 		if (file == null && inStream == null) { return null; }
 
 		VarIndicator holdVarIndicator = stringHandler.getVariableIndicatorNoSideEffects(); // Be sure to pop back to current setting after reading.
-		if (!dontPrintUnlessImportant && file != null) { Utils.println(PARSER_VERBOSE_MODE_LOADING, "\n% Reading file '" + file + "'."); }
 		String fileNameForErrorReporting  = "stream";
         if ( file != null ) {
             fileNameForErrorReporting =file.getParent();
@@ -564,6 +552,8 @@ public class FileParser {
 				nextSentence = null;
 				// Use this very carefully!
 				// If true, will avoid copying sentences as recursive calls, due to imports, return.
+
+				// TODO(@hayesall): Which of these are actually listed?
 				switch (tokenRead) {
 					case StreamTokenizer.TT_WORD:
 						String currentWord = tokenizer.sval();
@@ -703,7 +693,9 @@ public class FileParser {
 					case ';':
 						break;
 					case StreamTokenizer.TT_EOL:    throw new ParsingException("Should not read EOL's here."); // EOL is in the "traditional" sense here (e.g., '\n').
-					default:                        if (tokenRead == '/') { Utils.println("If a file ends with '*/' add a space after the '/' to overcome an apparent bug with StringTokenizer's handling of comments."); }
+					default:                        if (tokenRead == '/') {
+						Utils.println("If a file ends with '*/' add a space after the '/' to overcome an apparent bug with StringTokenizer's handling of comments.");
+					}
 													throw new ParsingException("Read this *unexpected* character: '" + (char)tokenRead + "'."); // TODO - hit this once when the last character was the '/' in a closing quote (i.e., '*/').  Added a space afterwards and all worked fine.
 				}
 				if (nextSentence != null) {
@@ -716,19 +708,7 @@ public class FileParser {
 				stringHandler.resetAllVariables(); // Clear cache of variables, since old ones (if any) now out of scope.
 				tokenRead = tokenizer.nextToken();
 			}
-		}
-		catch (IOException e) {
-			Utils.println("\nEncountered I/O exception during parsing (line = " + tokenizer.lineno() + "): ");
-			Utils.reportStackTrace(e);
-			Utils.error("Unable to successfully parse this file: " + fileNameForErrorReporting + ".\nError message: " + e.getMessage());
-		}
-		catch (WILLthrownError e) {
-			Utils.println("\nEncountered WILL runtime error during parsing (line #" + tokenizer.lineno() + ") of file '" + fileNameForErrorReporting + "': ");
-			Utils.reportStackTrace(e);
-			Utils.error("Unable to successfully parse this file: " + fileNameForErrorReporting + ".\nError message: " + e.getMessage());
-		}
-		catch (Exception e) {
-			Utils.println("\nEncountered an exception during parsing (line #" + Utils.comma(tokenizer.lineno()) + ") of file '" + fileNameForErrorReporting + "': ");
+		} catch (Exception e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Unable to successfully parse this file: " + fileNameForErrorReporting + ".\nError message: " + e.getMessage());
 		}
@@ -739,8 +719,6 @@ public class FileParser {
 		} else {
 			Utils.warning(STRING_HANDLER_VARIABLE_INDICATOR, "% Since this is the first setting of the notation for variables, will keep:\n%   variableIndicator = " + stringHandler.getVariableIndicator(), 1);
 		}
-
-		if (file != null && !dontPrintUnlessImportant) { Utils.println("% DONE reading file '" + file + "'."); }
 
 		return listOfSentencesReadOrCreated;
 	}
@@ -798,16 +776,10 @@ public class FileParser {
 		String nextTokenAsString = tokenizer.reportCurrentToken();
 
 		if       (nextTokenAsString.equalsIgnoreCase("discontiguous")) {
-			Utils.println("%   Currently ':- " + nextTokenAsString + "' lines are ignored.");
-			//recordWarningAboutIgnored(nextTokenAsString);
 		}
 		else if (nextTokenAsString.equalsIgnoreCase("dynamic")) {
-			Utils.println("%   Currently ':- " + nextTokenAsString + "' lines are ignored.");
-			//recordWarningAboutIgnored(nextTokenAsString);
 		}
 		else if (nextTokenAsString.equalsIgnoreCase("multifile")) {
-			Utils.println("%   Currently ':- " + nextTokenAsString + "' lines are ignored.");
-			//recordWarningAboutIgnored(nextTokenAsString);
 		}
 		else {
 			Utils.warning("% Unknown ':- " + nextTokenAsString + "' command.");
@@ -1042,7 +1014,6 @@ public class FileParser {
 
 	private Sentence convertAccumulatorToFOPC(List<AllOfFOPC> accumulator) throws ParsingException {
 		if (accumulator == null || accumulator.isEmpty()) {  // OK to have the empty sentence.
-			if (warningCount < maxWarnings) { Utils.println("% PARSER WARNING #" + Utils.comma(++warningCount) + ": Read an empty sentence on line " + tokenizer.lineno() + "."); }
 			return null;
 		}
 		while (accumulator.size() > 1) {
@@ -1061,7 +1032,9 @@ public class FileParser {
 				}
 				counter++;
 			}
-			if (countOfLowestItem < 0) { Utils.error("Something went wrong when grouping the items in a complex FOPC sentence: " + accumulator); }
+			if (countOfLowestItem < 0) {
+				Utils.error("Something went wrong when grouping the items in a complex FOPC sentence: " + accumulator);
+			}
 			ConnectiveName  cName    = (ConnectiveName) accumulator.get(countOfLowestItem);
 			if (ConnectiveName.isaNOT(cName.name)) { // If 'NOT' or '~' is the connective, need to handle it specially as an in-fix operator.
 				Sentence rightArg = (Sentence)accumulator.get(countOfLowestItem + 1);
@@ -1608,7 +1581,7 @@ public class FileParser {
 
         RelevanceStrength strength = readRelevanceStrength();
         while (!atEOL()) { // Have some optional arguments since not yet at EOL.
-            currentWord = tokenizer.reportCurrentToken(); //Utils.println("%   processRelevantLiteral: currentWord = " + currentWord);
+            currentWord = tokenizer.reportCurrentToken();
             if (tokenRead == ',') {
 
             } // OK if there are some commas separating the items.
@@ -2045,7 +2018,7 @@ public class FileParser {
 			if (!commaTwo.equalsIgnoreCase(" ") || !peekEOL(true)) {
 				Literal warnLiteral = processLiteral(false);
 				if (warnLiteral != null && warnLiteral.predicateName == stringHandler.getPredicateName("warnIf") && warnLiteral.numberArgs() == 1) {
-					  // Utils.println("%   TODO   Process 'prune: " + prunableLiteral + commaOne + ifPresentLiteral + commaTwo + warnLiteral + "'.");
+					  // TODO(?):   Process 'prune: " + prunableLiteral + commaOne + ifPresentLiteral + commaTwo + warnLiteral + "'.");
 					  Term term = warnLiteral.getArgument(0);
 					  if (term instanceof NumericConstant) {
 						  int n = ((NumericConstant) term).value.intValue(); // Use the integer value regardless (enough thrown exceptions already ...).
@@ -2127,7 +2100,6 @@ public class FileParser {
 			return Double.parseDouble(setting);
 		} else if (tokenRead == '-')  { // Have a minus sign.
 			negate    = -1;
-			Utils.println("processNumber: have a '-'");
 			countOfBackupsNeeded++;
 			getNextToken();
 			if (atInfinity()) { return Double.NEGATIVE_INFINITY; }
@@ -2215,7 +2187,6 @@ public class FileParser {
 
 		boolean hold_cleanFunctionAndPredicateNames = stringHandler.cleanFunctionAndPredicateNames;
 		stringHandler.cleanFunctionAndPredicateNames = false;
-		Utils.println(PARSER_VERBOSE_LIBRARY_LOADING, "% LoadAllLibraries() called.  Currently loaded libraries: " + Utils.limitLengthOfPrintedList(loadedLibraries, 25));
 		List<Sentence> results = null;
 		for (String library : knownLibraries) if (!loadedLibraries.contains(library)) {
 			if (results == null) { results = new ArrayList<>(4); }
@@ -2232,12 +2203,12 @@ public class FileParser {
 	}
 
 	private final Set<String> loadedBasicModes = new HashSet<>(4);
+
 	public List<Sentence> loadAllBasicModes() throws ParsingException {
 		String[] knownBasicModes = { "modes_arithmeticInLogic", "modes_comparisonInLogic", "modes_differentInLogic", "modes_listsInLogic" };
 
 		boolean hold_cleanFunctionAndPredicateNames = stringHandler.cleanFunctionAndPredicateNames;
 		stringHandler.cleanFunctionAndPredicateNames = false;
-		Utils.println(PARSER_VERBOSE_MODE_LOADING, "% LoadAllModes() called.  Currently loaded modes: " + Utils.limitLengthOfPrintedList(loadedBasicModes, 25));
 		List<Sentence> results = null;
 		for (String library : knownBasicModes) if (!loadedBasicModes.contains(library)) {
 			if (results == null) { results = new ArrayList<>(4); }
@@ -2260,7 +2231,6 @@ public class FileParser {
 		URL libraryURL = getClass().getResource("/edu/wisc/cs/will/FOPC_MLN_ILP_Parser/" + libName + ".fopcLibrary");
 		if (libraryURL == null) { throw new ParsingException("Unknown library: " + libName); }
 		InputStream inStream  = new NamedInputStream(new BufferedInputStream(libraryURL.openStream()), libName + ".fopcLibrary");
-		if (!dontPrintUnlessImportant) { Utils.println(PARSER_VERBOSE_LIBRARY_LOADING, "% Reading library '" + libName + "'."); }
 		result = newParser.readFOPCstream(null, inStream);
 		inStream.close();
 		return result;
@@ -2285,9 +2255,7 @@ public class FileParser {
 					} else { newFileName += "." + tokenizer.sval(); }
 				}
 			}
-						
-			if (!dontPrintUnlessImportant) { Utils.println(PARSER_VERBOSE_FILE_INCLUDES, "% ProcessAnotherFile: directoryName = " + directoryName + "\n%   fileName = " + newFileName); }			
-			
+
 			if (newFileName.charAt(0) == '@') { newFileName = stringHandler.getParameterSetting(newFileName.substring(1)); }
 			newFileName = Utils.replaceWildCards(
 					       Objects.requireNonNull(newFileName).replace("IMPORT_VAR1", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar1)));
@@ -2299,10 +2267,8 @@ public class FileParser {
 			newFileName =  newFileName.replace("TASK",        Utils.removeAnyOuterQuotes(stringHandler.TASK));
 			
 			if (!isaLibraryFile && !newFileName.contains(".")) { newFileName += stringHandler.precompute_file_postfix; } //only add extension _after_ doing substitutions
-			
-			List<Sentence> results = loadThisFile(isaLibraryFile, newFileName, !complainIfFileDoesNotExist);
-			if (!dontPrintUnlessImportant && (directoryName != null || fileName != null)) { Utils.println(MessageType.PARSER_VERBOSE_FILE_INCLUDES,"\n% Returning to reading: dir = " + directoryName + ", file = " + fileName + "\n"); }
-			return results;
+
+			return loadThisFile(isaLibraryFile, newFileName, !complainIfFileDoesNotExist);
 		}
 		throw new ParsingException("Expecting the file name of a file to import, but read: '" + reportLastItemRead() + "'.");
 	}
@@ -2345,13 +2311,10 @@ public class FileParser {
 		newParser.dontPrintUnlessImportant = dontPrintUnlessImportant;
 		if (loadedLibraries != null) { newParser.loadedLibraries.addAll(loadedLibraries); } // Need to know what was already loaded.
         if ( isaLibraryFile ) {
-            if (Utils.isMessageTypeEnabled(PARSER_VERBOSE_LIBRARY_LOADING) || !stringHandler.haveLoadedThisFile(newFileName, false)) {
-            	if (!dontPrintUnlessImportant) { Utils.println("% Load library file '" + newFileName + "'."); }
-            }
-        }
-        else {
-            Utils.println(PARSER_VERBOSE_MODE_LOADING, "% Load '" + newFileName + "'.");
-        }
+			if (!Utils.isMessageTypeEnabled(PARSER_VERBOSE_LIBRARY_LOADING)) {
+				stringHandler.haveLoadedThisFile(newFileName, false);
+			}
+		}
 		List<Sentence> result;
 		if (isaLibraryFile) {
 			// Don't load a file more than once.
@@ -2364,7 +2327,6 @@ public class FileParser {
 			if (stringHandler.haveLoadedThisFile(file2load, true)) {
 				return null;
 			}
-			if (!dontPrintUnlessImportant) { Utils.println(PARSER_VERBOSE_FILE_INCLUDES, "% loadThisFile: directoryName = " + directoryName + ", newFileName = " + newFileName + ", file2load = " + file2load); }
 			result = newParser.readFOPCfile(file2load, okIfFileDoesntExist);
 		}
 		if (newParser.sentencesToPrecompute != null) {
@@ -2374,7 +2336,6 @@ public class FileParser {
 				if (Utils.getSizeSafely(sents) > 0) { 
 					sentencesToPrecompute[i].addAll(sents);
 					String newName = newParser.getFileNameForSentencesToPrecompute(i);
-					Utils.println("  loadThisFile: i=" + i + " newName=" + newName + " sents=" + sents);
 					if (newName == null) { Utils.waitHere(" newName = null"); }
 					setFileNameForSentencesToPrecompute(i, newName, Objects.requireNonNull(newName).startsWith("precomputed"));
 				}
@@ -2386,11 +2347,9 @@ public class FileParser {
 		}
 		if (Utils.getSizeSafely(newParser.loadedLibraries) > 0) {
 			if (loadedLibraries == null) { loadedLibraries = new HashSet<>(4 + newParser.loadedLibraries.size()); }
-			if (!dontPrintUnlessImportant) { Utils.println(PARSER_VERBOSE_LIBRARY_LOADING, "% Importing '" + newFileName + "' also loaded these libraries: " + newParser.loadedLibraries); }
 			loadedLibraries.addAll(newParser.loadedLibraries);
 		}
 
-		if (!dontPrintUnlessImportant) { Utils.println(PARSER_VERBOSE_MODE_LOADING, "% Have loaded '" + newFileName + "'."); }
 		return result;
 	}
 
@@ -2473,7 +2432,6 @@ public class FileParser {
 		Type parent = stringHandler.isaHandler.getIsaType(afterIsa);
 
 		stringHandler.isaHandler.addISA(child, parent);
-		if (++isaCounter % 10000 == 0) { Utils.println("%     Read ISA #" + Utils.comma(isaCounter) + ": " + beforeIsa + " isa " + afterIsa + "."); }
 	}
 
 	/*
@@ -2718,7 +2676,6 @@ public class FileParser {
 			getNextToken();
 		} // OK if there are some commas separating the items.
 		currentWord = tokenizer.reportCurrentToken();
-		if (!currentWord.equalsIgnoreCase("arg")) { Utils.println("Expecting to read: 'arg' but instead read '" + reportLastItemRead() + "'."); }
 		tokenRead    = getNextToken();
 		if (tokenRead != '=') { throw new ParsingException("Expecting to read '=' (after 'arg'), but instead read: '"  + reportLastItemRead() + "'."); }
 		int position = readInteger();
@@ -2772,7 +2729,6 @@ public class FileParser {
 
 	private void processFilter() throws ParsingException, IOException {
 		checkForPredicateNamesThatAreCharacters(getNextToken());
-		int           tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate   = stringHandler.getPredicateName(currentWord);
 		getNextToken();
@@ -2824,7 +2780,6 @@ public class FileParser {
 			getNextToken();
 		} // OK if there are some commas separating the items.
 		currentWord = tokenizer.reportCurrentToken();
-		if (!currentWord.equalsIgnoreCase("arg")) { Utils.println("Expecting to read: 'arg' but instead read '" + reportLastItemRead() + "'."); }
 		tokenRead    = getNextToken();
 		if (tokenRead != '=') { throw new ParsingException("Expecting to read '=' (after 'arg'), but instead read: '" + reportLastItemRead() + "'."); }
 		int position = readInteger();

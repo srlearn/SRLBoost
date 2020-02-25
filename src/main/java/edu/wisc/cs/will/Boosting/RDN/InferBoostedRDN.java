@@ -3,7 +3,6 @@ package edu.wisc.cs.will.Boosting.RDN;
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.MLN.MLNInference;
 import edu.wisc.cs.will.Boosting.Trees.ClauseBasedTree;
-import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Boosting.Utils.ThresholdSelector;
 import edu.wisc.cs.will.DataSetUtils.ComputeAUC;
@@ -279,9 +278,9 @@ public class InferBoostedRDN {
 		collectorBW.append("modelPrediction(model(").append(RunBoostedRDN.nameOfCurrentModel).append("), category(").append(category).append("), prob(").append(String.valueOf(prob)).append("), wgt(").append(String.valueOf(wgt)).append("), ").append(String.valueOf(example)).append(").\n").append("\n");
 	}
 
-	private String getTreeStatsFile(boolean getLocalFile) {
+	private String getTreeStatsFile() {
 		// Cut-pasted-and-edited from writeToCollectorFile.
-		String fileNamePrefix = "testSetResults/testSetInferenceResults" + cmdArgs.getExtraMarkerForFiles(true) + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker();
+		String fileNamePrefix = "testSetResults/testSetInferenceResults" + cmdArgs.getExtraMarkerForFiles(true);
 		String fileName       = Utils.replaceWildCards(cmdArgs.getResultsDirVal() + fileNamePrefix + "_RDNtreePathStats" + Utils.defaultFileExtensionWithPeriod);
 		Utils.ensureDirExists(fileName);
 		Utils.println("\n% getTreeStatsFile:\n%    " + fileName);
@@ -306,7 +305,7 @@ public class InferBoostedRDN {
 		String result   = Utils.replaceWildCards((getLocalFile ? "MYSCRATCHDIR"
                  											   : (modelDir != null ? modelDir : setup.getOuterLooper().getWorkingDirectory()))
                  								 + "bRDNs/" + (target == null || target.isEmpty() ? "" : target + "_") 
-                 								 + "query" + cmdArgs.getExtraMarkerForFiles(true) + BoostingUtils.getLabelForCurrentModel() + ".db");
+                 								 + "query" + cmdArgs.getExtraMarkerForFiles(true) + ".db");
 		Utils.ensureDirExists(result);
 		return result;
 	}
@@ -338,8 +337,7 @@ public class InferBoostedRDN {
 		String result =  Utils.replaceWildCards((getLocalFile ? "MYSCRATCHDIR"
 														      : (modelDir != null ? modelDir : setup.getOuterLooper().getWorkingDirectory()))
 												+ "bRDNs/" + (target == null || target.isEmpty() ? "" : target + "_") 
-												+ "results" + cmdArgs.getExtraMarkerForFiles(true) 
-												+ BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker()
+												+ "results" + cmdArgs.getExtraMarkerForFiles(true)
 												+ (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) + ".db");
 		Utils.ensureDirExists(result);
 		return result;
@@ -348,8 +346,7 @@ public class InferBoostedRDN {
 		String modelDir = cmdArgs.getResultsDirVal();
 		String result   = Utils.replaceWildCards((modelDir != null ? modelDir : setup.getOuterLooper().getWorkingDirectory())
 												+ "bRDNs/" + (target == null || target.isEmpty() ? "" : target + "_") 
-												+ "testsetStats" + cmdArgs.getExtraMarkerForFiles(true) 
-												+ BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker()
+												+ "testsetStats" + cmdArgs.getExtraMarkerForFiles(true)
 												+ (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) + ".txt");
 		Utils.ensureDirExists(result);
 		return result;
@@ -454,9 +451,7 @@ public class InferBoostedRDN {
 			}
 		}
 
-		String extraMarker = cmdArgs.getExtraMarkerForFiles(true)
-				+ BoostingUtils.getLabelForCurrentModel()
-				+ BoostingUtils.getLabelForResultsFileMarker();
+		String extraMarker = cmdArgs.getExtraMarkerForFiles(true);
 
 		// If models are written somewhere, then also write AUC's there
 		// (This allows us to avoid writing in a dir that only contains INPUT files)
@@ -492,9 +487,7 @@ public class InferBoostedRDN {
 
 	private void writeToCollectorFile(List<RegressionRDNExample> examples) {
 		String fileNamePrefix = "testSetResults/testSetInferenceResults"
-				+ cmdArgs.getExtraMarkerForFiles(true)
-				+ BoostingUtils.getLabelForCurrentModel()
-				+ BoostingUtils.getLabelForResultsFileMarker();
+				+ cmdArgs.getExtraMarkerForFiles(true);
 
 		String localPrefix = "MYSCRATCHDIR"
 				+ "bRDNs/"
@@ -508,7 +501,7 @@ public class InferBoostedRDN {
 			File           collectorFile = Utils.ensureDirExists(fileName);
 			BufferedWriter collectBuffer = new BufferedWriter(new CondorFileWriter(collectorFile)); // Clear the file if it already exists.
 			
-			Utils.println("\nwriteToCollectorFile: Writing out predictions on " + Utils.comma(examples) + " examples for '" + cmdArgs.getTargetPredVal() + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker()  + "'\n  " + fileName);
+			Utils.println("\nwriteToCollectorFile: Writing out predictions on " + Utils.comma(examples) + " examples for '" + cmdArgs.getTargetPredVal()  + "'\n  " + fileName);
 			if (collectorFile != null) { reportResultsToCollectorFile(collectBuffer, null, null, 0.0, null); }
 			for (RegressionRDNExample pex : examples) {
 				ProbDistribution prob    = pex.getProbOfExample();
@@ -566,7 +559,7 @@ public class InferBoostedRDN {
 	 * Should be called only for single-class examples
 	 */
 	private void printTreeStats(List<RegressionRDNExample> examples, String target) {
-		String treeStats = getTreeStatsFile(Utils.isRunningWindows());
+		String treeStats = getTreeStatsFile();
 		Map<String, Integer> idCounts = new HashMap<>();
 		Map<String, Double> idProbs = new HashMap<>();
 		long totalExamples = 0;
@@ -762,7 +755,6 @@ public class InferBoostedRDN {
 				+ "bRDNs/"
 				+ "predictions"
 				+ cmdArgs.getExtraMarkerForFiles(true)
-				+ BoostingUtils.getLabelForCurrentModel()
 				+ ".csv");
 
 		Utils.ensureDirExists(result);

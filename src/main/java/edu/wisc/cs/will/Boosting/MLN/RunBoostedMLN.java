@@ -72,7 +72,7 @@ public class RunBoostedMLN extends RunBoostedModels {
 					
 					
 					
-					int maxSamples = 30*((minTreesInModel/iterStepSize) + 1);
+					int maxSamples;
 					maxSamples = 500;
 					// TODO (tvk) Get more samples but pick the 200 most likely states.
 					if (cmdArgs.getHiddenStrategy().equals("MAP")) { 

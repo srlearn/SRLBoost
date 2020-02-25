@@ -2,7 +2,6 @@ package edu.wisc.cs.will.Boosting.OneClass;
 
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
-import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.DataSetUtils.ComputeAUC;
 import edu.wisc.cs.will.Utils.ProbDistribution;
@@ -130,7 +129,6 @@ class InferOCCModel {
 				negativeProbs.add(prob);
 			}
 		}
-		String extraMarker = cmdArgs.getExtraMarkerForFiles(true) + BoostingUtils.getLabelForCurrentModel() + BoostingUtils.getLabelForResultsFileMarker();
 		// If models are being written somewhere, then also write AUC's there (this allows us to avoid writing in a dir that only contains INPUT files) - hence, multiple runs can simultaneously use the same input dir, yet write to different output dirs.
 		String aucTempDirectory;
 
@@ -138,9 +136,8 @@ class InferOCCModel {
 		if (cmdArgs.getTargetPredVal().size() > 1) {
 			aucTempDirectory += target + "/";
 		}
-		extraMarker = "";
 		ComputeAUC.deleteAUCfilesAfterParsing = false;
 		double minRecallForAUCPR = 0;
-		return new ComputeAUC(positiveProbs, negativeProbs, aucTempDirectory, cmdArgs.getAucPathVal(), extraMarker, minRecallForAUCPR, cmdArgs.useLockFiles);
+		return new ComputeAUC(positiveProbs, negativeProbs, aucTempDirectory, cmdArgs.getAucPathVal(), "", minRecallForAUCPR, cmdArgs.useLockFiles);
 	}
 }
