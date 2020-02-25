@@ -515,12 +515,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return mEstimatePos;
 	}
 
-	void flipFlopPosAndNegExamples() {
-       throw new UnsupportedOperationException("This hasn't been tested since the checkpointing and cross validation code changed." +
-               "Please verify that it still works after removing this throw.  Note, some of this data now exists at the outerLoop" +
-               " level, so it might make sense to move this method there.");
-	}
-
 	// Some accessor functions.
 	public List<Example> getPosExamples() {
 		return posExamples;

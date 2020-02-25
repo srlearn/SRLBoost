@@ -31,7 +31,7 @@ class SavedClause implements Serializable {
 			Set<Example> uncoveredNeg = clause.getUptoKcoveredNegativeExamples(caller.reportUptoThisManyFalsePositives);
 			String ruleAsString;
 			if (((LearnOneClause) caller.getTaskBeingMonitored()).regressionTask && !((LearnOneClause) caller.getTaskBeingMonitored()).oneClassTask) {
-				ruleAsString = "\n " + clause.reportRegressionRuleAsString(false);
+				ruleAsString = "\n " + clause.reportRegressionRuleAsString();
 			} else {
 				ruleAsString = ("") + caller.handleInlinersIfPossible(clause.getClause()).toPrettyString("   ", Integer.MAX_VALUE) + ".";
 			}

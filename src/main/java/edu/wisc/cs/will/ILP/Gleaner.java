@@ -214,10 +214,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
         this.setStringHandler(fOPCInputStream.getStringHandler());
     }
 
-	void setFileNameProvider() {
-		// TODO(@hayesall): Empty method, remove.
-	}
-
 	void setILPouterLooper(ILPouterLoop ilpOuterLooper) {
 		this.ilpOuterLooper = ilpOuterLooper;
 	}

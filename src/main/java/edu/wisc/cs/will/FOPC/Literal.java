@@ -132,24 +132,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return this;
     }
 
-    private Term getArgumentByName(String name) {
-        if (argumentNames == null) {
-            Utils.error("Can not find '" + name + "' in " + null);
-            return null;
-        }
-        if (argumentNames.size() < 1) {
-            Utils.error("Can not find '" + name + "' in " + argumentNames);
-            return null;
-        }
-        for (int i = 0; i < numberArgs(); i++) {
-            if (argumentNames.get(i).equalsIgnoreCase(name)) {
-                return arguments.get(i);
-            }
-        }
-        Utils.error("Can not find '" + name + "' in " + argumentNames);
-        return null;
-    }
-
     public boolean isaBridgerLiteral() { // TODO need to check allCollector other vars are bound?
         return predicateName.isaBridgerLiteral(arguments);
     }

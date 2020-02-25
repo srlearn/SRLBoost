@@ -8,7 +8,6 @@ import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode.PredicateType;
 import edu.wisc.cs.will.Boosting.RDN.Models.GroundDependencyNetwork;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
-import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.PredicateName;

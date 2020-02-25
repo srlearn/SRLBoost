@@ -1319,8 +1319,6 @@ public final class WILLSetup {
 			Utils.reportStackTrace(e);
 			Utils.error("Encountered a problem: " + e);
 		}
-		
-		Gleaner gleaner = (Gleaner) getInnerLooper().searchMonitor;
 
 		// TODO(@hayesall): Do we need the Gleaner Files?
 		// getOuterLooper().writeGleanerFilesToDisk = true;

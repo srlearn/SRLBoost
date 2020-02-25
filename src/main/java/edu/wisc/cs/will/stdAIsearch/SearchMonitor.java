@@ -37,8 +37,6 @@ public class SearchMonitor implements Serializable {
 		setTaskBeingMonitored(task);
 	}
 
-	void recordNodeExpansion() {}
-
 	public boolean recordNodeBeingScored(SearchNode nodeBeingCreated, double score) throws SearchInterrupted {
 		// Return TRUE only if this node is acceptable as one that sets "best score seen so far."
 		return true;

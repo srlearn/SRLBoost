@@ -2,7 +2,6 @@ package edu.wisc.cs.will.Boosting.OneClass;
 
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
-import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.DataSetUtils.ComputeAUC;
 import edu.wisc.cs.will.Utils.ProbDistribution;

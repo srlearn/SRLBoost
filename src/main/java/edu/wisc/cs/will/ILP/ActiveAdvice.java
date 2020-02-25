@@ -79,9 +79,6 @@ public class ActiveAdvice {
             Sentence cnf = sentence.getConjunctiveNormalForm();  // This may still have AND connectives.
             Sentence compressedCNF = SentenceCompressor.getCompressedSentence(cnf);
 
-            // Determine the final output variables...
-            determineOutputVariables();
-
             compressedCNF.collectAllVariables();
 
             Example example = expandedRCI.example;
@@ -171,6 +168,7 @@ public class ActiveAdvice {
         body = Inliner.getInlinedSentence(body, ap.getContext());
         body = DuplicateDeterminateRemover.removeDuplicates(body);
 
+        // TODO(@hayesall): `ap.getContext()` is the only use for `getExpandedSentences()`
         List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body);
 
         if (expansions.size() == 1 && expansions.get(0).equals(body)) {
@@ -270,10 +268,6 @@ public class ActiveAdvice {
         clause2 = clause2.getStringHandler().getClause(Collections.singletonList(newHead2), clause2.getNegativeLiterals());
 
         return clause1.isEquivalentUptoVariableRenaming(clause2, new BindingList()) != null;
-    }
-
-    private void determineOutputVariables() {
-        // TODO(@hayesall): Empty method, remove.
     }
 
     @Override
@@ -401,14 +395,6 @@ public class ActiveAdvice {
     }
 
     public static class CNFClauseCollector extends DefaultFOPCVisitor<List<Clause>> {
-
-        List<Clause> getClauses(Sentence compressCNFSentence) {
-            List<Clause> list = new ArrayList<>();
-
-            compressCNFSentence.accept(this, list);
-
-            return list;
-        }
 
         @Override
         public Sentence visitClause(Clause clause, List<Clause> data) {

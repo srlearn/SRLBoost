@@ -590,7 +590,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         outputVariables.add(e);
     }
 
-    Set<Variable> getOutputVariables() {
+    private Set<Variable> getOutputVariables() {
         if (outputVariables == null) {
             return Collections.EMPTY_SET;
         }

@@ -423,13 +423,7 @@ public class ILPouterLoop {
 				foundUncoveredPosSeed = false;
 				if (numberPosSeedsToUse > 1 || numberNegSeedsToUse > 0) { foundUncoveredPosSeed = collectMultipleSeeds(); }
 
-				while (!foundUncoveredPosSeed && getPosSeedIndicesToUse() != null && getIndexIntoPosSeedArray() < getLengthPosSeedArray()) {
-						int index = getPosSeedIndicesToUse()[getIndexIntoPosSeedArray()]; // Increment the counter so that walking down this array.
-						setIndexIntoPosSeedArray(getIndexIntoPosSeedArray()+1);
-						foundUncoveredPosSeed = isaGoodPosSeed(index);
-				}
-
-				// Otherwise randomly select one positive seed be used.
+                // Otherwise randomly select one positive seed be used.
 				int tries = 0;
 				while (!foundUncoveredPosSeed && tries++ < 1000) { // 1000 might be low if a very large number of pos ex's, but if hard to find, grabbing seeds in numerical order (next step) should be fine.
 					int index = Utils.random0toNminus1(getNumberOfPosExamples());
@@ -1319,14 +1313,12 @@ public class ILPouterLoop {
         innerLoopTask.setGleaner(gleaner);
         
     	if ( gleaner == null ) { return; }
-    	gleaner.setFileNameProvider();
         gleaner.setILPouterLooper(this);	
       	if (oldGleaner != null) { gleaner.setUseStructuredOutput(oldGleaner.getUseStructuredOutput()); }
         // cth updated to make structured output flag (for visualizer) persistent, based on notes from Jude
         if (oldGleaner != null) { gleaner.setUseStructuredOutput(oldGleaner.getUseStructuredOutput()); }
 		// These two hold on to gleaners when we do flip-flops.  The gleaner is 'really' stored in LearnOneClause.
 		Gleaner gleanerFlipFlopped = new Gleaner();
-      	gleanerFlipFlopped.setFileNameProvider();
       	gleanerFlipFlopped.setILPouterLooper(this); 
       	gleanerFlipFlopped.setUseStructuredOutput(gleaner.getUseStructuredOutput());
     }
@@ -1458,12 +1450,7 @@ public class ILPouterLoop {
         return outerLoopState.getStdILPtheory();
     }
 
-	private int[] getPosSeedIndicesToUse() {
-	    // TODO(@hayesall): Method always returns null;
-	    return null;
-    }
-
-	private int getNumberOfPosExamplesCovered() {
+    private int getNumberOfPosExamplesCovered() {
         return outerLoopState.getNumberOfPosExamplesCovered();
     }
 
@@ -1487,15 +1474,7 @@ public class ILPouterLoop {
         return outerLoopState.getNumberOfCycles();
     }
 
-	private int getLengthPosSeedArray() {
-	    return 0;
-    }
-
-	private int getIndexIntoPosSeedArray() {
-        return outerLoopState.getIndexIntoPosSeedArray();
-    }
-
-	private double getFractionOfPosCovered() {
+    private double getFractionOfPosCovered() {
         return outerLoopState.getFractionOfPosCovered();
     }
 

@@ -51,20 +51,6 @@ public class Function extends Term implements LiteralOrFunction {
 		}
 	}
 
-	private Term getArgumentByName(String name) {
-		if (argumentNames == null)    {
-			Utils.error("Cannot find '" + name + "' in " + null + " of " + this);
-			return null; } 
-		if (argumentNames.size() < 1) {
-			Utils.error("Cannot find '" + name + "' in " + argumentNames);
-			return null; }
-		for (int i = 0; i < numberArgs(); i++) {
-			if (argumentNames.get(i).equalsIgnoreCase(name)) { return arguments.get(i); }
-		}
-		Utils.error("Cannot find '" + name + "' in " + argumentNames + " of " + this);
-		return null;
-	}
-	
 	public int numberArgs() {
 		if (cached_arity < 0) { setNumberArgs(); }
 		return cached_arity;

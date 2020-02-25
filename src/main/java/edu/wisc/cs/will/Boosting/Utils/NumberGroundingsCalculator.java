@@ -77,7 +77,7 @@ public class NumberGroundingsCalculator {
 			}
 		}
 		if (numberOfLiteralsUnifyingWithEx > 1 || numberOfLiteralsDependingOnEx > 0) {
-			return countAllGroundingsForTrueMinusFalse(clause,ex);
+			Utils.error("Can't find groundings for clause:" + clause + " and " + ex);
 		}
 		System.currentTimeMillis();
 		long val = countSingleLiteralInBody(clause, ex);
@@ -141,13 +141,6 @@ public class NumberGroundingsCalculator {
 		newClause.posLiterals = posLits;
 		newClause.negLiterals = negLits;
 		return true;
-	}
-
-	private long countAllGroundingsForTrueMinusFalse(Clause clause, Literal ex) {
-		// TODO(@hayesall): This method always returns 0, but raises an error that exits.
-		//		This should probably be dropped, or the signature should reflect the `void` exit.
-		Utils.error("Can't find groundings for clause:" + clause + " and " + ex);
-		return 0;
 	}
 
 	private boolean isLiteralDependentOnEg(Literal negLit, Literal ex) {

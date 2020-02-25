@@ -1038,11 +1038,11 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	void setStartingNodeForReset(SingleClauseNode startingNodeForReset) {
 		this.startingNodeForReset = startingNodeForReset;
 	}
-	String reportRegressionRuleAsString(boolean examplesFlipFlopped) {
+	String reportRegressionRuleAsString() {
 		StringBuilder result = new StringBuilder("FOR " + getClauseHead() + " ");
 		
 		List<Literal> bodyLits = getClauseBody();
-		if (Utils.getSizeSafely(bodyLits) < 1) { result.append("output = ").append(Utils.truncate(examplesFlipFlopped ? meanIfFalse() : meanIfTrue(), 6)); }
+		if (Utils.getSizeSafely(bodyLits) < 1) { result.append("output = ").append(Utils.truncate(false ? meanIfFalse() : meanIfTrue(), 6)); }
 		else {
 			boolean firstTime = true;
 			result.append("IF (");
@@ -1050,7 +1050,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				if (firstTime) { firstTime = false; } else { result.append(", "); }
 				result.append(lit);
 			}
-			result.append(") THEN output = ").append(Utils.truncate(examplesFlipFlopped ? meanIfFalse() : meanIfTrue(), 6)).append(" ELSE output = ").append(Utils.truncate(examplesFlipFlopped ? meanIfTrue() : meanIfFalse(), 6));
+			result.append(") THEN output = ").append(Utils.truncate(false ? meanIfFalse() : meanIfTrue(), 6)).append(" ELSE output = ").append(Utils.truncate(false ? meanIfTrue() : meanIfFalse(), 6));
 		}
 		return result + ";" + (extraString == null ? "" : " // " + extraString);
 	}
