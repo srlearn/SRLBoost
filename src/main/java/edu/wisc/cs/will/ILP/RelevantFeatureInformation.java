@@ -85,7 +85,7 @@ public class RelevantFeatureInformation implements RelevantInformation, Cloneabl
         return hash;
     }
 
-    public String toString(String prefix) {
+    private String toString(String prefix) {
         return prefix + example + " : " + getPredicateNameAndArity() + ", " + getRelevanceStrength();
     }
 

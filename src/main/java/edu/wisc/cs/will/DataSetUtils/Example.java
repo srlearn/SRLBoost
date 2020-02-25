@@ -170,7 +170,4 @@ public class Example extends Literal implements Serializable {
         return weight;
     }
 
-	public Term getAnnotationTerm() {
-		return annotationTerm;
-	}
 }

@@ -1324,16 +1324,13 @@ public final class WILLSetup {
 
 		// TODO(@hayesall): Do we need the Gleaner Files?
 		// getOuterLooper().writeGleanerFilesToDisk = true;
-		getOuterLooper().writeGleanerFilesToDisk = false;
 
 		getOuterLooper().setCheckpointEnabled(false);
 
 		// TODO(@hayesall): Drop `setDumpGleanerEveryNexpansions` method.
 		// getInnerLooper().setDumpGleanerEveryNexpansions(1000);
 
-		gleaner.reportingPeriod             =   1000;
-
-		getInnerLooper().maxSearchDepth     =  10000;
+        getInnerLooper().maxSearchDepth     =  10000;
 		getInnerLooper().verbosity          =      0;
 
 		getInnerLooper().maxNumberOfNewVars =      7;

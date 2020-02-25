@@ -74,7 +74,7 @@ import java.util.zip.GZIPOutputStream;
  *  to do: count resolutions in theorem proving and throw if some max-value exceeded?
  *         add bottom clause code?
  */
-public class ILPouterLoop implements GleanerFileNameProvider {
+public class ILPouterLoop {
 	private static final String systemName = "WILL"; // See comment above for explanation.
    
 	public final LearnOneClause innerLoopTask;  // LearnOnClause performs the inner loop of ILP.
@@ -115,9 +115,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     private boolean        learnMultiValPredicates             = false;
     private boolean 	   learnOCCTree						   = false;
     ///////////////////////////////////////////////////////////////////
-    
-	public  boolean        writeGleanerFilesToDisk       = false; // Write 'gleaner' files periodically.
-	private String         gleanerFileName               = null;  // Please don't use this directly.  Null indicates the use of a default value.
 
     private boolean        checkpointEnabled             = false; // Write 'gleaner' files periodically.
 
@@ -1322,14 +1319,14 @@ public class ILPouterLoop implements GleanerFileNameProvider {
         innerLoopTask.setGleaner(gleaner);
         
     	if ( gleaner == null ) { return; }
-    	gleaner.setFileNameProvider(this);
+    	gleaner.setFileNameProvider();
         gleaner.setILPouterLooper(this);	
       	if (oldGleaner != null) { gleaner.setUseStructuredOutput(oldGleaner.getUseStructuredOutput()); }
         // cth updated to make structured output flag (for visualizer) persistent, based on notes from Jude
         if (oldGleaner != null) { gleaner.setUseStructuredOutput(oldGleaner.getUseStructuredOutput()); }
 		// These two hold on to gleaners when we do flip-flops.  The gleaner is 'really' stored in LearnOneClause.
 		Gleaner gleanerFlipFlopped = new Gleaner();
-      	gleanerFlipFlopped.setFileNameProvider(this);
+      	gleanerFlipFlopped.setFileNameProvider();
       	gleanerFlipFlopped.setILPouterLooper(this); 
       	gleanerFlipFlopped.setUseStructuredOutput(gleaner.getUseStructuredOutput());
     }
@@ -1491,7 +1488,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     }
 
 	private int getLengthPosSeedArray() {
-        return outerLoopState.getLengthPosSeedArray();
+	    return 0;
     }
 
 	private int getIndexIntoPosSeedArray() {
@@ -1556,17 +1553,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 
     private String getPrefix() {
         return outerLoopState.getPrefix();
-    }
-
-    public String getGleanerFileName() {
-
-        if ( gleanerFileName == null ) {
-			String rrr = isRRR() ? "RRR" : ""; // "Std";
-
-			gleanerFileName = getWorkingDirectory() + "/" + getPrefix() + rrr + getFoldInfoString() + "_gleaner";
-		}
-		Utils.ensureDirExists(gleanerFileName);
-        return gleanerFileName;
     }
 
     /* Sets the PosExamples to use for the search.

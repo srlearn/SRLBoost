@@ -16,7 +16,7 @@ class SavedClause implements Serializable {
 	double F1;
 	double score;
 
-	SavedClause(Gleaner caller, SingleClauseNode clause, boolean examplesFlipFlopped, String annotation) {
+	SavedClause(Gleaner caller, SingleClauseNode clause) {
 		// Holds a string that will be printed when the clause is dumped.
 		// Annotation about what created this clause.
 
@@ -31,9 +31,9 @@ class SavedClause implements Serializable {
 			Set<Example> uncoveredNeg = clause.getUptoKcoveredNegativeExamples(caller.reportUptoThisManyFalsePositives);
 			String ruleAsString;
 			if (((LearnOneClause) caller.getTaskBeingMonitored()).regressionTask && !((LearnOneClause) caller.getTaskBeingMonitored()).oneClassTask) {
-				ruleAsString = "\n " + clause.reportRegressionRuleAsString(examplesFlipFlopped);
+				ruleAsString = "\n " + clause.reportRegressionRuleAsString(false);
 			} else {
-				ruleAsString = (examplesFlipFlopped ? "not_" : "") + caller.handleInlinersIfPossible(clause.getClause()).toPrettyString("   ", Integer.MAX_VALUE) + ".";
+				ruleAsString = ("") + caller.handleInlinersIfPossible(clause.getClause()).toPrettyString("   ", Integer.MAX_VALUE) + ".";
 			}
 		} catch (Exception e) {
 			Utils.reportStackTrace(e);

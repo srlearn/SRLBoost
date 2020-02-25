@@ -228,9 +228,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
     }
 
 	public void recordVariants(Literal lit1, Literal lit2, HandleFOPCstrings stringHandler) {
-		if (lit1  == null || lit2 == null) {
-			Utils.error("Should not pass in null's.");
-		}
+    	assert lit1 != null;
+    	assert lit2 != null;
 		if (variantHashMap == null) {
 			variantHashMap = new HashMap<>(4);
 		}
@@ -708,30 +707,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	@Override
 	public PredicateName applyTheta(Map<Variable, Term> bindings) {
 		return this;
-	}
-
-	// These are used when reporting info on usage for ILP search.
-	private int consideredCounter = 0; // TODO - do PER ARITY?
-	private int addedCounter      = 0;
-	public void incrementConsideredCounter() {		
-		consideredCounter++;
-	}
-
-	public void incrementAddedCounter() {
-		addedCounter++;
-	}
-
-	public int getConsideredCounts() {
-		return consideredCounter;
-	}
-
-	public int getAddedCounts() {
-		return addedCounter;
-	}
-
-	public void clearChildrenClausesCounters() {
-		consideredCounter = 0;
-		addedCounter      = 0;
 	}
 
 	@Override

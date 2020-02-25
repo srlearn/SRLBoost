@@ -276,27 +276,6 @@ public class ActiveAdvice {
         // TODO(@hayesall): Empty method, remove.
     }
 
-    /* Returns the variable, from a set of possible variables, that occurs last in a clause.
-     */
-    private Variable getLastOutputVariable(Clause clause, Set<Variable> possibleLastVariables) {
-
-        for (int i = clause.getPosLiteralCount() - 1; i >= 0; i--) {
-            Literal literal = clause.getPosLiteral(i);
-            for (int j = literal.getArity() - 1; j >= 0; j--) {
-                Term term = literal.getArgument(j);
-
-                if (term instanceof Variable) {
-                    Variable v = (Variable) term;
-                    if (possibleLastVariables.contains(v)) {
-                        return v;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

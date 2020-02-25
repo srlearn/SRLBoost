@@ -1252,6 +1252,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public StringConstant getStringConstant(TypeSpec spec, String name, boolean cleanString) {
 		return getStringConstant(spec, (doVariablesStartWithQuestionMarks() || !cleanString ? name : Utils.setFirstCharToRequestedCase(name, usingStdLogicNotation())), cleanString, true);
 	}
+
 	private StringConstant getStringConstant(TypeSpec spec, String nameRaw, boolean cleanString, boolean complainIfWrongCase) {
 
 		if (cleanString && !isaConstantType(nameRaw)) {

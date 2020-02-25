@@ -29,7 +29,7 @@ class NonOperationalExpander {
             results = Collections.singletonList(sentence);
         }
         else {
-            List<Clause> expansionCombinations = getNonOperationalCombinations(collectorData.literals, new ExpansionData2(context));
+            List<Clause> expansionCombinations = getNonOperationalCombinations(collectorData.literals, new ExpansionData2());
 
             results = new ArrayList<>();
 
@@ -147,14 +147,12 @@ class NonOperationalExpander {
 
     private static class ExpansionData2 {
 
-        HornClauseContext context;
-
         ExpansionData2 parent;
 
         MapOfSets<PredicateNameAndArity, ExistingExpansion> existingExpansionsMap;
 
-        ExpansionData2(HornClauseContext context) {
-            this.context = context;
+        ExpansionData2() {
+            // TODO(@hayesall): Empty constructor.
         }
 
         ExpansionData2(ExpansionData2 parent) {

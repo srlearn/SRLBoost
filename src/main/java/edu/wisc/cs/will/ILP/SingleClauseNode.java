@@ -451,7 +451,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	
 	boolean acceptableCoverageOnNegSeeds() throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
-		double negSeedWgtedCount = 0;
+		double negSeedWgtedCount;
 
 		if (theILPtask.totalWeightOnNegSeeds > 0 && theILPtask.seedNegExamples != null) {
 			negSeedWgtedCount = wgtedCountOfNegExamplesCovered(theILPtask.seedNegExamples);

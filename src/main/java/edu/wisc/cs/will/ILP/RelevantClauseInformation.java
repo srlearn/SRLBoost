@@ -324,7 +324,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return toString("");
     }
 
-    public String toString(String prefix) {
+    private String toString(String prefix) {
         BindingList bl;
         bl = new BindingList();
 

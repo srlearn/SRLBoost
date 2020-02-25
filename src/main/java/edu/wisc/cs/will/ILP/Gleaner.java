@@ -29,13 +29,11 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	private double           bestScore = Double.NEGATIVE_INFINITY;
 	SingleClauseNode bestNodeRegardless  = null;
 	double           bestScoreRegardless = Double.NEGATIVE_INFINITY;
-	public  int       reportingPeriod;  // Report statistics every this many node expansions.
 
 	private transient HandleFOPCstrings       stringHandler;
 	          private ILPouterLoop            ilpOuterLooper; // Trevor - I (JWS) didnt know if this should be transient.  TODO
-    transient private GleanerFileNameProvider fileNameProvider;
-    
-    final int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
+
+	final int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
     final int    reportUptoThisManyFalsePositives = 5;
 
 
@@ -51,10 +49,8 @@ public class Gleaner extends SearchMonitor implements Serializable {
 
 	public Gleaner() {
       resetAllMarkers();
-      this.fileNameProvider   = null;
-      this.setTaskBeingMonitored(null);
+		this.setTaskBeingMonitored(null);
 	  this.stringHandler      = null;
-	  this.reportingPeriod    = 5000; // TODO(@hayesall): `int reportingPeriod` was always 5000, inlining the parameter.
 	}
 	
 	public void setStringHandler(HandleFOPCstrings stringHandler) {
@@ -109,7 +105,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		}
 
 		// Add to current Gleaner and default Gleaner (if different), even if unacceptable (to do: separate thresholds for Gleaner and for the best overall?  Or too many parameters?).
-		SavedClause saver = new SavedClause(this, clause, false, null);
+		SavedClause saver = new SavedClause(this, clause);
 		addToGleaner(defaultGleaner, saver, true);
 		if (currentGleaner != defaultGleaner) { 
 			addToGleaner(currentGleaner, saver, false);
@@ -218,9 +214,9 @@ public class Gleaner extends SearchMonitor implements Serializable {
         this.setStringHandler(fOPCInputStream.getStringHandler());
     }
 
-	void setFileNameProvider(GleanerFileNameProvider fileNameProvider) {
-        this.fileNameProvider = fileNameProvider;
-    }
+	void setFileNameProvider() {
+		// TODO(@hayesall): Empty method, remove.
+	}
 
 	void setILPouterLooper(ILPouterLoop ilpOuterLooper) {
 		this.ilpOuterLooper = ilpOuterLooper;

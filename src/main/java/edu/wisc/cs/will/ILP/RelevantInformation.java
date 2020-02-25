@@ -14,8 +14,6 @@ public interface RelevantInformation {
 
     RelevantInformation getGeneralizeRelevantInformation();
 
-    String toString(String prefix);
-
     RelevantInformation copy();
 
     boolean isValidAdvice(AdviceProcessor ap);

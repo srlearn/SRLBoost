@@ -31,9 +31,6 @@ public class LazyGroundClauseIndex {
 
     private int indicesRemoved = 0;
 
-    // TODO(@hayesall): "Queried but never updated." `indexBuilds` might be factored out.
-    private Map<PredicateNameAndArity, Integer> indexBuilds;
-
     private final Map<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> definiteClausesAllArgsIndex = new LRUMap();
 
     /* Store clauses in which one or more of the args is not ground.
@@ -182,25 +179,11 @@ public class LazyGroundClauseIndex {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append("LazyGroundClauseIndex:\n");
-        stringBuilder.append("  maximumIndexSize  : ").append(maximumIndexSize).append(".\n");
-        stringBuilder.append("  currentIndexSize  : ").append(definiteClausesAllArgsIndex.size()).append(".\n");
-        stringBuilder.append("  indicesConstructed: ").append(indicesConstructed).append(".\n");
-        stringBuilder.append("  indicesRemoved    : ").append(indicesRemoved).append(".\n");
-
-        if (indexBuilds != null) {
-            int total = 0;
-            for (Map.Entry<PredicateNameAndArity, Integer> entry : indexBuilds.entrySet()) {
-                stringBuilder.append("IndexBuilt: ").append(entry.getKey()).append(", count = ").append(entry.getValue()).append(".\n");
-                total += entry.getValue();
-            }
-
-            stringBuilder.append("Average indexBuilds per predicate = ").append((double) total / indexBuilds.size()).append(".");
-        }
-
-        return stringBuilder.toString();
+        return "LazyGroundClauseIndex:\n" +
+                "  maximumIndexSize  : " + maximumIndexSize + ".\n" +
+                "  currentIndexSize  : " + definiteClausesAllArgsIndex.size() + ".\n" +
+                "  indicesConstructed: " + indicesConstructed + ".\n" +
+                "  indicesRemoved    : " + indicesRemoved + ".\n";
     }
 
     private Map<List<Term>, DefiniteClauseList> buildIndexForKey(PredicateNameAndArity key) {

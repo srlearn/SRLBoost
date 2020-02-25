@@ -33,7 +33,7 @@ public abstract class RegressionInfoHolder {
 		return weightedVarianceAtFailure() / totalExampleWeightAtFailure();
 	}
 	public abstract void addFailureExample(Example eg, long numGrndg, double weight);
-	public abstract double variance();
+
 	public abstract void populateExamples(LearnOneClause task, SingleClauseNode singleClauseNode) throws SearchInterrupted;
 
 	public BranchStats getTrueStats() {
