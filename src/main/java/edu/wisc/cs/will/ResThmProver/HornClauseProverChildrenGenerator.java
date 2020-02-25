@@ -473,7 +473,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                     Utils.error("Expected term of negation to be Function or SentenceAsTerm.");
                 }
 
-                assert negationContents != null;
                 if (negationContents.getNegLiteralCount() == 0) {
                     negationContents = stringHandler.getClause(negationContents.getNegativeLiterals(), negationContents.getPositiveLiterals());
                 }

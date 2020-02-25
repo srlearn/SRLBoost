@@ -34,18 +34,18 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         this(factbase, new DepthFirstSearch());
 	}
 	public HornClauseProver(HornClausebase factbase, boolean redoable) {
-        this(new DefaultHornClauseContext(factbase), new DepthFirstSearch(), null,redoable);
+        this(new DefaultHornClauseContext(factbase), new DepthFirstSearch(), redoable);
 	}
 	private HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy) {
-        this(new DefaultHornClauseContext(factbase), searchStrategy, null, false);
+        this(new DefaultHornClauseContext(factbase), searchStrategy, false);
     }
     public HornClauseProver(HornClauseContext context) {
         this(context, false);
     }
     public HornClauseProver(HornClauseContext context, boolean redoable) {        
-        this(context, new DepthFirstSearch(), null, redoable);
+        this(context, new DepthFirstSearch(), redoable);
     }
-    private HornClauseProver(HornClauseContext context, SearchStrategy searchStrategy, ScoringFunction scorer, boolean redoable) {
+    private HornClauseProver(HornClauseContext context, SearchStrategy searchStrategy, boolean redoable) {
         this.context = context;
         taskName = "HornClauseProver";
         this.redoable = redoable;
@@ -67,7 +67,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         
         verbosity = 0; // Change if debugging odd behavior.
 
-		initalizeStateBasedSearchTask(myInitializer, endTest, monitor, searchStrategy, scorer, hornClauseProverChildrenGenerator, null);
+		initalizeStateBasedSearchTask(myInitializer, endTest, monitor, searchStrategy, null, hornClauseProverChildrenGenerator, null);
 	}
 
 	private PredicateName getPredicateNameFromFirstNegatedLiteral(HornSearchNode node) {

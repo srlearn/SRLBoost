@@ -54,13 +54,10 @@ public class Variable extends Term {
 
     @Override
     public Variable copy(boolean recursiveCopy) {
-        return copy(recursiveCopy, false); // Other code usually deals with deciding if variables should be old or new (since in a copy, only want the FIRST occurrence in some FOPC sentence to be new).
-    }
-
-    private Variable copy(boolean recursiveCopy, boolean newVar) { // June 2010: JWS added the null below to skip the check for isaConstantType since we know this is a variable (but possibly some flag changed in between?).
+        // June 2010: JWS added the null below to skip the check for isaConstantType since we know this is a variable (but possibly some flag changed in between?).
         Variable copy = (isaGeneratedVariable()
-        					? stringHandler.getGeneratedVariable(typeSpec, getNameToUse(name), newVar)
-        					: stringHandler.getExternalVariable( typeSpec, getNameToUse(name), newVar)); // If we make a copy, use the correct name for the settings of what denotes a variable.
+        					? stringHandler.getGeneratedVariable(typeSpec, getNameToUse(name), false)
+        					: stringHandler.getExternalVariable( typeSpec, getNameToUse(name), false)); // If we make a copy, use the correct name for the settings of what denotes a variable.
         if (typeSpec != null) {
             copy.typeSpec = (recursiveCopy ? typeSpec.copy() : typeSpec);
         }

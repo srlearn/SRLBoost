@@ -234,7 +234,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		if (variantHashMap == null) {
 			variantHashMap = new HashMap<>(4);
 		}
-		assert lit1 != null;
 		int arity = lit1.numberArgs();
 		List<ConnectedSentence> lookup = variantHashMap.computeIfAbsent(arity, k -> new ArrayList<>(1));
 
@@ -262,7 +261,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			pruneHashMap = new HashMap<>();
 		}
 
-		assert prunableLiteral != null;
 		int arity = prunableLiteral.getArity();
 		MapOfLists<PredicateNameAndArity, Pruner> prunes = getPruners(arity);
 		if (prunes == null) {

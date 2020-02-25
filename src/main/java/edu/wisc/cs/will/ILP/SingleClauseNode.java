@@ -947,9 +947,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
     				failedEgs, depth);
     }
     
-	double regressionFit() {
-		return regressionFit(true);
-	}
+
 	double regressionFitForMLNs() {
 		LearnOneClause  theILPtask = (LearnOneClause) task;
 
@@ -995,16 +993,14 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		}
 		return result;
 	}
-	private double regressionFit(boolean computeWeightedAverage) { // This is the expected variance after this node is evaluated (divided by the wgt'ed number of examples if computeWeightedAverage=true).
-		LearnOneClause  theILPtask = (LearnOneClause) task;
 
+	double regressionFit() {
+		// This is the expected variance after this node is evaluated (divided by the wgt'ed number of examples).
+		LearnOneClause  theILPtask = (LearnOneClause) task;
 		if (getRegressionInfoHolder().totalExampleWeightAtSuccess() < theILPtask.getMinPosCoverage() ||
 			getRegressionInfoHolder().totalExampleWeightAtFailure() < theILPtask.getMinPosCoverage()) {
-			return Double.POSITIVE_INFINITY;  // Bad clauses get posCoverage=0 and we don't want to keep such clauses.  Remember we NEGATE the score, so a high score here is bad.
-		}
-
-		if (!computeWeightedAverage) {
-			return getRegressionInfoHolder().variance();
+			// Bad clauses get posCoverage=0 and we don't want to keep such clauses.  Remember we NEGATE the score, so a high score here is bad.
+			return Double.POSITIVE_INFINITY;
 		}
 		return getRegressionInfoHolder().weightedVarianceAtSuccess() + getRegressionInfoHolder().weightedVarianceAtFailure();
 	}

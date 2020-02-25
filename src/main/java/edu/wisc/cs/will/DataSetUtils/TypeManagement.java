@@ -98,7 +98,7 @@ public class TypeManagement {
                     // We now have to see if all modes for this parity and arity specify the same types for the arguments.
                     // If there is ambiguity then we cannot infer new typed constants since we don't know which mode matches the facts.
                     // (Aside: we could have fact p(dog1, dog2) but only a mode about humans [i.e., the p(dog1,dog2) should be ignored] and this code will infer dog1 and dog2 are humans.  Not clear how to avoid this short of requiring users to always give lists of constants, which is quite the burden.)
-                    help_collectImplicitTypeConstantsViaModeAndFactInspection(ambiguous, specs.getSignature(), predName, 0, firstTime, specs.getTypeSpecList(), argTypes);
+                    help_collectImplicitTypeConstantsViaModeAndFactInspection(ambiguous, specs.getSignature(), predName, firstTime, specs.getTypeSpecList(), argTypes);
                     firstTime = false; // The second (and subsequent) time around we need to see if the types are the same, e.g. may only differ in terms of +/-/# etc, which doesn't matter here.
                 }
                 if (ambiguous.size() < size) {
@@ -116,7 +116,7 @@ public class TypeManagement {
                                 if (fact.predicateName == predName.getPredicateName() && fact.getArity() == argSize) {
                                     countMatches++;
 
-                                    help_matchFactsAndModes(fact, fact.getArguments(), 0, ambiguous, argTypes, printStream, alreadyCheckedConstantHash);
+                                    help_matchFactsAndModes(fact, fact.getArguments(), ambiguous, argTypes, printStream, alreadyCheckedConstantHash);
                                 }
                             }
                         }
@@ -126,8 +126,9 @@ public class TypeManagement {
         }
     }
 
-    private void help_matchFactsAndModes(Literal fact, List<Term> args, int counter, Set<Integer> ambiguous, List<Type> argTypes, PrintStream printStream, Map<Term, Set<Type>> alreadyCheckedConstantHash) {
+    private void help_matchFactsAndModes(Literal fact, List<Term> args, Set<Integer> ambiguous, List<Type> argTypes, PrintStream printStream, Map<Term, Set<Type>> alreadyCheckedConstantHash) {
 
+        int counter = 0;
         if (args == null) {
             return;
         }
@@ -178,8 +179,9 @@ public class TypeManagement {
 
     }
 
-    private void help_collectImplicitTypeConstantsViaModeAndFactInspection(Set<Integer> ambiguous, List<Term> signature, PredicateNameAndArity predName, int counter, boolean firstTime,
+    private void help_collectImplicitTypeConstantsViaModeAndFactInspection(Set<Integer> ambiguous, List<Term> signature, PredicateNameAndArity predName, boolean firstTime,
                                                                            List<TypeSpec> typeSpecList, List<Type> argTypes) {
+        int counter = 0;
         if (signature == null) {
             Utils.error("Should not have signature = null for '" + predName + "'.");
         }

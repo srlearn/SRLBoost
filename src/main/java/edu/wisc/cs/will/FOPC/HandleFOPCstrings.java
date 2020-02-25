@@ -727,7 +727,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
                     Utils.error("Negated literal to have single argument of type Function or SentenceAsTerm.  Literal: " + negationByFailure + ".");
                 }
 
-				assert clause != null;
 				if ( clause.getPosLiteralCount() != 0 && clause.getNegLiteralCount() != 0 ) {
                     Utils.error("Negation-by-failure content clause contains both positive and negative literals!");
                 }
@@ -1136,15 +1135,16 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	}
 
 	public Term getVariableOrConstant(TypeSpec spec, String name) {
-		return getVariableOrConstant(spec, name, false); // The default is to NOT create new variables.
-	}
-	private Term getVariableOrConstant(TypeSpec spec, String name, boolean createNewVariable) {
-		if (isaConstantType(name)) { return getStringConstant(spec, name); } else { return getExternalVariable(spec, name, createNewVariable); }
+		if (isaConstantType(name)) {
+			return getStringConstant(spec, name);
+		}
+		return getExternalVariable(spec, name, false);
 	}
 
 	public Term getVariableOrConstant(String name) {
 		return getVariableOrConstant(name, false);
 	}
+
 	public Term getVariableOrConstant(String name, boolean createNewVariable) {
 		String typeIfNumber = isaNumericConstant(name);
 
@@ -1241,16 +1241,21 @@ public final class HandleFOPCstrings implements CallbackRegister {
     public StringConstant getStringConstant(String name, boolean cleanString) {
 		return getStringConstant(null, name, cleanString);
 	}
+
+
 	private StringConstant getStringConstant(TypeSpec spec, String name) {
 		// If false, will not clean and will always wrap in quote marks EVEN IF NO QUOTES ORIGINALLY.
 		return getStringConstant(spec, name, true);
 	}
+
+
 	public StringConstant getStringConstant(TypeSpec spec, String name, boolean cleanString) {
 		return getStringConstant(spec, (doVariablesStartWithQuestionMarks() || !cleanString ? name : Utils.setFirstCharToRequestedCase(name, usingStdLogicNotation())), cleanString, true);
 	}
 	private StringConstant getStringConstant(TypeSpec spec, String nameRaw, boolean cleanString, boolean complainIfWrongCase) {
+
 		if (cleanString && !isaConstantType(nameRaw)) {
-			if (complainIfWrongCase) { Utils.error("Since variableIndicator = " + variableIndicator  + ", '" + nameRaw + "' is not a constant."); }
+			Utils.error("Since variableIndicator = " + variableIndicator  + ", '" + nameRaw + "' is not a constant.");
 			// The caller can handler the error (e.g., the parser might want to report the line number).
 			return null;
 		}

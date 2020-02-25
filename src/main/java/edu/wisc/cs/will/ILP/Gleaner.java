@@ -37,37 +37,24 @@ public class Gleaner extends SearchMonitor implements Serializable {
     
     final int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
     final int    reportUptoThisManyFalsePositives = 5;
-	private final double reportFalseNegativesIfRecallAtLeastThisHigh    = 0.8;
-	private final double reportFalsePositivesIfPrecisionAtLeastThisHigh = 0.8;
-    
-	
+
+
 	private final String defaultMarker = "allPossibleMarkers";
-	private String       currentMarker; // The current marker 'name.'
+
+	// TODO(@hayesall): `List<String> markerList` is updated but never queried.
 	private List<String> markerList;    // A Gleaner is kept for each marker provided.  The user can use anything to label Gleaners.
 	private Map<String,Map<Integer,SavedClause>>        gleaners; // The first argument is the marker, the second is an integer marking the recall bin, and the inner Map contains the highest-scoring clause in that bin.
 	private Map<Integer,SavedClause>              currentGleaner;
 	private Map<Integer,SavedClause>              defaultGleaner;
 	private final double[] recallBinUpperBounds = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.01};  // Leave a little extra at the end (could be +inf, actually).
 	private boolean  addedAnItem = false; // Indicates that something is in some Gleaner and hence cannot change recallBinUpperBounds.
-	private long     nodeCounterAll         =    0;
-	private long     nodeCounterAcceptable  =    0;
-	private long     changedAtThisNode      =   -1;
-	private long     addsToGlobalGleaner    =    0;
-	private long     addsToCurrentGleaner   =    0;
-	private long     lastReported_addsToGlobalGleaner  = 0;
-	private long     lastReported_addsToCurrentGleaner = 0;
 
 	public Gleaner() {
-		this(5000);
-	}
-
-	private Gleaner(int reportingPeriod) {
       resetAllMarkers();
       this.fileNameProvider   = null;
       this.setTaskBeingMonitored(null);
 	  this.stringHandler      = null;
-	  this.reportingPeriod    = reportingPeriod; // Override the default.
-	  
+	  this.reportingPeriod    = 5000; // TODO(@hayesall): `int reportingPeriod` was always 5000, inlining the parameter.
 	}
 	
 	public void setStringHandler(HandleFOPCstrings stringHandler) {
@@ -80,13 +67,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		bestScore             = Double.NEGATIVE_INFINITY;
 		bestScoreRegardless   = Double.NEGATIVE_INFINITY;
 		bestNodeRegardless    = null;
-		nodeCounterAll        =  0;
-		nodeCounterAcceptable =  0;
-		changedAtThisNode     = -1;
-		addsToGlobalGleaner   =  0;
-		addsToCurrentGleaner  =  0;
-		lastReported_addsToGlobalGleaner  = 0;
-		lastReported_addsToCurrentGleaner = 0;
 	}
 		
 	// The general-purpose search code calls this when each node is scored.
@@ -101,11 +81,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 			bestNodeRegardless  = clause;
 		}
 
-		nodeCounterAll++;
-
-		// TODO(@hayesall): This is the only remaining call to `LearnOneClause.debugLevel`
-		if (LearnOneClause.debugLevel > 0 && nodeCounterAll % reportingPeriod == 0) { reportSearchStats(); }
-		
 		// Previously this was done when scoring a node timed out in computeCoverage(); we didn't want to report anything in such cases.
 		if (clause.timedOut) { // Incompletely scored nodes should be ignored.
 			return false;
@@ -134,21 +109,19 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		}
 
 		// Add to current Gleaner and default Gleaner (if different), even if unacceptable (to do: separate thresholds for Gleaner and for the best overall?  Or too many parameters?).
-		SavedClause saver = new SavedClause(this, clause, nodeCounterAll, nodeCounterAcceptable, 
-											(ilpOuterLooper != null && ilpOuterLooper.isFlipFlopPosAndNegExamples()),
-											(ilpOuterLooper == null ? null  : ilpOuterLooper.getAnnotationForCurrentRun()),
-											currentMarker);
+		SavedClause saver = new SavedClause(this, clause,
+				(ilpOuterLooper != null && ilpOuterLooper.isFlipFlopPosAndNegExamples()),
+											(ilpOuterLooper == null ? null  : ilpOuterLooper.getAnnotationForCurrentRun())
+		);
 		addToGleaner(defaultGleaner, saver, true);
 		if (currentGleaner != defaultGleaner) { 
 			addToGleaner(currentGleaner, saver, false);
 		}
 		
 		// Keep track of the best clause overall, assuming it meets the acceptability criteria.
-		nodeCounterAcceptable++;
 		if (score > bestScore) {
 			bestScore = score;
 			bestNode  = clause;
-			changedAtThisNode = nodeCounterAll;
 			Utils.println("% Gleaner: New best node found (score = " + Utils.truncate(score, 6) + "): " + nodeBeingCreated);
 		}
 
@@ -168,24 +141,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		return c;
 	}
 
-	// TODO(@hayesall): `reportSearchStats()` method can likely be removed.
-	private void reportSearchStats() {
-		Utils.print("% Gleaner has visited " + Utils.comma(nodeCounterAll) + " ILP clauses, of which " + Utils.comma(nodeCounterAcceptable) + " met the acceptability specs.");
-		if (addsToGlobalGleaner  > lastReported_addsToGlobalGleaner)  { 
-			Utils.print("\n%  Added " + addsToGlobalGleaner  + " clauses to the global gleaner." );
-			addsToGlobalGleaner  = lastReported_addsToGlobalGleaner;
-		}
-		if (addsToCurrentGleaner > lastReported_addsToCurrentGleaner) {
-			Utils.print("\n%  Added " + addsToCurrentGleaner + " clauses to the specific gleaner." );
-			addsToCurrentGleaner  = lastReported_addsToCurrentGleaner;
-		}
-		if (changedAtThisNode > 0) {
-			if (bestNode != null) { Utils.println("\n%  The best node, which scores " + Utils.truncate(bestScore, 3) + ", is:  [node #" + + changedAtThisNode + "]\n     " + bestNode); }
-			changedAtThisNode = -1;
-		}
-		else { Utils.println("  No change in best clause since last report."); }
-	}
-
 	void setCurrentMarker(String markerRaw) {
 		String marker = markerRaw;
 
@@ -200,10 +155,8 @@ public class Gleaner extends SearchMonitor implements Serializable {
 			currentGleaner = new HashMap<>(8);
 			gleaners.put(marker, currentGleaner);
 			markerList.add(marker);
-			addsToCurrentGleaner              = 0;
-			lastReported_addsToCurrentGleaner = 0;
 		}
-		currentMarker = marker;
+		// The current marker 'name.'
 	}
 	
 	private void resetAllMarkers() { // Be careful using this.  Might NOT want to clear between different "ILP outer loop" runs - instead, just use a new marker.
@@ -214,13 +167,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		setCurrentMarker(defaultMarker); // Create the default Gleaner.
 		defaultGleaner = currentGleaner; // Hold on to the default - we keep the best of all clauses per bin in here.
 		addedAnItem    = false;
-		nodeCounterAll         =    0;
-		nodeCounterAcceptable  =    0;
-		changedAtThisNode      =   -1;
-		addsToGlobalGleaner    =    0;
-		addsToCurrentGleaner   =    0;
-		lastReported_addsToGlobalGleaner  = 0;
-		lastReported_addsToCurrentGleaner = 0;
 	}
 
 	private void addToGleaner(Map<Integer, SavedClause> gleaner, SavedClause saver, boolean theGlobalGleaner) {
@@ -233,7 +179,9 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		SavedClause currentBestSaverInBin = gleaner.get(index);
 		
 		if (currentBestSaverInBin == null) { // Nothing there, so add.
-			if (theGlobalGleaner) { addsToGlobalGleaner++; } else { addsToCurrentGleaner++; }
+			if (theGlobalGleaner) {
+			} else {
+			}
 			gleaner.put(index, saver);
 		}
 		else {  // Otherwise, see if a new best has been found for this bin.
@@ -242,7 +190,9 @@ public class Gleaner extends SearchMonitor implements Serializable {
 			if (F1 > F1current) { // Update since better clause found.
 				gleaner.remove(currentBestSaverInBin);
 				gleaner.put(index, saver);
-				if (theGlobalGleaner) { addsToGlobalGleaner++; } else { addsToCurrentGleaner++; }
+				if (theGlobalGleaner) {
+				} else {
+				}
 			}
 		}
 		if (!addedAnItem) { addedAnItem = true; }

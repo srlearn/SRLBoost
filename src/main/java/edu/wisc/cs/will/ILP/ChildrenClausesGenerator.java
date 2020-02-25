@@ -142,8 +142,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				}
 
 				// If not set to a finite number for this predicate/arity, use the "global" default.
-				// TODO(?) should we take the MAX of these two max's?  i.e., should the global be a default or an overall max?
-				int maxToUse = (predMax != null || predMax == Integer.MAX_VALUE ? predMax : thisTask.maxPredOccurrences);
+				int maxToUse = predMax;
 
 				if (countOfOccurrences >= maxToUse) {
 					// Have already used this predicate/arity the maximum number of times.

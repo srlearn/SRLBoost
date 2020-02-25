@@ -708,10 +708,6 @@ public class FileParser {
 				stringHandler.resetAllVariables(); // Clear cache of variables, since old ones (if any) now out of scope.
 				tokenRead = tokenizer.nextToken();
 			}
-		}
-		catch (IOException | WILLthrownError e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Unable to successfully parse this file: " + fileNameForErrorReporting + ".\nError message: " + e.getMessage());
 		} catch (Exception e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Unable to successfully parse this file: " + fileNameForErrorReporting + ".\nError message: " + e.getMessage());
@@ -2271,9 +2267,8 @@ public class FileParser {
 			newFileName =  newFileName.replace("TASK",        Utils.removeAnyOuterQuotes(stringHandler.TASK));
 			
 			if (!isaLibraryFile && !newFileName.contains(".")) { newFileName += stringHandler.precompute_file_postfix; } //only add extension _after_ doing substitutions
-			
-			List<Sentence> results = loadThisFile(isaLibraryFile, newFileName, !complainIfFileDoesNotExist);
-			return results;
+
+			return loadThisFile(isaLibraryFile, newFileName, !complainIfFileDoesNotExist);
 		}
 		throw new ParsingException("Expecting the file name of a file to import, but read: '" + reportLastItemRead() + "'.");
 	}

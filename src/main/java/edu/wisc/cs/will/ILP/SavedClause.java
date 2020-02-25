@@ -12,37 +12,24 @@ import java.util.Set;
  *  An entry in a Gleaner.
  */
 class SavedClause implements Serializable {
-	final long nodeCountWhenSaved;
-	final long acceptableNodeCountWhenSaved;
-	final boolean examplesFlipFlopped;
-	final String annotation; // Holds a string that will be printed when the clause is dumped.
-	final String clauseCreator; // Annotation about what created this clause.
-	double posCoverage;
-	double negCoverage;
-	double precision;
 	double recall;
 	double F1;
 	double score;
-	Set<Example> uncoveredPos;
-	Set<Example> uncoveredNeg;
-	String ruleAsString;
-	
-	SavedClause(Gleaner caller, SingleClauseNode clause, long nodeCountWhenSaved, long acceptableNodeCountWhenSaved, boolean examplesFlipFlopped, String annotation, String clauseCreator) {
-		this.nodeCountWhenSaved           = nodeCountWhenSaved;
-		this.acceptableNodeCountWhenSaved = acceptableNodeCountWhenSaved;
-		this.examplesFlipFlopped          = examplesFlipFlopped;
-		this.annotation                   = annotation;
-		this.clauseCreator                = clauseCreator;
-		
+
+	SavedClause(Gleaner caller, SingleClauseNode clause, boolean examplesFlipFlopped, String annotation) {
+		// Holds a string that will be printed when the clause is dumped.
+		// Annotation about what created this clause.
+
 		try {
-			posCoverage = clause.getPosCoverage();
-			negCoverage = clause.negCoverage;
-			precision   = clause.precision();
+			double posCoverage = clause.getPosCoverage();
+			double negCoverage = clause.negCoverage;
+			double precision = clause.precision();
 			recall      = clause.recall();
 			F1          = clause.F(1);
 			score       = clause.score;
-			uncoveredPos = clause.getUptoKmissedPositiveExamples( caller.reportUptoThisManyFalseNegatives);
-			uncoveredNeg = clause.getUptoKcoveredNegativeExamples(caller.reportUptoThisManyFalsePositives);
+			Set<Example> uncoveredPos = clause.getUptoKmissedPositiveExamples(caller.reportUptoThisManyFalseNegatives);
+			Set<Example> uncoveredNeg = clause.getUptoKcoveredNegativeExamples(caller.reportUptoThisManyFalsePositives);
+			String ruleAsString;
 			if (((LearnOneClause) caller.getTaskBeingMonitored()).regressionTask && !((LearnOneClause) caller.getTaskBeingMonitored()).oneClassTask) {
 				ruleAsString = "\n " + clause.reportRegressionRuleAsString(examplesFlipFlopped);
 			} else {

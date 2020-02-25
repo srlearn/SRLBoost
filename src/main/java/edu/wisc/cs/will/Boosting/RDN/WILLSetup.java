@@ -910,7 +910,6 @@ public final class WILLSetup {
 			Utils.error("No specs for " + pName);
 		}
 		// Just take the first spec to get the number of arguments.
-		assert specs != null;
 		int numArgs = specs.get(0).getArity();
 		List<Term> args = new ArrayList<>();
 		for (int i = 0; i < numArgs; i++) {

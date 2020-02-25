@@ -479,7 +479,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		if (checkForInlinersAndSupportingClauses != null) {
 			List<Clause> doubleResults = checkForInlinersAndSupportingClauses.handleInlinerAndSupportingClauses(clause);
 			if (doubleResults == null) { Utils.error("Should not get a NULL here using: " + clause); }
-			assert doubleResults != null;
 			clauses.add(doubleResults.remove(0));
 			for (Clause sc : doubleResults) { addSupportingClause(sc); }
 		} else {

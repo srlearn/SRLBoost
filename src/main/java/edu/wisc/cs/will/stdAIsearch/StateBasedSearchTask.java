@@ -166,15 +166,12 @@ public class StateBasedSearchTask<T extends SearchNode> {
         this.childrenGenerator = childrenGenerator;
         this.closed            = closed;
 
-        assert initializer != null;
         initializer.setSearchTask(this);
         if (terminator != null) { terminator.setSearchTask(); } // It isn't required there be a terminator (eg, max nodes might terminate the search).
         searchMonitor.setSearchTask(this);
         strategy.setSearchTask(this);
         if (scorer != null) { scorer.setSearchTask(); } // It isn't required that there be a node-scorer.
 
-
-        assert childrenGenerator != null;
         childrenGenerator.setSearchTask(this);
 
 

@@ -68,7 +68,6 @@ public class StringConstant extends Constant implements Serializable {
 
     public String getName() {
     	String safeName = makeSureNameIsSafe(name);
-        if (safeName == null) { Utils.error("Have a StringConstant with an unbound name."); }
         assert safeName != null;
         if (safeName.isEmpty()) { return "\"\""; } // Need something here so the string can be 'seen' (e.g., parsed back in).
     	if (safeName.length() >  1 && safeName.charAt(0) == '"' && safeName.charAt(safeName.length() - 1) == '"') { return safeName; } // Already quoted.

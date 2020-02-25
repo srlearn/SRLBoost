@@ -43,10 +43,10 @@ public class PredicateSpec extends AllOfFOPC implements Serializable {
 	}
 
 	private List<Term> help_applyArgsToSignature(HandleFOPCstrings stringHandler, List<Term> sig, int counter, List<Term> args) {
-		if (args == null || sig == null) { Utils.error("Should not have args=null nor sig=null here."); }
-		assert sig != null;
-		List<Term> result = new ArrayList<>(sig.size());
 		assert args != null;
+		assert sig != null;
+
+		List<Term> result = new ArrayList<>(sig.size());
 		if (args.size() != sig.size()) { Utils.error("Have args = " + args + " but sig = " + sig); }
 		for (Term item : sig) {
 			if (item instanceof Constant) {

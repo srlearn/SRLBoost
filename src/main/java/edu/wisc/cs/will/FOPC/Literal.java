@@ -249,7 +249,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
                 if (arg == null) {
                     Utils.error("Has an arg=null: " + this);
                 }
-                newArguments.add(arg == null ? null : arg.applyTheta(theta));
+                newArguments.add(arg.applyTheta(theta));
             }
         }
         return getBareCopy(newArguments);

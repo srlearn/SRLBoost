@@ -619,14 +619,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         final Set<ElementPath> constantPositions;
 
         ConstantMarkerData() {
-            this(null);
-        }
-
-        ConstantMarkerData(Set<ElementPath> constantPositions) {
-            if (constantPositions == null) {
-                constantPositions = new HashSet<>();
-            }
-            this.constantPositions = constantPositions;
+            this.constantPositions = new HashSet<>();
         }
 
         void markCurrentPositionAsConstant() {
