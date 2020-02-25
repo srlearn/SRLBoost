@@ -109,10 +109,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		}
 
 		// Add to current Gleaner and default Gleaner (if different), even if unacceptable (to do: separate thresholds for Gleaner and for the best overall?  Or too many parameters?).
-		SavedClause saver = new SavedClause(this, clause,
-				(ilpOuterLooper != null && ilpOuterLooper.isFlipFlopPosAndNegExamples()),
-											(ilpOuterLooper == null ? null  : ilpOuterLooper.getAnnotationForCurrentRun())
-		);
+		SavedClause saver = new SavedClause(this, clause, false, null);
 		addToGleaner(defaultGleaner, saver, true);
 		if (currentGleaner != defaultGleaner) { 
 			addToGleaner(currentGleaner, saver, false);
@@ -147,7 +144,9 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		// Set to false to reduce the number of gleaners.
 		if (!markerRaw.equals(defaultMarker) && ilpOuterLooper != null) {
 			if (!marker.trim().equals("")) { marker += ", "; }
-			marker += ilpOuterLooper.getAnnotationForCurrentRun();
+
+			// TODO(@hayesall): After refactoring, the statement simplified to `marker += null`. This is likely wrong.
+			marker += null;
 		}
 		currentGleaner = gleaners.get(marker);
 		

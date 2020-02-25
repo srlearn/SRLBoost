@@ -118,7 +118,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     
 	public  boolean        writeGleanerFilesToDisk       = false; // Write 'gleaner' files periodically.
 	private String         gleanerFileName               = null;  // Please don't use this directly.  Null indicates the use of a default value.
-	private String         gleanerFileNameFlipFlopped    = null;  // Put the gleaner results for the flip-flopped case here.
 
     private boolean        checkpointEnabled             = false; // Write 'gleaner' files periodically.
 
@@ -175,11 +174,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		// TODO maybe we should send in the full outer loop instance (ie, this).
 
 		innerLoopTask = new LearnOneClause(workingDir, prefix, posExamplesReader, negExamplesReader, backgroundReader, factsReader, strategy, scorer, monitor, context, deferLoadingExamples);
-		
-		if (outerLoopState.isFlipFlopPosAndNegExamples()) {
-			Utils.writeMe("This needs to be debugged.");
-			innerLoopTask.flipFlopPosAndNegExamples();
-		}
 
         if (monitor instanceof Gleaner) {
             setGleaner((Gleaner) monitor);
@@ -384,13 +378,12 @@ public class ILPouterLoop implements GleanerFileNameProvider {
             long start;
             boolean foundUncoveredPosSeed;
             while (!stoppedBecauseNoMoreSeedsToTry && !stoppedBecauseTreeStructuredQueueEmpty &&
-					getNumberOfLearnedClauses() < maxNumberOfClauses &&
-					getNumberOfCycles() < maxNumberOfCycles &&
-					getFractionOfPosCovered() < minFractionOfPosCoveredToStop &&
-					getTotal_nodesConsidered() < max_total_nodesExpanded &&
-					getTotal_nodesCreated() < max_total_nodesCreated &&
-					getClockTimeUsedInMillisec() < getMaximumClockTimeInMillisec() &&
-					canStillMeetPrecisionRecallAccuracyF1specs()
+                    getNumberOfLearnedClauses() < maxNumberOfClauses &&
+                    getNumberOfCycles() < maxNumberOfCycles &&
+                    getFractionOfPosCovered() < minFractionOfPosCoveredToStop &&
+                    getTotal_nodesConsidered() < max_total_nodesExpanded &&
+                    getTotal_nodesCreated() < max_total_nodesCreated &&
+                    getClockTimeUsedInMillisec() < getMaximumClockTimeInMillisec()
                    ) {
 
                 start = System.currentTimeMillis();
@@ -800,8 +793,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 						setFractionOfNegCovered((double) getNumberOfNegExamplesCovered() / (double) getNumberOfNegExamples());
 						Utils.println("\n% On cycle #" + getNumberOfCycles()+ ", the best clause found is:");
 						Utils.println("%      " + bestNode);
-						Utils.println("% This clause covers " + coveredPosExamplesCount + " " + (isFlipFlopPosAndNegExamples() ? "flipped " : "") + "positive examples, of which " + newlyCoveredPosExamples + " are newly covered.");
-						Utils.println("% It also covers "	  + coveredNegExamplesCount + " " + (isFlipFlopPosAndNegExamples() ? "flipped " : "") + "negative examples, of which " + newlyCoveredNegExamples + " are newly covered.");
+						Utils.println("% This clause covers " + coveredPosExamplesCount + " positive examples, of which " + newlyCoveredPosExamples + " are newly covered.");
+						Utils.println("% It also covers "	  + coveredNegExamplesCount + " negative examples, of which " + newlyCoveredNegExamples + " are newly covered.");
 						if (!learningTreeStructuredTheory) {
 							Utils.println("% The current set of " + Utils.getSizeSafely(getStdILPtheory().getClauses()) + " best clauses covers "
 										  + Utils.truncate(100 * getFractionOfPosCovered(), 1) + "% of the positive examples and "
@@ -839,22 +832,23 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 			if (!innerLoopTask.regressionTask && getFractionOfPosCovered() >= minFractionOfPosCoveredToStop) {
 				Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have exceeded the minimal fraction ("
 								+ minFractionOfPosCoveredToStop	+ ") of positive examples to cover.");
-			} else if (!canStillMeetPrecisionRecallAccuracyF1specs()) {
-			} else if (stoppedBecauseTreeStructuredQueueEmpty) {
-				Utils.println(MessageType.ILP_INNERLOOP, "%  Have stopped ILP's outer loop because the tree-structured queue is empty.");
-			} else if (getNumberOfCycles() >= maxNumberOfCycles) {
-				Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have reached the maximum number of iterations (" + maxNumberOfCycles + ").");
-			} else if (getNumberOfLearnedClauses() >= maxNumberOfClauses) {
-				Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have reached the maximum number of learned clauses (" + maxNumberOfClauses + ").");
-			} else if (stoppedBecauseNoMoreSeedsToTry) {
-				Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have run out of seed positive examples to try.");
-			} else if (getTotal_nodesConsidered() >= max_total_nodesExpanded) {
-				Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have reached the maximum number of nodes to consider.");
-			} else if (getTotal_nodesCreated() >= max_total_nodesCreated) {
-				Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have reached the maximum number of nodes to created.");
-			} else if (getClockTimeUsedInMillisec() >=  getMaximumClockTimeInMillisec()) {
-				Utils.println(MessageType.ILP_INNERLOOP, "%  Have stopped ILP's outer loop because have reached the maximum clock time.");
-			}
+			} else {
+                if (stoppedBecauseTreeStructuredQueueEmpty) {
+                    Utils.println(MessageType.ILP_INNERLOOP, "%  Have stopped ILP's outer loop because the tree-structured queue is empty.");
+                } else if (getNumberOfCycles() >= maxNumberOfCycles) {
+                    Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have reached the maximum number of iterations (" + maxNumberOfCycles + ").");
+                } else if (getNumberOfLearnedClauses() >= maxNumberOfClauses) {
+                    Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have reached the maximum number of learned clauses (" + maxNumberOfClauses + ").");
+                } else if (stoppedBecauseNoMoreSeedsToTry) {
+                    Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have run out of seed positive examples to try.");
+                } else if (getTotal_nodesConsidered() >= max_total_nodesExpanded) {
+                    Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have reached the maximum number of nodes to consider.");
+                } else if (getTotal_nodesCreated() >= max_total_nodesCreated) {
+                    Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have reached the maximum number of nodes to created.");
+                } else if (getClockTimeUsedInMillisec() >=  getMaximumClockTimeInMillisec()) {
+                    Utils.println(MessageType.ILP_INNERLOOP, "%  Have stopped ILP's outer loop because have reached the maximum clock time.");
+                }
+            }
 			Utils.println(MessageType.ILP_INNERLOOP, "\n% ******************************************");
 
 			if (learningTreeStructuredTheory ) {
@@ -1359,7 +1353,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     }
 
     private void setupAdvice() {
-        if ( innerLoopTask.isRelevanceEnabled() && getActiveAdvice() == null) {
+
+        if (getActiveAdvice() == null) {
             createdActiveAdvice = innerLoopTask.getAdviceProcessor().processAdvice(innerLoopTask.getCurrentRelevanceStrength(), getPosExamples(), getNegExamples());
             setActiveAdvice(createdActiveAdvice);
         }
@@ -1466,7 +1461,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     }
 
 	private int[] getPosSeedIndicesToUse() {
-        return outerLoopState.getPosSeedIndicesToUse();
+	    // TODO(@hayesall): Method always returns null;
+	    return null;
     }
 
 	private int getNumberOfPosExamplesCovered() {
@@ -1520,11 +1516,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 	public void setOverallMinPosWeight(double wgt) {
         outerLoopState.setOverallMinPosWeight(wgt);
     }
-    
-    private boolean canStillMeetPrecisionRecallAccuracyF1specs() {
-        return true;
-    }
-    
+
     private void reportOuterLooperStatus() {
         Utils.println("\n% STARTING executeOuterLoop()");
         Utils.println("%  getNumberOfLearnedClauses() = " + getNumberOfLearnedClauses() + " vs " + Utils.comma(maxNumberOfClauses));
@@ -1544,10 +1536,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
     }
 
 	private String getCheckpointFileName() {
-
-        String flipFlop = isFlipFlopPosAndNegExamples() ? "_flipFlopped" : "";
         String rrr = isRRR() ? "RRR" : "Std";
-        return getWorkingDirectory() + "/" + getPrefix() + rrr + flipFlop + getFoldInfoString() + ".chkpt.gz";
+        return getWorkingDirectory() + "/" + getPrefix() + rrr + getFoldInfoString() + ".chkpt.gz";
 
     }
 
@@ -1557,14 +1547,6 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 
     private void setPrefix(String prefix) {
         outerLoopState.setPrefix(prefix);
-    }
-
-	boolean isFlipFlopPosAndNegExamples() {
-        return outerLoopState != null && outerLoopState.isFlipFlopPosAndNegExamples();
-    }
-
-    String getAnnotationForCurrentRun() {
-    	return null;
     }
 
     private boolean isRRR() {
@@ -1577,17 +1559,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 
     public String getGleanerFileName() {
 
-    	if (isFlipFlopPosAndNegExamples()) {
-    		if ( gleanerFileNameFlipFlopped == null ) {
-    			String rrr = isRRR() ? "RRR" : ""; // "Std";
-
-    			gleanerFileNameFlipFlopped = getWorkingDirectory() + "/" + getPrefix() + rrr + "_flipFlopped" + getFoldInfoString() + "_gleaner";
-    		}
-    		Utils.ensureDirExists(gleanerFileNameFlipFlopped);
-    		return gleanerFileNameFlipFlopped;
-        }
-
-    	if ( gleanerFileName == null ) {
+        if ( gleanerFileName == null ) {
 			String rrr = isRRR() ? "RRR" : ""; // "Std";
 
 			gleanerFileName = getWorkingDirectory() + "/" + getPrefix() + rrr + getFoldInfoString() + "_gleaner";

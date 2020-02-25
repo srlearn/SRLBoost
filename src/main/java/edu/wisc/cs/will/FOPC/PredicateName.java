@@ -544,11 +544,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		else if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate temporary of " + name + "/" + arity + ".  Will ignore."); }		
 	}
 
-	List<String> getNamedArgOrdering() {
-		// TODO(@hayesall): This always returns a null List<String>
-		return null;
-	}
-	
 	public void addInliner(int arity) {
 		if (inlineSpec == null) {
 			inlineSpec = new HashSet<>(4);

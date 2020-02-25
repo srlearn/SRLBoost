@@ -574,8 +574,11 @@ public class LearnOneClause extends StateBasedSearchTask {
             targetModes = new ArrayList<>(1);
             bodyModes   = new LinkedHashSet<>(Utils.getSizeSafely(stringHandler.getKnownModes()) - 1);
             for (PredicateNameAndArity pName : stringHandler.getKnownModes()) {
-                if (examplePredicates != null && examplePredicates.contains(pName)) { targetModes.add(pName); }
-                else if (!bodyModes.contains(pName) && acceptableMode())       { bodyModes.add(  pName); } // Note: we are not allowing recursion here since P is either a head or a body predicate.
+				// Note: we are not allowing recursion here since P is either a head or a body predicate.
+				if (examplePredicates != null && examplePredicates.contains(pName)) {
+                	targetModes.add(pName);
+                }
+                else bodyModes.add(pName);
             }
 
         ProcedurallyDefinedPredicateHandler procHandler   = new ILPprocedurallyDefinedPredicateHandler(this);
@@ -871,13 +874,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         }
     }
 
-	private boolean acceptableMode() {
-		// Added (11/11/10) by JWS.  When learning TREE-structured theories and only considering ONE literal at a node, no need to consider P and not_P since the branches involve both cases.
-		// TODO(@hayesall): method always returns true.
-		return true;
-	}
-
-    public void addBodyMode(PredicateNameAndArity pName) {
+	public void addBodyMode(PredicateNameAndArity pName) {
         bodyModes.add(pName);
         stringHandler.addKnownMode(pName);
     }
@@ -899,16 +896,12 @@ public class LearnOneClause extends StateBasedSearchTask {
         if ( action == ILPSearchAction.PERFORM_LOOP ) {
 
             ActiveAdvice createdActiveAdvice = null;
-            if (!isRelevanceEnabled()) {
-                if ( getActiveAdvice() != null ) adviceProcessor.retractRelevanceAdvice();
-            }
-            else {
-                if ( getActiveAdvice() != null ) {
-                    createdActiveAdvice = adviceProcessor.processAdvice(currentRelevanceStrength, posExamples, negExamples);
-                }
-            }
 
-            // Limit number of reports.
+			if ( getActiveAdvice() != null ) {
+				createdActiveAdvice = adviceProcessor.processAdvice(currentRelevanceStrength, posExamples, negExamples);
+			}
+
+			// Limit number of reports.
             if (++countOfSearchesPerformedWithCurrentModes < 2) { Utils.print(getSearchParametersString()); }
 			result = super.performSearch();
 
@@ -1358,6 +1351,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private int warningCountAboutExamples = 0;
 
 	public boolean confirmExample(Literal lit) {
+		// TODO(@hayesall): This method always returns `true`, but also prints warnings.
+		//		The `VARIABLEs in examples` warning could be good to have, but might be better treated as an error.
+
 		int litSize = lit.numberArgs();
         PredicateNameAndArity pnaa = lit.getPredicateNameAndArity();
 
@@ -1868,19 +1864,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return inlineHandler;
 	}
 
-    private boolean isOptimizeClauses() {
-		// TODO(@hayesall): Replace method calls with return value (true).
-		return true;
-    }
-
 	List<List<Literal>> getOptimizedClauseBodies(Literal target, List<Literal> clauseBody) {
-        if ( isOptimizeClauses() ) {
-            return stringHandler.getClauseOptimizer().bodyToBodies(target, clauseBody);
-        }
-        else {
-            return Collections.singletonList(clauseBody);
-        }
-    }
+		return stringHandler.getClauseOptimizer().bodyToBodies(target, clauseBody);
+	}
 
     public HornClauseContext getContext() {
         return context;
@@ -1901,11 +1887,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	void  setIsaTreeStructuredTask(boolean value) {
 		isaTreeStructuredTask = value;
 	}
-
-	boolean isRelevanceEnabled() {
-		// When null or false, relevance is disabled.
-		return true;
-    }
 
 	AdviceProcessor getAdviceProcessor() {
         return adviceProcessor;

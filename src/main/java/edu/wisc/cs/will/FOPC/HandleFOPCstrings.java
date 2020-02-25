@@ -1744,11 +1744,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
         this.inventedPredicateNameSuffix = inventedPredicateNameSuffix;
     }
 
-	UserDefinedLiteral getUserDefinedLiteral() {
-		// TODO(@hayesall): `getUserDefinedLiteral` always returns null;
-		return null;
-	}
-
 	public boolean haveLoadedThisFile(String fileName, boolean recordLoaded) {
 		if (filesLoaded.contains(fileName)) { return true; }
 		if (recordLoaded) { filesLoaded.add(fileName); }
@@ -1765,10 +1760,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	boolean usingStrictEqualsForFunctions() {
 		return useStrictEqualsForFunctions;
 	}
-	boolean usingStrictEqualsForClauses() {
-		// If 'true,' only say clauses  are equal if they are '=='.
-		return false;
-	}
+
 	public void setUseStrictEqualsForLiterals(boolean value) {
 		useStrictEqualsForLiterals = value;
 	}

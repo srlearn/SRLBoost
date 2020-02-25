@@ -29,10 +29,6 @@ public class FunctionName extends AllOfFOPC {
 		extensionalSemantics.put(inputs,output);
 	}
 
-	List<String> getNamedArgOrdering() {
-		return null;
-	}
-
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		return name;
 	}

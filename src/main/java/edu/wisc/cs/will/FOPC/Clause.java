@@ -398,8 +398,7 @@ public class Clause extends Sentence implements DefiniteClause {
     @Override
 	public boolean equals(Object other) { // TODO doesn't deal with permutations in the literals.  Not sure doing so is necessary; other code deals with canonical forms.
 		if (this == other) { return true; }
-		if (stringHandler.usingStrictEqualsForClauses()) { return false; }
-		if (!(other instanceof Clause)) { return false; }
+        if (!(other instanceof Clause)) { return false; }
 		Clause otherAsClause = (Clause) other;
 		
 		if (posLiterals != null) {

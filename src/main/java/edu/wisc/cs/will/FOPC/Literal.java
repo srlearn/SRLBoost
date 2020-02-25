@@ -111,22 +111,13 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
     public Literal clearArgumentNamesInPlace() {
+        // TODO(@hayesall): Multiple `null` checks, this method might be simplified.
         if (numberArgs() < 1) {
             return this;
         }
         if (argumentNames != null) {
-            List<String> argOrdering = predicateName.getNamedArgOrdering();
-
             if (argumentNames.get(0).equalsIgnoreCase("name")) {
                 removeArgument(arguments.get(0), argumentNames.get(0));
-            }
-
-            if (argOrdering != null) {
-                List<Term> newArgs = new ArrayList<>(numberArgs());
-                for (String argName : argOrdering) {
-                    newArgs.add(getArgumentByName(argName));
-                }
-                arguments = newArgs;
             }
         }
         argumentNames = null;

@@ -196,10 +196,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
         this.numberOfPosExamplesCovered = numberOfPosExamplesCovered;
     }
 
-    int[] getPosSeedIndicesToUse() {
-        return null;
-    }
-
     Theory getStdILPtheory() {
         return stdILPtheory;
     }
@@ -266,11 +262,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
 
     void setRRR(boolean useRRR) {
         this.RRR = useRRR;
-    }
-
-    boolean isFlipFlopPosAndNegExamples() {
-        // BUGGY? Can be used to flip-flop the positive and negative examples before training.
-        return false;
     }
 
     Set<Example> getNegExamplesUsedAsSeeds() {

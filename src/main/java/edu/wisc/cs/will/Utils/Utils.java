@@ -152,9 +152,7 @@ public class Utils {
     /* The random instance for all the random utility functions. */
     private static final Random randomInstance = new Random(112957);
 
-    private static final Map<String,Integer> warningCounts = new HashMap<>();
-
-	private static BufferedReader inBufferedReader;
+    private static BufferedReader inBufferedReader;
 
 	private static final int maxStringLength = 25000;
 
