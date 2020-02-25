@@ -37,9 +37,7 @@ public class ActiveAdvice {
 
     void addAdviceClause(AdviceProcessor ap, String name, RelevantClauseInformation rci, List<Clause> clauses) throws IllegalArgumentException {
 
-        if (ap.isInliningEnabled()) {
-            rci = rci.getInlined(ap.getContext());
-        }
+        rci = rci.getInlined(ap.getContext());
 
         // When removing double negation by failures
         // and removing duplicate determinates, we have to iteration
@@ -47,13 +45,9 @@ public class ActiveAdvice {
         // in additional simplications by the other visitor.
         while (true) {
             RelevantClauseInformation start = rci;
-            if (ap.isRemoveDoubleNegationEnabled()) {
-                rci = rci.removeDoubleNegations();
-            }
+            rci = rci.removeDoubleNegations();
 
-            if (ap.isRemoveDuplicateDeterminatesEnabled()) {
-                rci = rci.removeDuplicateDeterminates();
-            }
+            rci = rci.removeDuplicateDeterminates();
 
             rci = rci.applyPruningRules(ap);
 
@@ -86,7 +80,7 @@ public class ActiveAdvice {
             Sentence compressedCNF = SentenceCompressor.getCompressedSentence(cnf);
 
             // Determine the final output variables...
-            determineOutputVariables(ap, rci, compressedCNF);
+            determineOutputVariables();
 
             compressedCNF.collectAllVariables();
 
@@ -174,13 +168,8 @@ public class ActiveAdvice {
         Sentence body = implication.getSentenceA();
         Literal head = ((DefiniteClause) implication.getSentenceB()).getDefiniteClauseHead();
 
-
-        if (ap.isInliningEnabled()) {
-            body = Inliner.getInlinedSentence(body, ap.getContext());
-        }
-        if (ap.isRemoveDuplicateDeterminatesEnabled()) {
-            body = DuplicateDeterminateRemover.removeDuplicates(body);
-        }
+        body = Inliner.getInlinedSentence(body, ap.getContext());
+        body = DuplicateDeterminateRemover.removeDuplicates(body);
 
         List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body);
 
@@ -283,35 +272,8 @@ public class ActiveAdvice {
         return clause1.isEquivalentUptoVariableRenaming(clause2, new BindingList()) != null;
     }
 
-    private void determineOutputVariables(AdviceProcessor ap, RelevantClauseInformation rci, Sentence cnf) {
-
-        Variable outputVariable = null;
-
-        if (ap.isOutputArgumentsEnabled()) {
-            List<Clause> separatedClauses = CLAUSE_COLLECTOR.getClauses(cnf);
-
-            Set<Variable> allPossibleOutputVariables = rci.getOutputVariables();
-
-            for (Clause clause : separatedClauses) {
-                Variable last = getLastOutputVariable(clause, allPossibleOutputVariables);
-                if (last != null) {
-                    if (outputVariable == null) {
-                        outputVariable = last;
-                    }
-                    else if (!last.equals(outputVariable)) {
-                        outputVariable = null;
-                        Utils.println("% [AdviceProcessor] Unable to match last output variables in OR-ed clause.");
-                        break;
-                    }
-                }
-            }
-
-            if (outputVariable != null) {
-                rci.getExample().collectAllVariables();
-            }
-            // If the output variable is already in the example head, just ignore it
-            // since it will be added naturally anyway.
-        }
+    private void determineOutputVariables() {
+        // TODO(@hayesall): Empty method, remove.
     }
 
     /* Returns the variable, from a set of possible variables, that occurs last in a clause.

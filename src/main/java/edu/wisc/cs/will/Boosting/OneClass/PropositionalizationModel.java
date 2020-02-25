@@ -180,7 +180,7 @@ class PropositionalizationModel {
 	private String getTreeFilename(String modelFile, String prefix, int i) {
 		int lastPos = modelFile.lastIndexOf('/');
 		String path = modelFile.substring(0, lastPos + 1); 
-		path += "Trees/" + prefix + BoostingUtils.getLabelForCurrentModel() + "Tree" + i +  ".tree";
+		path += "Trees/" + prefix + "Tree" + i +  ".tree";
 		Utils.ensureDirExists(path);
 		return path;
 	}

@@ -22,13 +22,6 @@ public abstract class RegressionInfoHolder {
 	
 	public abstract double meanAtSuccess();
 	public abstract double meanAtFailure();
-	
-	public double[] meanVectorAtSuccess() {
-		return null;
-	}
-	public double[] meanVectorAtFailure() {
-		return null;
-	}
 
 	public abstract RegressionInfoHolder addFailureStats(RegressionInfoHolder addThis);
 	

@@ -343,7 +343,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 	private String getTreeFilename(String modelFile, String prefix, int i, int modelNumber) {
 		int lastPos = modelFile.lastIndexOf('/');
 		String path = modelFile.substring(0, lastPos + 1); 
-		path += "Trees/" + prefix + BoostingUtils.getLabelForCurrentModel() + "Tree" + i + BoostingUtils.getLabelForModelNumber(modelNumber) + ".tree";
+		path += "Trees/" + prefix + "Tree" + i + BoostingUtils.getLabelForModelNumber(modelNumber) + ".tree";
 		Utils.ensureDirExists(path);
 		return path;
 	}

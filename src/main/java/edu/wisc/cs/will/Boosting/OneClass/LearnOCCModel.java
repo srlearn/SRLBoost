@@ -203,7 +203,7 @@ class LearnOCCModel {
 	}
 	
 	private static String getWILLFile(String dir, String postfix, String predicate) {
-		String filename = dir + "/WILLtheories/" + predicate + "_learnedFeatureTrees" + BoostingUtils.getLabelForCurrentModel();
+		String filename = dir + "/WILLtheories/" + predicate + "_learnedFeatureTrees";
 		if (postfix != null) {
 			filename += "_" + postfix;
 		}
@@ -242,7 +242,7 @@ class LearnOCCModel {
 		if (i >= 0) {
 			// 	Model directory is set to the working directory as the default value.
 			if (th instanceof TreeStructuredTheory) {
-				String tree_dotfile = cmdArgs.getModelDirVal() + "bRDNs/dotFiles/WILLTreeFor_" + targetPredicate + i + BoostingUtils.getLabelForCurrentModel() + ".dot";
+				String tree_dotfile = cmdArgs.getModelDirVal() + "bRDNs/dotFiles/WILLTreeFor_" + targetPredicate + i + ".dot";
 				Utils.ensureDirExists(tree_dotfile);
 				((TreeStructuredTheory)th).writeDOTFile(tree_dotfile);
 			}

@@ -144,6 +144,8 @@ public class NumberGroundingsCalculator {
 	}
 
 	private long countAllGroundingsForTrueMinusFalse(Clause clause, Literal ex) {
+		// TODO(@hayesall): This method always returns 0, but raises an error that exits.
+		//		This should probably be dropped, or the signature should reflect the `void` exit.
 		Utils.error("Can't find groundings for clause:" + clause + " and " + ex);
 		return 0;
 	}

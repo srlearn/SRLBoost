@@ -824,7 +824,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	
 	private boolean allRequiredHeadArgsAppearInBody(LearnOneClause thisTask) {
 		SingleClauseRootNode root = getRootNode();
-		if (root.targetArgSpecs == null) { Utils.error("Need mapFromTermToArgSpec to be set!"); }
+		assert root.targetArgSpecs != null;
 		for (ArgSpec argSpec : root.targetArgSpecs) if (argSpec.arg instanceof Variable) {
 			if ((thisTask.allTargetVariablesMustBeInHead || argSpec.typeSpec.mustBeBound()) 
 					&& !variableAppearsInThisClause((Variable) argSpec.arg)) {
@@ -1016,14 +1016,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		return cachedLocalRegressionInfoHolder.getFalseStats();
 	}
 
-	double[] meanVectorIfTrue() {
-		return getRegressionInfoHolder().meanVectorAtSuccess();
-	}
-	
-	double[] meanVectorIfFalse() {
-		return getRegressionInfoHolder().meanVectorAtFailure();
-	}
-	
 	double meanIfTrue() {
 		return getRegressionInfoHolder().meanAtSuccess();
 	}

@@ -726,7 +726,7 @@ public class LearnBoostedRDN {
 	}
 	
 	public static String getWILLFile(String dir, String postfix, String predicate) {
-		String filename = dir + "/WILLtheories/" + predicate + "_learnedWILLregressionTrees" + BoostingUtils.getLabelForCurrentModel();
+		String filename = dir + "/WILLtheories/" + predicate + "_learnedWILLregressionTrees";
 		if (postfix != null) {
 			filename += "_" + postfix;
 		}
@@ -783,7 +783,7 @@ public class LearnBoostedRDN {
 			if (debugLevel > 0) { Utils.println(th.toPrettyString()); }
 			// 	Model directory is set to the working directory as the default value.
 			if (th instanceof TreeStructuredTheory) {
-				String tree_dotfile = cmdArgs.getModelDirVal() + "bRDNs/dotFiles/WILLTreeFor_" + targetPredicate + i + BoostingUtils.getLabelForCurrentModel() + ".dot";
+				String tree_dotfile = cmdArgs.getModelDirVal() + "bRDNs/dotFiles/WILLTreeFor_" + targetPredicate + i + ".dot";
 				Utils.ensureDirExists(tree_dotfile);
 				((TreeStructuredTheory)th).writeDOTFile(tree_dotfile);
 			}

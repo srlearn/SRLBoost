@@ -78,7 +78,7 @@ public class JointModelSampler extends SRLInference {
 		// query predicate as parent, we should sample in the order {sameTitle, sameBib}.
 		Collection<String> orderedPredicates = getOrderedPredicates(originalJointExamples.keySet());
 		// Print after getting the order, as we print the order in the DOT file too.
-		String rdnDotFile = setup.cmdArgs.getModelDirVal() + "bRDNs/dotFiles/rdn" + BoostingUtils.getLabelForCurrentModel() + ".dot";
+		String rdnDotFile = setup.cmdArgs.getModelDirVal() + "bRDNs/dotFiles/rdn.dot";
 		printNetwork(rdn, rdnDotFile);
 
 		// Making a copy of the original map, since we will update the map to handle multi-class examples. 

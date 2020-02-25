@@ -242,7 +242,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 		}
 		return false;
 	}
-		
+
 	private boolean collectMultipleSeeds() {
 		if (numberPosSeedsToUse < 1) { numberPosSeedsToUse = 1; }
 		if (numberNegSeedsToUse < 0) { numberNegSeedsToUse = 0; }
@@ -341,6 +341,7 @@ public class ILPouterLoop implements GleanerFileNameProvider {
      * to completion.
      */
 	public Theory executeOuterLoop() throws SearchInterrupted {
+	    // TODO(@hayesall): `ILPouterLoop.executeOuterLoop()` too complex to analyze with data flow algorithm.
         resetAll();
         ILPSearchAction action = innerLoopTask.fireOuterLoopStarting(this);
 
@@ -511,6 +512,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                     setTotal_nodesRemovedFromOPENsinceMaxScoreNowTooLow(getTotal_nodesRemovedFromOPENsinceMaxScoreNowTooLow() + innerLoopTask.nodesRemovedFromOPENsinceMaxScoreNowTooLow);
                     setTotal_countOfPruningDueToVariantChildren(getTotal_countOfPruningDueToVariantChildren() + ((ChildrenClausesGenerator) innerLoopTask.childrenGenerator).countOfPruningDueToVariantChildren);
                     // Report what happened (TODO have an output 'results' file).
+
+                    // TODO(@hayesall): `SingleClauseNode bestNode = theGleaner.bestNode;`
                     SingleClauseNode bestNode = theGleaner.bestNode;
                     
                     Utils.println("\n% The best node found: " + bestNode); // TEMP
@@ -648,15 +651,12 @@ public class ILPouterLoop implements GleanerFileNameProvider {
 										meanTrue = 10*meanTrue + (b?1:0);
 									}
                             		meanTrue = 10*meanTrue + 1;
-                            		//meanTrue = 1;
                             	}
                             }
                             
                             if (learnMultiValPredicates) {
-                            	meanVecTrue = bestNode.meanVectorIfTrue();
-                            	if (meanVecTrue == null) {
-                            		Utils.error("No mean vector on true branch!!");
-                            	}
+                                // TODO(@hayesall): This branch always leads to an error, we might be able to exit earlier.
+                                Utils.error("No mean vector on true branch!!");
                             }
                             // We use 2.1 * getMinPosCoverage() here since we assume each branch needs to have getMinPosCoverage() (could get by with 2, but then would need a perfect split).
                             // Since getLength() includes the head, we see if current length EXCEEDS the maxTreeDepthInLiterals.
@@ -717,7 +717,8 @@ public class ILPouterLoop implements GleanerFileNameProvider {
                             }
                             
                             if (learnMultiValPredicates) {
-                            	meanVecFalse = bestNode.meanVectorIfFalse();
+                                // TODO(@hayesall): `meanVecFalse` is always null at this position.
+                                meanVecFalse = null;
                             }
                             // No need to check max clause length (maxTreeDepthInLiterals) since that should have been checked at parent's call (since no literals added for FALSE branch).
                             if (atMaxDepth || goodEnoughFitFalseBranch ||
