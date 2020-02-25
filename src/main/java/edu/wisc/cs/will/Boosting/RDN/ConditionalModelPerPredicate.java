@@ -560,15 +560,4 @@ public class ConditionalModelPerPredicate implements Serializable {
 		}
 	}
 
-	public Set<Literal> getGroundParents(RegressionRDNExample example,
-				Map<String, List<RegressionRDNExample>> jointExamples) {
-		Set<Literal> parents = new HashSet<>();
-		for (RegressionTree[] trees : boostedTrees) {
-			for (RegressionTree tree : trees) {
-				Set<Literal> pars = tree.getGroundParents(example, jointExamples);
-				parents.addAll(pars);
-			}
-		}
-		return parents;
-	}
 }

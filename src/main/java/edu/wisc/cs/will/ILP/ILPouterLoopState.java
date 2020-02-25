@@ -17,8 +17,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
 
     private int            numberOfCycles;
     private int            numberOfLearnedClauses;     // Could easily count this, but keep it around for simplicity.
-    private int            numberOfPosExamples;        // This is the UNWEIGHTED count.  Note, this value is only used a check during deserializaion.  innerTask.getNumberOfPosExamples() should be used to get the current value.
-    private int            numberOfNegExamples;        // Ditto.
     private int            numberOfPosExamplesCovered; // Ditto.
     private int            numberOfNegExamplesCovered; // Ditto.
     private int            total_nodesExpanded;        // Sum over all outer-loop iterations.
@@ -35,7 +33,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     private Collection<Example> coveredPosExamples; // Collect positive examples covered by at least ONE 'best clause' produced by the ILP inner loop.
     private Collection<Example> coveredNegExamples; // Also see which negative examples are covered by some clause.
 
-    private String           prefix;
     private boolean          RRR;
 
     private Set<Example>     seedPosExamplesUsed;
@@ -56,50 +53,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
     * initialization or re-constitution of the checkpoint file.
     */
    ILPouterLoopState() {
-    }
-
-    /* Checks to make sure that the two state objects belong to the same search.
-     *
-     * When loading checkpoint information, we need to make sure that the state
-     * information saved to disk belongs to the same ILP run as the one currently
-     * being performed.
-     *
-     * If this method returns false, this state is probably from a different search
-     * the checkpoint information should be ignored.  If it is true, you can replace
-     * <code>otherState</code> with this state and the search should resume properly
-     * from the last checkpoint.
-     *
-     * This code resembled equals code and performs approximately the same function.
-     * However, I renamed it to make it explicit what it is doing.
-     *
-     * @param otherState The state of a new search after it has been completely
-     *        initialized.
-     * @return true if the two states are from the same search with high likelihood.
-     */
-    void checkStateCongruency(ILPouterLoopState otherState) throws IncongruentSavedStateException {
-        // Check that we have the same number of positive examples...
-        if ( this.numberOfPosExamples != otherState.numberOfPosExamples ) {
-             throw new IncongruentSavedStateException("The number of positive examples does not match. Expected = " + otherState.numberOfPosExamples + ".  Found = " + this.numberOfPosExamples);
-
-        }
-
-        // Check that we have the same number of negative examples...
-        if ( this.numberOfNegExamples != otherState.numberOfNegExamples ) {
-            throw new IncongruentSavedStateException("The number of negative examples does not match. Expected = " + otherState.numberOfNegExamples + ".  Found = " + this.numberOfNegExamples);
-        }
-
-        // Dataset name check?
-        if (!Objects.equals(this.prefix, otherState.prefix)) {
-            throw new IncongruentSavedStateException("The dataset prefix not match. Expected = " + otherState.prefix + ".  Found = " + this.prefix);
-        }
-
-        // Make sure we are working on the same fold...
-
-        // Search Strategy
-        if ( this.RRR != otherState.RRR ) {
-            throw new IncongruentSavedStateException("Search strategy does not match. Expected RRR = " + otherState.RRR + ".  Found RRR = " + this.RRR);
-        }
-
     }
 
     public ILPouterLoopState clone() {
@@ -158,20 +111,12 @@ public class ILPouterLoopState implements Serializable, Cloneable {
         this.numberOfLearnedClauses = numberOfLearnedClauses;
     }
 
-    void setNumberOfNegExamples(int numberOfNegExamples) {
-        this.numberOfNegExamples = numberOfNegExamples;
-    }
-
     int getNumberOfNegExamplesCovered() {
         return numberOfNegExamplesCovered;
     }
 
     void setNumberOfNegExamplesCovered(int numberOfNegExamplesCovered) {
         this.numberOfNegExamplesCovered = numberOfNegExamplesCovered;
-    }
-
-    void setNumberOfPosExamples(int numberOfPosExamples) {
-        this.numberOfPosExamples = numberOfPosExamples;
     }
 
     int getNumberOfPosExamplesCovered() {
@@ -232,14 +177,6 @@ public class ILPouterLoopState implements Serializable, Cloneable {
 
     int getCurrentFold() {
         return -1;
-    }
-
-    String getPrefix() {
-        return prefix;
-    }
-
-    void setPrefix(String prefix) {
-        this.prefix = prefix;
     }
 
     boolean isRRR() {

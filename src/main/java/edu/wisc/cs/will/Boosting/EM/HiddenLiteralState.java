@@ -1,15 +1,9 @@
 package edu.wisc.cs.will.Boosting.EM;
 
-import edu.wisc.cs.will.Boosting.Common.SRLInference;
-import edu.wisc.cs.will.Boosting.MLN.MLNInference;
-import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
-import edu.wisc.cs.will.Boosting.RDN.SingleModelSampler;
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.*;
@@ -27,48 +21,12 @@ public class HiddenLiteralState {
 	 * Used Integer instead of Boolean. For multi-class examples, it indicates the index of 
 	 * the class label.
 	 */
-	private final Map<String, List<RegressionRDNExample>> predNameToLiteralMap;
+	// TODO(@hayesall): Where is `predNameToLiteralMap` initialized?
+	private final Map<String, List<RegressionRDNExample>> predNameToLiteralMap = null;
 	private Map<String, List<Integer>> predNameToAssignMap;
-	
-	// Cache the string representation of literal to assignment map;
-	private Map<String, Integer> literalRepToAssignMap = null;
-	private Map<String, ProbDistribution> literalRepToCondDistrMap = null;
-	private List<Literal> trueFacts = null;
-	private List<Literal> falseFacts = null;
 
-	private double statePseudoProbability  = 1;
-
-	HiddenLiteralState(Map<String, List<RegressionRDNExample>> jointExamples) {
-		predNameToLiteralMap = new HashMap<>(jointExamples);
-		initAssignment();
-	}
-
-	public void addNewExamplesFromState(HiddenLiteralState newState) {
-		for (String newPred : newState.predNameToLiteralMap.keySet()) {
-			if (!this.predNameToLiteralMap.containsKey(newPred)) {
-				this.predNameToLiteralMap.put(newPred, new ArrayList<>());
-				this.predNameToAssignMap.put(newPred, new ArrayList<>());
-			}
-			List<RegressionRDNExample> newExamples = newState.predNameToLiteralMap.get(newPred);
-			for (int i = 0; i < newExamples.size(); i++) {
-				this.predNameToLiteralMap.get(newPred).add(newExamples.get(i));
-				this.predNameToAssignMap.get(newPred).add(newState.predNameToAssignMap.get(newPred).get(i));
-			}
-		}
-	}
-	
-	private void initAssignment() {
-		predNameToAssignMap = new HashMap<>();
-		for (String predName : predNameToLiteralMap.keySet()) {
-			for (RegressionRDNExample lit : predNameToLiteralMap.get(predName)) {
-				if (!predNameToAssignMap.containsKey(predName)) {
-					predNameToAssignMap.put(predName, new ArrayList<>());
-				}
-				predNameToAssignMap.get(predName).add(lit.getSampledValue());
-			}
-		}
-	}
-
+	private final List<Literal> trueFacts = null;
+	private final List<Literal> falseFacts = null;
 
 	@Override
 	public int hashCode()  {
@@ -102,27 +60,10 @@ public class HiddenLiteralState {
 		return rep.toString();
 	}
 
-	void buildLiteralToAssignMap() {
-		literalRepToAssignMap = new HashMap<>();
-		for (String predName : predNameToLiteralMap.keySet()) {
-			for (int i = 0; i < predNameToLiteralMap.get(predName).size(); i++) {
-				String litRep = predNameToLiteralMap.get(predName).get(i).toPrettyString("");
-				Integer assign = predNameToAssignMap.get(predName).get(i);
-				literalRepToAssignMap.put(litRep, assign);
-			}
-		}
-	}
-	
-	public Integer getAssignment(Example eg) {
+	Integer getAssignment(Example eg) {
 		// Compare string rep
 		String egRep =  eg.toString();
-				
-		if (literalRepToAssignMap != null) {
-			if (literalRepToAssignMap.get(egRep) == null) { 
-				Utils.waitHere("Example: " + eg + " not stored in cached worldState");
-			}
-			return literalRepToAssignMap.get(egRep);
-		}
+
 		String pred = eg.predicateName.name;
 		List<RegressionRDNExample> litList = predNameToLiteralMap.get(pred);
 		
@@ -135,221 +76,9 @@ public class HiddenLiteralState {
 		Utils.waitHere("Example: " + eg + " not stored in worldState");
 		return 0;
 	}
-	
-	public Iterable<Literal> getPosExamples() {
-		return new ExampleIterable(this, 1);
-	}
-	
-	public Iterable<Literal> getNegExamples() {
-		return new ExampleIterable(this, 0);
-	}
-	
 
-	static class ExampleIterable implements Iterable<Literal> {
 
-		final HiddenLiteralState state;
-		final Integer match;
-		ExampleIterable(HiddenLiteralState state, Integer match) {
-			this.state = state;
-			this.match = match;
-		}
-		@Override
-		public Iterator<Literal> iterator() {
-			return new ExampleIterator(state, match);
-		}
-		
-	}
-	
-	static class ExampleIterator implements Iterator<Literal> {
-
-		final Iterator<String> predKeyIterator;
-		String currentPred;
-		int exampleIndex;
-		final HiddenLiteralState state;
-		final Integer matchState;
-		boolean gotoNext;
-		ExampleIterator(HiddenLiteralState state, Integer match) {
-			this.state = state;
-			matchState = match;
-			predKeyIterator = state.predNameToLiteralMap.keySet().iterator();
-			currentPred = predKeyIterator.next();
-			exampleIndex = -1;
-			gotoNext = true;
-		}
-
-		@Override
-		public boolean hasNext() {
-			// Already called hasNext
-			if (!gotoNext) {
-				return currentPred != null;
-			} else {
-				if (updateToNextMatchingLiteral()) {
-					gotoNext = false;
-					return true;
-				} else {
-					gotoNext = false;
-					return false;
-				}
-			}
-			
-		}
-		
-		boolean updateToNextMatchingLiteral() {
-			// hasNext has already updated the index for the next literal.
-			if (!gotoNext) {
-				return true;
-			}
-			do {
-				List<RegressionRDNExample> egs = state.predNameToLiteralMap.get(currentPred);
-				for (int i = exampleIndex+1; i < egs.size(); i++) {
-					if (egs.get(i).isHasRegressionVector()) {
-						// Mutli-class examples always stored as positive examples
-						if (matchState == 1) {
-							exampleIndex = i;
-							return true;
-						}
-					} else {
-						if (state.predNameToAssignMap.get(currentPred).get(i).equals(matchState)) {
-							exampleIndex = i;
-							return true;
-						}
-					}
-				}
-				exampleIndex  = -1;
-				if (predKeyIterator.hasNext()) { 
-					currentPred = predKeyIterator.next();
-				} else {
-					currentPred = null;
-				}
-			} while(currentPred != null);
-			
-			return false;
-		}
-
-		@Override
-		public Literal next() {
-			if (updateToNextMatchingLiteral()) {
-				gotoNext = true;
-				return state.predNameToLiteralMap.get(currentPred).get(exampleIndex);
-			}
-			throw new NoSuchElementException();
-		}
-
-		@Override
-		public void remove() {
-			state.predNameToLiteralMap.get(currentPred).remove(exampleIndex);
-			state.predNameToAssignMap.get(currentPred).remove(exampleIndex);
-			
-		}
-		
-	}
-
-	void buildExampleToCondProbMap(WILLSetup setup, JointRDNModel jtModel) {
-		
-		if (literalRepToAssignMap == null) {
-			Utils.error("Make sure to call buildLiteralToAssignMap before this method call");
-		}
-		literalRepToCondDistrMap = new HashMap<>();
-		statePseudoProbability   = 1;
-		SRLInference.updateFactsFromState(setup, this);
-		for (String predName : predNameToLiteralMap.keySet()) {
-			SRLInference sampler;
-			if (setup.useMLNs) {
-				sampler = new MLNInference(setup, jtModel);
-			} else {
-				// Since we are only calculating the conditional probabilities given all the other assignments
-				// to the hidden states as facts, we do not need to worry about recursion (last arg).
-				sampler= new SingleModelSampler(jtModel.get(predName), setup, jtModel, false);
-			}
-			List<RegressionRDNExample> literalList = predNameToLiteralMap.get(predName);
-			// Create a new list since we modify the example probabilities
-			List<RegressionRDNExample> newList = new ArrayList<>();
-			for (RegressionRDNExample rex : literalList) {
-				newList.add(new RegressionRDNExample(rex));
-			}
-			sampler.getProbabilities(newList);
-
-			for (RegressionRDNExample newRex : newList) {
-				ProbDistribution distr = newRex.getProbOfExample();
-				String rep = newRex.toPrettyString("");
-				literalRepToCondDistrMap.put(rep, distr);
-				if (!literalRepToAssignMap.containsKey(rep)) {
-					Utils.error("No assignment for: " + rep);
-				}
-				statePseudoProbability *= distr.probOfTakingValue(literalRepToAssignMap.get(rep));
-			}
-		}
-	}
-
-	public void updateStateFacts(WILLSetup setup) {
-		trueFacts = new ArrayList<>();
-		falseFacts=new ArrayList<>();
-		for (Literal posEx : getPosExamples()) {
-
-			if (posEx.predicateName.name.startsWith(WILLSetup.multiclassPredPrefix)) {
-				RegressionRDNExample mcRex = (RegressionRDNExample)posEx;
-				int maxVec = mcRex.getOutputVector().length;
-				int assign = getAssignment((Example)posEx);
-				if (assign < 0 || assign >= maxVec) { Utils.waitHere("Assignment: " + assign + " not within bound: " + maxVec);}
-				for (int i = 0; i < maxVec; i++) {
-					Example eg =  setup.getMulticlassHandler().createExampleFromClass(mcRex, i);
-					if (i == assign) {
-						trueFacts.add(eg);
-						if (setup.allowRecursion) {
-							Literal lit = setup.getHandler().getLiteral(setup.getHandler().getPredicateName(
-									WILLSetup.recursivePredPrefix + eg.predicateName.name), eg.getArguments());
-							trueFacts.add(lit);
-
-						}
-					} else {
-						falseFacts.add(eg);
-						if (setup.allowRecursion) {
-							Literal lit = setup.getHandler().getLiteral(setup.getHandler().getPredicateName(
-									WILLSetup.recursivePredPrefix + eg.predicateName.name), eg.getArguments());
-							falseFacts.add(lit);
-
-						}
-					}
-				}
-			} else {
-				trueFacts.add(posEx);
-				if (setup.allowRecursion) {
-					Literal lit = setup.getHandler().getLiteral(setup.getHandler().getPredicateName(
-							WILLSetup.recursivePredPrefix + posEx.predicateName.name), posEx.getArguments());
-					trueFacts.add(lit);
-				}
-			}
-		}
-		for (Literal negEx : getNegExamples()) {
-			falseFacts.add(negEx);
-			if (setup.allowRecursion) {
-				Literal lit = setup.getHandler().getLiteral(setup.getHandler().getPredicateName(
-						WILLSetup.recursivePredPrefix + negEx.predicateName.name), negEx.getArguments());
-				falseFacts.add(lit);
-			}
-		}
-	}
-	
-	/*
-	 * @return the statePseudoProbability
-	 */
-	public double getStatePseudoProbability() {
-		return statePseudoProbability;
-	}
-
-	public ProbDistribution getConditionalDistribution(Literal ex) {
-		String rep  = ex.toPrettyString("");
-		if (literalRepToCondDistrMap == null) {
-			Utils.error("Conditional distribution not set.");
-		}
-		if (!literalRepToCondDistrMap.containsKey(rep)) {
-			Utils.error("Example: " + rep + " unseen in the hidden state");
-		}
-		return literalRepToCondDistrMap.get(rep);
-	}
-	
-	
-	public static void statePredicateDifference(HiddenLiteralState lastState, 
+	public static void statePredicateDifference(HiddenLiteralState lastState,
 												HiddenLiteralState newState,
 												Set<PredicateName> modifiedPredicates,
 												String target) {
@@ -357,10 +86,8 @@ public class HiddenLiteralState {
 			Utils.waitHere("newState not expected to be null. Will not update the facts.");
 			return;
 		}
-		if (newState.trueFacts == null) {
-			Utils.error("Expected the true facts for this state to be built.");
-		}
-		
+		Utils.error("Expected the true facts for this state to be built.");
+
 		for (Literal addLit : newState.trueFacts) {
 			// We know its modified, no need to check it.
 			if (modifiedPredicates.contains(addLit.predicateName)) {
@@ -433,10 +160,8 @@ public class HiddenLiteralState {
 			Utils.waitHere("newState not expected to be null. Will not update the facts.");
 			return;
 		}
-		if (newState.trueFacts == null) {
-			Utils.error("Expected the true facts for this state to be built.");
-		}
-		
+		Utils.error("Expected the true facts for this state to be built.");
+
 		for (Literal addLit : newState.trueFacts) {
 			// Do not add facts for the target predicate
 			if (addLit.predicateName.name.equals(target)) {

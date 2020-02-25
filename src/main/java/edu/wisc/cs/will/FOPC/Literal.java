@@ -735,10 +735,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         sortArgumentsByName();
     }
 
-    public void setArgument(int i, Term newValue) {
-    	arguments.set(i, newValue);
-    }
-
     public List<String> getArgumentNames() {
         return argumentNames;
     }

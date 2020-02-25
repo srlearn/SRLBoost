@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Utils.Utils;
 
@@ -61,63 +60,14 @@ public class RunBoostedRDN extends RunBoostedModels {
 		}
 
 		int iterStepSize = cmdArgs.getMaxTreesVal();
-		if ((cmdArgs.getHiddenStrategy().equals("EM") || cmdArgs.getHiddenStrategy().equals("MAP"))
-			&& setup.getHiddenExamples() != null) {
-			iterStepSize = 2;
-		}
 		if (cmdArgs.getRdnIterationStep() != -1) {
 			iterStepSize  = cmdArgs.getRdnIterationStep();
 		}
-		boolean newModel=true;
-		
+
 		for (int i=0; i < cmdArgs.getMaxTreesVal(); i+=iterStepSize) {
 
-			if ((cmdArgs.getHiddenStrategy().equals("EM") || cmdArgs.getHiddenStrategy().equals("MAP"))  
-				&& setup.getHiddenExamples() != null && newModel) {
-				long sampleStart = System.currentTimeMillis();
-				JointModelSampler jtSampler = new JointModelSampler(fullModel, setup, cmdArgs, false);
-				HiddenLiteralSamples sampledStates = new HiddenLiteralSamples();
-				// Setup facts based on the true data
-				setup.addAllExamplesToFacts();
-				if ( i > minTreesInModel) { minTreesInModel = i; }
-
-				int maxSamples = 500;
-
-				// TODO(@tushar): Get more samples but pick the 200 most likely states.
-
-				if (cmdArgs.getHiddenStrategy().equals("MAP")) { 
-					maxSamples = -1; 
-				}
-				boolean returnMap = false;
-				if (cmdArgs.getHiddenStrategy().equals("MAP")) {
-					returnMap = true;
-				}
-				jtSampler.sampleWorldStates(setup.getHiddenExamples(), sampledStates, false, maxSamples, returnMap);
-
-				if (sampledStates.getWorldStates().size() == 0) { Utils.waitHere("No sampled states");}
-				// This state won't change anymore so cache probs;
-				Utils.println("Building assignment map");
-				sampledStates.buildExampleToAssignMap();
-				
-				if (cmdArgs.getHiddenStrategy().equals("EM")) {
-					// Build the probabilities for each example conditioned on the assignment to all other examples
-					Utils.println("Building probability map");
-					sampledStates.buildExampleToCondProbMap(setup, fullModel);
-					if (cmdArgs.getNumberOfHiddenStates() > 0 ) {
-						Utils.println("Picking top K=" + cmdArgs.getNumberOfHiddenStates());
-						sampledStates.pickMostLikelyStates(cmdArgs.getNumberOfHiddenStates());
-					}
-				}
-				double cll = BoostingUtils.computeHiddenStateCLL(sampledStates, setup.getHiddenExamples());
-				Utils.println("CLL of hidden states:" + cll);
-				//Utils.println("Prob of states: " + sampledStates.toString());
-				setup.setLastSampledWorlds(sampledStates);
-				newModel = false;
-				long sampleEnd = System.currentTimeMillis();
-				Utils.println("Time to sample world state: " + Utils.convertMillisecondsToTimeSpan(sampleEnd-sampleStart));
-			}
 			for (String pred : cmdArgs.getTargetPredVal()) {
-				SingleModelSampler sampler = new SingleModelSampler(fullModel.get(pred), setup, fullModel, false);
+				SingleModelSampler sampler = new SingleModelSampler(fullModel.get(pred), setup, fullModel);
 				if (cmdArgs.getTargetPredVal().size() > 1) {
 					Utils.error("Yap is not available");
 				}
@@ -126,7 +76,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 					continue;
 				}
 				int currIterStep =  (i+iterStepSize) - fullModel.get(pred).getNumTrees();
-				newModel=true;
 				Utils.println("% Learning " + currIterStep + " trees in this iteration for " + pred);
 				learners.get(pred).learnNextModel(sampler, fullModel.get(pred), currIterStep);
 			}

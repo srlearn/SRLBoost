@@ -64,7 +64,7 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 	 * Examples may have an associated state assignment to the hidden literals for the corresponding 
 	 * output value.
 	 */
-	private HiddenLiteralState stateAssociatedWithOutput = null;
+	private final HiddenLiteralState stateAssociatedWithOutput = null;
 	
 	
 	
@@ -82,17 +82,6 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 		super(stringHandler, literal, outputValue, provenance, extraLabel);
 		originalTruthValue = truthValue;
 		originalValue = truthValue ? 1:0;
-	}
-
-	public RegressionRDNExample(RegressionRDNExample copy) {
-		super(copy);
-		originalTruthValue = copy.originalTruthValue;
-		probOfExample = new ProbDistribution(copy.probOfExample);
-		sampledTruthValue = copy.sampledTruthValue;
-		hiddenLiteral = copy.hiddenLiteral;
-		originalValue = copy.originalValue;
-		sampledValue  = copy.sampledValue;
-		stateAssociatedWithOutput = copy.stateAssociatedWithOutput;
 	}
 
 	public RegressionRDNExample(Example ex, boolean truthValue) {
@@ -127,7 +116,7 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 		this.hiddenLiteral = true;
 	}
 
-	public int getOriginalHiddenLiteralVal() {
+	int getOriginalHiddenLiteralVal() {
 		if (!isHiddenLiteral()) {
 			Utils.error("Not hidden literal!");
 		}
@@ -191,7 +180,4 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 		return stateAssociatedWithOutput;
 	}
 
-	void setStateAssociatedWithOutput(HiddenLiteralState stateAssociatedWithOutput) {
-		this.stateAssociatedWithOutput = stateAssociatedWithOutput;
-	}
 }

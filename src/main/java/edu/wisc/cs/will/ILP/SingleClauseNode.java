@@ -477,9 +477,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	
 	// Note that here we get missed examples, INCLUDING THOSE THAT FAILED AT EARLIER NODES.
-	void getUptoKmissedPositiveExamples(int k) throws SearchInterrupted {
+	void getUptoKmissedPositiveExamples() throws SearchInterrupted {
 		// TODO(@hayesall): Can this method be dropped?
-		if (k <= 0) { return; }
 		Set<Example>     results    = null;
 		LearnOneClause   theILPtask = (LearnOneClause) task;
 		Literal          target     = getTarget();
@@ -493,13 +492,12 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				if (results == null) { results = new HashSet<>(4); }
 				results.add(posEx);
 				counter++;
-				if (counter >= k) { return; }
+				if (counter >= 5) { return; }
 			}
 		}
 	}
 	
-	void getUptoKcoveredNegativeExamples(int k) throws SearchInterrupted {
-		if (k <= 0) { return; }
+	void getUptoKcoveredNegativeExamples() throws SearchInterrupted {
 		Set<Example>     results    = null;
 		LearnOneClause   theILPtask = (LearnOneClause) task;
 		Literal          target     = getTarget();
@@ -513,7 +511,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				if (results == null) { results = new HashSet<>(4); }
 				results.add(negEx);
 				counter++;
-				if (counter >= k) { return; }
+				if (counter >= 5) { return; }
 			}
 		}
 	}

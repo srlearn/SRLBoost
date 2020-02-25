@@ -1,14 +1,11 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.MLN.MLNInference;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyNetwork;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode.PredicateType;
-import edu.wisc.cs.will.Boosting.RDN.Models.GroundDependencyNetwork;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
-import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.Utils.ProbDistribution;
@@ -28,11 +25,8 @@ import java.util.*;
  *
  */
 public class JointModelSampler extends SRLInference {
-	
-	private int burnInSteps  = 200;
-	private int numOfSamples = 1000;
+
 	private final boolean useMLNInference;
-	private final CommandLineArguments cmdArgs;
 
 	/*
 	 * 
@@ -40,15 +34,14 @@ public class JointModelSampler extends SRLInference {
 	 * @param setup - The WILLSetup class with the facts
 	 * @param cmdArgs - Arguments set by user.
 	 */
-	JointModelSampler(JointRDNModel model, WILLSetup setup, CommandLineArguments cmdArgs) {
-		this(model, setup, cmdArgs, false);
+	JointModelSampler(JointRDNModel model, WILLSetup setup) {
+		this(model, setup, false);
 	}
 
-	public JointModelSampler(JointRDNModel model, WILLSetup setup, CommandLineArguments cmdArgs, boolean useMLNs) {
+	JointModelSampler(JointRDNModel model, WILLSetup setup, boolean useMLNs) {
 		super(setup);
 		this.jointModel   = model;
 		this.setup   = setup;
-		this.cmdArgs = cmdArgs;
 		this.useMLNInference = useMLNs;
 		// Use the model to obtain the RDN structure
 		rdn = new RelationalDependencyNetwork(model, setup);
@@ -63,12 +56,10 @@ public class JointModelSampler extends SRLInference {
 	 */
 	public void getMarginalProbabilities(Map<String, List<RegressionRDNExample>> jointExamples) {
 		Utils.println("\n% Starting getMarginalProbabilities.");
-		sampleWorldStates(jointExamples, null, true, -1, false);
+		sampleWorldStates(jointExamples);
 	}
 	
-	public void sampleWorldStates(Map<String, List<RegressionRDNExample>> originalJointExamples,
-								  HiddenLiteralSamples sampledStates,
-								  boolean forMarginalProbs, int maxSamples, boolean returnMap) {
+	private void sampleWorldStates(Map<String, List<RegressionRDNExample>> originalJointExamples) {
 		// TODO(@hayesall): This appears to be the only method which uses `printNetwork`
 
 		// Get the order of the predicates for Gibbs sampling.
@@ -111,52 +102,18 @@ public class JointModelSampler extends SRLInference {
 		}
 
 		// Break into components for MAP inference
-		if (returnMap) {
-
-			List<Map<String, List<RegressionRDNExample>>> examplesPerComponent = new ArrayList<>();
-			long start = System.currentTimeMillis();
-			GroundDependencyNetwork gdn = new GroundDependencyNetwork(setup, jointExamples);
-			gdn.buildNetwork(jointModel);
-			gdn.calculateNumberofComponents(examplesPerComponent);
-			String gdnDotFile = setup.cmdArgs.getModelDirVal() + "bRDNs/dotFiles/gdn" + ( cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal() ) + ".dot";
-			printNetwork(gdn, gdnDotFile);
-			long end = System.currentTimeMillis();
-			Utils.println("Time to ground network= " + Utils.convertMillisecondsToTimeSpan(end-start));
-
-			if (sampledStates == null)  {Utils.error("sampledStates need to be set for MAP inference"); }
-
-			for (Map<String, List<RegressionRDNExample>> jointExampleSubset : examplesPerComponent) {
-				HiddenLiteralSamples subState = new HiddenLiteralSamples();
-				sampleExampleProbabilities(jointExampleSubset, subState, orderedPredicates, forMarginalProbs, maxSamples);
-				subState = subState.getMostLikelyState();
-				if (sampledStates.getWorldStates().size() == 0) {
-					sampledStates.setWorldStates(subState.getWorldStates());
-					sampledStates.setProbabilities(subState.getProbabilities());
-					sampledStates.setWorldStateToIndex(subState.getWorldStateToIndex());
-				} else {
-					sampledStates.getWorldStates().get(0).addNewExamplesFromState(subState.getWorldStates().get(0));
-				}
-			}
-
-		} else {
-			sampleExampleProbabilities(jointExamples, sampledStates, orderedPredicates, forMarginalProbs, maxSamples);
-		}
+		sampleExampleProbabilities(jointExamples, orderedPredicates);
 
 		// Remove all examples.
 		removeAllExamples(originalJointExamples);
 
-		if (forMarginalProbs) {
-			updateProbabilitiesForInput(originalJointExamples, jointExamples);
-		} 
+		updateProbabilitiesForInput(originalJointExamples, jointExamples);
 
 	}
 
 	private void sampleExampleProbabilities(
 			Map<String, List<RegressionRDNExample>> jointExamples,
-			HiddenLiteralSamples sampledStates,
-			Collection<String> orderedPredicates,
-			boolean forMarginalProbs,
-			int maxSamples) {
+			Collection<String> orderedPredicates) {
 		
 		boolean needSampling = false;
 
@@ -216,7 +173,7 @@ public class JointModelSampler extends SRLInference {
 				if (useMLNInference) {
 					sampler = new MLNInference(setup, jointModel);
 				} else {
-					sampler = new SingleModelSampler(mod, setup, jointModel, false);
+					sampler = new SingleModelSampler(mod, setup, jointModel);
 				}
 
 				/*
@@ -235,32 +192,16 @@ public class JointModelSampler extends SRLInference {
 				Utils.println("Need sampling for:" + target);
 			}
 		}
-		if (!needSampling && forMarginalProbs) {
+		if (!needSampling) {
 			Utils.println("% No Gibbs sampling needed during inference.");
 			return;
 		}	
 
 		// We should atleast sample 10X number of states considering there will be 2^examples number of states.
 		// But don't want to exceed 1000
-		if (!forMarginalProbs) {
-			double size = 0;
-			for (String target : jointExamples.keySet()) {
-				size += jointExamples.get(target).size();
-			}
-			if (maxSamples == -1) {
-				maxSamples = (int)(5 * Math.pow(2, size));
-				if (maxSamples > 1000) { maxSamples = -1; }
-			}
-			double maxBurnIn  = 1 * Math.pow(2, size);
-			if (maxBurnIn < 300) { 
-				burnInSteps = (int)maxBurnIn; 
-				// burnInSteps =  (int)Math.min(100, maxBurnIn);
-			} else {
-				burnInSteps = 300;
-			}
-		}
-		numOfSamples = (maxSamples != -1) ? maxSamples : numOfSamples;
 		// Now do Gibbs sampling.
+		int numOfSamples = 1000;
+		int burnInSteps = 200;
 		for (int i = -burnInSteps; i < numOfSamples; i++) {
 			// For all query predicates.
 			for (String target : jointExamples.keySet()) {
@@ -279,7 +220,7 @@ public class JointModelSampler extends SRLInference {
 					} else {
 						// Assume that the model doesn't have recursion as the "if" condition
 						// takes care of how to sample the examples.
-						SingleModelSampler sampler = new SingleModelSampler(mod,setup, jointModel, false);
+						SingleModelSampler sampler = new SingleModelSampler(mod,setup, jointModel);
 
 						if (!isRecursive(target)) {
 							sampler.getProbabilities(examples);
@@ -302,20 +243,11 @@ public class JointModelSampler extends SRLInference {
 			}
 			// Get counts for the sample, after burn-in
 			if (i >= 0) {
-				if (forMarginalProbs) {
-					getCountsForSample(jointExamples, counters);
-				} else {
-					// Update world state with sample
-					sampledStates.updateSample(jointExamples);
-				}
+				getCountsForSample(jointExamples, counters);
 			}
 		}
-		if (forMarginalProbs) {
-			// Set the probability.
-			setProbabilityFromCounters(jointExamples, counters);
-		} else {
-			sampledStates.setProbabilitiesFromCounters(numOfSamples);
-		}
+		// Set the probability.
+		setProbabilityFromCounters(jointExamples, counters);
 	}
 
 	/*

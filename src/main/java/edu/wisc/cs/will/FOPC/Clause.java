@@ -79,7 +79,7 @@ public class Clause extends Sentence implements DefiniteClause {
 	public int getLength() {
 		return Utils.getSizeSafely(posLiterals) + Utils.getSizeSafely(negLiterals);
 	}
-	public Literal getIthLiteral(int i) {
+	Literal getIthLiteral(int i) {
 		int numberPosLiterals = Utils.getSizeSafely(posLiterals);
 		if (i < numberPosLiterals) { return posLiterals.get(i); }
 		return                              negLiterals.get(i - numberPosLiterals);

@@ -1,8 +1,6 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.RDN.Models.PhiFunctionForRDN;
 import edu.wisc.cs.will.Boosting.Trees.LearnRegressionTree;
 import edu.wisc.cs.will.Boosting.Trees.RegressionTree;
@@ -410,7 +408,6 @@ public class LearnBoostedRDN {
 
 	private List<RegressionRDNExample> buildDataSet(String targetPredicate, SRLInference sampler) {
 		List<RegressionRDNExample> all_exs = new ArrayList<>();
-		double scaleFactor = 1e8; // Used in EM to scale up the gradients
 
 		getSampledPosNegEx(        all_exs);
 		// No need to get sample probabilities as there is no \psi_0 or gradient.
@@ -418,27 +415,7 @@ public class LearnBoostedRDN {
 			Utils.println("Computing probabilities");
 			long start = System.currentTimeMillis();
 			if (setup.getLastSampledWorlds() != null) {
-				if (cmdArgs.getHiddenStrategy().equals("MAP")) { 
-					sampler.getProbabilitiesUsingSampledStates(setup.getLastSampledWorlds(), all_exs);
-				} else {
-					 if (cmdArgs.getHiddenStrategy().equals("EM")) {
-						 // Expand the examples to have one example for every hidden state. i.e. 
-						 // create NxW examples from N examples and W hidden states
-						 int old_size = all_exs.size();
-						 all_exs = createExamplesForEachState(setup.getLastSampledWorlds(), all_exs, sampler);
-						 Utils.println("Created " + all_exs.size() + " from " + old_size + " examples and " + setup.getLastSampledWorlds().getWorldStates().size() + " world states");
-						 if (!cmdArgs.isIgnoreStateProb()) {
-							 double mostLikelyStateProb = 0;
-							 for (HiddenLiteralState currState : setup.getLastSampledWorlds().getWorldStates()) {
-								 double currStateProb = currState.getStatePseudoProbability();
-								 if (currStateProb > mostLikelyStateProb) { mostLikelyStateProb = currStateProb; }
-							 }
-							 scaleFactor = 1 / (1 * mostLikelyStateProb);
-						 }
-					 } else {
-						 Utils.error("What to do with the hidden states ? Set strategy to MAP or EM. Currently set as : " + cmdArgs.getHiddenStrategy());
-					 }
-				}
+				Utils.error("What to do with the hidden states ? Set strategy to MAP or EM. Currently set as : " + "ignore");
 			} else {
 				sampler.getProbabilities(all_exs);
 			}
@@ -448,9 +425,6 @@ public class LearnBoostedRDN {
 		
 		
 		// Update facts based on the sampled states
-		if (cmdArgs.getHiddenStrategy().equals("MAP")) {
-			SRLInference.updateFactsFromState(setup, setup.getLastSampledWorlds().getWorldStates().get(0));
-		}
 		boolean foundhidden = false;
 		
 		for (int i = 0; i < Utils.getSizeSafely(all_exs); i++) {
@@ -459,7 +433,6 @@ public class LearnBoostedRDN {
 			eg.clearCache();
 			if(cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples()) {
 				eg.setOutputValue(eg.originalRegressionOrProbValue - eg.getProbOfExample().getProbOfBeingTrue());
-				// Utils.println("Set gradient: " + eg.getOutputValue());
 				continue;
 			}
 			
@@ -480,15 +453,7 @@ public class LearnBoostedRDN {
 					if (eg.isHiddenLiteral()) {
 						// Utils.error("Can't handle distributions for hidden examples");
 						ProbDistribution base_distr;
-						if (cmdArgs.getHiddenStrategy().equals("EM")) {
-							if (eg.getStateAssociatedWithOutput() == null) {
-								Utils.error("Associated state not set for example: " + eg);
-							}
-							HiddenLiteralState stateForEx = eg.getStateAssociatedWithOutput();
-							base_distr = stateForEx.getConditionalDistribution(eg);
-						} else {
-							base_distr = setup.getLastSampledWorlds().sampledProbOfExample(eg);
-						}
+						base_distr = setup.getLastSampledWorlds().sampledProbOfExample(eg);
 						base_prob = base_distr.getProbDistribution();
 					} else {
 						base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
@@ -497,59 +462,24 @@ public class LearnBoostedRDN {
 					double[] grad  = VectorStatistics.subtractVectors(base_prob, distr);
 					
 					// Only update for EM
-					if (cmdArgs.getHiddenStrategy().equals("EM")) {
-						if (eg.getStateAssociatedWithOutput() == null) {
-							Utils.error("Associated state not set for example: " + eg);
-						}
-						if (!cmdArgs.isIgnoreStateProb()) {
-							double stateProb = eg.getStateAssociatedWithOutput().getStatePseudoProbability();
-							grad = VectorStatistics.scalarProduct(grad, stateProb*scaleFactor);
-						}
-					}
 					eg.setOutputVector(grad);
 				} else {
 					double prob = probDistr.getProbOfBeingTrue();
 					if (eg.isHiddenLiteral()) {
 						
 						// Debugging
-						if (!(cmdArgs.getHiddenStrategy().equals("EM") || cmdArgs.getHiddenStrategy().equals("MAP"))) {
-							Utils.error("Using hidden examples for non-EM strategies: " + cmdArgs.getHiddenStrategy());
-						}
+						Utils.error("Using hidden examples for non-EM strategies: " + "ignore");
 
-						if (cmdArgs.getHiddenStrategy().equals("EM")) {
-							if (eg.getStateAssociatedWithOutput() == null) {
-								Utils.error("Associated state not set for example: " + eg);
-							}
-							HiddenLiteralState stateForEx = eg.getStateAssociatedWithOutput();
-							ProbDistribution exampleDistr = stateForEx.getConditionalDistribution(eg);
-							if (cmdArgs.isIgnoreStateProb()) {
-								eg.setOutputValue(exampleDistr.getProbOfBeingTrue() - prob);
-							} else {
-								double probYminusEx = stateForEx.getStatePseudoProbability() / exampleDistr.probOfTakingValue(stateForEx.getAssignment(eg));
-								double gradient = (exampleDistr.getProbOfBeingTrue() * probYminusEx) - (probYminusEx * prob);
-								eg.setOutputValue(gradient*scaleFactor);
-							}
-						} else {
-							ProbDistribution base_prb_dist = setup.getLastSampledWorlds().sampledProbOfExample(eg);
-							if (base_prb_dist.isHasDistribution()) {
-								Utils.waitHere("Should not have distribution");
-							}
-							double base_prb = base_prb_dist.getProbOfBeingTrue();
-							eg.setOutputValue(base_prb - prob);
+						ProbDistribution base_prb_dist = setup.getLastSampledWorlds().sampledProbOfExample(eg);
+						if (base_prb_dist.isHasDistribution()) {
+							Utils.waitHere("Should not have distribution");
 						}
+						double base_prb = base_prb_dist.getProbOfBeingTrue();
+						eg.setOutputValue(base_prb - prob);
 
 					} else {
 						double stateProb = 1;
 						// Only set for EM
-						if (cmdArgs.getHiddenStrategy().equals("EM")) {
-							if (!cmdArgs.isIgnoreStateProb()) {
-								if (eg.getStateAssociatedWithOutput() == null) {
-									Utils.error("Associated state not set for example: " + eg);
-								}
-								stateProb = scaleFactor * eg.getStateAssociatedWithOutput().getStatePseudoProbability();
-
-							}
-						}
 						if (cmdArgs.isSoftM()){
 							double alpha = cmdArgs.getAlpha();
 						    double beta = cmdArgs.getBeta();
@@ -577,37 +507,7 @@ public class LearnBoostedRDN {
 		all_exs = egSubSampler.sampleExamples(all_exs);
 		return all_exs;
 	}
-	
 
-	private List<RegressionRDNExample> createExamplesForEachState(
-			HiddenLiteralSamples lastSampledWorlds,
-			List<RegressionRDNExample> all_exs, SRLInference sampler) {
-		List<RegressionRDNExample> new_Exs = new ArrayList<>();
-		for (HiddenLiteralState state : lastSampledWorlds.getWorldStates()) {
-			// Set facts using the hidden state
-			SRLInference.updateFactsFromState(setup, state);
-			// Needed by the tree learning code to set the facts required by each example
-			state.updateStateFacts(setup);
-			// Calculate probabilities given the current state
-			sampler.getProbabilities(all_exs);
-			for (RegressionRDNExample rex : all_exs) {
-				// Create a copy as we are going to set the sampled state for each example. 
-				RegressionRDNExample newRex = new RegressionRDNExample(rex);
-				newRex.setStateAssociatedWithOutput(state);
-				new_Exs.add(newRex);
-			}
-		}
-		
-		// Subsample examples
-		if (cmdArgs.getEmSampleProb() < 1) {
-			for (int i = new_Exs.size()-1 ; i >= 0 ; i--) {
-				if (Utils.random() > cmdArgs.getEmSampleProb()) {
-					new_Exs.remove(i);
-				}
-			}
-		}
-		return new_Exs;
-	}
 
 	// ------------------------------------------------------
 	// ------------------------------------------------------

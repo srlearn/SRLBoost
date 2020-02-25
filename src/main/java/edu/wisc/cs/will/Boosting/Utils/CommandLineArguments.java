@@ -70,10 +70,6 @@ public class CommandLineArguments {
 	private static final String noTargetModes = "removeTarget";
 	private boolean noTargetModesInitially = false;
 
-	// TODO(@hayesall): `hiddenLitFlag` and `hiddenStrategy` controls EM/MAP, but I don't think these were implemented.
-	private static final String hiddenLitFlag = "hidden";
-	private String hiddenStrategy = "ignore";
-
 	private static final String hideSampleFlag = "hideProb";
 	private double hiddenLitProb = -1;
 
@@ -91,15 +87,6 @@ public class CommandLineArguments {
 
 	private static final String rdnIterFlag = "iter";
 	private int rdnIterationStep = -1;
-
-	private static final String emSampleFlag = "numState";
-	private int numberOfHiddenStates = -1;
-
-	private static final String ignoreStateProbFlag = "noStateProb";
-	private boolean ignoreStateProb = false;
-
-	private static final String emSampleProbFlag = "emSampleProb";
-	private double emSampleProb = 1;
 
 	private static final String learnCurve = "lc";
 	private boolean printLearningCurve = false;
@@ -295,10 +282,6 @@ public class CommandLineArguments {
 				}
 				continue;
 			}
-			if (argMatches(args[i], hiddenLitFlag)) {
-				hiddenStrategy = args[++i];
-				continue;
-			}
 			if (argMatches(args[i], hideSampleFlag)) {
 				hiddenLitProb = Double.parseDouble(args[++i]);
 				continue;
@@ -328,24 +311,6 @@ public class CommandLineArguments {
 			}
 			if (argMatches(args[i], rdnIterFlag)) {
 				rdnIterationStep = Integer.parseInt(args[++i]);
-				continue;
-			}
-			
-			if (argMatches(args[i], emSampleFlag)) {
-				numberOfHiddenStates = Integer.parseInt(args[++i]);
-				continue;
-			}
-			
-			if (argMatches(args[i], ignoreStateProbFlag)) {
-				ignoreStateProb = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					ignoreStateProb = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			
-			if (argMatches(args[i], emSampleProbFlag)) {
-				emSampleProb = Double.parseDouble(args[++i]);
 				continue;
 			}
 			
@@ -665,10 +630,6 @@ public class CommandLineArguments {
 		return maxMLNClauseLength;
 	}
 
-	public String getHiddenStrategy() {
-		return hiddenStrategy;
-	}
-
 	public boolean isReportHiddenEx() {
 		return reportHiddenEx;
 	}
@@ -818,18 +779,6 @@ public class CommandLineArguments {
 
 	public String getStringForTestsetHidden() {
 		return stringForTestsetHidden;
-	}
-
-	public int getNumberOfHiddenStates() {
-		return numberOfHiddenStates;
-	}
-
-	public double getEmSampleProb() {
-		return emSampleProb;
-	}
-
-	public boolean isIgnoreStateProb() {
-		return ignoreStateProb;
 	}
 
 	public int getMaxLiteralsInAnInteriorNode() {

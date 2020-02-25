@@ -1,16 +1,13 @@
 package edu.wisc.cs.will.Boosting.Utils;
 
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /*
@@ -83,7 +80,6 @@ public class BoostingUtils {
 		return pars;
 	}
 
-
 	public static double sigmoid(double numRegExp, double denoRegExp) {
 		return 1/ (Math.exp(denoRegExp - numRegExp) + 1);
 	}
@@ -100,71 +96,5 @@ public class BoostingUtils {
 		return saveModelName + ".ckptLits";
 	}
 
-	public static double computeHiddenStateCLL(
-			HiddenLiteralSamples sampledStates,
-			Map<String, List<RegressionRDNExample>> hiddenExamples) {
-		double cll=0;
-		double counter = 0;
-		double accuracyCounter = 0;
-		double correct = 0;
-		for (String predName : hiddenExamples.keySet()) {
-			for (RegressionRDNExample eg : hiddenExamples.get(predName)) {
-				ProbDistribution probDist = sampledStates.sampledProbOfExample(eg);
-				double prob;
-				if (probDist.isHasDistribution()) {
-					double[] probs = probDist.getProbDistribution();
-					
-					int mostLikelyState = -1;
-					double highestProb = 0.0; 
-					for (int i = 0; i < probs.length; i++) {
-						if (probs[i] > highestProb) {
-							highestProb = probs[i];
-							mostLikelyState = i;
-						}
-						if (eg.getOriginalHiddenLiteralVal() == i) {
-							prob = probs[i];
-						} else {
-							prob = 1 - probs[i];
-						}
-						if (prob == 0) {
-							prob = 1e-5;
-						}
-						cll += Math.log(prob);
-						counter++;
-					}
-					if (mostLikelyState == eg.getOriginalHiddenLiteralVal()) {
-						correct++;
-					}
-					accuracyCounter++;
-				} else {
-					prob = probDist.getProbOfBeingTrue();
-					if (eg.getOriginalHiddenLiteralVal() == 0) {
-						// False example with true prob < 0.5 ?
-						if (prob < 0.5) {
-							correct++;
-						}
-						prob = 1-prob;
-					} else {
-						// True example with true prob >= 0.5
-						if (prob >= 0.5) {
-							correct++;
-						}
-					}
-					if (prob == 0) {
-						prob = 1e-5;
-					}
-					cll += Math.log(prob);
-					counter++;
-					accuracyCounter++;
-				}
-				
-			}
-		}
-		Utils.println("Hidden data accuracy: " + (correct / accuracyCounter) + " (" + correct + "/" + accuracyCounter + ").");
-		return cll/counter;
-		
-	}
-	
-	
-	
+
 }

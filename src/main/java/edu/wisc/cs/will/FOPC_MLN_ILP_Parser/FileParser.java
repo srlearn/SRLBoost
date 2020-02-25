@@ -303,10 +303,6 @@ public class FileParser {
 		return prefix;
 	}
 
-	public List<Literal> readLiteralsInFile(String fName, boolean readQuietly) {
-		return readLiteralsInFile(fName, readQuietly, false);
-	}
-
 	public List<Literal> readLiteralsInFile(String fNameRaw, boolean readQuietly, boolean okIfNoSuchFile) {
 		String fName = Utils.replaceWildCards(fNameRaw);
 		if (okIfNoSuchFile && !(new CondorFile(fName).exists())) { return null; }

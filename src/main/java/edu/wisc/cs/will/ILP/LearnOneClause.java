@@ -519,12 +519,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	       return negExamples;
 	}
 
-
-	public Iterable<Literal> getFacts(){
-	       return context.getClausebase().getFacts();
-	}
-
-    Iterable<Clause> getBackgroundKnowledge() {
+	Iterable<Clause> getBackgroundKnowledge() {
         return context.getClausebase().getBackgroundKnowledge();
     }
 
@@ -536,9 +531,6 @@ public class LearnOneClause extends StateBasedSearchTask {
             prover = new HornClauseProver( context );
         }
 		return prover;
-	}
-	public Unifier getUnifier() {
-		return unifier;
 	}
 
 	private void initialize() throws SearchInterrupted {

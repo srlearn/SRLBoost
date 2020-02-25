@@ -58,7 +58,7 @@ public class InferBoostedRDN {
 		SRLInference sampler;
 		if (cmdArgs.isLearnMLN()) {
 			if (jointExamples.keySet().size() > 1) {
-				sampler = new JointModelSampler(rdns, setup, cmdArgs,true);
+				sampler = new JointModelSampler(rdns, setup, true);
 			} else {
 				if (!cmdArgs.isPrintAllExamplesToo()) {
 					Utils.println("\n% Subsampling the negative examples.");
@@ -68,7 +68,7 @@ public class InferBoostedRDN {
 				sampler = new MLNInference(setup, rdns);
 			}
 		} else {
-			sampler = new JointModelSampler(rdns, setup, cmdArgs);
+			sampler = new JointModelSampler(rdns, setup);
 			// We can sub sample negatives if no recursion or joint inference.
 			if (!sampler.getRdn().needsJointInference() &&
 				!sampler.getRdn().hasRecursion()) {
