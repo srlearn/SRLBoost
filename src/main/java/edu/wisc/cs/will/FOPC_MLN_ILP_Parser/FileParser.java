@@ -2729,7 +2729,6 @@ public class FileParser {
 
 	private void processFilter() throws ParsingException, IOException {
 		checkForPredicateNamesThatAreCharacters(getNextToken());
-		int           tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate   = stringHandler.getPredicateName(currentWord);
 		getNextToken();

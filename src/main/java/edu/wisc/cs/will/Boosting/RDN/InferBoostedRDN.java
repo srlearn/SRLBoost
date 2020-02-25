@@ -278,7 +278,7 @@ public class InferBoostedRDN {
 		collectorBW.append("modelPrediction(model(").append(RunBoostedRDN.nameOfCurrentModel).append("), category(").append(category).append("), prob(").append(String.valueOf(prob)).append("), wgt(").append(String.valueOf(wgt)).append("), ").append(String.valueOf(example)).append(").\n").append("\n");
 	}
 
-	private String getTreeStatsFile(boolean getLocalFile) {
+	private String getTreeStatsFile() {
 		// Cut-pasted-and-edited from writeToCollectorFile.
 		String fileNamePrefix = "testSetResults/testSetInferenceResults" + cmdArgs.getExtraMarkerForFiles(true);
 		String fileName       = Utils.replaceWildCards(cmdArgs.getResultsDirVal() + fileNamePrefix + "_RDNtreePathStats" + Utils.defaultFileExtensionWithPeriod);
@@ -559,7 +559,7 @@ public class InferBoostedRDN {
 	 * Should be called only for single-class examples
 	 */
 	private void printTreeStats(List<RegressionRDNExample> examples, String target) {
-		String treeStats = getTreeStatsFile(Utils.isRunningWindows());
+		String treeStats = getTreeStatsFile();
 		Map<String, Integer> idCounts = new HashMap<>();
 		Map<String, Double> idProbs = new HashMap<>();
 		long totalExamples = 0;

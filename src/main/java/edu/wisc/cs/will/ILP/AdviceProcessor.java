@@ -218,7 +218,7 @@ public class AdviceProcessor {
 
         for (Set<RelevantFeatureInformation> set : filteredGroundedRelevance.values()) {
             for (RelevantFeatureInformation rfi : set) {
-                activeAdvice.addFeatureRelevance(rfi.getPredicateNameAndArity(), rfi.getRelevanceStrength());
+                activeAdvice.addFeatureRelevance(rfi.getRelevanceStrength());
 
             }
         }
@@ -298,11 +298,11 @@ public class AdviceProcessor {
         MapOfSets<Example, T> uniqueGroundRelevance = new LinkedMapOfSets<>();
 
         for (Entry<T, T> entry : positiveGeneralizedRelevance.entrySet()) {
-            uniqueGroundRelevance.put(entry.getValue().getExample(), entry.getValue());
+            uniqueGroundRelevance.put(null, entry.getValue());
         }
 
         for (Entry<T, T> entry : negativeGeneralizedRelevance.entrySet()) {
-            uniqueGroundRelevance.put(entry.getValue().getExample(), entry.getValue());
+            uniqueGroundRelevance.put(null, entry.getValue());
         }
 
         uniqueGroundRelevance.values();
@@ -317,7 +317,7 @@ public class AdviceProcessor {
         MapOfSets<Example, T> exampleToAdviceSetMap = new LinkedMapOfSets<>();
 
         for (T rci : relevantInformationList) {
-            exampleToAdviceSetMap.put(rci.getExample(), rci);
+            exampleToAdviceSetMap.put(null, rci);
         }
 
         return exampleToAdviceSetMap;

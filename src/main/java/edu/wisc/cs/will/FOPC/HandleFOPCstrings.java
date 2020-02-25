@@ -870,11 +870,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// Collect the argument types in the order they appear in a traversal of the literal's arguments ('types' are only at LEAVES).
 	// TODO: but seems functions also need to be typed for proper operation ...
 	private void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs) {
-		getTypeList(arguments, typeSpecs, false);
-	}
-	private void getTypeList(List<Term> arguments, List<TypeSpec> typeSpecs, boolean skipConstants) {
 		for (Term spec : arguments) {
-			if (skipConstants && spec instanceof Constant) { continue; }
 			if (spec.typeSpec != null) { typeSpecs.add(spec.typeSpec); } // NOTE: we do NOT want to skip duplicates!
 			else if (spec instanceof Function) {
 				getTypeList(((Function) spec).getArguments(), typeSpecs);

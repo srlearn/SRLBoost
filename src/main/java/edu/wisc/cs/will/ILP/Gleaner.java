@@ -106,9 +106,9 @@ public class Gleaner extends SearchMonitor implements Serializable {
 
 		// Add to current Gleaner and default Gleaner (if different), even if unacceptable (to do: separate thresholds for Gleaner and for the best overall?  Or too many parameters?).
 		SavedClause saver = new SavedClause(this, clause);
-		addToGleaner(defaultGleaner, saver, true);
+		addToGleaner(defaultGleaner, saver);
 		if (currentGleaner != defaultGleaner) { 
-			addToGleaner(currentGleaner, saver, false);
+			addToGleaner(currentGleaner, saver);
 		}
 		
 		// Keep track of the best clause overall, assuming it meets the acceptability criteria.
@@ -164,7 +164,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		addedAnItem    = false;
 	}
 
-	private void addToGleaner(Map<Integer, SavedClause> gleaner, SavedClause saver, boolean theGlobalGleaner) {
+	private void addToGleaner(Map<Integer, SavedClause> gleaner, SavedClause saver) {
 		double  recall = saver.recall;
 		double  F1     = saver.F1; // Use the F1 score for defining best within a bin.
 		LearnOneClause  task = (LearnOneClause) getTaskBeingMonitored();
@@ -174,9 +174,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		SavedClause currentBestSaverInBin = gleaner.get(index);
 		
 		if (currentBestSaverInBin == null) { // Nothing there, so add.
-			if (theGlobalGleaner) {
-			} else {
-			}
 			gleaner.put(index, saver);
 		}
 		else {  // Otherwise, see if a new best has been found for this bin.
@@ -185,9 +182,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 			if (F1 > F1current) { // Update since better clause found.
 				gleaner.remove(currentBestSaverInBin);
 				gleaner.put(index, saver);
-				if (theGlobalGleaner) {
-				} else {
-				}
 			}
 		}
 		if (!addedAnItem) { addedAnItem = true; }

@@ -420,8 +420,8 @@ public class Utils {
         lookup = original;
 
 		lookup = !lookup.contains("MYUSERNAME") ? lookup : lookup.replaceAll("MYUSERNAME", getMyUserName()); // Break into multiple lines so we can localize bugs better.
-    	lookup = !lookup.contains("MYPATHPREFIX") ? lookup : lookup.replaceAll("MYPATHPREFIX",     getMyPathPrefix());
-    	lookup = !lookup.contains("SHAREDPATHPREFIX") ? lookup : lookup.replaceAll("SHAREDPATHPREFIX", getSharedPathPrefix());
+    	lookup = !lookup.contains("MYPATHPREFIX") ? lookup : lookup.replaceAll("MYPATHPREFIX",     "MYPATHPREFIXisUnset");
+    	lookup = !lookup.contains("SHAREDPATHPREFIX") ? lookup : lookup.replaceAll("SHAREDPATHPREFIX", "SHAREDPATHPREFIXisUnset");
     	lookup = !lookup.contains("MYSCRATCHDIR") ? lookup : lookup.replaceAll("MYSCRATCHDIR",     getMyScratchDir());
     	environmentVariableResolutionCache.put(original, lookup);
     	return lookup;
@@ -466,13 +466,8 @@ public class Utils {
     	if (MYUSERNAME == null) { setMyUserName(getUserName(true)); } 	// Probably no need for quoteReplacement on MYUSERNAME, but do on all for consistency/simplicity.
     	return MYUSERNAME;
     }
-    private static String getMyPathPrefix() {
-        return "MYPATHPREFIXisUnset";
-    }
-    private static String getSharedPathPrefix() {
-        return "SHAREDPATHPREFIXisUnset";
-    }
-	private static String getMyScratchDir() {
+
+    private static String getMyScratchDir() {
     	if (MYSCRATCHDIR == null) { setMyScratchDir(help_getScratchDirForUser()); } // Will get into an infinite loop without the "help_" prefix.
     	return MYSCRATCHDIR;
 	}
@@ -481,19 +476,16 @@ public class Utils {
      * Waits for input on standard input after displaying "Waiting for user input".
      */
     public static void waitHere() {
-        waitHere("", null);
-    }
-    public static void waitHere(String msg) {
-        waitHere(msg, null);
+        waitHere("");
     }
 
     public static void waitHereErr(String msg) {
     	if ( msg != null && !msg.isEmpty()) {
     		printlnErr(msg);
-            waitHere(msg, null);
+            waitHere(msg);
             return;
     	}
-        waitHere(msg, null);
+        waitHere(msg);
     }
 
     /* Prints out the message msg, possibly waiting for user input prior to continuing.
@@ -510,8 +502,7 @@ public class Utils {
      *
      * @return False if an exception occurs while reading input from the user, true otherwise.
      */
-    private static void waitHere(String msg, String skipWaitString) {
-        // TODO(@hayesall): skipWaitString is always `null`. The parameter is factored out of the body, but the signature is still used.
+    public static void waitHere(String msg) {
         if (!isWaitHereEnabled()) {
             if ( msg != null && !msg.isEmpty()) {
                 print("\n% Skipping over this 'waitHere': " + msg + "\n", true);

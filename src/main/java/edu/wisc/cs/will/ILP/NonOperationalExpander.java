@@ -17,7 +17,7 @@ class NonOperationalExpander {
 
     private NonOperationalExpander() {}
 
-    static List<? extends Sentence> getExpandedSentences(HornClauseContext context, Sentence sentence) {
+    static List<? extends Sentence> getExpandedSentences(Sentence sentence) {
 
         List<Sentence> results;
 

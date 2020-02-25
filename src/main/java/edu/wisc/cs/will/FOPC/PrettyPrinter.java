@@ -519,11 +519,8 @@ public class PrettyPrinter {
             int maximumWidth = 130 - data.getCurrentIndentation();
 
             int currentWidth = 0;
-            int termsOnLine = 0;
 
             boolean lastWasMultiline = false;
-
-            int maxTermsPerLine = -1;
 
 
             for (int i = 0; i < list.size(); i++) {
@@ -541,15 +538,13 @@ public class PrettyPrinter {
                         if (lastWasMultiline || tpp.multiline) {
                             stringBuilder.append("\n").append(prefix);
                             currentWidth = 0;
-                            termsOnLine = 0;
                             lastWasMultiline = tpp.multiline;
                             multiline = true;
                         }
                         else {
-                            if (currentWidth + tpp.getMaximumWidth() >= maximumWidth || (maxTermsPerLine > 0 && termsOnLine >= maxTermsPerLine)) {
+                            if (currentWidth + tpp.getMaximumWidth() >= maximumWidth) {
                                 stringBuilder.append("\n").append(prefix);
                                 currentWidth = 0;
-                                termsOnLine = 0;
                                 multiline = true;
                             }
                             lastWasMultiline = false;
@@ -563,7 +558,6 @@ public class PrettyPrinter {
                 // of the PPResult string.  However, if we are printing multiline
                 // statements, we will automatically add a
                 currentWidth += tpp.getMaximumWidth();
-                termsOnLine++;
             }
 
             if (multiline && data.options.isAlignParathesis()) {

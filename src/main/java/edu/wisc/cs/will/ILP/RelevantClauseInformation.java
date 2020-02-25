@@ -54,10 +54,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return sentence;
     }
 
-    public Example getExample() {
-        return example;
-    }
-
     private ConnectedSentence getImpliedSentence() {
         return example.getStringHandler().getConnectedSentence(getSentence(), ConnectiveName.IMPLIES, example);
     }
@@ -293,7 +289,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     List<RelevantClauseInformation> expandNonOperationalPredicates(HornClauseContext context) {
 
-        List<? extends Sentence> sentences = NonOperationalExpander.getExpandedSentences(context, sentence);
+        List<? extends Sentence> sentences = NonOperationalExpander.getExpandedSentences(sentence);
 
         int expansionCount = sentences.size();
 
@@ -321,10 +317,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     @Override
     public String toString() {
-        return toString("");
-    }
 
-    private String toString(String prefix) {
         BindingList bl;
         bl = new BindingList();
 
@@ -335,9 +328,9 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         ppo.setNewLineAfterImplication(true);
 
         String exampleString = PrettyPrinter.print(example, "", "", ppo, bl);
-        String sentenceString = PrettyPrinter.print(sentence, prefix + "  ", prefix + "  ", ppo, bl);
+        String sentenceString = PrettyPrinter.print(sentence, "  ", "  ", ppo, bl);
 
-        return prefix + exampleString + (isRelevanceFromPositiveExample() ? "" : ", NEGATION") + ", advice = \n" + sentenceString;
+        return exampleString + (isRelevanceFromPositiveExample() ? "" : ", NEGATION") + ", advice = \n" + sentenceString;
 
     }
 

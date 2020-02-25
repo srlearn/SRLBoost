@@ -19,8 +19,6 @@ import java.util.*;
  */
 public class ActiveAdvice {
 
-    private static final CNFClauseCollector CLAUSE_COLLECTOR = new CNFClauseCollector();
-
     private final HandleFOPCstrings stringHandler;
 
     private final MapOfSets<PredicateNameAndArity, ModeInfo> adviceModes = new MapOfSets<>();
@@ -169,7 +167,7 @@ public class ActiveAdvice {
         body = DuplicateDeterminateRemover.removeDuplicates(body);
 
         // TODO(@hayesall): `ap.getContext()` is the only use for `getExpandedSentences()`
-        List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(ap.getContext(), body);
+        List<? extends Sentence> expansions = NonOperationalExpander.getExpandedSentences(body);
 
         if (expansions.size() == 1 && expansions.get(0).equals(body)) {
             // No sentences...
@@ -211,8 +209,8 @@ public class ActiveAdvice {
         return clauses;
     }
 
-    void addFeatureRelevance(PredicateNameAndArity key, RelevanceStrength value) {
-        adviceFeaturesAndStrengths.put(key, new RelevanceInfo(key, value));
+    void addFeatureRelevance(RelevanceStrength value) {
+        adviceFeaturesAndStrengths.put(null, new RelevanceInfo(value));
     }
 
     private ModeInfo addModeAndRelevanceStrength(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> headSpecList, RelevanceStrength relevanceStrength) {
@@ -340,8 +338,8 @@ public class ActiveAdvice {
 
         final RelevanceStrength strength;
 
-        RelevanceInfo(PredicateNameAndArity predicate, RelevanceStrength strength) {
-            this.predicate = predicate;
+        RelevanceInfo(RelevanceStrength strength) {
+            this.predicate = null;
             this.strength = strength;
         }
     }

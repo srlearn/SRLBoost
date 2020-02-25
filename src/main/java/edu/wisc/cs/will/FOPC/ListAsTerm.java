@@ -14,19 +14,15 @@ import java.util.Map;
  */
 public class ListAsTerm extends Term {
 	final List<Term> objects;
-	private boolean processItemsInList; // If false, leave the items in 'objects' untouched.
+	private final boolean processItemsInList; // If false, leave the items in 'objects' untouched.
 
 	/*
 	 * This is a way to wrap a list of anything as an argument to an FOPC function.
 	 */
 	ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects) {
-		this(stringHandler, objects, true);
-	}
-	private ListAsTerm(HandleFOPCstrings stringHandler, List<Term> objects, boolean processItemsInList) {
 		this.stringHandler       = stringHandler;
 		this.objects            = objects;
-		this.processItemsInList = processItemsInList;
-		if (objects == null) { this.processItemsInList = false; }
+		this.processItemsInList = objects != null;
 	}
 
 	public Term applyTheta(Map<Variable,Term> bindings) {

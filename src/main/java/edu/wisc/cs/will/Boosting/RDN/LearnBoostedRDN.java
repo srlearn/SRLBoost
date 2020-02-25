@@ -200,7 +200,7 @@ public class LearnBoostedRDN {
 						double        newAlpha = searcher.getStepLength(func);
 						stepLength = (newAlpha == 0 ? stepLength : newAlpha);
 					} else {
-						if (performLineSearch && learnSingleTheory) {
+						if (performLineSearch) {
 							Utils.waitHere("Can't handle both line search and single theory. Disable one.");
 						}
 					}

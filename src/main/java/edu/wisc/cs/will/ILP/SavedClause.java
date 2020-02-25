@@ -20,6 +20,8 @@ class SavedClause implements Serializable {
 		// Holds a string that will be printed when the clause is dumped.
 		// Annotation about what created this clause.
 
+		// TODO(@hayesall): Nothing in this constructor appears to actually be used in the code base.
+
 		try {
 			double posCoverage = clause.getPosCoverage();
 			double negCoverage = clause.negCoverage;

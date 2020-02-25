@@ -338,7 +338,6 @@ public class ILPouterLoop {
      * to completion.
      */
 	public Theory executeOuterLoop() throws SearchInterrupted {
-	    // TODO(@hayesall): `ILPouterLoop.executeOuterLoop()` too complex to analyze with data flow algorithm.
         resetAll();
         ILPSearchAction action = innerLoopTask.fireOuterLoopStarting(this);
 
@@ -629,8 +628,7 @@ public class ILPouterLoop {
                             }
 
 							double meanTrue;
-                            double[] meanVecTrue = null;
-                            
+
                             if (learnMLNTheory) {
                             	meanTrue = bestNode.mlnRegressionForTrue();
                             } else {
@@ -668,7 +666,8 @@ public class ILPouterLoop {
                                 }
                                 Term leaf;
                                 if (learnMultiValPredicates) {
-                                	leaf = createLeafNodeFromCurrentExamples(Objects.requireNonNull(meanVecTrue));
+                                    // TODO(@hayesall): Replacing with null leads this to always fail.
+                                	leaf = createLeafNodeFromCurrentExamples(Objects.requireNonNull(null));
                                 } else {
                                 	leaf = createLeafNodeFromCurrentExamples(meanTrue);
                                 }
@@ -681,7 +680,7 @@ public class ILPouterLoop {
                                 newTreeNode.setParent(interiorNode); // Need a back pointer in case we later make this interior node a leaf.
                                 newTreeNode.setBoolPath(interiorNode.returnBoolPath()); newTreeNode.addToPath(true);// Set the path taken to this node
                                 if (learnMultiValPredicates) {
-                                	newTreeNode.setRegressionVectorIfLeaf(meanVecTrue);
+                                	newTreeNode.setRegressionVectorIfLeaf(null);
                                 } else {
                                 	newTreeNode.setRegressionValueIfLeaf(meanTrue);
                                 }
@@ -691,7 +690,6 @@ public class ILPouterLoop {
                                 outerLoopState.addToQueueOfTreeStructuredLearningTasks(newTask, newTreeNode, bestNode, -bestNode.getVarianceTrueBranch(true));
                             }
                             double meanFalse;
-                            double[] meanVecFalse = null;
 
                             if (learnMLNTheory) {
                             	meanFalse = bestNode.mlnRegressionForFalse();
@@ -706,11 +704,7 @@ public class ILPouterLoop {
                             		meanFalse = 10*meanFalse + 0;
                             	}
                             }
-                            
-                            if (learnMultiValPredicates) {
-                                // TODO(@hayesall): `meanVecFalse` is always null at this position.
-                                meanVecFalse = null;
-                            }
+
                             // No need to check max clause length (maxTreeDepthInLiterals) since that should have been checked at parent's call (since no literals added for FALSE branch).
                             if (atMaxDepth || goodEnoughFitFalseBranch ||
                                 wgtedCountFalseBranchPos <  2.1 * innerLoopTask.getMinPosCoverage() ||
@@ -718,7 +712,8 @@ public class ILPouterLoop {
           
                                 Term leaf;
                                 if (learnMultiValPredicates) {
-                                	leaf = createLeafNodeFromCurrentExamples(Objects.requireNonNull(meanVecFalse));
+                                    // TODO(@hayesall): This simplified to `Objects.requireNonNull(null)`, remove.
+                                	leaf = createLeafNodeFromCurrentExamples(Objects.requireNonNull(null));
                                 } else {
                                 	leaf = createLeafNodeFromCurrentExamples(meanFalse);
                                 }
@@ -746,7 +741,7 @@ public class ILPouterLoop {
                                 newTreeNode.setBoolPath(interiorNode.returnBoolPath()); newTreeNode.addToPath(false);// Set the path taken to this node
 
                                 if (learnMultiValPredicates) {
-                                	newTreeNode.setRegressionVectorIfLeaf(meanVecFalse);
+                                	newTreeNode.setRegressionVectorIfLeaf(null);
                                 } else {
                                 	newTreeNode.setRegressionValueIfLeaf(meanFalse);
                                 }
@@ -1406,11 +1401,7 @@ public class ILPouterLoop {
         outerLoopState.setNumberOfCycles(numberOfCycles);
     }
 
-	private void setIndexIntoPosSeedArray(int indexIntoPosSeedArray) {
-        outerLoopState.setIndexIntoPosSeedArray(indexIntoPosSeedArray);
-    }
-
-	private void setFractionOfPosCovered(double fractionOfPosCovered) {
+    private void setFractionOfPosCovered(double fractionOfPosCovered) {
         outerLoopState.setFractionOfPosCovered(fractionOfPosCovered);
     }
 

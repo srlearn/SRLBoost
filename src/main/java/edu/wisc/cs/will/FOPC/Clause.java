@@ -359,11 +359,8 @@ public class Clause extends Sentence implements DefiniteClause {
 	}
 
     @Override
-	public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
-    	return collectFreeVariables(boundVariables, false);
-    }
+    public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
 
-    private Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables, boolean skipNegLiterals) {
 		List<Variable>  result = null;
 		
 		if (posLiterals != null) for (Literal lit : posLiterals) {
@@ -374,7 +371,7 @@ public class Clause extends Sentence implements DefiniteClause {
 				result.add(var);
 			}	
 		}
-		if (!skipNegLiterals && negLiterals != null) for (Literal lit : negLiterals) {
+		if (negLiterals != null) for (Literal lit : negLiterals) {
 			Collection<Variable> temp = lit.collectFreeVariables(boundVariables);
 			
 			if (temp != null) for (Variable var : temp) if (result == null || !result.contains(var)) {
