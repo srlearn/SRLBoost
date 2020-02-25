@@ -22,7 +22,6 @@ import edu.wisc.cs.will.Utils.VectorStatistics;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 import java.io.*;
@@ -45,7 +44,6 @@ public class LearnBoostedRDN {
 	private List<RegressionRDNExample> egs    = null;
 	private String  targetPredicate          = null;
 	private int     maxTrees                 = 10;
-	private String  yapSettingsFile;
 	private boolean resampleExamples        = true;
 	private final boolean stopIfFewChanges        = false;
 	private boolean performLineSearch       = false;
@@ -59,9 +57,6 @@ public class LearnBoostedRDN {
 		this.setup = setup;
 		maxTrees = cmdArgs.getMaxTreesVal();
 		setParamsUsingSetup(setup);
-		if(cmdArgs.isUseYapVal()) {
-			learnSingleTheory=false;
-		}
 		if (cmdArgs.isDisabledBoosting()) {
 			disableBoosting=true;
 		}
@@ -149,9 +144,7 @@ public class LearnBoostedRDN {
 			rdn.setNumTrees(maxTrees);
 		}
 		if (i == 0) {
-			if (!cmdArgs.isUseYapVal()) { 
-				dumpTheoryToFiles(null, -1);  // Print something initially in case a run dies (i.e., be sure to erase any old results right away).
-			}
+			dumpTheoryToFiles(null, -1);  // Print something initially in case a run dies (i.e., be sure to erase any old results right away).
 		}
 		for (; i < maxTreesForThisRun; i++) {
 			if (i >= maxTrees/2) {
@@ -183,11 +176,7 @@ public class LearnBoostedRDN {
 				long bbend = System.currentTimeMillis();
 				Utils.println("Time to build dataset: " + Utils.convertMillisecondsToTimeSpan(bbend-bddstart));
 				RegressionTree tree;
-				if (cmdArgs.isUseYapVal()) {
-					tree = getYapTree( newDataSet, modelNumber, i);
-				} else {
-					tree = getWILLTree(newDataSet, i);
-				}
+				tree = getWILLTree(newDataSet, i);
 				if (debugLevel > 1) { reportStats(); }
 				double stepLength = 1;
 				if (!disableBoosting) {
@@ -219,7 +208,7 @@ public class LearnBoostedRDN {
 		if (stopIfFewChanges) { 
 			Utils.println("Stopped after " + Utils.comma(i) + " trees.");
 		}
-		if (i >= maxTrees && !cmdArgs.isUseYapVal()) { 
+		if (i >= maxTrees) {
 			addPrologCodeForUsingAllTrees(rdn, i); 
 		}
 	}
@@ -357,61 +346,6 @@ public class LearnBoostedRDN {
 	}
 
 
-	private RegressionTree getYapTree(List<RegressionRDNExample> newDataSet, int modelNumber, int i) {
-		// Give new dataset to tree learner.
-		String prefix =  cmdArgs.getModelDirVal() + "/yap/"; 
-
-		String outfile = prefix + "Output" + targetPredicate + i + ".pl";
-		String infile  = prefix + "Input" + targetPredicate + i + BoostingUtils.getLabelForModelNumber(modelNumber) + ".pl";
-		Utils.ensureDirExists(infile);
-		try {
-			writeDataSetForYap(newDataSet, infile);
-		} catch (IOException e1) {
-			Utils.reportStackTrace(e1);
-			Utils.error("Problem in getYapTree.");
-		}
-		runYapTreeLearner(infile, outfile);
-		// Add tree to set of boosted trees.
-
-		LearnRegressionTree learner = new LearnRegressionTree(setup);
-		try {
-			return learner.parsePrologRegressionTrees(outfile);
-			//tree.printTrees();
-		} catch (NumberFormatException | IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in getYapTree.");
-		}
-		// Technically, should never reach here because of the catch statements before.
-		return null;
-	}
-
-
-	private void runYapTreeLearner(String infile, String outfile) {
-		String yapPath        = cmdArgs.getYapBinVal();
-		String yapTreeLearner = cmdArgs.getTreelearnerVal();
-		String command        = yapPath + " -l  " + yapTreeLearner + " -- " + infile + " " +  getYapSettingsFile() + " " + outfile ;
-		// Call yap here
-		//Process p;
-
-		System.out.println("Running yap command: " + command);
-
-		try {
-			Runtime rt = Runtime.getRuntime();
-			Process exec = rt.exec(new String[] {
-				command
-			});
-			InputStream is = exec.getInputStream();
-			int c;
-			while((c=is.read()) != -1) {
-				System.out.print((char)c);
-			}
-			exec.waitFor();
-		} catch (IOException | InterruptedException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in runYapTreeLearner.");
-		}
-	}
-
 	private boolean doEarlyStop(List<RegressionRDNExample> old_eg_set, SingleModelSampler sampler) {
 		double minGradientForSame = 0.0002;
 		if (stopIfFewChanges && old_eg_set != null) {
@@ -447,43 +381,6 @@ public class LearnBoostedRDN {
 
 		}
 		return counter;
-	}
-
-	private void writeDataSetForYap(List<RegressionRDNExample> newDataSet, String infile) throws IOException {
-		BufferedWriter writer=null;
-		try {
-			writer = new BufferedWriter(new CondorFileWriter(Utils.ensureDirExists(infile)));
-		} catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in writeDataSetForYap.");
-		}
-		boolean oldQMark = setup.getHandler().doVariablesStartWithQuestionMarks();
-		setup.getHandler().usePrologNotation();
-
-		int counter=1;
-		for (RegressionRDNExample ex : newDataSet) {
-			if (Utils.diffDoubles(ex.getWeightOnExample(), 1)) {
-				Utils.waitHere("Weighted examples wont work with Yap. Remove weights or use WILL.");
-			}
-			
-			String literal;
-
-			literal = "example("  + counter++ + "," + ex.toString() +  "," + ex.getOutputValue() + ").";
-			writer.write(literal + "\r\n");
-		}
-		Iterable<Literal> lits = setup.getInnerLooper().getFacts();
-		for (Literal lit : lits) {
-			if(!lit.predicateName.name.equals("length") &&
-					!lit.predicateName.name.endsWith("ontainsText") &&
-					!lit.predicateName.name.endsWith("ordString") ) {
-				//	System.out.println(lit.predicateName.name);
-				writer.write(lit.toString() + ".\r\n");
-			}
-		}
-
-		if (oldQMark) { setup.getHandler().setVariablesStartWithQuestionMarks(); }
-		writer.close();
-		System.out.println("Writer closed");
 	}
 
 	private void getSampledPosNegEx(List<RegressionRDNExample> all_exs) {
@@ -881,14 +778,6 @@ public class LearnBoostedRDN {
 
 	public void setTargetPredicate(String targetPredicate) {
 		this.targetPredicate = targetPredicate;
-	}
-
-	public void setYapSettingsFile(String yapSettingsFile) {
-		this.yapSettingsFile = yapSettingsFile;
-	}
-
-	private String getYapSettingsFile() {
-		return yapSettingsFile;
 	}
 
 }

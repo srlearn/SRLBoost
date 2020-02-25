@@ -77,7 +77,6 @@ public class RunOneClassModel extends RunBoostedModels {
 				propModel.reparseModel(setup);
 			} else {
 				Utils.println("% Did not learn a model for '" + pred + "' this run.");
-				// YapFile doesn't matter here.
 				propModel = new PropositionalizationModel();
 				propModel.setTargetPredicate(pred);
 				propModel.loadModel(BoostingUtils.getModelFile(cmdArgs, pred, true), setup, cmdArgs.getMaxTreesVal());

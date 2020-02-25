@@ -44,7 +44,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 
 	public void learn() {
 		fullModel = new JointRDNModel();
-		String yapFile;
 		Map<String, LearnBoostedRDN> learners = new HashMap<>();
 		int minTreesInModel = Integer.MAX_VALUE;
 
@@ -120,8 +119,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 			for (String pred : cmdArgs.getTargetPredVal()) {
 				SingleModelSampler sampler = new SingleModelSampler(fullModel.get(pred), setup, fullModel, false);
 				if (cmdArgs.getTargetPredVal().size() > 1) {
-					yapFile = getYapFileForPredicate(pred, cmdArgs.getYapBiasVal());
-					Utils.println("% Using yap file:" + yapFile);
+					Utils.error("Yap is not available");
 				}
 			
 				if (fullModel.get(pred).getNumTrees() >= (i+iterStepSize)) {
@@ -145,12 +143,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 		}
 	}
 
-	private String getYapFileForPredicate(String target, String yapFile) {
-		if (yapFile.isEmpty()) { return ""; }
-		int pos = yapFile.lastIndexOf("/");
-		return yapFile.substring(0, pos+1) + target + "_" + yapFile.substring(pos + 1);
-	}
-
 	public void loadModel() {
 		if (fullModel == null) {
 			fullModel = new JointRDNModel();
@@ -165,7 +157,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 				rdn.reparseModel(setup);
 			} else {
 				Utils.println("% Did not learn a model for '" + pred + "' this run.");
-				// YapFile doesn't matter here.
+
 				rdn = new ConditionalModelPerPredicate(setup);
 			
 				if (useSingleTheory(setup)) {

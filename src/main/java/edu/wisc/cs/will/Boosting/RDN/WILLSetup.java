@@ -1229,9 +1229,6 @@ public final class WILLSetup {
 	}
 
 	public Clause convertFactToClause(String fact) {
-		if(cmdArgs.isUseYapVal()) {
-			return convertFactToClause(fact, VarIndicator.uppercase);
-		}
 		return getInnerLooper().getParser().parseDefiniteClause(fact);
 	}
 

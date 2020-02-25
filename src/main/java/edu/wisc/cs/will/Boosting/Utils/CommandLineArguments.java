@@ -110,9 +110,6 @@ public class CommandLineArguments {
 	private static final String infer = "i";
 	private boolean inferVal=false;
 
-	private static final String useYap = "y";
-	private boolean useYapVal=false;
-
 	private static final String noBoosting = "noBoost";
 	private boolean disabledBoosting=false;
 
@@ -127,12 +124,6 @@ public class CommandLineArguments {
 	
 	private static final String resultsDir = "results";
 	private String resultsDirVal = null;
-
-	private static final String yapBin = "yapBin";
-	private String yapBinVal = "/u/t/u/tushar/code/yap/bin/yap";
-
-	private static final String yapBias = "yapBias";
-	private String yapBiasVal = "";
 
 	private static final String targetPred = "target";
 	private Set<String> targetPredVal = null;
@@ -198,10 +189,6 @@ public class CommandLineArguments {
 	private String stringForTestsetFacts = "facts";
 	private static final String testHiddenString    = "testHiddenString"; // Allow overriding of the default.
 	private String stringForTestsetHidden = "hidden";
-
-	// TODO(@hayesall): Investigate and remove.
-	private static final String treelearner = "yapTree";
-	private String treelearnerVal = "/u/t/u/tushar/code/tildecrf_20091116/treelearner/treelearner.pl" ;
 
 	private static final String aucPath = "aucJarPath";
 	private String aucPathVal = null;
@@ -406,13 +393,6 @@ public class CommandLineArguments {
 				}
 				continue;
 			}
-			if (argMatches(args[i], useYap)) {
-				useYapVal = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					useYapVal = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}		
 			if (argMatches(args[i], disableJointModel)) {
 				jointModelDisabled = true;
 				if (isArgumentNotAFlag(args, i+1)) {
@@ -482,14 +462,6 @@ public class CommandLineArguments {
 				setResultsDirVal(args[++i]);
 				continue; 
 			}
-			if (argMatches(args[i], yapBin)) {
-				yapBinVal = args[++i];
-				continue;
-			}
-			if (argMatches(args[i], yapBias)) {
-				yapBiasVal = args[++i];
-				continue;
-			}
 			if (argMatches(args[i], targetPred)) {
 				String targetStr = args[++i];
 				targetPredVal = new HashSet<>();
@@ -538,10 +510,6 @@ public class CommandLineArguments {
 			}
 			if (argMatches(args[i], stepLen)) {
 				stepLenVal=Double.parseDouble(args[++i]);
-				continue;
-			}
-			if (argMatches(args[i], treelearner)) {	
-				treelearnerVal = args[++i];
 				continue;
 			}
 			if (argMatches(args[i], sampleNegsToPosRatio)) {
@@ -611,9 +579,7 @@ public class CommandLineArguments {
 		result += argPrefix + learn + " : Use this flag, if you want to enable learning.\n";
 		
 		result += argPrefix + infer + " : Use this flag, if you want to enable inference.\n";
-		
-		result += argPrefix + useYap + " : Use this flag, if you want to use Yap for tree learning.\n";
-		
+
 		result += argPrefix + noBoosting + " : Use this flag, if you dont want to use boosting.\n";
 		
 		result += argPrefix + trainDir + " <Training directory> : Path to the training directory in WILL format.\n";
@@ -621,13 +587,7 @@ public class CommandLineArguments {
 		result += argPrefix + testDir + " <Testing directory> : Path to the testing directory in WILL format.\n";
 		
 		result += argPrefix + modelDir + " <Model directory> : Path to the directory with the stored models[or where they will be stored].\n";
-		
-		result += argPrefix + yapBin + " <Yap binary> : Path to the Yap binary.\n";
-		
-		result += argPrefix + yapBias + " <Yap bias file> : Path to the Yap Bias file.\n";
-		
-		result += argPrefix + treelearner + " <TILDE treelearner file> : Path to the treelearner file.\n";
-		
+
 		result += argPrefix + targetPred + " <target predicates> : Comma separated list of predicates that need to be learned/inferred.\n";
 		
 		result += argPrefix + saveModel + " : Use this flag, if you want to save the learnt models.\n";
@@ -672,10 +632,6 @@ public class CommandLineArguments {
 		checked_trainDirVal = true;
 		if (!(trainDirVal.endsWith("/") || trainDirVal.endsWith("\\"))) {  trainDirVal += "/"; }
 		this.trainDirVal = trainDirVal;
-	}
-
-	public boolean isUseYapVal() {
-		return useYapVal;
 	}
 
 	private boolean checked_testDirVal = false;
@@ -763,14 +719,6 @@ public class CommandLineArguments {
 		return noTargetModesInitially;
 	}
 
-	public String getYapBinVal() {
-		return yapBinVal;
-	}
-
-	public String getYapBiasVal() {
-		return yapBiasVal;
-	}
-
 	public String getModelFileVal() {
 		return modelFileVal;
 	}
@@ -813,10 +761,6 @@ public class CommandLineArguments {
 
 	public int getRdnIterationStep() {
 		return rdnIterationStep;
-	}
-
-	public String getTreelearnerVal() {
-		return treelearnerVal;
 	}
 
 	public double getSamplePosProbVal() {
