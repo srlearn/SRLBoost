@@ -1,10 +1,8 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.Serializable;
-import java.util.Set;
 
 /*
  * @author shavlik
@@ -23,20 +21,12 @@ class SavedClause implements Serializable {
 		// TODO(@hayesall): Nothing in this constructor appears to actually be used in the code base.
 
 		try {
-			double posCoverage = clause.getPosCoverage();
-			double negCoverage = clause.negCoverage;
-			double precision = clause.precision();
+			clause.precision();
 			recall      = clause.recall();
 			F1          = clause.F(1);
 			score       = clause.score;
-			Set<Example> uncoveredPos = clause.getUptoKmissedPositiveExamples(caller.reportUptoThisManyFalseNegatives);
-			Set<Example> uncoveredNeg = clause.getUptoKcoveredNegativeExamples(caller.reportUptoThisManyFalsePositives);
-			String ruleAsString;
-			if (((LearnOneClause) caller.getTaskBeingMonitored()).regressionTask && !((LearnOneClause) caller.getTaskBeingMonitored()).oneClassTask) {
-				ruleAsString = "\n " + clause.reportRegressionRuleAsString();
-			} else {
-				ruleAsString = ("") + caller.handleInlinersIfPossible(clause.getClause()).toPrettyString("   ", Integer.MAX_VALUE) + ".";
-			}
+			clause.getUptoKmissedPositiveExamples(5);
+			clause.getUptoKcoveredNegativeExamples(5);
 		} catch (Exception e) {
 			Utils.reportStackTrace(e);
 			Utils.error();

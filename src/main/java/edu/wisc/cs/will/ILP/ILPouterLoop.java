@@ -24,8 +24,6 @@ import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.*;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
@@ -33,8 +31,6 @@ import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
 
 import java.io.*;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 
 /*
@@ -116,8 +112,6 @@ public class ILPouterLoop {
     private boolean 	   learnOCCTree						   = false;
     ///////////////////////////////////////////////////////////////////
 
-    private boolean        checkpointEnabled             = false; // Write 'gleaner' files periodically.
-
     // All of the fields below are now in the ILPouterLoopState object.
 	// Any information needed to restart a run in the middle (from the chkpt)
     // must reside in the ILPouterLoopState object.
@@ -127,11 +121,6 @@ public class ILPouterLoop {
 	// setNumberOfCycles().
 	// However, if you still want to access this variable directly, you can use
 	// 'outerLoopState.numberOfCycles'.
-
-	// private Set<Example> negExamplesUsedAsSeeds;
-
-	// The following assist N-fold cross validation.
-	// private int numberOfFolds = 1;
 
     // These two allow one to randomly select a subset of the modes for each cycle.  (Added by JWS 6/24/10.)
 	private Set<PredicateNameAndArity> holdBodyModes;
@@ -342,14 +331,6 @@ public class ILPouterLoop {
         ILPSearchAction action = innerLoopTask.fireOuterLoopStarting(this);
 
         if (action == ILPSearchAction.PERFORM_LOOP) {
-
-            // Try to resume the run in the middle if there is a checkpoint file...
-            if (isCheckpointEnabled()) {
-                boolean checkpointSuccessful = readCheckpoint();
-                if ( checkpointSuccessful ) {
-                    Utils.println("\nRestarting ILP Outer loop from state in checkpoint file " + getCheckpointFileName() + "...");
-                }
-            }
 
             setupAdvice();
 
@@ -805,10 +786,6 @@ public class ILPouterLoop {
                 setClockTimeUsedInMillisec(clockTimeUsed);
 
 
-                if (isCheckpointEnabled()) {
-                    writeCheckpoint();
-                }
-
                 if (learningTreeStructuredTheory) {
                     stoppedBecauseTreeStructuredQueueEmpty = outerLoopState.queueOfTreeStructuredLearningTasksIsEmpty();
                 }
@@ -1200,101 +1177,6 @@ public class ILPouterLoop {
 		return result.simplify();
 	}
 
-    private void setOuterLoopState(ILPouterLoopState outerLoopState) {
-        this.outerLoopState = outerLoopState;
-    }
-
-    /* Attempts to write a checkpoint file to disk.
-     *
-     * This may throw an error if the checkpoint cannot be written.  I could
-     * catch the errors here, but I am afraid that an error later will
-     * break the checkpointing silently.
-     *
-     * If you want to silence these error (or just print an error message and
-     * continue), just comment out the Utils.error.
-     *
-     */
-	private void writeCheckpoint()  {
-
-        String filename = getCheckpointFileName();
-
-        outerLoopState.setNumberOfNegExamples( innerLoopTask.getNumberOfNegExamples());
-        outerLoopState.setNumberOfPosExamples( innerLoopTask.getNumberOfPosExamples());
-
-        try (ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(new CondorFileOutputStream(filename)))) {
-            oos.writeObject(outerLoopState); // Store outer loop state...
-            oos.writeObject(getGleaner()); // Store the gleaner...
-        } catch (Exception ex) {
-            String msg = "Unable to write checkpoint file: " + filename + ".  Error message: " + ex.getClass().getCanonicalName() + ": " + ex.getMessage();
-            Utils.error(msg);
-        }
-    }
-
-    /* Attempts to restore a checkpoint file from disk.
-     *
-     * Unlike writeCheckpoint, this method will never throw an exception.  It
-     * is assumed that the checkpoint file may not exist or may exist, but is
-     * from a previous search.
-     *
-     * If the checkpoint does exists and appears to be from this search, this method
-     * will automatically update the ILPouterLoop information (along with the inner
-     * loop information) with the checkpoint search state.
-     *
-     * Note, this method requires the ILPouterLoop to be setup and ready to start
-     * a search, since it uses this information to both reconstitute the checkpoint
-     * and verify that the checkpoint is valid.
-     *
-     * @return True if the checkpoint was found and the search was resumed.  False
-     *        if either the checkpoint is missing or incompatible.
-     */
-	private boolean readCheckpoint() {
-        String filename = getCheckpointFileName();
-
-        ILPObjectInputStream ilpois = null;
-        boolean result = false;
-        try {
-            HandleFOPCstrings stringHandler = innerLoopTask.getStringHandler();
-
-            ilpois = new ILPObjectInputStream(new GZIPInputStream(new CondorFileInputStream(filename)), stringHandler, innerLoopTask);
-
-            ILPouterLoopState chkptOuterLoopState = (ILPouterLoopState) ilpois.readObject();
-            Gleaner theGleaner = (Gleaner) ilpois.readObject();
-
-            try {
-                chkptOuterLoopState.checkStateCongruency(outerLoopState);
-                //chkptInnerLoopState.checkStateCongruency(innerLoopTask.getLearnOneClauseState());
-                // We found a valid checkpoint, so let's replace the state information of
-                // the current search with the checkpoint information...
-
-                setOuterLoopState(chkptOuterLoopState);
-
-                if ( theGleaner != null ) {
-                    setGleaner(theGleaner);
-                }
-
-                result = true;
-            }
-            catch(IncongruentSavedStateException ex) {
-                Utils.println(ex.getMessage());
-            }
-
-            ilpois.close();
-            ilpois = null;
-
-        } catch (FileNotFoundException | ClassNotFoundException ignored) {
-
-        } catch (IOException ex) {
-                Utils.println("Exception occurred reading checkpoint file: " + ex.getClass() + ": " + ex.getMessage());
-        } finally {
-            if ( ilpois != null ) try {
-                ilpois.close();
-			} catch (IOException ignored) {
-            }
-        }
-        
-        return result;
-    }
-
     private void clearSeedPosExamplesUsed() {
         outerLoopState.clearSeedPosExamplesUsed();
     }
@@ -1318,26 +1200,12 @@ public class ILPouterLoop {
       	gleanerFlipFlopped.setUseStructuredOutput(gleaner.getUseStructuredOutput());
     }
 
-    private Gleaner getGleaner() {
-        if ( innerLoopTask.searchMonitor instanceof Gleaner ) {
-            return (Gleaner) innerLoopTask.searchMonitor;
-        }
-		return null;
-    }
-
-	private boolean isCheckpointEnabled() {
-        return checkpointEnabled;
-    }
-
-    public void setCheckpointEnabled(boolean checkpointEnabled) {
-        this.checkpointEnabled = checkpointEnabled;
-    }
-
-	public boolean proveExample(Clause clause, Example ex) {
+    public boolean proveExample(Clause clause, Example ex) {
         return innerLoopTask.proveExample(clause, ex);
     }
 
     private void setupAdvice() {
+	    // TODO(@hayesall): Is advice ever used in this manner?
 
         if (getActiveAdvice() == null) {
             createdActiveAdvice = innerLoopTask.getAdviceProcessor().processAdvice(innerLoopTask.getCurrentRelevanceStrength(), getPosExamples(), getNegExamples());
@@ -1503,13 +1371,7 @@ public class ILPouterLoop {
         this.workingDirectory = workingDirectory;
     }
 
-	private String getCheckpointFileName() {
-        String rrr = isRRR() ? "RRR" : "Std";
-        return getWorkingDirectory() + "/" + getPrefix() + rrr + getFoldInfoString() + ".chkpt.gz";
-
-    }
-
-	private void setRRR(boolean useRRR) {
+    private void setRRR(boolean useRRR) {
         outerLoopState.setRRR(useRRR);
     }
 
@@ -1519,10 +1381,6 @@ public class ILPouterLoop {
 
     private boolean isRRR() {
         return outerLoopState.isRRR();
-    }
-
-    private String getPrefix() {
-        return outerLoopState.getPrefix();
     }
 
     /* Sets the PosExamples to use for the search.

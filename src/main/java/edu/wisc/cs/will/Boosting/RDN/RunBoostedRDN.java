@@ -82,9 +82,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 				setup.addAllExamplesToFacts();
 				if ( i > minTreesInModel) { minTreesInModel = i; }
 
-				// TODO(@hayesall): Which is it?
-				int maxSamples = 30*((minTreesInModel/iterStepSize) + 1);
-				maxSamples = 500;
+				int maxSamples = 500;
 
 				// TODO(@tushar): Get more samples but pick the 200 most likely states.
 

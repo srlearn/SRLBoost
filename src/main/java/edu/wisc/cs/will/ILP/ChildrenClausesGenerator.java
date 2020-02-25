@@ -331,7 +331,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 					}
 
 					Literal easyPred = thisTask.stringHandler.getLiteral(predName, mostGeneralArguments);
-					SingleClauseNode newEasyNode = new SingleClauseNode(parent, easyPred, null);
+					SingleClauseNode newEasyNode = new SingleClauseNode(parent, easyPred);
 					if (!newEasyNode.acceptableCoverageOnPosExamples()) {
 						continue;
 					}
@@ -413,7 +413,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 								Literal pred = thisTask.stringHandler.getLiteral(predName, args);
 
 								// Create the new search node.  Don't worry about new types here.
-								SingleClauseNode newNode = new SingleClauseNode(parent, pred, specs);
+								SingleClauseNode newNode = new SingleClauseNode(parent, pred);
 
 								// The results will appear here.
 								thisTask.collectedConstantBindings = null;
@@ -422,7 +422,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 								// Provide the arguments that are to be bound to constants.
 								Literal testForConstants = thisTask.stringHandler.getLiteral(thisTask.procDefinedForConstants, new ArrayList<>(listOfVars4constants));
 
-								SingleClauseNode newNodeForConstants = new SingleClauseNode(newNode, testForConstants, specs);
+								SingleClauseNode newNodeForConstants = new SingleClauseNode(newNode, testForConstants);
 
 								// This will fail, but that is OK.  We simply want to collectedConstantBindings.
 								newNodeForConstants.acceptableCoverageOnPosSeeds();

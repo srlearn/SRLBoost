@@ -375,10 +375,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 		if (monitor != null) {
 			monitor.setSearchTask(this); // Connect the search monitor (if one) to this search task.
-
-			if (monitor instanceof Gleaner) {
-				((Gleaner) monitor).setStringHandler(stringHandler); // Need to special-case this code.  TODO cleanup if some better design comes to mind.
-			}
 		}
 	}
 

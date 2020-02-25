@@ -287,7 +287,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     }
 
-    List<RelevantClauseInformation> expandNonOperationalPredicates(HornClauseContext context) {
+    List<RelevantClauseInformation> expandNonOperationalPredicates() {
 
         List<? extends Sentence> sentences = NonOperationalExpander.getExpandedSentences(sentence);
 

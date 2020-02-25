@@ -1,8 +1,6 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.FOPCInputStream;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
@@ -10,7 +8,8 @@ import edu.wisc.cs.will.stdAIsearch.SearchNode;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /*
  * Gleaner maintains the best clause (per 'marker') in each bin of recall ranges.
@@ -30,17 +29,10 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	SingleClauseNode bestNodeRegardless  = null;
 	double           bestScoreRegardless = Double.NEGATIVE_INFINITY;
 
-	private transient HandleFOPCstrings       stringHandler;
-	          private ILPouterLoop            ilpOuterLooper; // Trevor - I (JWS) didnt know if this should be transient.  TODO
-
-	final int    reportUptoThisManyFalseNegatives = 5; // Use 0 (or a negative number) to turn this off.
-    final int    reportUptoThisManyFalsePositives = 5;
+	private ILPouterLoop            ilpOuterLooper; // Trevor - I (JWS) didnt know if this should be transient.  TODO
 
 
 	private final String defaultMarker = "allPossibleMarkers";
-
-	// TODO(@hayesall): `List<String> markerList` is updated but never queried.
-	private List<String> markerList;    // A Gleaner is kept for each marker provided.  The user can use anything to label Gleaners.
 	private Map<String,Map<Integer,SavedClause>>        gleaners; // The first argument is the marker, the second is an integer marking the recall bin, and the inner Map contains the highest-scoring clause in that bin.
 	private Map<Integer,SavedClause>              currentGleaner;
 	private Map<Integer,SavedClause>              defaultGleaner;
@@ -50,13 +42,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 	public Gleaner() {
       resetAllMarkers();
 		this.setTaskBeingMonitored(null);
-	  this.stringHandler      = null;
 	}
-	
-	public void setStringHandler(HandleFOPCstrings stringHandler) {
-		this.stringHandler = stringHandler;
-	}
-
 
 	void clearBestNode() { // Might want to clear this, e.g., each ILP outer loop clears this so that the bestNode PER inner loop can be found.
 		bestNode              = null;
@@ -120,19 +106,6 @@ public class Gleaner extends SearchMonitor implements Serializable {
 
 		return true;
 	}
-	
-	private int countOfWarningsForInliners = 0; // Turn off reporting at the first 100.
-	Clause handleInlinersIfPossible(Clause cRaw) {
-		if (cRaw == null) { return null; }
-		Clause c = (Clause) stringHandler.renameAllVariables(cRaw);
-		if (ilpOuterLooper == null || ilpOuterLooper.innerLoopTask == null) { return c; }
-		List<Clause> clauses = ilpOuterLooper.innerLoopTask.getInlineManager().handleInlinerAndSupportingClauses(c);
-		
-		if (clauses == null) { return c; }
-		if (clauses.size() == 1) { return clauses.get(0); }
-		if (++countOfWarningsForInliners < 3) { Utils.warning("#" + Utils.comma(countOfWarningsForInliners) + " Gleaner: when handling inliners in: \n   " + c + "\n got multiple clauses:\n   " + clauses); } // TODO figure out to do with these.
-		return c;
-	}
 
 	void setCurrentMarker(String markerRaw) {
 		String marker = markerRaw;
@@ -144,20 +117,12 @@ public class Gleaner extends SearchMonitor implements Serializable {
 			// TODO(@hayesall): After refactoring, the statement simplified to `marker += null`. This is likely wrong.
 			marker += null;
 		}
-		currentGleaner = gleaners.get(marker);
-		
-		if (currentGleaner == null) { // See if we already have a gleaner of this type.  If not, create a new one.
-			currentGleaner = new HashMap<>(8);
-			gleaners.put(marker, currentGleaner);
-			markerList.add(marker);
-		}
-		// The current marker 'name.'
+		currentGleaner = gleaners.computeIfAbsent(marker, k -> new HashMap<>(8));
 	}
 	
 	private void resetAllMarkers() { // Be careful using this.  Might NOT want to clear between different "ILP outer loop" runs - instead, just use a new marker.
 		currentGleaner = null;
 		defaultGleaner = null;
-		markerList     = new ArrayList<>(8);
 		gleaners       = new HashMap<>(8);
 		setCurrentMarker(defaultMarker); // Create the default Gleaner.
 		defaultGleaner = currentGleaner; // Hold on to the default - we keep the best of all clauses per bin in here.
@@ -203,10 +168,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 
         in.defaultReadObject();
 
-        FOPCInputStream fOPCInputStream = (FOPCInputStream) in;
-
-        this.setStringHandler(fOPCInputStream.getStringHandler());
-    }
+	}
 
 	void setILPouterLooper(ILPouterLoop ilpOuterLooper) {
 		this.ilpOuterLooper = ilpOuterLooper;

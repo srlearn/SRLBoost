@@ -70,6 +70,7 @@ public class CommandLineArguments {
 	private static final String noTargetModes = "removeTarget";
 	private boolean noTargetModesInitially = false;
 
+	// TODO(@hayesall): `hiddenLitFlag` and `hiddenStrategy` controls EM/MAP, but I don't think these were implemented.
 	private static final String hiddenLitFlag = "hidden";
 	private String hiddenStrategy = "ignore";
 

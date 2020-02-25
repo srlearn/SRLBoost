@@ -2,7 +2,6 @@ package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
 import edu.wisc.cs.will.FOPC.visitors.DefiniteClauseCostAggregator;
 import edu.wisc.cs.will.FOPC.visitors.DuplicateDeterminateRemover;
 import edu.wisc.cs.will.FOPC.visitors.Inliner;
@@ -17,7 +16,7 @@ import java.util.*;
 /*
  * @author twalker
  */
-public class ActiveAdvice {
+class ActiveAdvice {
 
     private final HandleFOPCstrings stringHandler;
 
@@ -55,7 +54,7 @@ public class ActiveAdvice {
         }
 
         MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<>();
-        List<RelevantClauseInformation> expandedRCIs = rci.expandNonOperationalPredicates(ap.getContext());
+        List<RelevantClauseInformation> expandedRCIs = rci.expandNonOperationalPredicates();
 
         // We will add all of the support clauses...just for the hell of it...
         for (Map.Entry<PredicateNameAndArity, List<Clause>> entry : supportClausesForExpansions.entrySet()) {
@@ -392,14 +391,4 @@ public class ActiveAdvice {
         }
     }
 
-    public static class CNFClauseCollector extends DefaultFOPCVisitor<List<Clause>> {
-
-        @Override
-        public Sentence visitClause(Clause clause, List<Clause> data) {
-
-            data.add(clause);
-
-            return super.visitClause(clause, data);
-        }
-    }
 }

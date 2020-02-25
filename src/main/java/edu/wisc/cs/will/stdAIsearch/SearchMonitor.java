@@ -90,7 +90,7 @@ public class SearchMonitor implements Serializable {
 		this.taskBeingMonitored = taskBeingMonitored;
 	}
 
-	public StateBasedSearchTask getTaskBeingMonitored() {
+	protected StateBasedSearchTask getTaskBeingMonitored() {
 		return taskBeingMonitored;
 	}
 

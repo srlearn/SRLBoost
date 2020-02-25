@@ -3,7 +3,6 @@ package edu.wisc.cs.will.ILP;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.visitors.DefaultFOPCVisitor;
 import edu.wisc.cs.will.FOPC.visitors.ReplaceLiteralsVisitor;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfSets;
 
 import java.util.*;

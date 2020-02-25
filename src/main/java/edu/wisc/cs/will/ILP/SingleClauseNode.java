@@ -53,9 +53,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	public SingleClauseNode(SearchNode parentNode, Literal literalAdded) {
 		this(parentNode, literalAdded, null, null, null, null);
 	}
-	public SingleClauseNode(SearchNode parentNode, Literal literalAdded, PredicateSpec enabler) {
-		this(parentNode, literalAdded, null, null, null, null);
-	}
 	public SingleClauseNode(SearchNode parentNode, Literal literalAdded, Map<Term, Integer> argDepths, List<Type> typesPresent, Map<Type, List<Term>> typesMap, Map<Term, Type> typesOfNewTerms) {
 		super(parentNode);
 		depthOfArgs          = argDepths;
@@ -480,8 +477,9 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	
 	// Note that here we get missed examples, INCLUDING THOSE THAT FAILED AT EARLIER NODES.
-	Set<Example> getUptoKmissedPositiveExamples(int k) throws SearchInterrupted {
-		if (k <= 0) { return null; }
+	void getUptoKmissedPositiveExamples(int k) throws SearchInterrupted {
+		// TODO(@hayesall): Can this method be dropped?
+		if (k <= 0) { return; }
 		Set<Example>     results    = null;
 		LearnOneClause   theILPtask = (LearnOneClause) task;
 		Literal          target     = getTarget();
@@ -495,14 +493,13 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				if (results == null) { results = new HashSet<>(4); }
 				results.add(posEx);
 				counter++;
-				if (counter >= k) { return results; }
+				if (counter >= k) { return; }
 			}
 		}
-		return results;
 	}
 	
-	Set<Example> getUptoKcoveredNegativeExamples(int k) throws SearchInterrupted {
-		if (k <= 0) { return null; }
+	void getUptoKcoveredNegativeExamples(int k) throws SearchInterrupted {
+		if (k <= 0) { return; }
 		Set<Example>     results    = null;
 		LearnOneClause   theILPtask = (LearnOneClause) task;
 		Literal          target     = getTarget();
@@ -516,10 +513,9 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				if (results == null) { results = new HashSet<>(4); }
 				results.add(negEx);
 				counter++;
-				if (counter >= k) { return results; }
+				if (counter >= k) { return; }
 			}
 		}
-		return results;
 	}
 		
 	// TODO - should we store these results?
@@ -1038,23 +1034,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	void setStartingNodeForReset(SingleClauseNode startingNodeForReset) {
 		this.startingNodeForReset = startingNodeForReset;
 	}
-	String reportRegressionRuleAsString() {
-		StringBuilder result = new StringBuilder("FOR " + getClauseHead() + " ");
-		
-		List<Literal> bodyLits = getClauseBody();
-		if (Utils.getSizeSafely(bodyLits) < 1) { result.append("output = ").append(Utils.truncate(meanIfTrue(), 6)); }
-		else {
-			boolean firstTime = true;
-			result.append("IF (");
-			for (Literal lit : bodyLits) {
-				if (firstTime) { firstTime = false; } else { result.append(", "); }
-				result.append(lit);
-			}
-			result.append(") THEN output = ").append(Utils.truncate(meanIfTrue(), 6)).append(" ELSE output = ").append(Utils.truncate(meanIfFalse(), 6));
-		}
-		return result + ";" + (extraString == null ? "" : " // " + extraString);
-	}
-	
+
 	// If TRUE, then this branch will become a LEAF.
 	boolean acceptableScoreFalseBranch(double minAcceptableScore) throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;	
