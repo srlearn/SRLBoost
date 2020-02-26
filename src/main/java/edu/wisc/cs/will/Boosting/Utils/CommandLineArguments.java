@@ -154,9 +154,6 @@ public class CommandLineArguments {
 	private static final String sampleNegsToPosRatio = "negPosRatio";
 	private double sampleNegsToPosRatioVal = 2;
 
-	private static final String printAllEgFlag		= "printAllEgToo";
-	private boolean printAllExamplesToo = false;
-
 	private static final String testNegsToPosRatio = "testNegPosRatio";
 	private double testNegsToPosRatioVal = -1;
 	private static final String testPosString      = "testPosString"; // Allow overriding of the default.
@@ -253,13 +250,6 @@ public class CommandLineArguments {
 				noCheckPointing = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					noCheckPointing = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], printAllEgFlag)) {
-				printAllExamplesToo = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					printAllExamplesToo = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -579,10 +569,6 @@ public class CommandLineArguments {
 
 	public int getNumberOfMLNClauses() {
 		return numberOfMLNClauses;
-	}
-
-	public boolean isPrintAllExamplesToo() {
-		return printAllExamplesToo;
 	}
 
 	public int getMaxMLNClauseLength() {

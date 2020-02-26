@@ -60,11 +60,9 @@ public class InferBoostedRDN {
 			if (jointExamples.keySet().size() > 1) {
 				sampler = new JointModelSampler(rdns, setup, true);
 			} else {
-				if (!cmdArgs.isPrintAllExamplesToo()) {
-					Utils.println("\n% Subsampling the negative examples.");
-					subsampleNegatives(jointExamples);
-					negativesSampled = true;
-				}
+				Utils.println("\n% Subsampling the negative examples.");
+				subsampleNegatives(jointExamples);
+				negativesSampled = true;
 				sampler = new MLNInference(setup, rdns);
 			}
 		} else {
@@ -102,7 +100,7 @@ public class InferBoostedRDN {
 			}
 
 			// Subsample the negatives for reporting.
-			if (!negativesSampled && !cmdArgs.isPrintAllExamplesToo()) {
+			if (!negativesSampled) {
 				Utils.println("\n% Subsampling the negative examples for reporting.");
 				subsampleNegatives(jointExamples);
 				negativesSampled=true;
@@ -116,63 +114,12 @@ public class InferBoostedRDN {
 					if (f.exists()) {
 						f.delete();
 					}
-					if (cmdArgs.isPrintAllExamplesToo()) {
-						f = new File(getFullQueryFile(target));
-						if (f.exists()) {
-							f.delete();
-						}
-					}
 				}
 			}
-			String modelSuff = cmdArgs.getModelFileVal();
 			boolean allExamples = false;
-			if (cmdArgs.isPrintAllExamplesToo()) {
-				cmdArgs.setModelFileVal(modelSuff + "_full");
-				allExamples = true;
-			}
 			processExamples(jointExamples, thresh, startCount, allExamples);
-			if (cmdArgs.isPrintAllExamplesToo()) {
-				if (!negativesSampled) {
-					subsampleNegatives(jointExamples);
-					cmdArgs.setModelFileVal(modelSuff);
-					processExamples(jointExamples, thresh, startCount, false);
-				} else {
-					Utils.error("Negatives sampled already!!");
-				}
-			}
 			jointExamples = backupJointExamples;
 		}
-	}
-	
-	private void removeHiddenExamples(
-			Map<String, List<RegressionRDNExample>> jointExamples,
-			Map<String, List<RegressionRDNExample>> hiddenExamples) {
-		int numRemoved = 0;
-		for (String predName : jointExamples.keySet()) {
-			if (!hiddenExamples.containsKey(predName)) {
-				continue;
-			}
-			List<RegressionRDNExample> examples = jointExamples.get(predName);
-			List<RegressionRDNExample> hidExamples = hiddenExamples.get(predName);
-			
-			
-			for (int i = examples.size()-1; i >= 0;  i--) {
-				RegressionRDNExample origEx = examples.get(i);
-				if (setup.getMulticlassHandler().isMultiClassPredicate(origEx.predicateName.name)) {
-					origEx = setup.getMulticlassHandler().morphExample(origEx);
-				}
-				for (RegressionRDNExample hidRex : hidExamples) {
-					if (hidRex.toString().equals(origEx.toString())) {
-						examples.remove(i);
-						i++;
-						numRemoved++;
-						break;
-					}
-				}
-			
-			}
-		}
-		Utils.println("Removed " + numRemoved + " examples before reporting.");	
 	}
 
 	private void processExamples(
@@ -184,12 +131,6 @@ public class InferBoostedRDN {
 				File f = new File(getResultsFile(pred));
 				if (f.exists()) {
 					f.delete();
-				}
-				if (cmdArgs.isPrintAllExamplesToo()) {
-					f = new File(getFullResultsFile(pred));
-					if (f.exists()) {
-						f.delete();
-					}
 				}
 			}
 			getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount, usingAllEgs);
