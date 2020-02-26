@@ -159,10 +159,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	boolean             allTargetVariablesMustBeInHead                     = false;
 	boolean             dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds = true;  // If have p(x) :- q(x,y) but if over all positive seeds can never get x and y to bind to different constants, then use p(x) :- q(x,x).  Similar (equivalent?) to "variable splitting" = false in Aleph.
 	long                maxResolutionsPerClauseEval    = 10000000;     // When evaluating a clause, do not perform more than this many resolutions.  If this is exceeded, a clause is said to cover 0 pos and 0 neg, regardless of how many have been proven and it won't be expanded.
-	private boolean             usingWorldStates                        = false; // Does this task involve time-stamped facts?
-	private List<WorldState>    worldStatesContainingNoPositiveExamples = null;  // All ways of matching the target predicate in these states are known (or at least assumed) to be NEGATIVE examples.
-	private boolean             findWorldStatesContainingNoPosExamples  = false;
-	public    boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
+	public final boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
 	////////////////////////////////////////////////////////////
 	//  Variables for controlling random-rapid-restart searches (i.e., repeatedly randomly create an initial clause, then do some local search around each).
 	//    The initial clause randomly created will meet the specification on the positive and negative seeds.
@@ -230,6 +227,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   double               mEstimateNeg = 0.1; // Note: these are used in recall as well as precision.
 
 	private final RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
+
+	// TODO(@hayesall): `factPredicateNames` updated but never queried, remove.
     private final Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
 
 	private List<ModeConstraint> modeConstraints = null;
@@ -397,7 +396,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 		vStr = stringHandler.getParameterSetting("useCachedFiles");
 		if (vStr != null) {                       useCachedFiles                                        = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("usingWorldStates");
-		if (vStr != null) {                       usingWorldStates                                      = Boolean.parseBoolean(vStr); }
+		if (vStr != null) {                       // Does this task involve time-stamped facts?
+			boolean usingWorldStates = Boolean.parseBoolean(vStr);
+		}
 		vStr = stringHandler.getParameterSetting("errorToHaveModesWithoutInputVars");
 		if (vStr != null) {                       // Error if a mode of the form 'predicateName(-human,#age)' is provided since such literals are uncoupled from a clause and hence lead to search inefficiency (so only expert users should override this boolean).
 			Boolean.parseBoolean(vStr);
@@ -413,7 +414,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 		vStr = stringHandler.getParameterSetting("dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds");
 		if (vStr != null) {                       dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds    = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("findWorldStatesContainingNoPosExamples");
-		if (vStr != null) {                       findWorldStatesContainingNoPosExamples                = Boolean.parseBoolean(vStr); }
+		if (vStr != null) {
+			boolean findWorldStatesContainingNoPosExamples = Boolean.parseBoolean(vStr);
+		}
 		vStr = stringHandler.getParameterSetting("performRRRsearch");
 		if (vStr != null) {                       performRRRsearch                                      = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("allowMultipleTargets");
@@ -1666,9 +1669,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 			Type typeToUse = null;
 			boolean skipWithThisArgument = false;
 
-			int counter = 0;
 			if (posEx != null) for (Example ex : posEx) {
-				counter++;
 				if (ex.numberArgs() != targetPredicateArity || ex.predicateName != target.predicateName) { continue; }
 
 				Term argI = ex.getArgument(i);
@@ -1685,9 +1686,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 					}
 				}
 			}
-			counter = 0;
 			if (negEx != null) for (Example ex : negEx) {
-				counter++;
 				if (skipWithThisArgument || ex.numberArgs() != targetPredicateArity || ex.predicateName != target.predicateName) { continue; }
 				Term argI = ex.getArgument(i);
 				List<Type> types = stringHandler.isaHandler.getAllKnownTypesForThisTerm(argI);

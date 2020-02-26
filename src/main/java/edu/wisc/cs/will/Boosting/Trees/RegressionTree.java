@@ -49,8 +49,4 @@ public class RegressionTree extends ClauseBasedTree {
 		}
 	}
 
-	public void setAddLeafId(boolean addLeafIdToProvenance) {
-		this.addLeafId = addLeafIdToProvenance;
-	}
-
 }

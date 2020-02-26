@@ -465,66 +465,6 @@ public final class WILLSetup {
 		}
 		return isHidden;
 	}
-	
-	private void sampleHiddenExamples(double hiddenPosLitProb, double hiddenNegLitProb) {
-		if (hiddenExamples == null) {
-			hiddenExamples  = new HashMap<>();
-		}
-		Set<String> hiddenPred = cmdArgs.getHiddenPredVal();
-		if (hiddenPred == null) {
-			hiddenPred = cmdArgs.getTargetPredVal();
-		}
-		int counter = 0;
-		for (String predName : hiddenPred) {
-			if (!backupPosExamples.containsKey(predName)) {
-				continue;
-			}
-			for (Example eg : backupPosExamples.get(predName)) {
-				if (Math.random() < hiddenPosLitProb) {
-					RegressionRDNExample rex = new RegressionRDNExample(eg, false);
-					if (getMulticlassHandler().isMultiClassPredicate(predName)) {
-						RegressionRDNExample mcEx = getMulticlassHandler().morphExample(rex);
-						mcEx.setHiddenLiteral();
-						addToHiddenExamples(mcEx);
-					} else {
-						rex.setHiddenLiteral();
-						addToHiddenExamples(rex);
-					}
-					counter++;
-				}
-			}
-		}
-		Utils.println("Number of hidden examples added from pos: " + counter);
-		counter  = 0;
-		for (String predName : hiddenPred) {
-			if (!backupNegExamples.containsKey(predName)) {
-				continue;
-			}
-			// Ignore neg examples for sampling multiclass examples
-			if (getMulticlassHandler().isMultiClassPredicate(predName)) {
-				continue;
-			}
-			for (Example eg : backupNegExamples.get(predName)) {
-				if (Math.random() < hiddenNegLitProb) {
-					RegressionRDNExample rex = new RegressionRDNExample(eg, false);
-					rex.setHiddenLiteral();
-					addToHiddenExamples(rex);
-					counter++;
-				}
-			}
-		}
-		Utils.println("Number of hidden examples added from neg: " + counter);
-	}
-	
-	private void addToHiddenExamples(RegressionRDNExample rex) {
-		String predName = rex.predicateName.name;
-		if (predName.startsWith(multiclassPredPrefix)) { predName = predName.substring(multiclassPredPrefix.length()); }
-		if (!hiddenExamples.containsKey(predName)) {
-			hiddenExamples.put(predName, new ArrayList<>());
-		}
-		hiddenExamples.get(predName).add(rex);
-
-	}
 
 	/**
 	 * This method moves facts to Examples if they are part of the joint inference task.
@@ -652,24 +592,7 @@ public final class WILLSetup {
 	private final boolean disableFactBase = true;
 	
 	private final Set<PredicateNameAndArity> backupTargetModes=new HashSet<>();
-	public void removeAllTargetsBodyModes() {
-		
-		for (PredicateNameAndArity bodyMode: getInnerLooper().getBodyModes()) {
-			for(String target: cmdArgs.getTargetPredVal()) {
-				if (bodyMode.getPredicateName().name.equals(target)) {
-					// Since we are iterating over the modes, can't erase them here
-					// erase the modes after the for loop
-					backupTargetModes.add(bodyMode);
-				}
-			}
-		}
-		
-		// Remove modes now
-		for (PredicateNameAndArity mode : backupTargetModes) {
-			getInnerLooper().removeBodyMode(mode);
-		}		
-	}
-	
+
 	void addAllTargetModes() {
 		if (backupTargetModes.isEmpty()) {
 			return;
@@ -1322,7 +1245,7 @@ public final class WILLSetup {
 	/**
 	 * @return the multiclassHandler
 	 */
-	public MultiClassExampleHandler getMulticlassHandler() {
+	MultiClassExampleHandler getMulticlassHandler() {
 		return multiclassHandler;
 	}
 
