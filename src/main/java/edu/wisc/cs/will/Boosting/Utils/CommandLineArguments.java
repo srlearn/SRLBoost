@@ -66,9 +66,6 @@ public class CommandLineArguments {
 	
 	private static final String maxMLNLength = "mlnClauseLen";
 	private int maxMLNClauseLength=2;
-	
-	private static final String noTargetModes = "removeTarget";
-	private boolean noTargetModesInitially = false;
 
 	private static final String hideSampleFlag = "hideProb";
 	private double hiddenLitProb = -1;
@@ -266,13 +263,6 @@ public class CommandLineArguments {
 				printAllExamplesToo = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					printAllExamplesToo = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], noTargetModes)) {
-				noTargetModesInitially = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					noTargetModesInitially = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -649,10 +639,6 @@ public class CommandLineArguments {
 		checked_resultsDirVal = true;
 		if (!(resultsDirVal.endsWith("/") || resultsDirVal.endsWith("\\"))) {  resultsDirVal += "/"; }
 		this.resultsDirVal = resultsDirVal;
-	}
-
-	public boolean isNoTargetModesInitially() {
-		return noTargetModesInitially;
 	}
 
 	public String getModelFileVal() {

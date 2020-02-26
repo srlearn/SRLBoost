@@ -71,10 +71,6 @@ public class LearnBoostedRDN {
 
 		Utils.println("% Have prepared facts.");
 
-		if (cmdArgs.isNoTargetModesInitially() && rdn.getNumTrees() == 0) {
-			setup.removeAllTargetsBodyModes();
-		}
-
 		learnRDN(targetPredicate, rdn, sampler, numMoreTrees);
 
 		long end = System.currentTimeMillis();
