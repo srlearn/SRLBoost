@@ -230,9 +230,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 	private final RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
 
-	// TODO(@hayesall): `factPredicateNames` updated but never queried, remove.
-    private final Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
-
 	private List<ModeConstraint> modeConstraints = null;
 
     private final AdviceProcessor adviceProcessor;
@@ -1478,7 +1475,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			if (sentence instanceof Literal) {
 				Literal literal = (Literal) sentence;
 				PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-				factPredicateNames.add(pnaa);
 			}
 		}
 
@@ -1521,7 +1517,6 @@ public class LearnOneClause extends StateBasedSearchTask {
             if (sentence instanceof Literal) {
                 Literal literal = (Literal) sentence;
                 PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-                factPredicateNames.add(pnaa);
             }
         }
 
@@ -2077,8 +2072,4 @@ public class LearnOneClause extends StateBasedSearchTask {
 		}
 	}
 
-	public void updateFacts() {
-		// TODO(@hayesall): method causes an error.
-		Utils.error("Expected the true facts for this state to be built.");
-	}
 }

@@ -35,6 +35,7 @@ public class InferBoostedRDN {
 		this.setup = setup;
 		setParamsUsingSetup(setup);
 
+		// TODO(@hayesall): All calls to `Utils.getUserName()` should probably be removed.
 		if (Utils.getUserName().equalsIgnoreCase("tkhot")) {
 			useOldFileLocations = true;	
 		}
@@ -42,11 +43,8 @@ public class InferBoostedRDN {
 	
 	public void runInference(JointRDNModel rdns, double thresh) {
 		Map<String,List<RegressionRDNExample>> targetExamples = setup.getJointExamples(cmdArgs.getTargetPredVal());
-		Map<String,List<RegressionRDNExample>> jointExamples = setup.getHiddenExamples();
-		if (jointExamples == null) {
-			jointExamples = new HashMap<>();
-		}
-		jointExamples.putAll(targetExamples);
+		Map<String,List<RegressionRDNExample>> jointExamples;
+		jointExamples = new HashMap<>(targetExamples);
 		boolean negativesSampled = false;
 		
 		Utils.println("\n% Starting inference in bRDN.");
@@ -111,8 +109,7 @@ public class InferBoostedRDN {
 					}
 				}
 			}
-			boolean allExamples = false;
-			processExamples(jointExamples, thresh, startCount, allExamples);
+			processExamples(jointExamples, thresh, startCount, false);
 			jointExamples = backupJointExamples;
 		}
 	}

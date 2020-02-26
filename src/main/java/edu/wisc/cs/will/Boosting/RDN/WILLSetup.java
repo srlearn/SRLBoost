@@ -44,9 +44,6 @@ public final class WILLSetup {
 	private Map<String, List<Example>> backupPosExamples;
 	private Map<String, List<Example>> backupNegExamples;
 
-	// TODO(@hayesall): `hiddenExamples` is final null.
-	private final Map<String, List<RegressionRDNExample>> hiddenExamples = null;
-
 	public boolean useMLNs = false;
 	public boolean learnClauses = false;
 
@@ -235,10 +232,6 @@ public final class WILLSetup {
 			}
 		}
 
-		if (hiddenExamples != null) {
-			moveHiddenPosToNeg();
-		}
-
 		if (backupPosExamples != null) for (String target : backupPosExamples.keySet()) {
 			Collection<Example> posegs = backupPosExamples.get(target);
 			Collection<Example> negegs = backupNegExamples.get(target);
@@ -307,53 +300,6 @@ public final class WILLSetup {
 
 		// Create hidden fact file from the sampled hidden examples.
 		return true;
-	}
-
-	private void moveHiddenPosToNeg() {
-		for (String predName : hiddenExamples.keySet()) {
-			String cleanPredName = predName;
-			if (predName.startsWith(multiclassPredPrefix)) { cleanPredName = predName.substring(multiclassPredPrefix.length()); } 
-			List<Example> currPosExamples = backupPosExamples.get(cleanPredName);
-			
-			Utils.println("Original +ve egs: " + currPosExamples.size());
-			Utils.println("Original -ve egs: " + backupNegExamples.get(cleanPredName).size());
-			for (RegressionRDNExample hiddenRex : hiddenExamples.get(predName)) {
-				String hiddenRep  = hiddenRex.toPrettyString("");
-
-				for (int i = 0; i < currPosExamples.size(); i++) {
-					
-					String egRep;
-					boolean ismulticlass = false;
-					if (!getMulticlassHandler().isMultiClassPredicate(cleanPredName)) {
-						egRep = currPosExamples.get(i).toPrettyString("");
-					} else {
-						RegressionRDNExample newRex = getMulticlassHandler().morphExample(currPosExamples.get(i));
-						egRep = newRex.toPrettyString("");
-						ismulticlass = true;
-					}
-
-					if (egRep.equals(hiddenRep)) {
-						hiddenRex.setOriginalHiddenLiteralVal();
-						// Do not remove from positive examples for multi-class
-						// We use only the positive examples in multi-class examples
-						
-						if (!ismulticlass) {
-							backupNegExamples.get(cleanPredName).add(currPosExamples.get(i));
-							currPosExamples.remove(i);
-
-							// TODO(@hayesall): This is a likely sign of a bug. Someone probably didn't realize that `i--;` is never used.
-							i--;
-						} else {
-							// To ensure the original value is never used
-							((RegressionRDNExample)currPosExamples.get(i)).setOriginalValue(-1);
-						}
-						break;
-					}
-				}
-			}
-			Utils.println("New +ve egs: " + currPosExamples.size());
-			Utils.println("New -ve egs: " + backupNegExamples.get(cleanPredName).size());
-		}
 	}
 
 	/**
@@ -474,7 +420,7 @@ public final class WILLSetup {
 	// TODO(@hayesall): It seems like a bug that `allowRecursion = false`.
 	private boolean allowRecursion = false;
 	public static final String recursivePredPrefix = "recursive_";
-	public static final String multiclassPredPrefix = "multiclass_";
+	static final String multiclassPredPrefix = "multiclass_";
 
 	// Maintain a list of predicates that are already added, so that we can save on time.
 	private final HashSet<String> predicatesAsFacts = new HashSet<>();
@@ -532,13 +478,6 @@ public final class WILLSetup {
 	
 	void setOnlyPrecomputeThese(Set<String> precompute) {
 		onlyPrecomputeThese = precompute;
-	}
-	
-	/**
-	 * @return the hiddenExamples
-	 */
-	Map<String, List<RegressionRDNExample>> getHiddenExamples() {
-		return hiddenExamples;
 	}
 
 	private void recomputeFacts(String predicate) {
