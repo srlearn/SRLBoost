@@ -55,9 +55,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public String  import_assignmentToTempVar1 = "UNASSIGNED_import_assignmentToTempVar1";
 	public String  import_assignmentToTempVar2 = "UNASSIGNED_import_assignmentToTempVar2";
 	public String  import_assignmentToTempVar3 = "UNASSIGNED_import_assignmentToTempVar3";
-	public final String  FACTS   = "FACTS_UNASSIGNED";  // The MachineReading project uses these, for BOTH import and precompute.
 	public final String  PRECOMP = "PRECOMP_UNASSIGNED";
-	public final String  SWD     = "SWD_UNASSIGNED";    // SWD = ScratchWorkingDir (do NOT use SCRATCH because we already use MYSCRATCHDIR).
 	public final String  TASK    = "TASK_UNASSIGNED";
 
 	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
@@ -180,9 +178,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
         standardPredicateNames = new StandardPredicateNames(this);
 
-        // TODO(@hayesall): What is `recordHandler` doing, and why is it never used?
-		RecordHandler recordHandler = new RecordHandler();
-
 		isaHandler          = new IsaHetrarchy(this);
 		mathHandler         = new DoBuiltInMath(this);
 		listHandler         = new DoBuiltInListProcessing(this);
@@ -190,10 +185,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		trueIndicator       = this.getStringConstant("true");
 		falseIndicator      = this.getStringConstant("false");
 		trueLiteral         = this.getLiteral(standardPredicateNames.trueName);
-		Literal falseLiteral = this.getLiteral(standardPredicateNames.falseName);
 		cutLiteral          = this.getLiteral(standardPredicateNames.cut);
 		trueClause          = this.getClause(trueLiteral,  true);
-		Clause falseClause = this.getClause(falseLiteral, false);
 		precedenceTableForOperators   = new HashMap<>( 8);
 		precedenceTableForConnectives = new HashMap<>(24);
 		initPrecedences(precedenceTableForOperators, precedenceTableForConnectives);
@@ -332,12 +325,12 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	public        int getConnectivePrecedence(ConnectiveName cName) {
 		Integer result = precedenceTableForConnectives.get(cName);
-		if (result == null) { Utils.error("No precedence is known for this connective: " + cName); }
+		assert result != null;
 		return result;
 	}
 	static int getConnectivePrecedence_static(ConnectiveName cName) {
 		Integer result = precedenceTableForConnectives_static.get(cName.name.toLowerCase());
-		if (result == null) { Utils.error("No precedence is known for this connective: " + cName); }
+		assert result != null;
 		return result;
 	}
 
@@ -1547,7 +1540,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private Variable getExternalVariable(String name, boolean createNewVariable) {
 		return getExternalVariable(null, convertToVarString(name), createNewVariable);
 	}
-	public Variable getExternalVariable(TypeSpec spec, String name, boolean createNewVariable) {
+	Variable getExternalVariable(TypeSpec spec, String name, boolean createNewVariable) {
 		if (createNewVariable || (name != null && name.length() > 0 && name.charAt(0) == '_')) { return pushVariable(spec, name); } // A variable of the form '_' is always a NEW variable.
 		return getExternalVariable(spec, name);
 	}

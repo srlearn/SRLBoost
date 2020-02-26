@@ -2,7 +2,6 @@
 usePrologVariables: true.
 
 importLibrary: listsInLogic.
-importLibrary: inlines_listsInLogic.
 
 // Note: if these are used, be sure to use Theory.simplify() - TODO do this after learning regardless.
 //tmp mode: isaInterestingSymbol(+willAnything, #willAnything), max = @modeMax3.

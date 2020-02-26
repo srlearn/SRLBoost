@@ -2,9 +2,7 @@
 usePrologVariables: true.
 
 importLibrary: arithmeticInLogic.
-importLibrary: inlines_arithmeticInLogic.
 importLibrary: comparisonInLogic.
-importLibrary: inlines_comparisonInLogic.
 
 // Note: if these are used, be sure to use Theory.simplify() - TODO do this after learning regardless.
 //tmp mode: isaInterestingNumber(+willNumber, #willNumber), max=@modeMax3.

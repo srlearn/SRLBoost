@@ -2,7 +2,6 @@
 usePrologVariables: true.
 
 importLibrary: listsInLogic.
-importLibrary: inlines_listsInLogic.
 importLibrary: modes_listsInLogic.
 
 mode: reverseList(   +willList,                -willList), maxPerInputVars=1, max=@modeMax1;

@@ -2,7 +2,6 @@
 usePrologVariables: true.
 
 importLibrary: listsInLogic.
-importLibrary: inlines_listsInLogic.
 importLibrary: modes_listsInLogic.
 
 

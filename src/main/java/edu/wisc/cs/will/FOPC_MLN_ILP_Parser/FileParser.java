@@ -332,23 +332,21 @@ public class FileParser {
 	// However it DOES allow a literal to NOT have a trailing '.' or ';' (some programs output their results in such a notation).
 	public List<Literal> readLiteralsInPureFile(String fNameRaw) {
 		String  fName          = Utils.replaceWildCardsAndCheckForExistingGZip(fNameRaw);
-		boolean isaGzippedFile = fName.endsWith(".gz");
 
 		List<Literal> results = new ArrayList<>(4);
 		try {
-			File   file               = (isaGzippedFile ? new CondorFile(fName) : getFileWithPossibleExtension(fName));
+			File   file               = (getFileWithPossibleExtension(fName));
 			String newDirectoryName   = file.getParent();
 			String hold_directoryName = directoryName;
 			checkDirectoryName(newDirectoryName);
 			this.fileName = fName; // Used to report errors.
-			InputStream  inStream = (isaGzippedFile ? new CompressedInputStream(file) : new CondorFileInputStream(file));
+			InputStream  inStream = new CondorFileInputStream(file);
 
 			tokenizer = new StreamTokenizerJWS(new InputStreamReader(inStream)); // Don't need to do more than 2-3 push backs, so don't need a big buffer.
 			initTokenizer(tokenizer);
-			int counter = 0;
 			while (tokenizer.nextToken() != StreamTokenizer.TT_EOF) {
 				tokenizer.pushBack();
-				Literal lit = processLiteral(false); counter++;
+				Literal lit = processLiteral(false);
 				results.add(lit);
 				peekEOL(true); // Suck up an optional EOL.
 			}			
@@ -382,15 +380,13 @@ public class FileParser {
 
 	private List<Sentence> readFOPCfile(String fNameRaw, boolean okIfNoSuchFile) {
 		String fName = Utils.replaceWildCardsAndCheckForExistingGZip(fNameRaw);
-		
-		boolean isaGzippedFile = fName.endsWith(".gz");
 		try {
-			File   file               = (isaGzippedFile ? new CondorFile(fName) : getFileWithPossibleExtension(fName));
+			File   file               = (getFileWithPossibleExtension(fName));
 			String newDirectoryName   = file.getParent();
 			String hold_directoryName = directoryName;
 			checkDirectoryName(newDirectoryName);
 			this.fileName = fName; // Used to report errors.
-			InputStream  inStream = (isaGzippedFile ? new CompressedInputStream(file) : new CondorFileInputStream(file));
+			InputStream  inStream = new CondorFileInputStream(file);
 			List<Sentence> result = readFOPCstream(file, inStream);
 			inStream.close();
 			checkDirectoryName(hold_directoryName);
@@ -411,38 +407,30 @@ public class FileParser {
 	
 	// If a file exists, add the default Utils.defaultFileExtensionWithPeriod extension.
 	private File getFileWithPossibleExtension(String fileNameRaw) throws IOException {
-		if (fileNameRaw == null) { Utils.error("Should not call with a NULL file name."); }
+		if (fileNameRaw == null) {
+			Utils.error("Should not call with a NULL file name.");
+		}
 		String fileName = Objects.requireNonNull(fileNameRaw).trim();
 		File f = new CondorFile(fileName);
-        if (!f.exists()) {
-        	f = new CondorFile(fileName + Utils.defaultFileExtensionWithPeriod);
-            if (!f.exists()) {
-        		f = new CondorFile(fileName + ".bk"); // Try another built-in file name.
-             	if (!f.exists()) {
-             		f = new CondorFile(fileName + ".mln"); // Try yet another built-in file name.
-             		if (!f.exists()) {
-                 		f = new CondorFile(fileName + ".db"); // Try yet another built-in file name.
-                 		if (!f.exists()) {
-                     		f = new CondorFile(fileName + ".fopcLibrary"); // Try yet another built-in file name.
-                     		if (!f.exists()) {
-                     			f =  new CondorFile(fileName + ".gz");
-                     			if (!f.exists()) {
-                     				throw new FileNotFoundException();
-                     			}
-                     			String newFileName = Utils.unzipFileIfNeeded(fileName + ".gz"); // TODO - can we do this without unzipping?
-                     			if (newFileName != null) {
-                     				f = new CondorFile(newFileName); // This should be same as fileName.
-                     				if (!f.exists()) {
-                     					throw new FileNotFoundException();
-                     				}
-                     			}
-                     		}
-                 		}
-             		}
-             	}
-            }
-        }
-        return f;
+		if (!f.exists()) {
+			f = new CondorFile(fileName + Utils.defaultFileExtensionWithPeriod);
+			if (!f.exists()) {
+				f = new CondorFile(fileName + ".bk"); // Try another built-in file name.
+				if (!f.exists()) {
+					f = new CondorFile(fileName + ".mln"); // Try yet another built-in file name.
+					if (!f.exists()) {
+						f = new CondorFile(fileName + ".db"); // Try yet another built-in file name.
+						if (!f.exists()) {
+							f = new CondorFile(fileName + ".fopcLibrary"); // Try yet another built-in file name.
+							if (!f.exists()) {
+								throw new FileNotFoundException();
+							}
+						}
+					}
+				}
+			}
+		}
+		return f;
 	}
 
 	/*
@@ -2257,9 +2245,7 @@ public class FileParser {
 					       Objects.requireNonNull(newFileName).replace("IMPORT_VAR1", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar1)));
 			newFileName =  newFileName.replace("IMPORT_VAR2", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar2));
 			newFileName =  newFileName.replace("IMPORT_VAR3", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar3));
-			newFileName =  newFileName.replace("FACTS",       Utils.removeAnyOuterQuotes(stringHandler.FACTS));
 			newFileName =  newFileName.replace("PRECOMP",     Utils.removeAnyOuterQuotes(stringHandler.PRECOMP));
-			newFileName =  newFileName.replace("SWD",         Utils.removeAnyOuterQuotes(stringHandler.SWD));
 			newFileName =  newFileName.replace("TASK",        Utils.removeAnyOuterQuotes(stringHandler.TASK));
 			
 			if (!isaLibraryFile && !newFileName.contains(".")) { newFileName += stringHandler.precompute_file_postfix; } //only add extension _after_ doing substitutions

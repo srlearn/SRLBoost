@@ -2,7 +2,6 @@
 usePrologVariables: true.
 
 importLibrary: differentInLogic.
-importLibrary: inlines_differentInLogic.
 
 // Note: if these are used, be sure to use Theory.simplify() - TODO do this after learning regardless.
 //tmp mode: different(                    +willAnything, +willAnything), max = @modeMax3.

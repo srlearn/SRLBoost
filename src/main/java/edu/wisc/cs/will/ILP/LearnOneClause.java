@@ -787,9 +787,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		String result = precomputeFileNameString.replace("PRECOMPUTE_VAR1", Utils.removeAnyOuterQuotes(stringHandler.precompute_assignmentToTempVar1));
 		result        =                   result.replace("PRECOMPUTE_VAR2", Utils.removeAnyOuterQuotes(stringHandler.precompute_assignmentToTempVar2));
 		result        =                   result.replace("PRECOMPUTE_VAR3", Utils.removeAnyOuterQuotes(stringHandler.precompute_assignmentToTempVar3));
-		result         =                  result.replace("FACTS",           Utils.removeAnyOuterQuotes(stringHandler.FACTS));
 		result         =                  result.replace("PRECOMP",         Utils.removeAnyOuterQuotes(stringHandler.PRECOMP)); // Note: this matches "PRECOMPUTE_VAR3"
-		result         =                  result.replace("SWD",             Utils.removeAnyOuterQuotes(stringHandler.SWD));
 		result         =                  result.replace("TASK",            Utils.removeAnyOuterQuotes(stringHandler.TASK));
 		return Utils.replaceWildCards(result);
 	}
