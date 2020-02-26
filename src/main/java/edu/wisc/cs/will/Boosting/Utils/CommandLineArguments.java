@@ -67,9 +67,6 @@ public class CommandLineArguments {
 	private static final String maxMLNLength = "mlnClauseLen";
 	private int maxMLNClauseLength=2;
 
-	private static final String createHiddenFlag = "createHidden";
-	private boolean createHiddenFile = false;
-
 	private static final String rdnIterFlag = "iter";
 	private int rdnIterationStep = -1;
 
@@ -147,8 +144,6 @@ public class CommandLineArguments {
 	private String stringForTestsetNeg  = "neg";
 	private static final String testFactsString    = "testFactsString"; // Allow overriding of the default.
 	private String stringForTestsetFacts = "facts";
-	private static final String testHiddenString    = "testHiddenString"; // Allow overriding of the default.
-	private String stringForTestsetHidden = "hidden";
 
 	private static final String aucPath = "aucJarPath";
 	private String aucPathVal = null;
@@ -235,13 +230,6 @@ public class CommandLineArguments {
 				noCheckPointing = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					noCheckPointing = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], createHiddenFlag)) {
-				createHiddenFile = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					createHiddenFile = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -404,10 +392,6 @@ public class CommandLineArguments {
 			}
 			if (argMatches(args[i], testFactsString)) {
 				stringForTestsetFacts = args[++i];
-				continue;
-			}
-			if (argMatches(args[i], testHiddenString)) {
-				stringForTestsetHidden = args[++i];
 				continue;
 			}
 			if (argMatches(args[i], samplePosProb)) {
@@ -658,10 +642,6 @@ public class CommandLineArguments {
 		return result;
 	}
 
-	public String getStringForTestsetHidden() {
-		return stringForTestsetHidden;
-	}
-
 	public int getMaxLiteralsInAnInteriorNode() {
 		return maxLiteralsInAnInteriorNodeVal;
 	}
@@ -723,10 +703,6 @@ public class CommandLineArguments {
 
 	public boolean isUsingDefaultClausebase() {
 		return usingDefaultClausebase;
-	}
-
-	public boolean isCreateHiddenFile() {
-		return createHiddenFile;
 	}
 
 }

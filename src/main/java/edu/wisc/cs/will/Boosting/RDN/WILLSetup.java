@@ -237,10 +237,6 @@ public final class WILLSetup {
 			}
 		}
 
-		String hiddenLitFile = directory + "/" + prefix + "_" + cmdArgs.getStringForTestsetHidden()  + Utils.defaultFileExtensionWithPeriod;
-		// dont sample if already exists
-		// For hidden literals, move the hidden literals to negative examples to prevent any bugs or move to different sets based on strategy
-		
 		if (hiddenExamples != null) {
 			moveHiddenPosToNeg();
 		}
@@ -312,14 +308,6 @@ public final class WILLSetup {
 		}
 
 		// Create hidden fact file from the sampled hidden examples.
-		if (cmdArgs.isCreateHiddenFile()) {
-			try {
-				outputHiddenLiterals(hiddenLitFile);
-			} catch (IOException e) {
-				e.printStackTrace();
-				Utils.waitHere(e.getMessage());
-			}
-		}
 		return true;
 	}
 
@@ -371,25 +359,6 @@ public final class WILLSetup {
 			Utils.println("New +ve egs: " + currPosExamples.size());
 			Utils.println("New -ve egs: " + backupNegExamples.get(cleanPredName).size());
 		}
-	}
-
-	private void outputHiddenLiterals(String dbFile) throws IOException {
-		Utils.println("Writing hidden literals to " + dbFile);
-		BufferedWriter outWriter = new BufferedWriter(new FileWriter(dbFile));
-		for (String predName : hiddenExamples.keySet()) {
-			for (Example eg : hiddenExamples.get(predName)) {
-				if (eg.predicateName.name.startsWith(multiclassPredPrefix)) {
-					RegressionRDNExample rex = (RegressionRDNExample)eg;
-					Example newEg = getMulticlassHandler().createExampleFromClass(rex, rex.getOriginalHiddenLiteralVal());
-					outWriter.write(newEg.toPrettyString("") + ".");
-				} else {
-					outWriter.write(eg.toPrettyString("") + ".");
-				}
-				outWriter.newLine();
-			}
-		}
-		outWriter.close();
-		
 	}
 
 	/**
