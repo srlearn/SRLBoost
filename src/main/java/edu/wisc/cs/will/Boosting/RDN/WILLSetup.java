@@ -125,10 +125,6 @@ public final class WILLSetup {
 		Utils.touchFile(        resultsDir + prefix + getRunTypeMarker() + appendToPrefix  + "_started" + Utils.defaultFileExtensionWithPeriod);
 		createRegressionOuterLooper(file_paths, directory, prefix, cmdArgs.getSampleNegsToPosRatioVal(), cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples());
 
-		if (cmdArgs.isCreateSyntheticEgs()) {
-			getInnerLooper().setSyntheticExamplesEnabled(true);
-		}
-
 		// This next chunk of code handles advice and creates BK.  IT THEN EXITS.  One should then MANUALLY edit your standard BK file to import the file of BK created.
 
 		Utils.println("\n% Initializing the ILP inner looper.");
@@ -596,7 +592,7 @@ public final class WILLSetup {
 				if (missingNegativeTargets.contains(predName)) {
 					// Only create negs for predicates completely missing from pos/neg or 
 					// for any predicate missing negs iff createSyntheticexamples is enabled.
-					if (cmdArgs.isCreateSyntheticEgs() || missingPositiveTargets.contains(predName)) {
+					if (missingPositiveTargets.contains(predName)) {
 						Utils.println("Creating neg ex for: " + predName);
 						List<Example> 
 						negEgs = CreateSyntheticExamples.createAllPossibleExamples("% Negative example created from facts.",

@@ -129,9 +129,6 @@ public class CommandLineArguments {
 	private static final String noLazybase = "noLazy";
 	private boolean usingDefaultClausebase = false;
 
-	private static final String autoCreateNeg = "createNeg";
-	private boolean createSyntheticEgs = false;
-
 	private static final String printLeafIds = "printLeafId";
 	private boolean printingTreeStats = false;
 
@@ -376,13 +373,6 @@ public class CommandLineArguments {
 				usingDefaultClausebase = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					usingDefaultClausebase = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], autoCreateNeg)) {
-				createSyntheticEgs = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					createSyntheticEgs = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -846,10 +836,6 @@ public class CommandLineArguments {
 
 	public boolean isPrintingTreeStats() {
 		return printingTreeStats;
-	}
-
-	public boolean isCreateSyntheticEgs() {
-		return createSyntheticEgs;
 	}
 
 	public boolean isCreateHiddenFile() {

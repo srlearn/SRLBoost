@@ -168,7 +168,7 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 		this.originalValue = originalValue;
 	}
 
-	public int getSampledValue() {
+	int getSampledValue() {
 		return sampledValue;
 	}
 
