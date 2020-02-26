@@ -181,9 +181,6 @@ public class CommandLineArguments {
 	private static final String reweighEx = "reweigh";
 	public boolean reweighExamples = false;
 
-	private static final String useProbWts = "probWt";
-	private boolean useProbabilityWeights = false;
-
 	public int getDoInferenceIfModNequalsThis() {
 		return doInferenceIfModNequalsThis;
 	}
@@ -307,13 +304,6 @@ public class CommandLineArguments {
 			}
 			if (argMatches(args[i], reweighEx)) {
 				reweighExamples=true;
-				continue;
-			}
-			if (argMatches(args[i], useProbWts)) {
-				useProbabilityWeights = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					useProbabilityWeights = Utils.parseBoolean(args[++i]);
-				}
 				continue;
 			}
 			if (argMatches(args[i], outName)) {
