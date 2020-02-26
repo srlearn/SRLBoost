@@ -81,7 +81,7 @@ public class ILPouterLoop {
      * defined in ILPouterLoop will not be checkpointed.
      *
      */
-	private ILPouterLoopState outerLoopState;
+	private final ILPouterLoopState outerLoopState;
 
 	private String workingDirectory;
    
@@ -151,8 +151,6 @@ public class ILPouterLoop {
             // Just extract it from the working directory name.
             prefix = new CondorFile(workingDirectory).getName();
         }
-
-        setPrefix(prefix);
 
 		if (LearnOneClause.debugLevel >= 0) { Utils.println("\n% Welcome to the " + systemName + " ILP/SRL systems.\n"); }
 
@@ -1373,10 +1371,6 @@ public class ILPouterLoop {
 
     private void setRRR(boolean useRRR) {
         outerLoopState.setRRR(useRRR);
-    }
-
-    private void setPrefix(String prefix) {
-        outerLoopState.setPrefix(prefix);
     }
 
     private boolean isRRR() {

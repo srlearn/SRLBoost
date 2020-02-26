@@ -1,8 +1,6 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.RDN.Models.PhiFunctionForRDN;
 import edu.wisc.cs.will.Boosting.Trees.LearnRegressionTree;
 import edu.wisc.cs.will.Boosting.Trees.RegressionTree;
@@ -22,7 +20,6 @@ import edu.wisc.cs.will.Utils.VectorStatistics;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 import java.io.*;
@@ -45,7 +42,6 @@ public class LearnBoostedRDN {
 	private List<RegressionRDNExample> egs    = null;
 	private String  targetPredicate          = null;
 	private int     maxTrees                 = 10;
-	private String  yapSettingsFile;
 	private boolean resampleExamples        = true;
 	private final boolean stopIfFewChanges        = false;
 	private boolean performLineSearch       = false;
@@ -59,9 +55,6 @@ public class LearnBoostedRDN {
 		this.setup = setup;
 		maxTrees = cmdArgs.getMaxTreesVal();
 		setParamsUsingSetup(setup);
-		if(cmdArgs.isUseYapVal()) {
-			learnSingleTheory=false;
-		}
 		if (cmdArgs.isDisabledBoosting()) {
 			disableBoosting=true;
 		}
@@ -77,10 +70,6 @@ public class LearnBoostedRDN {
 		setup.prepareFactsAndExamples(targetPredicate);
 
 		Utils.println("% Have prepared facts.");
-
-		if (cmdArgs.isNoTargetModesInitially() && rdn.getNumTrees() == 0) {
-			setup.removeAllTargetsBodyModes();
-		}
 
 		learnRDN(targetPredicate, rdn, sampler, numMoreTrees);
 
@@ -149,9 +138,7 @@ public class LearnBoostedRDN {
 			rdn.setNumTrees(maxTrees);
 		}
 		if (i == 0) {
-			if (!cmdArgs.isUseYapVal()) { 
-				dumpTheoryToFiles(null, -1);  // Print something initially in case a run dies (i.e., be sure to erase any old results right away).
-			}
+			dumpTheoryToFiles(null, -1);  // Print something initially in case a run dies (i.e., be sure to erase any old results right away).
 		}
 		for (; i < maxTreesForThisRun; i++) {
 			if (i >= maxTrees/2) {
@@ -183,11 +170,7 @@ public class LearnBoostedRDN {
 				long bbend = System.currentTimeMillis();
 				Utils.println("Time to build dataset: " + Utils.convertMillisecondsToTimeSpan(bbend-bddstart));
 				RegressionTree tree;
-				if (cmdArgs.isUseYapVal()) {
-					tree = getYapTree( newDataSet, modelNumber, i);
-				} else {
-					tree = getWILLTree(newDataSet, i);
-				}
+				tree = getWILLTree(newDataSet, i);
 				if (debugLevel > 1) { reportStats(); }
 				double stepLength = 1;
 				if (!disableBoosting) {
@@ -219,7 +202,7 @@ public class LearnBoostedRDN {
 		if (stopIfFewChanges) { 
 			Utils.println("Stopped after " + Utils.comma(i) + " trees.");
 		}
-		if (i >= maxTrees && !cmdArgs.isUseYapVal()) { 
+		if (i >= maxTrees) {
 			addPrologCodeForUsingAllTrees(rdn, i); 
 		}
 	}
@@ -357,61 +340,6 @@ public class LearnBoostedRDN {
 	}
 
 
-	private RegressionTree getYapTree(List<RegressionRDNExample> newDataSet, int modelNumber, int i) {
-		// Give new dataset to tree learner.
-		String prefix =  cmdArgs.getModelDirVal() + "/yap/"; 
-
-		String outfile = prefix + "Output" + targetPredicate + i + ".pl";
-		String infile  = prefix + "Input" + targetPredicate + i + BoostingUtils.getLabelForModelNumber(modelNumber) + ".pl";
-		Utils.ensureDirExists(infile);
-		try {
-			writeDataSetForYap(newDataSet, infile);
-		} catch (IOException e1) {
-			Utils.reportStackTrace(e1);
-			Utils.error("Problem in getYapTree.");
-		}
-		runYapTreeLearner(infile, outfile);
-		// Add tree to set of boosted trees.
-
-		LearnRegressionTree learner = new LearnRegressionTree(setup);
-		try {
-			return learner.parsePrologRegressionTrees(outfile);
-			//tree.printTrees();
-		} catch (NumberFormatException | IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in getYapTree.");
-		}
-		// Technically, should never reach here because of the catch statements before.
-		return null;
-	}
-
-
-	private void runYapTreeLearner(String infile, String outfile) {
-		String yapPath        = cmdArgs.getYapBinVal();
-		String yapTreeLearner = cmdArgs.getTreelearnerVal();
-		String command        = yapPath + " -l  " + yapTreeLearner + " -- " + infile + " " +  getYapSettingsFile() + " " + outfile ;
-		// Call yap here
-		//Process p;
-
-		System.out.println("Running yap command: " + command);
-
-		try {
-			Runtime rt = Runtime.getRuntime();
-			Process exec = rt.exec(new String[] {
-				command
-			});
-			InputStream is = exec.getInputStream();
-			int c;
-			while((c=is.read()) != -1) {
-				System.out.print((char)c);
-			}
-			exec.waitFor();
-		} catch (IOException | InterruptedException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in runYapTreeLearner.");
-		}
-	}
-
 	private boolean doEarlyStop(List<RegressionRDNExample> old_eg_set, SingleModelSampler sampler) {
 		double minGradientForSame = 0.0002;
 		if (stopIfFewChanges && old_eg_set != null) {
@@ -449,43 +377,6 @@ public class LearnBoostedRDN {
 		return counter;
 	}
 
-	private void writeDataSetForYap(List<RegressionRDNExample> newDataSet, String infile) throws IOException {
-		BufferedWriter writer=null;
-		try {
-			writer = new BufferedWriter(new CondorFileWriter(Utils.ensureDirExists(infile)));
-		} catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in writeDataSetForYap.");
-		}
-		boolean oldQMark = setup.getHandler().doVariablesStartWithQuestionMarks();
-		setup.getHandler().usePrologNotation();
-
-		int counter=1;
-		for (RegressionRDNExample ex : newDataSet) {
-			if (Utils.diffDoubles(ex.getWeightOnExample(), 1)) {
-				Utils.waitHere("Weighted examples wont work with Yap. Remove weights or use WILL.");
-			}
-			
-			String literal;
-
-			literal = "example("  + counter++ + "," + ex.toString() +  "," + ex.getOutputValue() + ").";
-			writer.write(literal + "\r\n");
-		}
-		Iterable<Literal> lits = setup.getInnerLooper().getFacts();
-		for (Literal lit : lits) {
-			if(!lit.predicateName.name.equals("length") &&
-					!lit.predicateName.name.endsWith("ontainsText") &&
-					!lit.predicateName.name.endsWith("ordString") ) {
-				//	System.out.println(lit.predicateName.name);
-				writer.write(lit.toString() + ".\r\n");
-			}
-		}
-
-		if (oldQMark) { setup.getHandler().setVariablesStartWithQuestionMarks(); }
-		writer.close();
-		System.out.println("Writer closed");
-	}
-
 	private void getSampledPosNegEx(List<RegressionRDNExample> all_exs) {
 
 		if (egs != null) {
@@ -513,60 +404,29 @@ public class LearnBoostedRDN {
 
 	private List<RegressionRDNExample> buildDataSet(String targetPredicate, SRLInference sampler) {
 		List<RegressionRDNExample> all_exs = new ArrayList<>();
-		double scaleFactor = 1e8; // Used in EM to scale up the gradients
 
 		getSampledPosNegEx(        all_exs);
 		// No need to get sample probabilities as there is no \psi_0 or gradient.
 		if (!disableBoosting) {
 			Utils.println("Computing probabilities");
 			long start = System.currentTimeMillis();
-			if (setup.getLastSampledWorlds() != null) {
-				if (cmdArgs.getHiddenStrategy().equals("MAP")) { 
-					sampler.getProbabilitiesUsingSampledStates(setup.getLastSampledWorlds(), all_exs);
-				} else {
-					 if (cmdArgs.getHiddenStrategy().equals("EM")) {
-						 // Expand the examples to have one example for every hidden state. i.e. 
-						 // create NxW examples from N examples and W hidden states
-						 int old_size = all_exs.size();
-						 all_exs = createExamplesForEachState(setup.getLastSampledWorlds(), all_exs, sampler);
-						 Utils.println("Created " + all_exs.size() + " from " + old_size + " examples and " + setup.getLastSampledWorlds().getWorldStates().size() + " world states");
-						 if (!cmdArgs.isIgnoreStateProb()) {
-							 double mostLikelyStateProb = 0;
-							 for (HiddenLiteralState currState : setup.getLastSampledWorlds().getWorldStates()) {
-								 double currStateProb = currState.getStatePseudoProbability();
-								 if (currStateProb > mostLikelyStateProb) { mostLikelyStateProb = currStateProb; }
-							 }
-							 scaleFactor = 1 / (1 * mostLikelyStateProb);
-						 }
-					 } else {
-						 Utils.error("What to do with the hidden states ? Set strategy to MAP or EM. Currently set as : " + cmdArgs.getHiddenStrategy());
-					 }
-				}
-			} else {
-				sampler.getProbabilities(all_exs);
-			}
+			sampler.getProbabilities(all_exs);
 			long end = System.currentTimeMillis();
 			Utils.println("prob time:"+Utils.convertMillisecondsToTimeSpan(end-start));
 		}
 		
 		
 		// Update facts based on the sampled states
-		if (cmdArgs.getHiddenStrategy().equals("MAP")) {
-			SRLInference.updateFactsFromState(setup, setup.getLastSampledWorlds().getWorldStates().get(0));
-		}
-		boolean foundhidden = false;
-		
+
 		for (int i = 0; i < Utils.getSizeSafely(all_exs); i++) {
 			
 			RegressionRDNExample eg = all_exs.get(i);
 			eg.clearCache();
 			if(cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples()) {
 				eg.setOutputValue(eg.originalRegressionOrProbValue - eg.getProbOfExample().getProbOfBeingTrue());
-				// Utils.println("Set gradient: " + eg.getOutputValue());
 				continue;
 			}
-			
-			if (eg.isHiddenLiteral()) { foundhidden = true; }
+
 			if (disableBoosting) {
 				// TODO What would be the best value ?
 				if (eg.isOriginalTruthValue()) {
@@ -580,137 +440,42 @@ public class LearnBoostedRDN {
 				if (probDistr.isHasDistribution()) {
 					double[] base_prob;
 					double[] distr = probDistr.getProbDistribution();
-					if (eg.isHiddenLiteral()) {
-						// Utils.error("Can't handle distributions for hidden examples");
-						ProbDistribution base_distr;
-						if (cmdArgs.getHiddenStrategy().equals("EM")) {
-							if (eg.getStateAssociatedWithOutput() == null) {
-								Utils.error("Associated state not set for example: " + eg);
-							}
-							HiddenLiteralState stateForEx = eg.getStateAssociatedWithOutput();
-							base_distr = stateForEx.getConditionalDistribution(eg);
-						} else {
-							base_distr = setup.getLastSampledWorlds().sampledProbOfExample(eg);
-						}
-						base_prob = base_distr.getProbDistribution();
-					} else {
-						base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
-					}
+					base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
 
 					double[] grad  = VectorStatistics.subtractVectors(base_prob, distr);
 					
 					// Only update for EM
-					if (cmdArgs.getHiddenStrategy().equals("EM")) {
-						if (eg.getStateAssociatedWithOutput() == null) {
-							Utils.error("Associated state not set for example: " + eg);
-						}
-						if (!cmdArgs.isIgnoreStateProb()) {
-							double stateProb = eg.getStateAssociatedWithOutput().getStatePseudoProbability();
-							grad = VectorStatistics.scalarProduct(grad, stateProb*scaleFactor);
-						}
-					}
 					eg.setOutputVector(grad);
 				} else {
 					double prob = probDistr.getProbOfBeingTrue();
-					if (eg.isHiddenLiteral()) {
-						
-						// Debugging
-						if (!(cmdArgs.getHiddenStrategy().equals("EM") || cmdArgs.getHiddenStrategy().equals("MAP"))) {
-							Utils.error("Using hidden examples for non-EM strategies: " + cmdArgs.getHiddenStrategy());
-						}
-
-						if (cmdArgs.getHiddenStrategy().equals("EM")) {
-							if (eg.getStateAssociatedWithOutput() == null) {
-								Utils.error("Associated state not set for example: " + eg);
-							}
-							HiddenLiteralState stateForEx = eg.getStateAssociatedWithOutput();
-							ProbDistribution exampleDistr = stateForEx.getConditionalDistribution(eg);
-							if (cmdArgs.isIgnoreStateProb()) {
-								eg.setOutputValue(exampleDistr.getProbOfBeingTrue() - prob);
-							} else {
-								double probYminusEx = stateForEx.getStatePseudoProbability() / exampleDistr.probOfTakingValue(stateForEx.getAssignment(eg));
-								double gradient = (exampleDistr.getProbOfBeingTrue() * probYminusEx) - (probYminusEx * prob);
-								eg.setOutputValue(gradient*scaleFactor);
-							}
-						} else {
-							ProbDistribution base_prb_dist = setup.getLastSampledWorlds().sampledProbOfExample(eg);
-							if (base_prb_dist.isHasDistribution()) {
-								Utils.waitHere("Should not have distribution");
-							}
-							double base_prb = base_prb_dist.getProbOfBeingTrue();
-							eg.setOutputValue(base_prb - prob);
-						}
-
-					} else {
-						double stateProb = 1;
-						// Only set for EM
-						if (cmdArgs.getHiddenStrategy().equals("EM")) {
-							if (!cmdArgs.isIgnoreStateProb()) {
-								if (eg.getStateAssociatedWithOutput() == null) {
-									Utils.error("Associated state not set for example: " + eg);
-								}
-								stateProb = scaleFactor * eg.getStateAssociatedWithOutput().getStatePseudoProbability();
-
-							}
-						}
-						if (cmdArgs.isSoftM()){
-							double alpha = cmdArgs.getAlpha();
-						    double beta = cmdArgs.getBeta();
-							if (eg.isOriginalTruthValue()) {
-								
-								eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(alpha)));					
-							} else {
-								
-								eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(-beta)));
-							}
-						} else {
+					double stateProb = 1;
+					// Only set for EM
+					if (cmdArgs.isSoftM()){
+						double alpha = cmdArgs.getAlpha();
+						double beta = cmdArgs.getBeta();
 						if (eg.isOriginalTruthValue()) {
-							eg.setOutputValue(stateProb * (1 - prob));					
+
+							eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(alpha)));
 						} else {
-							eg.setOutputValue(stateProb * (0 - prob));
+
+							eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(-beta)));
 						}
-						}
+					} else {
+					if (eg.isOriginalTruthValue()) {
+						eg.setOutputValue(stateProb * (1 - prob));
+					} else {
+						eg.setOutputValue(stateProb * (0 - prob));
+					}
 					}
 				}
 			}
 		}
-		if (!foundhidden) {
-			Utils.println("No hidden examples for : " + targetPredicate);
-		}
+		// TODO(@hayesall): This `println` was originally conditioned on the result of the removed `isHiddenLiteral` method
+		Utils.println("No hidden examples for : " + targetPredicate);
 		all_exs = egSubSampler.sampleExamples(all_exs);
 		return all_exs;
 	}
-	
 
-	private List<RegressionRDNExample> createExamplesForEachState(
-			HiddenLiteralSamples lastSampledWorlds,
-			List<RegressionRDNExample> all_exs, SRLInference sampler) {
-		List<RegressionRDNExample> new_Exs = new ArrayList<>();
-		for (HiddenLiteralState state : lastSampledWorlds.getWorldStates()) {
-			// Set facts using the hidden state
-			SRLInference.updateFactsFromState(setup, state);
-			// Needed by the tree learning code to set the facts required by each example
-			state.updateStateFacts(setup);
-			// Calculate probabilities given the current state
-			sampler.getProbabilities(all_exs);
-			for (RegressionRDNExample rex : all_exs) {
-				// Create a copy as we are going to set the sampled state for each example. 
-				RegressionRDNExample newRex = new RegressionRDNExample(rex);
-				newRex.setStateAssociatedWithOutput(state);
-				new_Exs.add(newRex);
-			}
-		}
-		
-		// Subsample examples
-		if (cmdArgs.getEmSampleProb() < 1) {
-			for (int i = new_Exs.size()-1 ; i >= 0 ; i--) {
-				if (Utils.random() > cmdArgs.getEmSampleProb()) {
-					new_Exs.remove(i);
-				}
-			}
-		}
-		return new_Exs;
-	}
 
 	// ------------------------------------------------------
 	// ------------------------------------------------------
@@ -881,14 +646,6 @@ public class LearnBoostedRDN {
 
 	public void setTargetPredicate(String targetPredicate) {
 		this.targetPredicate = targetPredicate;
-	}
-
-	public void setYapSettingsFile(String yapSettingsFile) {
-		this.yapSettingsFile = yapSettingsFile;
-	}
-
-	private String getYapSettingsFile() {
-		return yapSettingsFile;
 	}
 
 }

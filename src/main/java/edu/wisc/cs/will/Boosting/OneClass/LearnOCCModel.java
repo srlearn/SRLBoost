@@ -64,10 +64,6 @@ class LearnOCCModel {
 		long start = System.currentTimeMillis();
 		setup.prepareFactsAndExamples(targetPredicate);
 
-		if (cmdArgs.isNoTargetModesInitially()) {
-			setup.removeAllTargetsBodyModes();
-		}
-		
 		learnModel(targetPredicate, propModel, moreTrees);
 		long end = System.currentTimeMillis();
 

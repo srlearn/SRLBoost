@@ -1,8 +1,10 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
-import edu.wisc.cs.will.DataSetUtils.*;
+import edu.wisc.cs.will.DataSetUtils.ArgSpec;
+import edu.wisc.cs.will.DataSetUtils.Example;
+import edu.wisc.cs.will.DataSetUtils.RegressionExample;
+import edu.wisc.cs.will.DataSetUtils.TypeManagement;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder;
@@ -159,10 +161,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	boolean             allTargetVariablesMustBeInHead                     = false;
 	boolean             dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds = true;  // If have p(x) :- q(x,y) but if over all positive seeds can never get x and y to bind to different constants, then use p(x) :- q(x,x).  Similar (equivalent?) to "variable splitting" = false in Aleph.
 	long                maxResolutionsPerClauseEval    = 10000000;     // When evaluating a clause, do not perform more than this many resolutions.  If this is exceeded, a clause is said to cover 0 pos and 0 neg, regardless of how many have been proven and it won't be expanded.
-	private boolean             usingWorldStates                        = false; // Does this task involve time-stamped facts?
-	private List<WorldState>    worldStatesContainingNoPositiveExamples = null;  // All ways of matching the target predicate in these states are known (or at least assumed) to be NEGATIVE examples.
-	private boolean             findWorldStatesContainingNoPosExamples  = false;
-	public    boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
+	public final boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
 	////////////////////////////////////////////////////////////
 	//  Variables for controlling random-rapid-restart searches (i.e., repeatedly randomly create an initial clause, then do some local search around each).
 	//    The initial clause randomly created will meet the specification on the positive and negative seeds.
@@ -230,7 +229,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   double               mEstimateNeg = 0.1; // Note: these are used in recall as well as precision.
 
 	private final RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
-    private final Set<PredicateNameAndArity> factPredicateNames = new HashSet<>();
 
 	private List<ModeConstraint> modeConstraints = null;
 
@@ -241,9 +239,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 
     private List<Sentence> facts = null; // This temporarily stores the facts between construction and initialization.  After initialization it will be null.
 
-	private boolean syntheticExamplesEnabled = false; // JWS: I turned this OFF on 8/18/11.  Not sure how it get turned on ...
-
-    // Precompute filename : precompute_file_prefix + PRECOMPUTED_FILENAME  + number +  precompute_file_postfix
+	// Precompute filename : precompute_file_prefix + PRECOMPUTED_FILENAME  + number +  precompute_file_postfix
     // The following values can be set using
     // setParam: precomputePostfix = ".txt".
     // setParam: precomputePrefix = "../../".
@@ -399,7 +395,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 		vStr = stringHandler.getParameterSetting("useCachedFiles");
 		if (vStr != null) {                       useCachedFiles                                        = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("usingWorldStates");
-		if (vStr != null) {                       usingWorldStates                                      = Boolean.parseBoolean(vStr); }
+		if (vStr != null) {                       // Does this task involve time-stamped facts?
+			boolean usingWorldStates = Boolean.parseBoolean(vStr);
+		}
 		vStr = stringHandler.getParameterSetting("errorToHaveModesWithoutInputVars");
 		if (vStr != null) {                       // Error if a mode of the form 'predicateName(-human,#age)' is provided since such literals are uncoupled from a clause and hence lead to search inefficiency (so only expert users should override this boolean).
 			Boolean.parseBoolean(vStr);
@@ -415,7 +413,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 		vStr = stringHandler.getParameterSetting("dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds");
 		if (vStr != null) {                       dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds    = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("findWorldStatesContainingNoPosExamples");
-		if (vStr != null) {                       findWorldStatesContainingNoPosExamples                = Boolean.parseBoolean(vStr); }
+		if (vStr != null) {
+			boolean findWorldStatesContainingNoPosExamples = Boolean.parseBoolean(vStr);
+		}
 		vStr = stringHandler.getParameterSetting("performRRRsearch");
 		if (vStr != null) {                       performRRRsearch                                      = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("allowMultipleTargets");
@@ -519,12 +519,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	       return negExamples;
 	}
 
-
-	public Iterable<Literal> getFacts(){
-	       return context.getClausebase().getFacts();
-	}
-
-    Iterable<Clause> getBackgroundKnowledge() {
+	Iterable<Clause> getBackgroundKnowledge() {
         return context.getClausebase().getBackgroundKnowledge();
     }
 
@@ -536,9 +531,6 @@ public class LearnOneClause extends StateBasedSearchTask {
             prover = new HornClauseProver( context );
         }
 		return prover;
-	}
-	public Unifier getUnifier() {
-		return unifier;
 	}
 
 	private void initialize() throws SearchInterrupted {
@@ -623,36 +615,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		}
 		long end = System.currentTimeMillis();
 		Utils.println("% Time to collect constants: " + Utils.convertMillisecondsToTimeSpan(end - start));
-		
-		start = System.currentTimeMillis();
-        if ( syntheticExamplesEnabled ) {
-            if (usingWorldStates && Utils.getSizeSafely(worldStatesContainingNoPositiveExamples) < 1 && findWorldStatesContainingNoPosExamples) {
-                worldStatesContainingNoPositiveExamples = CreateSyntheticExamples.createWorldStatesWithNoPosExamples(stringHandler,getParser(), getProver(), getPosExamples());
-            }
-            int oldNumbNegs = Utils.getSizeSafely(getNegExamples());
-            // TODO if the constructed negative examples are created and SAVED, in the next run they will AGAIN be created (but duplicates will be filtered, so only a waste of CPU cycles).
-            if (usingWorldStates && !regressionTask && Utils.getSizeSafely(getNegExamples()) < minNumberOfNegExamples && Utils.getSizeSafely(worldStatesContainingNoPositiveExamples) > 0) { // If non-null, create all the negatives examples that are implicit in these world states.
-                int    oldNegCount       = Utils.getSizeSafely(getNegExamples());
-                double negsStillNeeded   = Math.max(1.2, minNumberOfNegExamples - oldNegCount);  // Need this to be greater than 1.1 in order to be viewed as an integer.
-                double fractOrTotalToUse = (fractionOfImplicitNegExamplesToKeep < 1.1 ? fractionOfImplicitNegExamplesToKeep : Math.max(negsStillNeeded, fractionOfImplicitNegExamplesToKeep));
 
-                // Always save the synthetic negatives, at least for now.
-                   setNegExamples(CreateSyntheticExamples.createImplicitNegExamples(worldStatesContainingNoPositiveExamples, true, "from a world-state containing no known positive examples", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames)); // TODO use a variable to set the maximum.
-            }
-            // See if we still need to create any random examples.
-            if (!creatingConjunctiveFeaturesOnly && !regressionTask && Utils.getSizeSafely(getNegExamples()) < minNumberOfNegExamples) {
-                int    oldNegCount       = Utils.getSizeSafely(getNegExamples());
-                double negsStillNeeded   = Math.max(1.2, minNumberOfNegExamples - oldNegCount);  // Need this to be greater than 1.1 in order to be viewed as an integer.
-                double fractOrTotalToUse = (fractionOfImplicitNegExamplesToKeep < 1.1 ? fractionOfImplicitNegExamplesToKeep : Math.max(negsStillNeeded, fractionOfImplicitNegExamplesToKeep));
-
-                // Always save the synthetic negatives, at least for now.
-                   List<Example> negativeExamples = CreateSyntheticExamples.createImplicitNegExamples(null, usingWorldStates, "a randomly generated negative example", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames);  // Need to have set targetModes and create all the the above instances before calling this.
-                   setNegExamples(negativeExamples);
-            }
-            if (!regressionTask && oldNumbNegs != Utils.getSizeSafely(getNegExamples())) { createdSomeNegExamples = true; }
-        }
-        end=System.currentTimeMillis();
-        Utils.println("% Time to collect examples: " + Utils.convertMillisecondsToTimeSpan(end-start));
 		if (stringHandler.needPruner) {
 			this.pruner = (pruner == null ? new PruneILPsearchTree(this) : pruner);
 		}
@@ -1512,7 +1475,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			if (sentence instanceof Literal) {
 				Literal literal = (Literal) sentence;
 				PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-				factPredicateNames.add(pnaa);
 			}
 		}
 
@@ -1555,7 +1517,6 @@ public class LearnOneClause extends StateBasedSearchTask {
             if (sentence instanceof Literal) {
                 Literal literal = (Literal) sentence;
                 PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-                factPredicateNames.add(pnaa);
             }
         }
 
@@ -1705,9 +1666,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 			Type typeToUse = null;
 			boolean skipWithThisArgument = false;
 
-			int counter = 0;
 			if (posEx != null) for (Example ex : posEx) {
-				counter++;
 				if (ex.numberArgs() != targetPredicateArity || ex.predicateName != target.predicateName) { continue; }
 
 				Term argI = ex.getArgument(i);
@@ -1724,9 +1683,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 					}
 				}
 			}
-			counter = 0;
 			if (negEx != null) for (Example ex : negEx) {
-				counter++;
 				if (skipWithThisArgument || ex.numberArgs() != targetPredicateArity || ex.predicateName != target.predicateName) { continue; }
 				Term argI = ex.getArgument(i);
 				List<Type> types = stringHandler.isaHandler.getAllKnownTypesForThisTerm(argI);
@@ -2095,10 +2052,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         }
     }
 
-	public void setSyntheticExamplesEnabled(boolean syntheticExamplesEnabled) {
-        this.syntheticExamplesEnabled = syntheticExamplesEnabled;
-    }
-
 	void setMlnRegressionTask(boolean val) {
 		mlnRegressionTask = val;
 	}
@@ -2119,16 +2072,4 @@ public class LearnOneClause extends StateBasedSearchTask {
 		}
 	}
 
-	public void updateFacts(HiddenLiteralState lastState,
-		HiddenLiteralState newState, String target) {
-			List<Literal> addExamples = new ArrayList<>();
-			List<Literal>  rmExamples = new ArrayList<>();
-			HiddenLiteralState.stateDifference(lastState, newState, addExamples, rmExamples, target);
-		for (Literal addEx : addExamples) {
-			getContext().getClausebase().assertFact(addEx);
-		}
-		for (Literal rmEx : rmExamples) {
-			getContext().getClausebase().retractAllClausesWithUnifyingBody(rmEx);
-		}
-	}
 }

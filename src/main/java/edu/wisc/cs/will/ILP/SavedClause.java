@@ -14,7 +14,7 @@ class SavedClause implements Serializable {
 	double F1;
 	double score;
 
-	SavedClause(Gleaner caller, SingleClauseNode clause) {
+	SavedClause(SingleClauseNode clause) {
 		// Holds a string that will be printed when the clause is dumped.
 		// Annotation about what created this clause.
 
@@ -25,8 +25,8 @@ class SavedClause implements Serializable {
 			recall      = clause.recall();
 			F1          = clause.F(1);
 			score       = clause.score;
-			clause.getUptoKmissedPositiveExamples(5);
-			clause.getUptoKcoveredNegativeExamples(5);
+			clause.getUptoKmissedPositiveExamples();
+			clause.getUptoKcoveredNegativeExamples();
 		} catch (Exception e) {
 			Utils.reportStackTrace(e);
 			Utils.error();

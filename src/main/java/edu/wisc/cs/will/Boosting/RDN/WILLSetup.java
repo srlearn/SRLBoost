@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
@@ -18,9 +17,7 @@ import edu.wisc.cs.will.stdAIsearch.BestFirstSearch;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -46,8 +43,6 @@ public final class WILLSetup {
 
 	private Map<String, List<Example>> backupPosExamples;
 	private Map<String, List<Example>> backupNegExamples;
-	private Map<String, List<RegressionRDNExample>> hiddenExamples = null;
-	private HiddenLiteralSamples lastSampledWorlds = null;
 
 	public boolean useMLNs = false;
 	public boolean learnClauses = false;
@@ -124,10 +119,6 @@ public final class WILLSetup {
 		Utils.createDribbleFile(resultsDir + prefix + getRunTypeMarker() + appendToPrefix  + "_dribble" + Utils.defaultFileExtensionWithPeriod);
 		Utils.touchFile(        resultsDir + prefix + getRunTypeMarker() + appendToPrefix  + "_started" + Utils.defaultFileExtensionWithPeriod);
 		createRegressionOuterLooper(file_paths, directory, prefix, cmdArgs.getSampleNegsToPosRatioVal(), cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples());
-
-		if (cmdArgs.isCreateSyntheticEgs()) {
-			getInnerLooper().setSyntheticExamplesEnabled(true);
-		}
 
 		// This next chunk of code handles advice and creates BK.  IT THEN EXITS.  One should then MANUALLY edit your standard BK file to import the file of BK created.
 
@@ -241,38 +232,6 @@ public final class WILLSetup {
 			}
 		}
 
-		String hiddenLitFile = directory + "/" + prefix + "_" + cmdArgs.getStringForTestsetHidden()  + Utils.defaultFileExtensionWithPeriod;
-		if (!cmdArgs.getHiddenStrategy().equalsIgnoreCase("ignore")) {
-			readHiddenLiterals(hiddenLitFile);
-		}
-		if (cmdArgs.getHiddenStrategy().equals("EM")) {
-			getHandler().setUseStrictEqualsForLiterals(true);
-		}
-		// dont sample if already exists
-		if (hiddenExamples == null && cmdArgs.getHiddenLitProb() >= 0) {
-			double negLitProb = cmdArgs.getHiddenLitProb();
-			if (cmdArgs.getHiddenNegLitProb() > 0) {
-				negLitProb = cmdArgs.getHiddenNegLitProb();
-			}
-			sampleHiddenExamples(cmdArgs.getHiddenLitProb(), negLitProb);
-		}
-		// For hidden literals, move the hidden literals to negative examples to prevent any bugs or move to different sets based on strategy
-		
-		if (hiddenExamples != null) {
-			if (cmdArgs.getHiddenStrategy().equals("infer")) {
-				// Keep all examples and report only the non-hidden examples
-				if (!cmdArgs.isReportHiddenEx()) {
-					keepHiddenPosNegExamples();
-				}
-			} else {
-				if (cmdArgs.getHiddenStrategy().equals("noise")) {
-					flipHiddenPosNegExamples();
-				} else {
-					moveHiddenPosToNeg();
-				}
-			}
-		}
-
 		if (backupPosExamples != null) for (String target : backupPosExamples.keySet()) {
 			Collection<Example> posegs = backupPosExamples.get(target);
 			Collection<Example> negegs = backupNegExamples.get(target);
@@ -338,317 +297,10 @@ public final class WILLSetup {
 			Utils.waitHere("Is this still being used?");
 			getOuterLooper().randomlySelectWithoutReplacementThisManyModes = 0.50; // TODO - allow this to be turned off (or the fraction set) when bagging.
 		}
-		
-		
-		// Create db file in alchemy format.
-		if (cmdArgs.getOutputAlchDBFile() != null) {
-			try {
-				outputFactsAndExamples(directory  + "/" + cmdArgs.getOutputAlchDBFile());
-			} catch (IOException e) {
-				e.printStackTrace();
-				Utils.waitHere(e.getMessage());
-			}
-		}
+
 		// Create hidden fact file from the sampled hidden examples.
-		if (cmdArgs.isCreateHiddenFile()) {
-			try {
-				outputHiddenLiterals(hiddenLitFile);
-			} catch (IOException e) {
-				e.printStackTrace();
-				Utils.waitHere(e.getMessage());
-			}
-		}
 		return true;
 	}
-	
-	private void flipHiddenPosNegExamples() {
-		for (String predName : hiddenExamples.keySet()) {
-			if (!backupPosExamples.containsKey(predName)) {
-				Utils.error("Should be in test example set: " + predName);
-			}
-			if (getMulticlassHandler().isMultiClassPredicate(predName)) {
-				Utils.error("Not implemented");
-			}
-			List<Example> addToPos = new ArrayList<>();
-			List<Example> addToNeg = new ArrayList<>();
-			
-			for (int i = 0; i < backupPosExamples.get(predName).size(); i++) {
-				if (isHidden(backupPosExamples.get(predName).get(i).asLiteral())) {
-					addToNeg.add(backupPosExamples.get(predName).remove(i));
-					i--;
-				}
-			}
-			for (int i = 0; i < backupNegExamples.get(predName).size(); i++) {
-				if (isHidden(backupNegExamples.get(predName).get(i).asLiteral())) {
-					addToPos.add(backupNegExamples.get(predName).remove(i));
-					i--;
-				}
-			}
-			Utils.println("Flipped " + addToPos.size() + " examples from neg to pos for predicate: " + predName);
-			backupPosExamples.get(predName).addAll(addToPos);
-			Utils.println("Flipped " + addToNeg.size() + " examples from pos to neg for predicate: " + predName);
-			backupNegExamples.get(predName).addAll(addToNeg);
-			hiddenExamples = null;
-		}
-	}
-
-	private void moveHiddenPosToNeg() {
-		for (String predName : hiddenExamples.keySet()) {
-			String cleanPredName = predName;
-			if (predName.startsWith(multiclassPredPrefix)) { cleanPredName = predName.substring(multiclassPredPrefix.length()); } 
-			List<Example> currPosExamples = backupPosExamples.get(cleanPredName);
-			
-			Utils.println("Original +ve egs: " + currPosExamples.size());
-			Utils.println("Original -ve egs: " + backupNegExamples.get(cleanPredName).size());
-			for (RegressionRDNExample hiddenRex : hiddenExamples.get(predName)) {
-				String hiddenRep  = hiddenRex.toPrettyString("");
-
-				for (int i = 0; i < currPosExamples.size(); i++) {
-					
-					String egRep;
-					int value;
-					boolean ismulticlass = false;
-					if (!getMulticlassHandler().isMultiClassPredicate(cleanPredName)) {
-						egRep = currPosExamples.get(i).toPrettyString("");
-						value = 1;
-					} else {
-						RegressionRDNExample newRex = getMulticlassHandler().morphExample(currPosExamples.get(i));
-						egRep = newRex.toPrettyString("");
-						value = newRex.getOriginalValue();
-						ismulticlass = true;
-					}
-
-					if (egRep.equals(hiddenRep)) {
-						hiddenRex.setOriginalHiddenLiteralVal(value);
-						// Do not remove from positive examples for multi-class
-						// We use only the positive examples in multi-class examples
-						
-						if (!ismulticlass || cmdArgs.getHiddenStrategy().equals("false")) {
-							backupNegExamples.get(cleanPredName).add(currPosExamples.get(i));
-							currPosExamples.remove(i);
-
-							// TODO(@hayesall): This is a likely sign of a bug. Someone probably didn't realize that `i--;` is never used.
-							i--;
-						} else {
-							// To ensure the original value is never used
-							((RegressionRDNExample)currPosExamples.get(i)).setOriginalValue(-1);
-						}
-						break;
-					}
-				}
-			}
-			Utils.println("New +ve egs: " + currPosExamples.size());
-			Utils.println("New -ve egs: " + backupNegExamples.get(cleanPredName).size());
-		}
-	}
-
-	private void keepHiddenPosNegExamples() {
-		int rmCounter = 0;
-		int leftCounter = 0;
-		// Remove pos/neg examples that are hidden
-		for (String predName : hiddenExamples.keySet()) {
-			if (!backupPosExamples.containsKey(predName)) {
-				Utils.error("Should be in test example set: " + predName);
-			}
-			for (int i = 0; i < backupPosExamples.get(predName).size(); i++) {
-				if (!isHidden(backupPosExamples.get(predName).get(i).asLiteral())) {
-					addFact(backupPosExamples.get(predName).get(i).asLiteral());
-					backupPosExamples.get(predName).remove(i);
-					i--;
-					rmCounter++;
-				} else {
-					leftCounter++;
-				}
-			}
-			for (int i = 0; i < backupNegExamples.get(predName).size(); i++) {
-				if (!isHidden(backupNegExamples.get(predName).get(i).asLiteral())) {
-					//	No need to add this fact since in neg
-					backupNegExamples.get(predName).remove(i);
-					i--;
-					rmCounter++;
-				} else {
-					leftCounter++;
-				}
-			}
-		}
-		Utils.println("removed " + rmCounter + " examples and left with: " + leftCounter + " examples");
-	}
-
-	private void outputHiddenLiterals(String dbFile) throws IOException {
-		Utils.println("Writing hidden literals to " + dbFile);
-		BufferedWriter outWriter = new BufferedWriter(new FileWriter(dbFile));
-		for (String predName : hiddenExamples.keySet()) {
-			for (Example eg : hiddenExamples.get(predName)) {
-				if (eg.predicateName.name.startsWith(multiclassPredPrefix)) {
-					RegressionRDNExample rex = (RegressionRDNExample)eg;
-					Example newEg = getMulticlassHandler().createExampleFromClass(rex, rex.getOriginalHiddenLiteralVal());
-					outWriter.write(newEg.toPrettyString("") + ".");
-				} else {
-					outWriter.write(eg.toPrettyString("") + ".");
-				}
-				outWriter.newLine();
-			}
-		}
-		outWriter.close();
-		
-	}
-
-	private void outputFactsAndExamples(String dbFile) throws IOException {
-		BufferedWriter outWriter = new BufferedWriter(new FileWriter(dbFile));
-		// Output all facts that don't match the pos/neg examples
-		for (Literal lit : getContext().getClausebase().getFacts()) {
-			String predName = lit.getPredicateName().name;
-			if (!backupPosExamples.containsKey(predName)) {
-				outWriter.write(lit.toPrettyString());
-				outWriter.newLine();
-			}
-		}
-		
-		for (String predName : backupPosExamples.keySet()) {
-			for (Example eg : backupPosExamples.get(predName)) {
-				if (!isHidden(eg.asLiteral())) {
-					outWriter.write(eg.toPrettyString(""));
-					outWriter.newLine();
-				}
-			}
-		}
-		
-		for (String predName : backupNegExamples.keySet()) {
-			for (Example eg : backupNegExamples.get(predName)) {
-				// No need for negs if not hidden predicate
-				if (hiddenExamples == null || !hiddenExamples.containsKey(predName)) {
-					continue;
-				}
-				
-				if (!isHidden(eg.asLiteral())) {
-					outWriter.write("!" + eg.toPrettyString(""));
-					outWriter.newLine();
-				}
-			}
-		}
-		outWriter.close();
-	}
-	private boolean isHidden(Literal lit) {
-
-		String predName = lit.predicateName.name;
-		if (predName.startsWith(multiclassPredPrefix)) { 
-			predName = predName.substring(multiclassPredPrefix.length()); 
-		} else {
-			if (getMulticlassHandler().isMultiClassPredicate(predName)) {
-				lit =  getMulticlassHandler().morphExample(new Example(lit));
-			}
-		}
-		
-		if (hiddenExamples == null || !hiddenExamples.containsKey(predName)) {
-			return false;
-		}
-		
-		boolean isHidden = false;
-		String egRep = lit.toPrettyString("");
-		
-		// Check if this literal is hidden.
-		for (RegressionRDNExample hiddenEx : hiddenExamples.get(predName)) {
-			String hiddenRep = hiddenEx.toPrettyString("");
-			if (hiddenRep.equals(egRep)) {
-				isHidden = true;
-				break;
-			}
-		}
-		return isHidden;
-	}
-	
-	private void sampleHiddenExamples(double hiddenPosLitProb, double hiddenNegLitProb) {
-		if (hiddenExamples == null) {
-			hiddenExamples  = new HashMap<>();
-		}
-		Set<String> hiddenPred = cmdArgs.getHiddenPredVal();
-		if (hiddenPred == null) {
-			hiddenPred = cmdArgs.getTargetPredVal();
-		}
-		int counter = 0;
-		for (String predName : hiddenPred) {
-			if (!backupPosExamples.containsKey(predName)) {
-				continue;
-			}
-			for (Example eg : backupPosExamples.get(predName)) {
-				if (Math.random() < hiddenPosLitProb) {
-					RegressionRDNExample rex = new RegressionRDNExample(eg, false);
-					if (getMulticlassHandler().isMultiClassPredicate(predName)) {
-						RegressionRDNExample mcEx = getMulticlassHandler().morphExample(rex);
-						mcEx.setHiddenLiteral();
-						addToHiddenExamples(mcEx);
-					} else {
-						rex.setHiddenLiteral();
-						addToHiddenExamples(rex);
-					}
-					counter++;
-				}
-			}
-		}
-		Utils.println("Number of hidden examples added from pos: " + counter);
-		counter  = 0;
-		for (String predName : hiddenPred) {
-			if (!backupNegExamples.containsKey(predName)) {
-				continue;
-			}
-			// Ignore neg examples for sampling multiclass examples
-			if (getMulticlassHandler().isMultiClassPredicate(predName)) {
-				continue;
-			}
-			for (Example eg : backupNegExamples.get(predName)) {
-				if (Math.random() < hiddenNegLitProb) {
-					RegressionRDNExample rex = new RegressionRDNExample(eg, false);
-					rex.setHiddenLiteral();
-					addToHiddenExamples(rex);
-					counter++;
-				}
-			}
-		}
-		Utils.println("Number of hidden examples added from neg: " + counter);
-	}
-	
-	private void addToHiddenExamples(RegressionRDNExample rex) {
-		String predName = rex.predicateName.name;
-		if (predName.startsWith(multiclassPredPrefix)) { predName = predName.substring(multiclassPredPrefix.length()); }
-		if (!hiddenExamples.containsKey(predName)) {
-			hiddenExamples.put(predName, new ArrayList<>());
-		}
-		hiddenExamples.get(predName).add(rex);
-
-	}
-
-	private void readHiddenLiterals(String file) {
-		if (!Utils.fileExists(file)) {
-			return;
-		}
-		FileParser parser = this.getInnerLooper().getParser();
-		List<Literal> hiddenLit = parser.readLiteralsInFile(file, true);
-		hiddenExamples  = new HashMap<>();
-		Set<String> hiddenPred = cmdArgs.getHiddenPredVal();
-		if (hiddenPred == null) {
-			hiddenPred = cmdArgs.getTargetPredVal();
-		}
-		int counter=0;
-		for (Literal lit : hiddenLit) {
-			String predName = lit.predicateName.name;
-			// Ignore non-query hidden literal
-			if (!hiddenPred.contains(predName)) {
-				continue;
-			}
-			RegressionRDNExample rex;
-			if (getMulticlassHandler().isMultiClassPredicate(predName)) {
-				rex = getMulticlassHandler().morphExample(new Example(lit));
-			} else {
-				rex = new RegressionRDNExample(lit, false, "hidden");	
-			}
-			rex.setHiddenLiteral();
-			addToHiddenExamples(rex);
-			counter++;
-			
-		}
-		Utils.println("Read " + counter + " hidden examples.");
-	}
-	
 
 	/**
 	 * This method moves facts to Examples if they are part of the joint inference task.
@@ -709,7 +361,7 @@ public final class WILLSetup {
 				if (missingNegativeTargets.contains(predName)) {
 					// Only create negs for predicates completely missing from pos/neg or 
 					// for any predicate missing negs iff createSyntheticexamples is enabled.
-					if (cmdArgs.isCreateSyntheticEgs() || missingPositiveTargets.contains(predName)) {
+					if (missingPositiveTargets.contains(predName)) {
 						Utils.println("Creating neg ex for: " + predName);
 						List<Example> 
 						negEgs = CreateSyntheticExamples.createAllPossibleExamples("% Negative example created from facts.",
@@ -764,10 +416,11 @@ public final class WILLSetup {
 				// Sampling hidden states?
 				null);
 	}
-	
-	public boolean allowRecursion = false;
+
+	// TODO(@hayesall): It seems like a bug that `allowRecursion = false`.
+	private boolean allowRecursion = false;
 	public static final String recursivePredPrefix = "recursive_";
-	public static final String multiclassPredPrefix = "multiclass_";
+	static final String multiclassPredPrefix = "multiclass_";
 
 	// Maintain a list of predicates that are already added, so that we can save on time.
 	private final HashSet<String> predicatesAsFacts = new HashSet<>();
@@ -775,24 +428,7 @@ public final class WILLSetup {
 	private final boolean disableFactBase = true;
 	
 	private final Set<PredicateNameAndArity> backupTargetModes=new HashSet<>();
-	public void removeAllTargetsBodyModes() {
-		
-		for (PredicateNameAndArity bodyMode: getInnerLooper().getBodyModes()) {
-			for(String target: cmdArgs.getTargetPredVal()) {
-				if (bodyMode.getPredicateName().name.equals(target)) {
-					// Since we are iterating over the modes, can't erase them here
-					// erase the modes after the for loop
-					backupTargetModes.add(bodyMode);
-				}
-			}
-		}
-		
-		// Remove modes now
-		for (PredicateNameAndArity mode : backupTargetModes) {
-			getInnerLooper().removeBodyMode(mode);
-		}		
-	}
-	
+
 	void addAllTargetModes() {
 		if (backupTargetModes.isEmpty()) {
 			return;
@@ -842,13 +478,6 @@ public final class WILLSetup {
 	
 	void setOnlyPrecomputeThese(Set<String> precompute) {
 		onlyPrecomputeThese = precompute;
-	}
-	
-	/**
-	 * @return the hiddenExamples
-	 */
-	public Map<String, List<RegressionRDNExample>> getHiddenExamples() {
-		return hiddenExamples;
 	}
 
 	private void recomputeFacts(String predicate) {
@@ -960,11 +589,6 @@ public final class WILLSetup {
 						cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples())
 				;
 			}
-            if (hiddenExamples != null &&
-            	(cmdArgs.getHiddenStrategy().equals("EM") || cmdArgs.getHiddenStrategy().equals("MAP"))) {
-            	updateHiddenExamples(getOuterLooper().getPosExamples());
-            	updateHiddenExamples(getOuterLooper().getNegExamples());
-            }
 
 		}
 		// Set target literal to be just one literal.
@@ -998,35 +622,6 @@ public final class WILLSetup {
 		
 		getOuterLooper().setPosExamples(positiveExamples);
 		getOuterLooper().setNegExamples(new ArrayList<>(0));
-	}
-
-	private void updateHiddenExamples(List<Example> egList) {
-
-		// Check if example is hidden
-
-		for (Example eg : egList) {
-
-			// It should be of regression rdn example type
-
-			if (eg instanceof RegressionRDNExample) {
-				String egRep = eg.toPrettyString("");
-				String predName = eg.predicateName.name;
-				if (predName.startsWith(multiclassPredPrefix)) { predName = predName.substring(multiclassPredPrefix.length()); }
-				if (!hiddenExamples.containsKey(predName)) {
-					continue;
-				}
-				for (RegressionRDNExample hiddenEx : hiddenExamples.get(predName)) {
-					String hiddenExRep = hiddenEx.toPrettyString("");
-					if (hiddenExRep.equals(egRep)) {
-						RegressionRDNExample rex = (RegressionRDNExample)eg;
-						rex.setHiddenLiteral();
-						break;
-					}
-				}
-			} else {
-				Utils.waitHere("Make sure that example is of correct type: " + eg);
-			}
-		}
 	}
 
 	private Map<String,List<Example>> getExamplesByPredicateName(List<Example> examples, boolean createBootstrapSample) {
@@ -1115,10 +710,6 @@ public final class WILLSetup {
 
 		Utils.println("% getJointExamples: |pos| = " + Utils.comma(counterPos) + ", |neg| = " + Utils.comma(counterNeg));
 		return result;
-	}
-	
-	public void addAllExamplesToFacts() {
-		prepareFactsForJoint(backupPosExamples, backupNegExamples, null, null, true);
 	}
 
 	private void prepareFactsForJoint(
@@ -1229,9 +820,6 @@ public final class WILLSetup {
 	}
 
 	public Clause convertFactToClause(String fact) {
-		if(cmdArgs.isUseYapVal()) {
-			return convertFactToClause(fact, VarIndicator.uppercase);
-		}
 		return getInnerLooper().getParser().parseDefiniteClause(fact);
 	}
 
@@ -1269,11 +857,11 @@ public final class WILLSetup {
 		return context;
 	}
 
-	public void removeFact(Literal eg) {
+	void removeFact(Literal eg) {
 		getContext().getClausebase().retractAllClausesWithUnifyingBody(eg);
 	}
 
-	public void addFact(Literal eg) {
+	void addFact(Literal eg) {
 		getContext().getClausebase().assertFact(eg);
 	}
 
@@ -1298,12 +886,8 @@ public final class WILLSetup {
 					
 			HandleFOPCstrings stringHandler = new HandleFOPCstrings(true); // Let the first file read set the default.  (Are libraries read first?)
 			HornClausebase clausebase;
-			if (cmdArgs.isUsingDefaultClausebase()) {
-				clausebase = new DefaultHornClausebase(stringHandler); 
-			} else {
-				clausebase = new LazyHornClausebase(stringHandler);
-			}
-			
+			clausebase = new LazyHornClausebase(stringHandler);
+
 			HornClauseContext context = new DefaultHornClauseContext(clausebase);
 
 			// TODO(?): `runningLargeTask`? Add to pass-in arguments?
@@ -1416,14 +1000,6 @@ public final class WILLSetup {
 		getOuterLooper().setMaximumClockTimeInMillisec((long) (maxHoursToRunPerTree * 60 * 60 * 1000));
 	}
 
-	public void setLastSampledWorlds(HiddenLiteralSamples lastSampledWorlds) {
-		this.lastSampledWorlds = lastSampledWorlds;
-	}
-
-	HiddenLiteralSamples getLastSampledWorlds() {
-		return this.lastSampledWorlds;
-	}
-	
 	void getListOfPredicateAritiesForNeighboringFacts() {
 		if (neighboringFactFilterList == null) {
 			Set<PredicateNameAndArity> pars = new HashSet<>();
@@ -1490,7 +1066,7 @@ public final class WILLSetup {
 	/**
 	 * @return the multiclassHandler
 	 */
-	public MultiClassExampleHandler getMulticlassHandler() {
+	MultiClassExampleHandler getMulticlassHandler() {
 		return multiclassHandler;
 	}
 

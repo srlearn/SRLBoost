@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Utils.Utils;
 
@@ -44,7 +43,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 
 	public void learn() {
 		fullModel = new JointRDNModel();
-		String yapFile;
 		Map<String, LearnBoostedRDN> learners = new HashMap<>();
 		int minTreesInModel = Integer.MAX_VALUE;
 
@@ -62,73 +60,22 @@ public class RunBoostedRDN extends RunBoostedModels {
 		}
 
 		int iterStepSize = cmdArgs.getMaxTreesVal();
-		if ((cmdArgs.getHiddenStrategy().equals("EM") || cmdArgs.getHiddenStrategy().equals("MAP"))
-			&& setup.getHiddenExamples() != null) {
-			iterStepSize = 2;
-		}
 		if (cmdArgs.getRdnIterationStep() != -1) {
 			iterStepSize  = cmdArgs.getRdnIterationStep();
 		}
-		boolean newModel=true;
-		
+
 		for (int i=0; i < cmdArgs.getMaxTreesVal(); i+=iterStepSize) {
 
-			if ((cmdArgs.getHiddenStrategy().equals("EM") || cmdArgs.getHiddenStrategy().equals("MAP"))  
-				&& setup.getHiddenExamples() != null && newModel) {
-				long sampleStart = System.currentTimeMillis();
-				JointModelSampler jtSampler = new JointModelSampler(fullModel, setup, cmdArgs, false);
-				HiddenLiteralSamples sampledStates = new HiddenLiteralSamples();
-				// Setup facts based on the true data
-				setup.addAllExamplesToFacts();
-				if ( i > minTreesInModel) { minTreesInModel = i; }
-
-				int maxSamples = 500;
-
-				// TODO(@tushar): Get more samples but pick the 200 most likely states.
-
-				if (cmdArgs.getHiddenStrategy().equals("MAP")) { 
-					maxSamples = -1; 
-				}
-				boolean returnMap = false;
-				if (cmdArgs.getHiddenStrategy().equals("MAP")) {
-					returnMap = true;
-				}
-				jtSampler.sampleWorldStates(setup.getHiddenExamples(), sampledStates, false, maxSamples, returnMap);
-
-				if (sampledStates.getWorldStates().size() == 0) { Utils.waitHere("No sampled states");}
-				// This state won't change anymore so cache probs;
-				Utils.println("Building assignment map");
-				sampledStates.buildExampleToAssignMap();
-				
-				if (cmdArgs.getHiddenStrategy().equals("EM")) {
-					// Build the probabilities for each example conditioned on the assignment to all other examples
-					Utils.println("Building probability map");
-					sampledStates.buildExampleToCondProbMap(setup, fullModel);
-					if (cmdArgs.getNumberOfHiddenStates() > 0 ) {
-						Utils.println("Picking top K=" + cmdArgs.getNumberOfHiddenStates());
-						sampledStates.pickMostLikelyStates(cmdArgs.getNumberOfHiddenStates());
-					}
-				}
-				double cll = BoostingUtils.computeHiddenStateCLL(sampledStates, setup.getHiddenExamples());
-				Utils.println("CLL of hidden states:" + cll);
-				//Utils.println("Prob of states: " + sampledStates.toString());
-				setup.setLastSampledWorlds(sampledStates);
-				newModel = false;
-				long sampleEnd = System.currentTimeMillis();
-				Utils.println("Time to sample world state: " + Utils.convertMillisecondsToTimeSpan(sampleEnd-sampleStart));
-			}
 			for (String pred : cmdArgs.getTargetPredVal()) {
-				SingleModelSampler sampler = new SingleModelSampler(fullModel.get(pred), setup, fullModel, false);
+				SingleModelSampler sampler = new SingleModelSampler(fullModel.get(pred), setup, fullModel);
 				if (cmdArgs.getTargetPredVal().size() > 1) {
-					yapFile = getYapFileForPredicate(pred, cmdArgs.getYapBiasVal());
-					Utils.println("% Using yap file:" + yapFile);
+					Utils.error("Yap is not available");
 				}
 			
 				if (fullModel.get(pred).getNumTrees() >= (i+iterStepSize)) {
 					continue;
 				}
 				int currIterStep =  (i+iterStepSize) - fullModel.get(pred).getNumTrees();
-				newModel=true;
 				Utils.println("% Learning " + currIterStep + " trees in this iteration for " + pred);
 				learners.get(pred).learnNextModel(sampler, fullModel.get(pred), currIterStep);
 			}
@@ -145,12 +92,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 		}
 	}
 
-	private String getYapFileForPredicate(String target, String yapFile) {
-		if (yapFile.isEmpty()) { return ""; }
-		int pos = yapFile.lastIndexOf("/");
-		return yapFile.substring(0, pos+1) + target + "_" + yapFile.substring(pos + 1);
-	}
-
 	public void loadModel() {
 		if (fullModel == null) {
 			fullModel = new JointRDNModel();
@@ -165,7 +106,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 				rdn.reparseModel(setup);
 			} else {
 				Utils.println("% Did not learn a model for '" + pred + "' this run.");
-				// YapFile doesn't matter here.
+
 				rdn = new ConditionalModelPerPredicate(setup);
 			
 				if (useSingleTheory(setup)) {

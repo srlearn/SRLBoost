@@ -1,10 +1,8 @@
 package edu.wisc.cs.will.DataSetUtils;
 
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 import java.util.*;
 
@@ -16,99 +14,6 @@ import java.util.*;
  */
 public class CreateSyntheticExamples {
 
-	public static List<WorldState> createWorldStatesWithNoPosExamples(HandleFOPCstrings stringHandler,
-																	   FileParser parser,
-																	   HornClauseProver prover,
-																	   List<Example> posExamples) throws SearchInterrupted {
-		List<Sentence> collectorList = parser.readFOPCstream("findAll(worldState(X,Y), worldState(X,Y), All).");
-		Literal allWorldStatesQuery = (Literal) ((UniversalSentence) collectorList.get(0)).body;
-		BindingList bl = prover.proveSimpleQueryAndReturnBindings(allWorldStatesQuery);
-		Term answers = bl.lookup((Variable) allWorldStatesQuery.getArguments().get(2));
-		
-		List<Term> groundings = ((ConsCell) answers).convertConsCellToList();
-		if (groundings == null) { return null; }
-		List<WorldState> results = new ArrayList<>(groundings.size());
-		for (Term worldState : groundings) {
-			List<Term> args = ((Function) worldState).getArguments();
-			Constant  world = (Constant) args.get(0);
-			Constant  state = (Constant) args.get(1);
-			if (!matchToSomePosExampleWorldState(stringHandler, world, state, posExamples)) { results.add(new WorldState(world, state)); }
-		}
-		return results;
-	}
-	
-	private static boolean matchToSomePosExampleWorldState(HandleFOPCstrings stringHandler, Constant world, Constant state, List<Example> posExamples) {
-		if (posExamples == null) { return false; }
-		int posOfWorld = stringHandler.locationOfWorldArg;
-		int posOfState = stringHandler.locationOfStateArg;
-		for (Example pos : posExamples) {
-			if (pos.getArguments().get(stringHandler.getArgumentPosition(posOfWorld, pos.numberArgs())) == world && 
-				pos.getArguments().get(stringHandler.getArgumentPosition(posOfState, pos.numberArgs())) == state) { return true; }
-		}
-		return false;
-	}
-	
-	// Note: any realNegExamples are also returned, since we might need to write all the negative examples to negExamplesFile.
-	public static List<Example> createImplicitNegExamples(List<WorldState> worldStatesToProcess,
-														  boolean usingWorldStates,
-														  String provenanceString,
-														  HandleFOPCstrings stringHandler,
-														  HornClauseProver prover,
-														  List<Literal> targets,
-														  List<List<ArgSpec>> targetArgSpecs,
-														  List<List<Term>> targetPredicateSignatures,
-														  List<Example> posExamples,
-														  List<Example> realNegExamples,
-														  double fractionOfImplicitNegExamplesToKeep,
-														  Set<PredicateNameAndArity> factPredicates) { // If > 1.1 (allow 0.1 of buffer), then we'll keep this NUMBER of generated examples.
-		
-		if (usingWorldStates && worldStatesToProcess == null) {
-			int size = Utils.getSizeSafely(posExamples);
-			if (realNegExamples != null) { size += Utils.getSizeSafely(realNegExamples); }
-			
-			if (size > 0 ) { worldStatesToProcess = new ArrayList<>(size); }
-			if (posExamples != null) {
-				for (Example ex : posExamples) {
-					int  numbArgs = ex.numberArgs();
-					WorldState ws = new WorldState((Constant) ex.getArguments().get(stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)),
-												   (Constant) ex.getArguments().get(stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)));
-					if (!worldStatesToProcess.contains(ws)) { worldStatesToProcess.add(ws); }
-				}
-			}
-			if (realNegExamples != null) {
-				for (Example ex : realNegExamples) {
-					int  numbArgs = ex.numberArgs();
-					WorldState ws = new WorldState((Constant) ex.getArguments().get(stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)),
-												   (Constant) ex.getArguments().get(stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)));
-					if (!worldStatesToProcess.contains(ws)) { worldStatesToProcess.add(ws); }
-				}
-			}
-		}
-		
-		List<Example> negExamples = null;		
-		if (targets != null) for (int i = 0; i < targets.size(); i++) {
-			List<Example>  thisTargetExamples = createAllPossibleExamples(provenanceString, stringHandler, prover, targets.get(i),
-															              targetArgSpecs.get(i), targetPredicateSignatures.get(i), worldStatesToProcess, posExamples, realNegExamples, factPredicates);
-			if (negExamples == null) { negExamples = thisTargetExamples; }
-			else                     { negExamples.addAll(thisTargetExamples); }
-		}
-		int numbRealExamples       = Utils.getSizeSafely(realNegExamples);
-		int totalNegsCreated       = Utils.getSizeSafely(negExamples);
-		int desiredExamplesCreated = (fractionOfImplicitNegExamplesToKeep <= 1.1 ? (int) (Math.min(1.0, fractionOfImplicitNegExamplesToKeep) * Utils.getSizeSafely(negExamples))
-																			     : (int)                fractionOfImplicitNegExamplesToKeep)
-									 ; // - numbRealExamples;  // The caller has already subtracted this.
-
-
-		if (totalNegsCreated > desiredExamplesCreated) {
-			negExamples = Utils.chooseRandomNfromThisList(desiredExamplesCreated, negExamples);
-		}
-
-		// Don't lose the 'real' negatives.
-		if (numbRealExamples > 0) { negExamples.addAll(realNegExamples); }
-
-		return negExamples;
-	}
-	
 	// Create all possible examples for this target predicate, with the specified argument types and signature, from these world-states.
 	// Filter those in the 'exceptions' lists (two are provided since often these will be provided positive and negative examples).  TODO - provide a LIST of exception lists?
 	public static List<Example> createAllPossibleExamples(String            provenanceString,

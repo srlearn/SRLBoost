@@ -1,8 +1,6 @@
 package edu.wisc.cs.will.ILP.Regression;
 
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.ILP.LearnOneClause;
@@ -24,7 +22,6 @@ public class RegressionInfoHolderForMLN extends RegressionInfoHolderForRDN {
 	public void populateExamples(LearnOneClause task, SingleClauseNode caller) throws SearchInterrupted {
 		if (!task.regressionTask) { Utils.error("Should call this when NOT doing regression."); }
 		if (caller.getPosCoverage() < 0.0) { caller.computeCoverage(); }
-		HiddenLiteralState lastState = null;
 		for (Example posEx : task.getPosExamples()) {
 			double weight = posEx.getWeightOnExample();
 			double output = ((RegressionExample) posEx).getOutputValue();
@@ -35,17 +32,6 @@ public class RegressionInfoHolderForMLN extends RegressionInfoHolderForRDN {
 			if (!caller.posExampleAlreadyExcluded(posEx)) {
 				long num = 1;
 				if (caller != caller.getRootNode()) {
-					RegressionRDNExample rex = (RegressionRDNExample)posEx;
-					HiddenLiteralState  newState = rex.getStateAssociatedWithOutput();
-					if (newState != null &&
-						!newState.equals(lastState)) {
-						String predName =  posEx.predicateName.name;
-						if (predName.startsWith(WILLSetup.multiclassPredPrefix)) {
-							predName = predName.substring(WILLSetup.multiclassPredPrefix.length());
-						}
-						task.updateFacts(lastState, newState, predName);
-						lastState = newState;
-					}
 					num  = caller.getNumberOfGroundingsForRegressionEx(posEx);
 				}
 				if (num == 0) {

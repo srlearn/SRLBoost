@@ -18,14 +18,14 @@ public class SingleModelSampler extends SRLInference {
 	private final boolean hasRecursion;
 
 
-	public SingleModelSampler(ConditionalModelPerPredicate model, WILLSetup setup, JointRDNModel jointModel, boolean isRecursive) {
+	SingleModelSampler(ConditionalModelPerPredicate model, WILLSetup setup, JointRDNModel jointModel) {
 		super(setup);
 		this.conditionalModel = model;
 		this.jointModel = jointModel;
-		hasRecursion = isRecursive;
+		hasRecursion = false;
 	}
 
-	public void setSample(List<RegressionRDNExample> eg) {
+	void setSample(List<RegressionRDNExample> eg) {
 		for (Example example : eg) {
 			RegressionRDNExample rex = (RegressionRDNExample) example;
 			ProbDistribution prob = conditionalModel.returnModelProbability(example);

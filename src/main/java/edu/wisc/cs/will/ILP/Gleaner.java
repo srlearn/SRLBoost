@@ -91,7 +91,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		}
 
 		// Add to current Gleaner and default Gleaner (if different), even if unacceptable (to do: separate thresholds for Gleaner and for the best overall?  Or too many parameters?).
-		SavedClause saver = new SavedClause(this, clause);
+		SavedClause saver = new SavedClause(clause);
 		addToGleaner(defaultGleaner, saver);
 		if (currentGleaner != defaultGleaner) { 
 			addToGleaner(currentGleaner, saver);

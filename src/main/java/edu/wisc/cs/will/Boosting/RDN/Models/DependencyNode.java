@@ -26,25 +26,10 @@ public abstract class DependencyNode {
 	}
 
 	/*
-	 * @param i - the index of child edge
-	 * @return the ith child edge
-	 */
-	DependencyNetworkEdge getChild(int i) {
-		return children.get(i);
-	}
-
-	/*
 	 * @return the number of parents
 	 */
 	int numParents() {
 		return parents.size();
-	}
-
-	/*
-	 * @return the number of children
-	 */
-	int numChildren() {
-		return children.size();
 	}
 
 	/*
@@ -61,7 +46,7 @@ public abstract class DependencyNode {
 		children.add(edge);
 	}
 
-	public Collection<DependencyNetworkEdge> getParents() {
+	Collection<DependencyNetworkEdge> getParents() {
 		return parents;
 	}
 

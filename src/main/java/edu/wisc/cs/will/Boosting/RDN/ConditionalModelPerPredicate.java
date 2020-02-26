@@ -123,10 +123,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 			RegressionValueOrVector sum_grad = null;
 
 			for (int i = 0; i < RunBoostedRDN.numbModelsToMake; i++) {
-				if (setup == null) { Utils.error("WILLSetup object not initialized"); } 
-				if (setup.cmdArgs.isPrintingTreeStats()) {
-					tree[i].setAddLeafId(true);
-				}
+				if (setup == null) { Utils.error("WILLSetup object not initialized"); }
 
 				RegressionValueOrVector thisValue = tree[i].getRegressionValue(ex);
 				thisValue.multiply(stepLength.get(counter));
@@ -378,10 +375,6 @@ public class ConditionalModelPerPredicate implements Serializable {
 		}
 	}
 
-	ClauseBasedTree getTree(int tree) {
-		return boostedTrees.get(tree)[0];
-	}
-	
 	String getStepLengthSentence(int i) {
 		return LearnBoostedRDN.stepLengthPredicate(i) + "(" + stepLength.get(i - 1) + ").";
 	}
@@ -560,15 +553,4 @@ public class ConditionalModelPerPredicate implements Serializable {
 		}
 	}
 
-	public Set<Literal> getGroundParents(RegressionRDNExample example,
-				Map<String, List<RegressionRDNExample>> jointExamples) {
-		Set<Literal> parents = new HashSet<>();
-		for (RegressionTree[] trees : boostedTrees) {
-			for (RegressionTree tree : trees) {
-				Set<Literal> pars = tree.getGroundParents(example, jointExamples);
-				parents.addAll(pars);
-			}
-		}
-		return parents;
-	}
 }

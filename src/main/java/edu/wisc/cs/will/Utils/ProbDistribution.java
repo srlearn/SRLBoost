@@ -20,10 +20,6 @@ public class ProbDistribution {
 		setProbOfBeingTrue(prob);
 	}
 
-	public ProbDistribution(double[] dist) {
-		setProbDistribution(dist);
-	}
-	
 	public ProbDistribution(ProbDistribution copy) {
 		this.hasDistribution  = copy.hasDistribution;
 		if (hasDistribution) {
@@ -162,18 +158,5 @@ public class ProbDistribution {
 		Utils.error("Cumulative distribution doesn't sum to 1. Sum:" + cumulative);
 		return 0;
 	}
-	
-	public double probOfTakingValue(int value) {
-		if (isHasDistribution()) {
-			if (value >= probDistribution.length) {
-				Utils.error("Cannot return probability of taking value = " + value + ". Has to be less than " + probDistribution.length);
-			}
-			return probDistribution[value];
-		}
-		if (value == 1) { return getProbOfBeingTrue(); }
-		if (value == 0) { return 1 - getProbOfBeingTrue();}
-		Utils.error("Cannot return probability of taking value = " + value + ". Has to be 0/1.");
-		return -1;
-	}
-	
+
 }

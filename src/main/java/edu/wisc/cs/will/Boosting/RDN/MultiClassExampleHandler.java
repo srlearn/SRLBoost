@@ -10,7 +10,7 @@ import java.util.*;
 /*
  * @author tkhot
  */
-public class MultiClassExampleHandler {
+class MultiClassExampleHandler {
 
 	/*
 	 * Use a list for class arg index since more than one argument (combined) may be a class arg.
@@ -89,7 +89,7 @@ public class MultiClassExampleHandler {
 		return regEx;
 	}
 	
-	public void removeConstants(Literal lit) {
+	private void removeConstants(Literal lit) {
 		List<Term> constList = getConstantList(lit);
 		// Remove the arguments from the example
 		for (Term arg : constList) {
@@ -98,7 +98,7 @@ public class MultiClassExampleHandler {
 		lit.predicateName = lit.getStringHandler().getPredicateName(WILLSetup.multiclassPredPrefix + lit.predicateName.name);
 	}
 	
-	public Example createExampleFromClass(RegressionRDNExample rex, int constantIndex) {
+	Example createExampleFromClass(RegressionRDNExample rex, int constantIndex) {
 		if (!rex.predicateName.name.startsWith(WILLSetup.multiclassPredPrefix)) {
 			Utils.error("expected a multi class example here." + rex.toPrettyString());
 		}
@@ -156,7 +156,7 @@ public class MultiClassExampleHandler {
 		}
 	}
 	
-	public void updateConstantList(String predicate, ConstantLookupList constList) {
+	void updateConstantList(String predicate, ConstantLookupList constList) {
 		if (constantsForPredicate == null) {
 			Utils.error("constantsForPredicate not initialized!");
 		} else {
@@ -206,7 +206,7 @@ public class MultiClassExampleHandler {
 		private final static String startTerm = "\"";
 		private final static String endTerm = "\"";
 		
-		public ConstantLookupList() {
+		ConstantLookupList() {
 			this.constants = new ArrayList<>();
 			this.constantIndex = new HashMap<>();
 		}

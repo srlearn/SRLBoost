@@ -66,40 +66,9 @@ public class CommandLineArguments {
 	
 	private static final String maxMLNLength = "mlnClauseLen";
 	private int maxMLNClauseLength=2;
-	
-	private static final String noTargetModes = "removeTarget";
-	private boolean noTargetModesInitially = false;
-
-	// TODO(@hayesall): `hiddenLitFlag` and `hiddenStrategy` controls EM/MAP, but I don't think these were implemented.
-	private static final String hiddenLitFlag = "hidden";
-	private String hiddenStrategy = "ignore";
-
-	private static final String hideSampleFlag = "hideProb";
-	private double hiddenLitProb = -1;
-
-	private static final String hideNegSampleFlag = "hideNegProb";
-	private double hiddenNegLitProb = -1;
-
-	private static final String outputAlchFlag = "outputFacts";
-	private String outputAlchDBFile = null;
-
-	private static final String createHiddenFlag = "createHidden";
-	private boolean createHiddenFile = false;
-	
-	private static final String reportMissFlag = "reportHiddenEx";
-	private boolean reportHiddenEx = true;
 
 	private static final String rdnIterFlag = "iter";
 	private int rdnIterationStep = -1;
-
-	private static final String emSampleFlag = "numState";
-	private int numberOfHiddenStates = -1;
-
-	private static final String ignoreStateProbFlag = "noStateProb";
-	private boolean ignoreStateProb = false;
-
-	private static final String emSampleProbFlag = "emSampleProb";
-	private double emSampleProb = 1;
 
 	private static final String learnCurve = "lc";
 	private boolean printLearningCurve = false;
@@ -109,9 +78,6 @@ public class CommandLineArguments {
 
 	private static final String infer = "i";
 	private boolean inferVal=false;
-
-	private static final String useYap = "y";
-	private boolean useYapVal=false;
 
 	private static final String noBoosting = "noBoost";
 	private boolean disabledBoosting=false;
@@ -128,17 +94,8 @@ public class CommandLineArguments {
 	private static final String resultsDir = "results";
 	private String resultsDirVal = null;
 
-	private static final String yapBin = "yapBin";
-	private String yapBinVal = "/u/t/u/tushar/code/yap/bin/yap";
-
-	private static final String yapBias = "yapBias";
-	private String yapBiasVal = "";
-
 	private static final String targetPred = "target";
 	private Set<String> targetPredVal = null;
-
-	private static final String hiddenPredFlag = "hiddenPred";
-	private Set<String> hiddenPredVal = null;
 
 	private static final String loadModelPredFlag = "loadPredModel";
 	private Set<String> loadPredModelVal = null;
@@ -147,15 +104,6 @@ public class CommandLineArguments {
 
 	private static final String maxTrees = "trees";
 	private int maxTreesVal=10;
-
-	private static final String noLazybase = "noLazy";
-	private boolean usingDefaultClausebase = false;
-
-	private static final String autoCreateNeg = "createNeg";
-	private boolean createSyntheticEgs = false;
-
-	private static final String printLeafIds = "printLeafId";
-	private boolean printingTreeStats = false;
 
 	private static final String disableJointModel = "noJointModel";
 	private boolean jointModelDisabled =false;
@@ -185,9 +133,6 @@ public class CommandLineArguments {
 	private static final String sampleNegsToPosRatio = "negPosRatio";
 	private double sampleNegsToPosRatioVal = 2;
 
-	private static final String printAllEgFlag		= "printAllEgToo";
-	private boolean printAllExamplesToo = false;
-
 	private static final String testNegsToPosRatio = "testNegPosRatio";
 	private double testNegsToPosRatioVal = -1;
 	private static final String testPosString      = "testPosString"; // Allow overriding of the default.
@@ -196,12 +141,6 @@ public class CommandLineArguments {
 	private String stringForTestsetNeg  = "neg";
 	private static final String testFactsString    = "testFactsString"; // Allow overriding of the default.
 	private String stringForTestsetFacts = "facts";
-	private static final String testHiddenString    = "testHiddenString"; // Allow overriding of the default.
-	private String stringForTestsetHidden = "hidden";
-
-	// TODO(@hayesall): Investigate and remove.
-	private static final String treelearner = "yapTree";
-	private String treelearnerVal = "/u/t/u/tushar/code/tildecrf_20091116/treelearner/treelearner.pl" ;
 
 	private static final String aucPath = "aucJarPath";
 	private String aucPathVal = null;
@@ -215,9 +154,6 @@ public class CommandLineArguments {
 
 	private static final String reweighEx = "reweigh";
 	public boolean reweighExamples = false;
-
-	private static final String useProbWts = "probWt";
-	private boolean useProbabilityWeights = false;
 
 	public int getDoInferenceIfModNequalsThis() {
 		return doInferenceIfModNequalsThis;
@@ -294,71 +230,8 @@ public class CommandLineArguments {
 				}
 				continue;
 			}
-			if (argMatches(args[i], printAllEgFlag)) {
-				printAllExamplesToo = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					printAllExamplesToo = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], noTargetModes)) {
-				noTargetModesInitially = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					noTargetModesInitially = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], hiddenLitFlag)) {
-				hiddenStrategy = args[++i];
-				continue;
-			}
-			if (argMatches(args[i], hideSampleFlag)) {
-				hiddenLitProb = Double.parseDouble(args[++i]);
-				continue;
-			}
-			if (argMatches(args[i], hideNegSampleFlag)) {
-				hiddenNegLitProb = Double.parseDouble(args[++i]);
-				continue;
-			}
-			if (argMatches(args[i], outputAlchFlag)) {
-				outputAlchDBFile = args[++i];
-				continue;
-			}
-			if (argMatches(args[i], createHiddenFlag)) {
-				createHiddenFile = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					createHiddenFile = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			
-			if (argMatches(args[i], reportMissFlag)) {
-				reportHiddenEx = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					reportHiddenEx = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
 			if (argMatches(args[i], rdnIterFlag)) {
 				rdnIterationStep = Integer.parseInt(args[++i]);
-				continue;
-			}
-			
-			if (argMatches(args[i], emSampleFlag)) {
-				numberOfHiddenStates = Integer.parseInt(args[++i]);
-				continue;
-			}
-			
-			if (argMatches(args[i], ignoreStateProbFlag)) {
-				ignoreStateProb = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					ignoreStateProb = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			
-			if (argMatches(args[i], emSampleProbFlag)) {
-				emSampleProb = Double.parseDouble(args[++i]);
 				continue;
 			}
 			
@@ -381,13 +254,6 @@ public class CommandLineArguments {
 				reweighExamples=true;
 				continue;
 			}
-			if (argMatches(args[i], useProbWts)) {
-				useProbabilityWeights = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					useProbabilityWeights = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
 			if (argMatches(args[i], outName)) {
 				outFileSuffix = args[++i];
 				continue; 
@@ -406,13 +272,6 @@ public class CommandLineArguments {
 				}
 				continue;
 			}
-			if (argMatches(args[i], useYap)) {
-				useYapVal = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					useYapVal = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}		
 			if (argMatches(args[i], disableJointModel)) {
 				jointModelDisabled = true;
 				if (isArgumentNotAFlag(args, i+1)) {
@@ -424,27 +283,6 @@ public class CommandLineArguments {
 				disableMultiClass = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					disableMultiClass = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], noLazybase)) {
-				usingDefaultClausebase = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					usingDefaultClausebase = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], autoCreateNeg)) {
-				createSyntheticEgs = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					createSyntheticEgs = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], printLeafIds)) {
-				printingTreeStats = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					printingTreeStats = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -482,24 +320,10 @@ public class CommandLineArguments {
 				setResultsDirVal(args[++i]);
 				continue; 
 			}
-			if (argMatches(args[i], yapBin)) {
-				yapBinVal = args[++i];
-				continue;
-			}
-			if (argMatches(args[i], yapBias)) {
-				yapBiasVal = args[++i];
-				continue;
-			}
 			if (argMatches(args[i], targetPred)) {
 				String targetStr = args[++i];
 				targetPredVal = new HashSet<>();
 				targetPredVal.addAll(Arrays.asList(targetStr.split(",")));
-				continue;
-			}
-			if (argMatches(args[i], hiddenPredFlag)) {
-				String targetStr = args[++i];
-				hiddenPredVal = new HashSet<>();
-				hiddenPredVal.addAll(Arrays.asList(targetStr.split(",")));
 				continue;
 			}
 			if (argMatches(args[i], loadModelPredFlag)) {
@@ -540,10 +364,6 @@ public class CommandLineArguments {
 				stepLenVal=Double.parseDouble(args[++i]);
 				continue;
 			}
-			if (argMatches(args[i], treelearner)) {	
-				treelearnerVal = args[++i];
-				continue;
-			}
 			if (argMatches(args[i], sampleNegsToPosRatio)) {
 				sampleNegsToPosRatioVal=Double.parseDouble(args[++i]);
 				continue;
@@ -562,10 +382,6 @@ public class CommandLineArguments {
 			}
 			if (argMatches(args[i], testFactsString)) {
 				stringForTestsetFacts = args[++i];
-				continue;
-			}
-			if (argMatches(args[i], testHiddenString)) {
-				stringForTestsetHidden = args[++i];
 				continue;
 			}
 			if (argMatches(args[i], samplePosProb)) {
@@ -611,9 +427,7 @@ public class CommandLineArguments {
 		result += argPrefix + learn + " : Use this flag, if you want to enable learning.\n";
 		
 		result += argPrefix + infer + " : Use this flag, if you want to enable inference.\n";
-		
-		result += argPrefix + useYap + " : Use this flag, if you want to use Yap for tree learning.\n";
-		
+
 		result += argPrefix + noBoosting + " : Use this flag, if you dont want to use boosting.\n";
 		
 		result += argPrefix + trainDir + " <Training directory> : Path to the training directory in WILL format.\n";
@@ -621,13 +435,7 @@ public class CommandLineArguments {
 		result += argPrefix + testDir + " <Testing directory> : Path to the testing directory in WILL format.\n";
 		
 		result += argPrefix + modelDir + " <Model directory> : Path to the directory with the stored models[or where they will be stored].\n";
-		
-		result += argPrefix + yapBin + " <Yap binary> : Path to the Yap binary.\n";
-		
-		result += argPrefix + yapBias + " <Yap bias file> : Path to the Yap Bias file.\n";
-		
-		result += argPrefix + treelearner + " <TILDE treelearner file> : Path to the treelearner file.\n";
-		
+
 		result += argPrefix + targetPred + " <target predicates> : Comma separated list of predicates that need to be learned/inferred.\n";
 		
 		result += argPrefix + saveModel + " : Use this flag, if you want to save the learnt models.\n";
@@ -674,10 +482,6 @@ public class CommandLineArguments {
 		this.trainDirVal = trainDirVal;
 	}
 
-	public boolean isUseYapVal() {
-		return useYapVal;
-	}
-
 	private boolean checked_testDirVal = false;
 
 	public String getTestDirVal() {
@@ -701,20 +505,8 @@ public class CommandLineArguments {
 		return numberOfMLNClauses;
 	}
 
-	public boolean isPrintAllExamplesToo() {
-		return printAllExamplesToo;
-	}
-
 	public int getMaxMLNClauseLength() {
 		return maxMLNClauseLength;
-	}
-
-	public String getHiddenStrategy() {
-		return hiddenStrategy;
-	}
-
-	public boolean isReportHiddenEx() {
-		return reportHiddenEx;
 	}
 
 	public boolean isPrintLearningCurve() {
@@ -759,18 +551,6 @@ public class CommandLineArguments {
 		this.resultsDirVal = resultsDirVal;
 	}
 
-	public boolean isNoTargetModesInitially() {
-		return noTargetModesInitially;
-	}
-
-	public String getYapBinVal() {
-		return yapBinVal;
-	}
-
-	public String getYapBiasVal() {
-		return yapBiasVal;
-	}
-
 	public String getModelFileVal() {
 		return modelFileVal;
 	}
@@ -781,10 +561,6 @@ public class CommandLineArguments {
 
 	public Set<String> getTargetPredVal() {
 		return targetPredVal;
-	}
-
-	public Set<String> getHiddenPredVal() {
-		return hiddenPredVal;
 	}
 
 	public boolean isDisableMultiClass() {
@@ -815,10 +591,6 @@ public class CommandLineArguments {
 		return rdnIterationStep;
 	}
 
-	public String getTreelearnerVal() {
-		return treelearnerVal;
-	}
-
 	public double getSamplePosProbVal() {
 		return samplePosProbVal;
 	}
@@ -833,18 +605,6 @@ public class CommandLineArguments {
 
 	public double getDropPos() {
 		return dropPos;
-	}
-
-	public double getHiddenLitProb() {
-		return hiddenLitProb;
-	}
-
-	public double getHiddenNegLitProb() {
-		return hiddenNegLitProb;
-	}
-
-	public String getOutputAlchDBFile() {
-		return outputAlchDBFile;
 	}
 
 	public String getAucPathVal() {
@@ -870,22 +630,6 @@ public class CommandLineArguments {
 		if (includeTestSkew &&
 				testNegsToPosRatioVal      >= 0)    { result += "TestSkew" + (int) testNegsToPosRatioVal; }
 		return result;
-	}
-
-	public String getStringForTestsetHidden() {
-		return stringForTestsetHidden;
-	}
-
-	public int getNumberOfHiddenStates() {
-		return numberOfHiddenStates;
-	}
-
-	public double getEmSampleProb() {
-		return emSampleProb;
-	}
-
-	public boolean isIgnoreStateProb() {
-		return ignoreStateProb;
 	}
 
 	public int getMaxLiteralsInAnInteriorNode() {
@@ -945,22 +689,6 @@ public class CommandLineArguments {
 
 	public boolean isLearnProbExamples() {
 		return learnProbExamples;
-	}
-
-	public boolean isUsingDefaultClausebase() {
-		return usingDefaultClausebase;
-	}
-
-	public boolean isPrintingTreeStats() {
-		return printingTreeStats;
-	}
-
-	public boolean isCreateSyntheticEgs() {
-		return createSyntheticEgs;
-	}
-
-	public boolean isCreateHiddenFile() {
-		return createHiddenFile;
 	}
 
 }

@@ -34,17 +34,6 @@ public class RegressionExample extends Example  implements Serializable {
 		this.setOutputValue(outputValue);
 	}
 
-	protected RegressionExample(RegressionExample copy) {
-		super(copy.getStringHandler(), copy, copy.provenance, copy.extraLabel);
-		this.hasRegressionVector = copy.hasRegressionVector;
-		this.originalRegressionOrProbValue = copy.originalRegressionOrProbValue;
-		if (copy.isHasRegressionVector()) {
-			setOutputVector(copy.getOutputVector());
-		} else {
-			setOutputValue(copy.getOutputValue());
-		}
-		leafId = copy.leafId;
-	}
 	private Map<SingleClauseNode, Long> cachedNumberOfGroundings = null;
 	
 	public void cacheNumGroundings(SingleClauseNode key, long num) {

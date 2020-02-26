@@ -2,13 +2,11 @@ package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.MLN.MLNInference;
-import edu.wisc.cs.will.Boosting.Trees.ClauseBasedTree;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Boosting.Utils.ThresholdSelector;
 import edu.wisc.cs.will.DataSetUtils.ComputeAUC;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.ILP.CoverageScore;
-import edu.wisc.cs.will.Utils.GzippedBufferedWriter;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
@@ -31,44 +29,37 @@ public class InferBoostedRDN {
 	
 	private final CommandLineArguments cmdArgs;
 	private final WILLSetup setup;
-	private JointRDNModel model;
 
-	private static final String RDNTreeStats = "RDNtreePathStats";
 	public InferBoostedRDN(CommandLineArguments args, WILLSetup setup) {
 		this.cmdArgs = args;
 		this.setup = setup;
 		setParamsUsingSetup(setup);
 
+		// TODO(@hayesall): All calls to `Utils.getUserName()` should probably be removed.
 		if (Utils.getUserName().equalsIgnoreCase("tkhot")) {
 			useOldFileLocations = true;	
 		}
 	}
 	
 	public void runInference(JointRDNModel rdns, double thresh) {
-		model = rdns;
 		Map<String,List<RegressionRDNExample>> targetExamples = setup.getJointExamples(cmdArgs.getTargetPredVal());
-		Map<String,List<RegressionRDNExample>> jointExamples = setup.getHiddenExamples();
-		if (jointExamples == null) {
-			jointExamples = new HashMap<>();
-		}
-		jointExamples.putAll(targetExamples);
+		Map<String,List<RegressionRDNExample>> jointExamples;
+		jointExamples = new HashMap<>(targetExamples);
 		boolean negativesSampled = false;
 		
 		Utils.println("\n% Starting inference in bRDN.");
 		SRLInference sampler;
 		if (cmdArgs.isLearnMLN()) {
 			if (jointExamples.keySet().size() > 1) {
-				sampler = new JointModelSampler(rdns, setup, cmdArgs,true);
+				sampler = new JointModelSampler(rdns, setup, true);
 			} else {
-				if (!cmdArgs.isPrintAllExamplesToo()) {
-					Utils.println("\n% Subsampling the negative examples.");
-					subsampleNegatives(jointExamples);
-					negativesSampled = true;
-				}
+				Utils.println("\n% Subsampling the negative examples.");
+				subsampleNegatives(jointExamples);
+				negativesSampled = true;
 				sampler = new MLNInference(setup, rdns);
 			}
 		} else {
-			sampler = new JointModelSampler(rdns, setup, cmdArgs);
+			sampler = new JointModelSampler(rdns, setup);
 			// We can sub sample negatives if no recursion or joint inference.
 			if (!sampler.getRdn().needsJointInference() &&
 				!sampler.getRdn().hasRecursion()) {
@@ -100,15 +91,9 @@ public class InferBoostedRDN {
 					backupJointExamples.put(targ, new ArrayList<>(jointExamples.get(targ)));
 				}
 			}
-			
-			// Remove hidden examples from the reporting if we do not know their true values
-			// Normally, the missing data is artificially generated so we know the true value.
-			if (!cmdArgs.isReportHiddenEx()) {
-				removeHiddenExamples(jointExamples, setup.getHiddenExamples());
-			}
-			
+
 			// Subsample the negatives for reporting.
-			if (!negativesSampled && !cmdArgs.isPrintAllExamplesToo()) {
+			if (!negativesSampled) {
 				Utils.println("\n% Subsampling the negative examples for reporting.");
 				subsampleNegatives(jointExamples);
 				negativesSampled=true;
@@ -122,63 +107,11 @@ public class InferBoostedRDN {
 					if (f.exists()) {
 						f.delete();
 					}
-					if (cmdArgs.isPrintAllExamplesToo()) {
-						f = new File(getFullQueryFile(target));
-						if (f.exists()) {
-							f.delete();
-						}
-					}
 				}
 			}
-			String modelSuff = cmdArgs.getModelFileVal();
-			boolean allExamples = false;
-			if (cmdArgs.isPrintAllExamplesToo()) {
-				cmdArgs.setModelFileVal(modelSuff + "_full");
-				allExamples = true;
-			}
-			processExamples(jointExamples, thresh, startCount, allExamples);
-			if (cmdArgs.isPrintAllExamplesToo()) {
-				if (!negativesSampled) {
-					subsampleNegatives(jointExamples);
-					cmdArgs.setModelFileVal(modelSuff);
-					processExamples(jointExamples, thresh, startCount, false);
-				} else {
-					Utils.error("Negatives sampled already!!");
-				}
-			}
+			processExamples(jointExamples, thresh, startCount, false);
 			jointExamples = backupJointExamples;
 		}
-	}
-	
-	private void removeHiddenExamples(
-			Map<String, List<RegressionRDNExample>> jointExamples,
-			Map<String, List<RegressionRDNExample>> hiddenExamples) {
-		int numRemoved = 0;
-		for (String predName : jointExamples.keySet()) {
-			if (!hiddenExamples.containsKey(predName)) {
-				continue;
-			}
-			List<RegressionRDNExample> examples = jointExamples.get(predName);
-			List<RegressionRDNExample> hidExamples = hiddenExamples.get(predName);
-			
-			
-			for (int i = examples.size()-1; i >= 0;  i--) {
-				RegressionRDNExample origEx = examples.get(i);
-				if (setup.getMulticlassHandler().isMultiClassPredicate(origEx.predicateName.name)) {
-					origEx = setup.getMulticlassHandler().morphExample(origEx);
-				}
-				for (RegressionRDNExample hidRex : hidExamples) {
-					if (hidRex.toString().equals(origEx.toString())) {
-						examples.remove(i);
-						i++;
-						numRemoved++;
-						break;
-					}
-				}
-			
-			}
-		}
-		Utils.println("Removed " + numRemoved + " examples before reporting.");	
 	}
 
 	private void processExamples(
@@ -190,12 +123,6 @@ public class InferBoostedRDN {
 				File f = new File(getResultsFile(pred));
 				if (f.exists()) {
 					f.delete();
-				}
-				if (cmdArgs.isPrintAllExamplesToo()) {
-					f = new File(getFullResultsFile(pred));
-					if (f.exists()) {
-						f.delete();
-					}
 				}
 			}
 			getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount, usingAllEgs);
@@ -276,15 +203,6 @@ public class InferBoostedRDN {
 			return;
 		}
 		collectorBW.append("modelPrediction(model(").append(RunBoostedRDN.nameOfCurrentModel).append("), category(").append(category).append("), prob(").append(String.valueOf(prob)).append("), wgt(").append(String.valueOf(wgt)).append("), ").append(String.valueOf(example)).append(").\n").append("\n");
-	}
-
-	private String getTreeStatsFile() {
-		// Cut-pasted-and-edited from writeToCollectorFile.
-		String fileNamePrefix = "testSetResults/testSetInferenceResults" + cmdArgs.getExtraMarkerForFiles(true);
-		String fileName       = Utils.replaceWildCards(cmdArgs.getResultsDirVal() + fileNamePrefix + "_RDNtreePathStats" + Utils.defaultFileExtensionWithPeriod);
-		Utils.ensureDirExists(fileName);
-		Utils.println("\n% getTreeStatsFile:\n%    " + fileName);
-		return fileName;
 	}
 
 	private String getQueryFile(String target) {
@@ -383,12 +301,9 @@ public class InferBoostedRDN {
 
 		
 		ComputeAUC auc = computeAUCFromEg(examples, target);
-		
-		
-		if (cmdArgs.isPrintingTreeStats()) {
-			printTreeStats(examples, target);
-		}
-		if (cmdArgs.isPrintLearningCurve()) {			
+
+
+		if (cmdArgs.isPrintLearningCurve()) {
 			Utils.appendString(new File(getLearningCurveFile(target, "pr")), trees + " " + auc.getPR() + "\n");
 			Utils.appendString(new File(getLearningCurveFile(target, "cll")), trees + " " + auc.getCLL() + "\n");
 		}
@@ -528,143 +443,6 @@ public class InferBoostedRDN {
 		CompareProbsInModelPredictions comparator = new CompareProbsInModelPredictions();
 		lits.sort(comparator);
 		Utils.writeObjectsToFile(fileToWrite, lits, ". // #COUNT", "// Results of '" + RunBoostedRDN.nameOfCurrentModel + "' sorted by the predicted probability.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
-	}
-	
-	/*
-	 * HashMap comparator. Needs the hash map as input since the comparator
-	 * only gets the key as the input for the comparison. ValueComparator
-	 * uses the input map to find the actual values for each key and sorts
-	 * based on them.
-	 * @author tkhot
-	 *
-	 */
-	static class ValueComparator implements Comparator<String> {
-		final Map<String, Double> base;
-		ValueComparator(Map<String, Double> input) {
-			base = input;
-		}
-		@Override
-		public int compare(String arg0, String arg1) {
-			if(base.get(arg0) > base.get(arg1)) {
-				return 1;
-			}
-			if (base.get(arg0) < base.get(arg1)) {
-				return -1;
-			}
-			return arg0.compareTo(arg1);
-		}
-	}
-	
-	/*
-	 * Should be called only for single-class examples
-	 */
-	private void printTreeStats(List<RegressionRDNExample> examples, String target) {
-		String treeStats = getTreeStatsFile();
-		Map<String, Integer> idCounts = new HashMap<>();
-		Map<String, Double> idProbs = new HashMap<>();
-		long totalExamples = 0;
-		for (RegressionRDNExample regressionRDNExample : examples) {
-			String id = regressionRDNExample.leafId;
-			if(id.isEmpty()) {
-				Utils.waitHere("No path id associated with example:" + regressionRDNExample);
-			}
-			if (!idCounts.containsKey(id)) {
-				idCounts.put(id, 0);
-				idProbs.put(id, regressionRDNExample.getProbOfExample().getProbOfBeingTrue());
-			} else {
-				if (idProbs.get(id) != regressionRDNExample.getProbOfExample().getProbOfBeingTrue()) {
-					Utils.waitHere("Example should have probability:" + idProbs.get(id) +
-							" but has prob:" + regressionRDNExample.getProbOfExample() + " for id:" + id);
-				}
-			}
-			idCounts.put(id, idCounts.get(id)+1);
-			totalExamples++;
-		}
-		try {
-			Utils.println("Printing tree stats to " + treeStats);
-			GzippedBufferedWriter bw = new GzippedBufferedWriter(treeStats);
-			
-			// Sort by probabilities(lowest comes first)
-			Map<String, Double> sortedMap = new TreeMap<>(new ValueComparator(idProbs));
-			sortedMap.putAll(idProbs);
-			writeTreeStatsToCSV(idCounts, sortedMap, treeStats.replace(".txt", ".csv"));
-			
-			// Print counts & probs
-			// Reverse probabilities as we want highest first here.
-			List<String> reversedIds = new ArrayList<>(sortedMap.keySet());
-			Collections.reverse(reversedIds);
-			
-			for (String id : reversedIds) {
-				double frac = (double)idCounts.get(id) / (double)totalExamples;
-				bw.write(String.format("%s(\"%s\", %.4f, %d, %.4f).", RDNTreeStats, id, sortedMap.get(id), idCounts.get(id), frac));
-				bw.newLine();
-			}
-			// Print leaf id as list
-			for (String id : sortedMap.keySet()) {
-				bw.write(String.format("TreeIdList(%s, [%s]).", id , getLeafIdToList(id)));
-				bw.newLine();
-			}
-			
-			// Print clauses for each leaf.
-			for (int i = 0; i < model.get(target).getNumTrees(); i++) {
-				ClauseBasedTree reg = model.get(target).getTree(i);
-				for (int j = 0; j < reg.getRegressionClauses().size(); j++) {
-					Clause cl = reg.getRegressionClauses().get(j);
-					StringBuffer bodyStr = null; 
-					for (Literal lit : cl.negLiterals) {
-						if (!lit.predicateName.equals(setup.getHandler().standardPredicateNames.negationByFailure) &&
-							!lit.equals(setup.getHandler().cutLiteral)) {
-							if (bodyStr == null) {
-								bodyStr = new StringBuffer();
-							} else {
-								bodyStr.append(",");
-							}
-							bodyStr.append(lit.toString());
-						}
-					}
-					if (bodyStr == null) { bodyStr = new StringBuffer(); }
-					String clStr = StringConstant.makeSureNameIsSafe(bodyStr.toString());
-					bw.write(String.format("LeafToClause([%d,%d],\"%s\").", i+1, j+1, clStr));
-					bw.newLine();
-				}
-			}
-			
-			bw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-	}
-	
-	private static void writeTreeStatsToCSV(Map<String, Integer> idCounts, Map<String, Double> sortedMap, String csvFile) throws IOException {
-		BufferedWriter treeCSV = new BufferedWriter(new CondorFileWriter(csvFile));
-		treeCSV.write("Max Prob. of eg dropped,Cumulative Fraction of eg dropped, Fraction of eg, Count of eg");
-		treeCSV.newLine();
-		long totalExamples = 0;
-		for (String id : idCounts.keySet()) {
-			totalExamples += idCounts.get(id);
-		}
-		double totalFrac = 0;
-		
-		for (String id : sortedMap.keySet()) {
-			double frac = (double)idCounts.get(id) / (double)totalExamples;
-			totalFrac += frac;
-			treeCSV.write(String.format("%.4f,%.4f,%.4f,%d", sortedMap.get(id), totalFrac, frac, idCounts.get(id)));
-			treeCSV.newLine();
-		}
-		treeCSV.close();
-	}
-	
-	private String getLeafIdToList(String id) {
-		String[] leafs = id.split("_");
-		StringBuilder buff = new StringBuilder();
-		for (int i = 0; i < leafs.length; i++) {
-			if (i != 0) {
-				buff.append(",");
-			}
-			buff.append(String.format("[%d, %s]", i + 1, leafs[i]));
-		}
-		return buff.toString();
 	}
 
 	private void printExamples(List<RegressionRDNExample> examples, String target, boolean usingAllEgs) {
