@@ -310,17 +310,7 @@ public final class WILLSetup {
 			Utils.waitHere("Is this still being used?");
 			getOuterLooper().randomlySelectWithoutReplacementThisManyModes = 0.50; // TODO - allow this to be turned off (or the fraction set) when bagging.
 		}
-		
-		
-		// Create db file in alchemy format.
-		if (cmdArgs.getOutputAlchDBFile() != null) {
-			try {
-				outputFactsAndExamples(directory  + "/" + cmdArgs.getOutputAlchDBFile());
-			} catch (IOException e) {
-				e.printStackTrace();
-				Utils.waitHere(e.getMessage());
-			}
-		}
+
 		// Create hidden fact file from the sampled hidden examples.
 		if (cmdArgs.isCreateHiddenFile()) {
 			try {

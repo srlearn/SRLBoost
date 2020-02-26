@@ -67,9 +67,6 @@ public class CommandLineArguments {
 	private static final String maxMLNLength = "mlnClauseLen";
 	private int maxMLNClauseLength=2;
 
-	private static final String outputAlchFlag = "outputFacts";
-	private String outputAlchDBFile = null;
-
 	private static final String createHiddenFlag = "createHidden";
 	private boolean createHiddenFile = false;
 
@@ -239,10 +236,6 @@ public class CommandLineArguments {
 				if (isArgumentNotAFlag(args, i+1)) {
 					noCheckPointing = Utils.parseBoolean(args[++i]);
 				}
-				continue;
-			}
-			if (argMatches(args[i], outputAlchFlag)) {
-				outputAlchDBFile = args[++i];
 				continue;
 			}
 			if (argMatches(args[i], createHiddenFlag)) {
@@ -638,10 +631,6 @@ public class CommandLineArguments {
 
 	public double getDropPos() {
 		return dropPos;
-	}
-
-	public String getOutputAlchDBFile() {
-		return outputAlchDBFile;
 	}
 
 	public String getAucPathVal() {
