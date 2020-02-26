@@ -241,9 +241,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 
     private List<Sentence> facts = null; // This temporarily stores the facts between construction and initialization.  After initialization it will be null.
 
-	private boolean syntheticExamplesEnabled = false; // JWS: I turned this OFF on 8/18/11.  Not sure how it get turned on ...
-
-    // Precompute filename : precompute_file_prefix + PRECOMPUTED_FILENAME  + number +  precompute_file_postfix
+	// Precompute filename : precompute_file_prefix + PRECOMPUTED_FILENAME  + number +  precompute_file_postfix
     // The following values can be set using
     // setParam: precomputePostfix = ".txt".
     // setParam: precomputePrefix = "../../".
@@ -615,36 +613,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		}
 		long end = System.currentTimeMillis();
 		Utils.println("% Time to collect constants: " + Utils.convertMillisecondsToTimeSpan(end - start));
-		
-		start = System.currentTimeMillis();
-        if ( syntheticExamplesEnabled ) {
-            if (usingWorldStates && Utils.getSizeSafely(worldStatesContainingNoPositiveExamples) < 1 && findWorldStatesContainingNoPosExamples) {
-                worldStatesContainingNoPositiveExamples = CreateSyntheticExamples.createWorldStatesWithNoPosExamples(stringHandler,getParser(), getProver(), getPosExamples());
-            }
-            int oldNumbNegs = Utils.getSizeSafely(getNegExamples());
-            // TODO if the constructed negative examples are created and SAVED, in the next run they will AGAIN be created (but duplicates will be filtered, so only a waste of CPU cycles).
-            if (usingWorldStates && !regressionTask && Utils.getSizeSafely(getNegExamples()) < minNumberOfNegExamples && Utils.getSizeSafely(worldStatesContainingNoPositiveExamples) > 0) { // If non-null, create all the negatives examples that are implicit in these world states.
-                int    oldNegCount       = Utils.getSizeSafely(getNegExamples());
-                double negsStillNeeded   = Math.max(1.2, minNumberOfNegExamples - oldNegCount);  // Need this to be greater than 1.1 in order to be viewed as an integer.
-                double fractOrTotalToUse = (fractionOfImplicitNegExamplesToKeep < 1.1 ? fractionOfImplicitNegExamplesToKeep : Math.max(negsStillNeeded, fractionOfImplicitNegExamplesToKeep));
 
-                // Always save the synthetic negatives, at least for now.
-                   setNegExamples(CreateSyntheticExamples.createImplicitNegExamples(worldStatesContainingNoPositiveExamples, true, "from a world-state containing no known positive examples", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames)); // TODO use a variable to set the maximum.
-            }
-            // See if we still need to create any random examples.
-            if (!creatingConjunctiveFeaturesOnly && !regressionTask && Utils.getSizeSafely(getNegExamples()) < minNumberOfNegExamples) {
-                int    oldNegCount       = Utils.getSizeSafely(getNegExamples());
-                double negsStillNeeded   = Math.max(1.2, minNumberOfNegExamples - oldNegCount);  // Need this to be greater than 1.1 in order to be viewed as an integer.
-                double fractOrTotalToUse = (fractionOfImplicitNegExamplesToKeep < 1.1 ? fractionOfImplicitNegExamplesToKeep : Math.max(negsStillNeeded, fractionOfImplicitNegExamplesToKeep));
-
-                // Always save the synthetic negatives, at least for now.
-                   List<Example> negativeExamples = CreateSyntheticExamples.createImplicitNegExamples(null, usingWorldStates, "a randomly generated negative example", stringHandler, getProver(), targets, targetArgSpecs, examplePredicateSignatures, getPosExamples(), getNegExamples(), fractOrTotalToUse, factPredicateNames);  // Need to have set targetModes and create all the the above instances before calling this.
-                   setNegExamples(negativeExamples);
-            }
-            if (!regressionTask && oldNumbNegs != Utils.getSizeSafely(getNegExamples())) { createdSomeNegExamples = true; }
-        }
-        end=System.currentTimeMillis();
-        Utils.println("% Time to collect examples: " + Utils.convertMillisecondsToTimeSpan(end-start));
 		if (stringHandler.needPruner) {
 			this.pruner = (pruner == null ? new PruneILPsearchTree(this) : pruner);
 		}
@@ -2085,10 +2054,6 @@ public class LearnOneClause extends StateBasedSearchTask {
                 listener.innerLoopFinished(innerLoop);
             }
         }
-    }
-
-	public void setSyntheticExamplesEnabled(boolean syntheticExamplesEnabled) {
-        this.syntheticExamplesEnabled = syntheticExamplesEnabled;
     }
 
 	void setMlnRegressionTask(boolean val) {

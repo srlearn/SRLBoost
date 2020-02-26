@@ -100,13 +100,7 @@ public class InferBoostedRDN {
 					backupJointExamples.put(targ, new ArrayList<>(jointExamples.get(targ)));
 				}
 			}
-			
-			// Remove hidden examples from the reporting if we do not know their true values
-			// Normally, the missing data is artificially generated so we know the true value.
-			if (!cmdArgs.isReportHiddenEx()) {
-				removeHiddenExamples(jointExamples, setup.getHiddenExamples());
-			}
-			
+
 			// Subsample the negatives for reporting.
 			if (!negativesSampled && !cmdArgs.isPrintAllExamplesToo()) {
 				Utils.println("\n% Subsampling the negative examples for reporting.");

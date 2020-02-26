@@ -81,9 +81,6 @@ public class CommandLineArguments {
 
 	private static final String createHiddenFlag = "createHidden";
 	private boolean createHiddenFile = false;
-	
-	private static final String reportMissFlag = "reportHiddenEx";
-	private boolean reportHiddenEx = true;
 
 	private static final String rdnIterFlag = "iter";
 	private int rdnIterationStep = -1;
@@ -295,14 +292,6 @@ public class CommandLineArguments {
 				createHiddenFile = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					createHiddenFile = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			
-			if (argMatches(args[i], reportMissFlag)) {
-				reportHiddenEx = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					reportHiddenEx = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -618,10 +607,6 @@ public class CommandLineArguments {
 
 	public int getMaxMLNClauseLength() {
 		return maxMLNClauseLength;
-	}
-
-	public boolean isReportHiddenEx() {
-		return reportHiddenEx;
 	}
 
 	public boolean isPrintLearningCurve() {
