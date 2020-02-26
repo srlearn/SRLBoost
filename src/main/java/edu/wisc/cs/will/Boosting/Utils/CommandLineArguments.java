@@ -67,12 +67,6 @@ public class CommandLineArguments {
 	private static final String maxMLNLength = "mlnClauseLen";
 	private int maxMLNClauseLength=2;
 
-	private static final String hideSampleFlag = "hideProb";
-	private double hiddenLitProb = -1;
-
-	private static final String hideNegSampleFlag = "hideNegProb";
-	private double hiddenNegLitProb = -1;
-
 	private static final String outputAlchFlag = "outputFacts";
 	private String outputAlchDBFile = null;
 
@@ -251,14 +245,6 @@ public class CommandLineArguments {
 				if (isArgumentNotAFlag(args, i+1)) {
 					noCheckPointing = Utils.parseBoolean(args[++i]);
 				}
-				continue;
-			}
-			if (argMatches(args[i], hideSampleFlag)) {
-				hiddenLitProb = Double.parseDouble(args[++i]);
-				continue;
-			}
-			if (argMatches(args[i], hideNegSampleFlag)) {
-				hiddenNegLitProb = Double.parseDouble(args[++i]);
 				continue;
 			}
 			if (argMatches(args[i], outputAlchFlag)) {
@@ -675,14 +661,6 @@ public class CommandLineArguments {
 
 	public double getDropPos() {
 		return dropPos;
-	}
-
-	public double getHiddenLitProb() {
-		return hiddenLitProb;
-	}
-
-	public double getHiddenNegLitProb() {
-		return hiddenNegLitProb;
 	}
 
 	public String getOutputAlchDBFile() {

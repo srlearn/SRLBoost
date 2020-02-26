@@ -239,13 +239,6 @@ public final class WILLSetup {
 
 		String hiddenLitFile = directory + "/" + prefix + "_" + cmdArgs.getStringForTestsetHidden()  + Utils.defaultFileExtensionWithPeriod;
 		// dont sample if already exists
-		if (hiddenExamples == null && cmdArgs.getHiddenLitProb() >= 0) {
-			double negLitProb = cmdArgs.getHiddenLitProb();
-			if (cmdArgs.getHiddenNegLitProb() > 0) {
-				negLitProb = cmdArgs.getHiddenNegLitProb();
-			}
-			sampleHiddenExamples(cmdArgs.getHiddenLitProb(), negLitProb);
-		}
 		// For hidden literals, move the hidden literals to negative examples to prevent any bugs or move to different sets based on strategy
 		
 		if (hiddenExamples != null) {
