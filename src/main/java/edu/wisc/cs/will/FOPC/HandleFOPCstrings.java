@@ -124,8 +124,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	// to make sure that the invented predicates have unique names.
 	private String inventedPredicateNameSuffix = "";
 
-	// Be very careful if you want to change these!
-	private final boolean useStrictEqualsForLiterals  = false; // If 'true,' only say literals are equal if they are '=='.
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
 	final boolean useFastHashCodeForClauses   = true;
 
@@ -1752,7 +1750,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	}
 
 	boolean usingStrictEqualsForLiterals() {
-		return useStrictEqualsForLiterals;
+		// Be very careful if you want to change these!
+		// If 'true,' only say literals are equal if they are '=='.
+		// TODO(@hayesall): Method always returns `false`.
+		return false;
 	}
 	boolean usingStrictEqualsForFunctions() {
 		return useStrictEqualsForFunctions;

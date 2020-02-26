@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralSamples;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
@@ -18,9 +17,7 @@ import edu.wisc.cs.will.stdAIsearch.BestFirstSearch;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -46,8 +43,9 @@ public final class WILLSetup {
 
 	private Map<String, List<Example>> backupPosExamples;
 	private Map<String, List<Example>> backupNegExamples;
-	private Map<String, List<RegressionRDNExample>> hiddenExamples = null;
-	private final HiddenLiteralSamples lastSampledWorlds = null;
+
+	// TODO(@hayesall): `hiddenExamples` is final null.
+	private final Map<String, List<RegressionRDNExample>> hiddenExamples = null;
 
 	public boolean useMLNs = false;
 	public boolean learnClauses = false;
@@ -325,20 +323,17 @@ public final class WILLSetup {
 				for (int i = 0; i < currPosExamples.size(); i++) {
 					
 					String egRep;
-					int value;
 					boolean ismulticlass = false;
 					if (!getMulticlassHandler().isMultiClassPredicate(cleanPredName)) {
 						egRep = currPosExamples.get(i).toPrettyString("");
-						value = 1;
 					} else {
 						RegressionRDNExample newRex = getMulticlassHandler().morphExample(currPosExamples.get(i));
 						egRep = newRex.toPrettyString("");
-						value = newRex.getOriginalValue();
 						ismulticlass = true;
 					}
 
 					if (egRep.equals(hiddenRep)) {
-						hiddenRex.setOriginalHiddenLiteralVal(value);
+						hiddenRex.setOriginalHiddenLiteralVal();
 						// Do not remove from positive examples for multi-class
 						// We use only the positive examples in multi-class examples
 						
@@ -952,12 +947,8 @@ public final class WILLSetup {
 					
 			HandleFOPCstrings stringHandler = new HandleFOPCstrings(true); // Let the first file read set the default.  (Are libraries read first?)
 			HornClausebase clausebase;
-			if (cmdArgs.isUsingDefaultClausebase()) {
-				clausebase = new DefaultHornClausebase(stringHandler); 
-			} else {
-				clausebase = new LazyHornClausebase(stringHandler);
-			}
-			
+			clausebase = new LazyHornClausebase(stringHandler);
+
 			HornClauseContext context = new DefaultHornClauseContext(clausebase);
 
 			// TODO(?): `runningLargeTask`? Add to pass-in arguments?
@@ -1070,10 +1061,6 @@ public final class WILLSetup {
 		getOuterLooper().setMaximumClockTimeInMillisec((long) (maxHoursToRunPerTree * 60 * 60 * 1000));
 	}
 
-	HiddenLiteralSamples getLastSampledWorlds() {
-		return this.lastSampledWorlds;
-	}
-	
 	void getListOfPredicateAritiesForNeighboringFacts() {
 		if (neighboringFactFilterList == null) {
 			Set<PredicateNameAndArity> pars = new HashSet<>();

@@ -410,19 +410,14 @@ public class LearnBoostedRDN {
 		if (!disableBoosting) {
 			Utils.println("Computing probabilities");
 			long start = System.currentTimeMillis();
-			if (setup.getLastSampledWorlds() != null) {
-				Utils.error("What to do with the hidden states ? Set strategy to MAP or EM. Currently set as : " + "ignore");
-			} else {
-				sampler.getProbabilities(all_exs);
-			}
+			sampler.getProbabilities(all_exs);
 			long end = System.currentTimeMillis();
 			Utils.println("prob time:"+Utils.convertMillisecondsToTimeSpan(end-start));
 		}
 		
 		
 		// Update facts based on the sampled states
-		boolean foundhidden = false;
-		
+
 		for (int i = 0; i < Utils.getSizeSafely(all_exs); i++) {
 			
 			RegressionRDNExample eg = all_exs.get(i);
@@ -431,8 +426,7 @@ public class LearnBoostedRDN {
 				eg.setOutputValue(eg.originalRegressionOrProbValue - eg.getProbOfExample().getProbOfBeingTrue());
 				continue;
 			}
-			
-			if (eg.isHiddenLiteral()) { foundhidden = true; }
+
 			if (disableBoosting) {
 				// TODO What would be the best value ?
 				if (eg.isOriginalTruthValue()) {
@@ -446,14 +440,7 @@ public class LearnBoostedRDN {
 				if (probDistr.isHasDistribution()) {
 					double[] base_prob;
 					double[] distr = probDistr.getProbDistribution();
-					if (eg.isHiddenLiteral()) {
-						// Utils.error("Can't handle distributions for hidden examples");
-						ProbDistribution base_distr;
-						base_distr = setup.getLastSampledWorlds().sampledProbOfExample(eg);
-						base_prob = base_distr.getProbDistribution();
-					} else {
-						base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
-					}
+					base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
 
 					double[] grad  = VectorStatistics.subtractVectors(base_prob, distr);
 					
@@ -461,45 +448,30 @@ public class LearnBoostedRDN {
 					eg.setOutputVector(grad);
 				} else {
 					double prob = probDistr.getProbOfBeingTrue();
-					if (eg.isHiddenLiteral()) {
-						
-						// Debugging
-						Utils.error("Using hidden examples for non-EM strategies: " + "ignore");
-
-						ProbDistribution base_prb_dist = setup.getLastSampledWorlds().sampledProbOfExample(eg);
-						if (base_prb_dist.isHasDistribution()) {
-							Utils.waitHere("Should not have distribution");
-						}
-						double base_prb = base_prb_dist.getProbOfBeingTrue();
-						eg.setOutputValue(base_prb - prob);
-
-					} else {
-						double stateProb = 1;
-						// Only set for EM
-						if (cmdArgs.isSoftM()){
-							double alpha = cmdArgs.getAlpha();
-						    double beta = cmdArgs.getBeta();
-							if (eg.isOriginalTruthValue()) {
-								
-								eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(alpha)));					
-							} else {
-								
-								eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(-beta)));
-							}
-						} else {
+					double stateProb = 1;
+					// Only set for EM
+					if (cmdArgs.isSoftM()){
+						double alpha = cmdArgs.getAlpha();
+						double beta = cmdArgs.getBeta();
 						if (eg.isOriginalTruthValue()) {
-							eg.setOutputValue(stateProb * (1 - prob));					
+
+							eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(alpha)));
 						} else {
-							eg.setOutputValue(stateProb * (0 - prob));
+
+							eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(-beta)));
 						}
-						}
+					} else {
+					if (eg.isOriginalTruthValue()) {
+						eg.setOutputValue(stateProb * (1 - prob));
+					} else {
+						eg.setOutputValue(stateProb * (0 - prob));
+					}
 					}
 				}
 			}
 		}
-		if (!foundhidden) {
-			Utils.println("No hidden examples for : " + targetPredicate);
-		}
+		// TODO(@hayesall): This `println` was originally conditioned on the result of the removed `isHiddenLiteral` method
+		Utils.println("No hidden examples for : " + targetPredicate);
 		all_exs = egSubSampler.sampleExamples(all_exs);
 		return all_exs;
 	}

@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.Utils.NumberGroundingsCalculator;
@@ -554,32 +553,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 			firstTime = true;
 
 			if (theILPtask.getPosExamples() != null) {
-				HiddenLiteralState lastState = null;
 				for (Example posEx : theILPtask.getPosExamples()) {
 					if (parent == null || !parent.posExampleAlreadyExcluded(posEx)) { // Don't look at THIS node or we'll have an infinite loop.
-						// Make sure the facts are set based on the hiddenstate required by the example
-						// For EM
-						if (posEx instanceof RegressionRDNExample) {
-							RegressionRDNExample rex = (RegressionRDNExample)posEx;
-							HiddenLiteralState  newState = rex.getStateAssociatedWithOutput();
-
-							if (newState != null &&
-									!newState.equals(lastState)) {
-								Set<PredicateName> modifiedPredicates = new HashSet<>();
-								HiddenLiteralState.statePredicateDifference(lastState, newState, modifiedPredicates, target.predicateName.name);
-								// Check if predicates present in the newly added node
-								List<Literal> newLits = getClauseBody(true);
-								for (Literal newLit : newLits) {
-									// If a modified predicate is added, update the facts
-									if (modifiedPredicates.contains(newLit.predicateName)) {
-										theILPtask.updateFacts(lastState, newState, target.predicateName.name);
-										lastState = newState;
-										break;
-									}
-								}
-							}
-						}
-						// ]
 						if (optimizedClauseBodies == null) { optimizedClauseBodies = getOptimizedClauseBodies(theILPtask, target, clauseBody); }
 						prover.setNodesCreated(0); // This counter gets reset when performSearch() is called, but that might not happen (eg, if the body is empty).
 						// proveExample() clears the bindings, so no need to do so here.
@@ -627,16 +602,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 					double prob = 1.0/(double)fraction;
 					if (!theILPtask.sampleForScoring) {fraction =1;prob=1;}
 					for (Example posEx : posExamplesThatFailedHere) {
-						// Make sure the facts are set based on the hiddenstate required by the example
-						if (posEx instanceof RegressionRDNExample) {
-							RegressionRDNExample rex = (RegressionRDNExample)posEx;
-							HiddenLiteralState  newState = rex.getStateAssociatedWithOutput();
-							if (newState != null &&
-									!newState.equals(lastState)) {
-								theILPtask.updateFacts(lastState, newState, target.predicateName.name);
-								lastState = newState;
-							}
-						}
 						if (Utils.random() < prob) {
 							long num = 1;
 							if (parent != null && parent != getRootNode()) { 

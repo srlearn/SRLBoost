@@ -105,9 +105,6 @@ public class CommandLineArguments {
 	private static final String maxTrees = "trees";
 	private int maxTreesVal=10;
 
-	private static final String noLazybase = "noLazy";
-	private boolean usingDefaultClausebase = false;
-
 	private static final String disableJointModel = "noJointModel";
 	private boolean jointModelDisabled =false;
 
@@ -286,13 +283,6 @@ public class CommandLineArguments {
 				disableMultiClass = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					disableMultiClass = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], noLazybase)) {
-				usingDefaultClausebase = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					usingDefaultClausebase = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -699,10 +689,6 @@ public class CommandLineArguments {
 
 	public boolean isLearnProbExamples() {
 		return learnProbExamples;
-	}
-
-	public boolean isUsingDefaultClausebase() {
-		return usingDefaultClausebase;
 	}
 
 }

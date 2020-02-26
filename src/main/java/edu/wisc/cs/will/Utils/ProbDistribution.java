@@ -20,10 +20,6 @@ public class ProbDistribution {
 		setProbOfBeingTrue(prob);
 	}
 
-	public ProbDistribution(double[] dist) {
-		setProbDistribution(dist);
-	}
-	
 	public ProbDistribution(ProbDistribution copy) {
 		this.hasDistribution  = copy.hasDistribution;
 		if (hasDistribution) {

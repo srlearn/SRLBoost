@@ -1,8 +1,10 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
 import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
-import edu.wisc.cs.will.DataSetUtils.*;
+import edu.wisc.cs.will.DataSetUtils.ArgSpec;
+import edu.wisc.cs.will.DataSetUtils.Example;
+import edu.wisc.cs.will.DataSetUtils.RegressionExample;
+import edu.wisc.cs.will.DataSetUtils.TypeManagement;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder;
@@ -2075,16 +2077,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 		}
 	}
 
-	public void updateFacts(HiddenLiteralState lastState,
-		HiddenLiteralState newState, String target) {
-			List<Literal> addExamples = new ArrayList<>();
-			List<Literal>  rmExamples = new ArrayList<>();
-			HiddenLiteralState.stateDifference(lastState, newState, addExamples, rmExamples, target);
-		for (Literal addEx : addExamples) {
-			getContext().getClausebase().assertFact(addEx);
-		}
-		for (Literal rmEx : rmExamples) {
-			getContext().getClausebase().retractAllClausesWithUnifyingBody(rmEx);
-		}
+	public void updateFacts() {
+		// TODO(@hayesall): method causes an error.
+		Utils.error("Expected the true facts for this state to be built.");
 	}
 }

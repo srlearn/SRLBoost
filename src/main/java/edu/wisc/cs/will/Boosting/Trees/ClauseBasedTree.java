@@ -22,7 +22,7 @@ public class ClauseBasedTree  {
 	final ArrayList<Clause> regressionClauses;
 	private final ArrayList<Clause> suppClauses;
 	private boolean breakAfterFirstMatch;
-	private boolean addLeafId;
+	private final boolean addLeafId;
 
 	ClauseBasedTree(WILLSetup setup) {
 		regressionClauses = new ArrayList<>();
