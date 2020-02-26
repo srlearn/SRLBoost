@@ -104,10 +104,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
 
     @Override
     public HornClausebase getClausebase() {
-        if (clausebase == null) {
-            this.clausebase = new DefaultHornClausebase(stringHandler);
-        }
-
         return clausebase;
     }
 
