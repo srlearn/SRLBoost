@@ -242,7 +242,7 @@ public class InferBoostedRDN {
 
 			// Print examples and some 'context' for possible use by other MLN software.
 			if (writeQueryAndResults) {
-				printExamples(examples, target, false);
+				printExamples(examples, target);
 			}
 		}
 
@@ -327,7 +327,7 @@ public class InferBoostedRDN {
 		return new ComputeAUC(positiveProbabilities, negativeProbabilities, aucTempDirectory, cmdArgs.getAucPathVal(), extraMarker, minRecallForAUCPR, cmdArgs.useLockFiles);
 	}
 
-	private void printExamples(List<RegressionRDNExample> examples, String target, boolean usingAllEgs) {
+	private void printExamples(List<RegressionRDNExample> examples, String target) {
 
 		// Will collect the 'context' around a fact.  Turn off until we think this is needed.  It is a slow calculation.
 
@@ -347,14 +347,9 @@ public class InferBoostedRDN {
 		BufferedWriter queryFile = null;
 		BufferedWriter resultsFile = null;
 		try {
-			if (usingAllEgs) {
-				queryFileString        = getFullQueryFile(  target);
-				resultsFileString      = getFullResultsFile(target);
-			} else {
-				queryFileString        = getQueryFile(  target);
-				resultsFileString      = getResultsFile(target);
-			}
-			queryFileStringLocal = queryFileString;
+            queryFileString        = getQueryFile(  target);
+            resultsFileString      = getResultsFile(target);
+            queryFileStringLocal = queryFileString;
 			resultsFileStringLocal = resultsFileString;
 			queryFile              = new BufferedWriter(new CondorFileWriter(queryFileStringLocal, true));
 			resultsFile            = new BufferedWriter(new CondorFileWriter(resultsFileStringLocal,   true));

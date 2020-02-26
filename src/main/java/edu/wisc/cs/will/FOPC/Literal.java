@@ -383,9 +383,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         if ( this == obj) {
             return true;
         }
-        if (considerUseStrictEqualsForLiterals && stringHandler.usingStrictEqualsForLiterals()) {
-            return false;
-        }
         if (obj == null) {
             return false;
         }
@@ -405,17 +402,11 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     @Override
     public int hashCode() {
-
-        if (stringHandler.usingStrictEqualsForLiterals()) {
-            return super.hashCode();
-        }
-        else {
-            int hash = 7;
-            hash = 23 * hash + (this.predicateName != null ? this.predicateName.hashCode() : 0);
-            hash = 23 * hash + (this.arguments != null ? this.arguments.hashCode() : 0);
-            hash = 23 * hash + (this.argumentNames != null ? this.argumentNames.hashCode() : 0);
-            return hash;
-        }
+        int hash = 7;
+        hash = 23 * hash + (this.predicateName != null ? this.predicateName.hashCode() : 0);
+        hash = 23 * hash + (this.arguments != null ? this.arguments.hashCode() : 0);
+        hash = 23 * hash + (this.argumentNames != null ? this.argumentNames.hashCode() : 0);
+        return hash;
     }
 
     @Override

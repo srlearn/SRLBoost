@@ -1749,12 +1749,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return Utils.createSafeStringConstantForWILL(string, this);
 	}
 
-	boolean usingStrictEqualsForLiterals() {
-		// Be very careful if you want to change these!
-		// If 'true,' only say literals are equal if they are '=='.
-		// TODO(@hayesall): Method always returns `false`.
-		return false;
-	}
 	boolean usingStrictEqualsForFunctions() {
 		return useStrictEqualsForFunctions;
 	}

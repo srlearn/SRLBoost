@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.Boosting.Utils;
 
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.Arrays;

@@ -5,7 +5,6 @@ import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName;
 
-import java.util.Collection;
 import java.util.List;
 
 /* Interface for an indexer of a horn clause fact base.
