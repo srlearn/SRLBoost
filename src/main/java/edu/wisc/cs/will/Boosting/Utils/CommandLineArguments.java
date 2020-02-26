@@ -117,9 +117,6 @@ public class CommandLineArguments {
 	private static final String noLazybase = "noLazy";
 	private boolean usingDefaultClausebase = false;
 
-	private static final String printLeafIds = "printLeafId";
-	private boolean printingTreeStats = false;
-
 	private static final String disableJointModel = "noJointModel";
 	private boolean jointModelDisabled =false;
 
@@ -318,13 +315,6 @@ public class CommandLineArguments {
 				usingDefaultClausebase = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					usingDefaultClausebase = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], printLeafIds)) {
-				printingTreeStats = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					printingTreeStats = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -757,10 +747,6 @@ public class CommandLineArguments {
 
 	public boolean isUsingDefaultClausebase() {
 		return usingDefaultClausebase;
-	}
-
-	public boolean isPrintingTreeStats() {
-		return printingTreeStats;
 	}
 
 	public boolean isCreateHiddenFile() {

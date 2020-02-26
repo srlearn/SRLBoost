@@ -318,12 +318,9 @@ public class InferBoostedRDN {
 
 		
 		ComputeAUC auc = computeAUCFromEg(examples, target);
-		
-		
-		if (cmdArgs.isPrintingTreeStats()) {
-			printTreeStats(examples, target);
-		}
-		if (cmdArgs.isPrintLearningCurve()) {			
+
+
+		if (cmdArgs.isPrintLearningCurve()) {
 			Utils.appendString(new File(getLearningCurveFile(target, "pr")), trees + " " + auc.getPR() + "\n");
 			Utils.appendString(new File(getLearningCurveFile(target, "cll")), trees + " " + auc.getCLL() + "\n");
 		}

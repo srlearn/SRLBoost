@@ -123,10 +123,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 			RegressionValueOrVector sum_grad = null;
 
 			for (int i = 0; i < RunBoostedRDN.numbModelsToMake; i++) {
-				if (setup == null) { Utils.error("WILLSetup object not initialized"); } 
-				if (setup.cmdArgs.isPrintingTreeStats()) {
-					tree[i].setAddLeafId(true);
-				}
+				if (setup == null) { Utils.error("WILLSetup object not initialized"); }
 
 				RegressionValueOrVector thisValue = tree[i].getRegressionValue(ex);
 				thisValue.multiply(stepLength.get(counter));
