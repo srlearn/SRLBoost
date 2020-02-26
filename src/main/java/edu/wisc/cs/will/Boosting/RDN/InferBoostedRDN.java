@@ -117,7 +117,7 @@ public class InferBoostedRDN {
 					f.delete();
 				}
 			}
-			getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount, false);
+			getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount);
 		}
 	}
 
@@ -229,7 +229,7 @@ public class InferBoostedRDN {
 	}
 
 	private void getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
-							 String target, int trees, boolean usingAllEgs) {
+							 String target, int trees) {
 		// TODO(@hayesall): Why does this return a double when the double is never used?
 
 		// We repeatedly loop over the examples, but the code at least is cleaner.
@@ -242,7 +242,7 @@ public class InferBoostedRDN {
 
 			// Print examples and some 'context' for possible use by other MLN software.
 			if (writeQueryAndResults) {
-				printExamples(examples, target, usingAllEgs);
+				printExamples(examples, target, false);
 			}
 		}
 

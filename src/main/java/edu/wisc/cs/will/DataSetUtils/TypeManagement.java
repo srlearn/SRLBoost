@@ -292,10 +292,10 @@ public class TypeManagement {
                     counter += f.countLeaves();
                 }
                 else if (arg instanceof Variable) {
-                    Utils.writeMe("Should not have variables here: " + arg + " for: " + targetPredicate);
+                    Utils.error("Should not have variables here: " + arg + " for: " + targetPredicate);
                 }
                 else {
-                    Utils.writeMe("Have a type here for which code needs to be written: " + arg);
+                    Utils.error("Have a type here for which code needs to be written: " + arg);
                 }
             }
         }

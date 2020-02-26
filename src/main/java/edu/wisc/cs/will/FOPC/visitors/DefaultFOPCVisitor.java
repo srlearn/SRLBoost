@@ -23,7 +23,8 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
     }
 
     DefaultFOPCVisitor(boolean buildSentence) {
-        this.buildSentence = buildSentence;
+        // TODO(@hayesall): `boolean buildSentence` parameter is always false.
+        this.buildSentence = false;
     }
 
     public Sentence visitOtherSentence(Sentence otherSentence) {

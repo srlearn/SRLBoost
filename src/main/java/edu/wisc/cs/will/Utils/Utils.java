@@ -17,7 +17,6 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /*
@@ -33,20 +32,6 @@ public class Utils {
 	// For large-scale runs we do not want to create dribble (nor 'debug') files. 
 	public static final Boolean doNotCreateDribbleFiles  = false;
 	private static Boolean doNotPrintToSystemDotOut = false;
-
-    // If the strings MYUSERNAME appear in file names, they will be replaced with these settings.
-	private static String MYUSERNAME       = null; // If we add to this list, edit replaceWildCards().
-    private static String MYSCRATCHDIR     = null;
-	
-
-	/* Stores whether this is a developer run.
-     *
-     * This should null initially.  The getter/setter will initialize it
-     * appropriately the first time it is accessed.  Please do not use it
-     * directly, as that will probably result in a null exception somewhere
-     * along the line.
-     */
-    private static Boolean developmentRun = null; // Should be null.  See comment.
 
     /* Stores whether verbose output should be used.
      *
@@ -76,16 +61,6 @@ public class Utils {
     private static Boolean severeErrorThrowsEnabled = null; // Should be null.  See comment.
 
     private static final Set<MessageType> filteredMessageTypes = EnumSet.noneOf(MessageType.class);
-
-	// These relate to determining whether or not someone is a WILL developer.
-	// WILL developers should create a file whose name is that stored by DEVELOPER_MACHINE_FILE_NAME 
-	// in their 'home directory'.  
-	//   In Windows this typically is "C:\\Documents and Settings\\shavlik", where 'shavlik' is replaced by one's login name.
-	//   In Unix, this is "~/:
-	// You can call getUserHomeDir() to find out.	
-    private static final String DEVELOPER_MACHINE_PROPERTY_KEY = "edu.wisc.cs.bl.devrun"; // Used to see if this is a 'developer run' - if not, less might be printed and waitHere()'s will become warnings.
-    private static final String DEVELOPER_MACHINE_FILE_NAME    = "runWILLasDeveloper.txt";
-
 
     /* Some Standard verbosity levels.
      * 
@@ -120,7 +95,14 @@ public class Utils {
      * for the specific settings.
      */
     public static void setVerbosity(Verbosity verbosity) {
-        developmentRun           = verbosity.developmentRun;
+        /* Stores whether this is a developer run.
+         *
+         * This should null initially.  The getter/setter will initialize it
+         * appropriately the first time it is accessed.  Please do not use it
+         * directly, as that will probably result in a null exception somewhere
+         * along the line.
+         */
+        // Should be null.  See comment.
         verbose                  = verbosity.print;
         waitHereEnabled          = verbosity.waitHere;
         severeErrorThrowsEnabled = verbosity.severeWarningThrowsError;
@@ -290,21 +272,6 @@ public class Utils {
 		throw new WILLthrownError("\n Should not happen ...");
 	}
 
-	/*
-	 * Provide a simple way to mark code that still needs to be written.
-     *
-     */
-	public static void writeMe(String msg) {
-		error("writeMe: " + msg);
-	}
-
-    /*
-     * Flushes the standard output stream.
-     */
-    private static void flush() {
-        if (isVerbose() && !doNotPrintToSystemDotOut) { System.out.flush(); }
-    }
-
     /*
      * Sort (in place this list of doubles and remove duplicate values (where
      * 'duplicate(a,b)' is 'not diffDoubles(a,b).'
@@ -415,11 +382,8 @@ public class Utils {
     	if (lookup != null) { return lookup; }
 
         lookup = original;
-
-		lookup = !lookup.contains("MYUSERNAME") ? lookup : lookup.replaceAll("MYUSERNAME", getMyUserName()); // Break into multiple lines so we can localize bugs better.
     	lookup = !lookup.contains("MYPATHPREFIX") ? lookup : lookup.replaceAll("MYPATHPREFIX",     "MYPATHPREFIXisUnset");
     	lookup = !lookup.contains("SHAREDPATHPREFIX") ? lookup : lookup.replaceAll("SHAREDPATHPREFIX", "SHAREDPATHPREFIXisUnset");
-    	lookup = !lookup.contains("MYSCRATCHDIR") ? lookup : lookup.replaceAll("MYSCRATCHDIR",     getMyScratchDir());
     	environmentVariableResolutionCache.put(original, lookup);
     	return lookup;
     }	
@@ -447,21 +411,6 @@ public class Utils {
 			return fileName + ".gz";
 		}
 		return fileName;
-	}
-    
-    // Allow user names to be overwritten, though that can be dangerous.
-    private static void setMyUserName(String newValue) {
-    	MYUSERNAME = Matcher.quoteReplacement(newValue);
-    	environmentVariableResolutionCache.clear();
-    }
-
-    private static String getMyUserName() {
-    	if (MYUSERNAME == null) { setMyUserName(getUserName(true)); } 	// Probably no need for quoteReplacement on MYUSERNAME, but do on all for consistency/simplicity.
-    	return MYUSERNAME;
-    }
-
-    private static String getMyScratchDir() {
-    	return MYSCRATCHDIR;
 	}
 
     /*
@@ -628,6 +577,7 @@ public class Utils {
      * @param fileNameRaw The name of the dribble file.
      */
     public static void createDribbleFile(String fileNameRaw) {
+        // TODO(@hayesall): The `createDribbleFile` is always called, so I'm using it for debugging.
 
         if (dribbleStream != null) {
             dribbleStream.println("\n\n// Closed by a createDribble call with file = " + fileNameRaw);
@@ -643,10 +593,6 @@ public class Utils {
             dribbleStream = new PrintStream(outStream, false); // No auto-flush (can slow down code).
             dribbleFileName = fileName;
 
-            // TODO(@hayesall): `getHostName()` is called from several locations, but it's primarily used to set a `MYSCRATCHDIR` value.
-
-            System.out.println(getUserName());
-            // println("% Running on host: " + getHostName());
         } catch (FileNotFoundException e) {
         	reportStackTrace(e);
             error("Unable to successfully open this file for writing:\n " + fileName + ".\nError message: " + e.getMessage());
@@ -999,8 +945,6 @@ public class Utils {
 
     private static void touchFile(File file) {
     	ensureDirExists(file);
-        // Seems unnecessar
-    	if (isDevelopmentRun()) { appendString(file, "\n// Touched at " + getDateTime() + ".\n", false); }
     }
 
 	public static String setFirstCharToRequestedCase(String str, boolean uppercaseFirstChar) {
@@ -1237,20 +1181,6 @@ public class Utils {
         return stringHandler.getStringConstant(result).getName();
 	}
 
-    private static String getUserHomeDir() {
-	   return System.getProperty("user.home");
-	}
-
-    private static String getUserName() {
-        return getUserName(false);
-    }
-
-    private static String getUserName(boolean makeSafeString) {
-        String result = System.getProperty("user.name");
-        if (!makeSafeString) { return cleanString(result, null); }
-        return result;
-    }
-
     public static Boolean fileExists(String fileName) {
 		return ((new CondorFile(fileName)).exists());
 	}
@@ -1391,14 +1321,6 @@ public class Utils {
        delete(new CondorFile(fileName));
    }
 
-    private static boolean isDevelopmentRun() {
-        if ( developmentRun == null ) {
-            setupVerbosity();
-        }
-
-        return developmentRun;
-    }
-
     private static boolean isSevereErrorThrowsEnabled() {
         if ( severeErrorThrowsEnabled == null ) {
             setupVerbosity();
@@ -1423,75 +1345,13 @@ public class Utils {
         return waitHereEnabled;
     }
 
-    /* Return whether the properties indicate that we are a developer.
-     *
-	 * Here is some code to decide whether a run is a development run based first on Java system properties
-	 * and then on the presence of a file. The system property is important because it allows more flexibility,
-	 * e.g. a particular run can be specified as a development run from the command line, from a Maven run,
-	 * from your Eclipse run configuration, etc.
-     * <P>
-     * Try to use the other isXXX settings to control what you print or do.  That will allow for
-     * finer grain control by the end user.
-	 */
-    private static boolean checkDevelopmentProperties() {
-
-        System.out.println("checkDevelopmentProperties");
-
-		// Find out if this is a development run.  Err on the side of answering no.
-
-		// If a system property is already defined with a value, use that value.
-		// Otherwise, populate the system property by looking for a file.
-		String value = System.getProperty(DEVELOPER_MACHINE_PROPERTY_KEY);
-
-		if (value != null) {
-		    return value.equalsIgnoreCase("true");
-		}
-		// Decide whether this is a development run based on the presence of a file in the user's home directory
-		String userHomeDirectory  = getUserHomeDir();
-		ensureDirExists(userHomeDirectory);
-		File   developmentRunFile = new CondorFile(userHomeDirectory, DEVELOPER_MACHINE_FILE_NAME);
-		boolean result = developmentRunFile.exists();
-
-		if (result) {
-			// Set the system property as well (canonicalize if already set)
-			System.setProperty(DEVELOPER_MACHINE_PROPERTY_KEY, Boolean.toString(true));
-		}
-		return result;
-    }
-
     private static void setupVerbosity() {
-        if ( checkDevelopmentProperties() ) {
-            setVerbosity(Verbosity.Developer);
-        }
-        else {
-            setVerbosity(Verbosity.Medium);
-        }
+        setVerbosity(Verbosity.Medium);
     }
     
 	public static void reportStackTrace(Throwable e) {
-		if (isDevelopmentRun()) {
-			flush();
-			StackTraceElement[] trace = e.getStackTrace();
-			int traceSize = trace.length;
-			int sizeToUse = Math.min(traceSize, 50); // <-------- change this if you need to see more of the stack.
-			println("\n% Stack trace:");
-			if (sizeToUse < traceSize) {
-				for (int i = 0; i < sizeToUse / 2; i++) {
-					println("%  Element #" + (traceSize - i) + ": " + trace[i].toString());
-				}
-				println("% ...");
-				for (int i = sizeToUse / 2; i > 0; i--) {
-					println("%  Element #" +              i  + ": " + trace[traceSize - i].toString());
-				}
-			} else {
-				for (int i = 0; i < sizeToUse; i++) {
-					println("%  Element #" + (traceSize - i) + ": " + trace[i].toString());
-				}		
-			}
-		} else {
-			e.printStackTrace();
-		}
-	}
+        e.printStackTrace();
+    }
 
     public static <T> String toString(Collection<T> collection, String divider) {
         StringBuilder sb = new StringBuilder();
