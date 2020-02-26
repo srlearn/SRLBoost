@@ -89,7 +89,7 @@ public class StringConstant extends Constant implements Serializable {
         return name;
     }
 
-    public static String makeSureNameIsSafe(String name) {
+    private static String makeSureNameIsSafe(String name) {
         if (name == null) { return null; }
     	if (name.isEmpty()) { return name; }
     	

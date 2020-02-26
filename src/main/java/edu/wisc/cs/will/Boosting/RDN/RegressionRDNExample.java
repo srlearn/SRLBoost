@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.EM.HiddenLiteralState;
-import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
@@ -84,12 +83,6 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 		originalValue = truthValue ? 1:0;
 	}
 
-	public RegressionRDNExample(Example ex, boolean truthValue) {
-		super(ex.getStringHandler(), ex, (truthValue ? 1 : 0), ex.provenance, ex.extraLabel);
-		originalTruthValue = truthValue;
-		originalValue = truthValue ? 1:0;
-	}
-
 	public RegressionRDNExample(Literal lit, boolean truthValue, String provenance) {
 		this(lit.getStringHandler(), lit, (truthValue ? 1 : 0), provenance, null);
 	}
@@ -110,10 +103,6 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 
 	boolean isHiddenLiteral() {
 		return hiddenLiteral;
-	}
-
-	void setHiddenLiteral() {
-		this.hiddenLiteral = true;
 	}
 
 	int getOriginalHiddenLiteralVal() {

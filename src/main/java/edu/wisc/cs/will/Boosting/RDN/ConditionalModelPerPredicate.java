@@ -375,10 +375,6 @@ public class ConditionalModelPerPredicate implements Serializable {
 		}
 	}
 
-	ClauseBasedTree getTree(int tree) {
-		return boostedTrees.get(tree)[0];
-	}
-	
 	String getStepLengthSentence(int i) {
 		return LearnBoostedRDN.stepLengthPredicate(i) + "(" + stepLength.get(i - 1) + ").";
 	}

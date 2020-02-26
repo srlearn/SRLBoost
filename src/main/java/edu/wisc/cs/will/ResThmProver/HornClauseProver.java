@@ -114,7 +114,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		return performSearch().goalFound();
 	}
 
-	public BindingList proveSimpleQueryAndReturnBindings(Literal negatedFact) throws SearchInterrupted {
+	private BindingList proveSimpleQueryAndReturnBindings(Literal negatedFact) throws SearchInterrupted {
 
 		if (proveSimpleQuery(negatedFact)) {
 			return new BindingList(((ProofDone) terminator).collectQueryBindings());

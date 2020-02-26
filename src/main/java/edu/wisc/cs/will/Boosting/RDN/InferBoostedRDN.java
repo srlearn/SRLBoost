@@ -29,7 +29,6 @@ public class InferBoostedRDN {
 	
 	private final CommandLineArguments cmdArgs;
 	private final WILLSetup setup;
-	private JointRDNModel model;
 
 	public InferBoostedRDN(CommandLineArguments args, WILLSetup setup) {
 		this.cmdArgs = args;
@@ -42,7 +41,6 @@ public class InferBoostedRDN {
 	}
 	
 	public void runInference(JointRDNModel rdns, double thresh) {
-		model = rdns;
 		Map<String,List<RegressionRDNExample>> targetExamples = setup.getJointExamples(cmdArgs.getTargetPredVal());
 		Map<String,List<RegressionRDNExample>> jointExamples = setup.getHiddenExamples();
 		if (jointExamples == null) {
@@ -448,31 +446,6 @@ public class InferBoostedRDN {
 		CompareProbsInModelPredictions comparator = new CompareProbsInModelPredictions();
 		lits.sort(comparator);
 		Utils.writeObjectsToFile(fileToWrite, lits, ". // #COUNT", "// Results of '" + RunBoostedRDN.nameOfCurrentModel + "' sorted by the predicted probability.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
-	}
-	
-	/*
-	 * HashMap comparator. Needs the hash map as input since the comparator
-	 * only gets the key as the input for the comparison. ValueComparator
-	 * uses the input map to find the actual values for each key and sorts
-	 * based on them.
-	 * @author tkhot
-	 *
-	 */
-	static class ValueComparator implements Comparator<String> {
-		final Map<String, Double> base;
-		ValueComparator(Map<String, Double> input) {
-			base = input;
-		}
-		@Override
-		public int compare(String arg0, String arg1) {
-			if(base.get(arg0) > base.get(arg1)) {
-				return 1;
-			}
-			if (base.get(arg0) < base.get(arg1)) {
-				return -1;
-			}
-			return arg0.compareTo(arg1);
-		}
 	}
 
 	private void printExamples(List<RegressionRDNExample> examples, String target, boolean usingAllEgs) {
