@@ -6,7 +6,6 @@
  */
 
 // TODO(@hayesall): `getPrecision`, `getRecall`, `getFBeta`, `getF1`, `getAccuracy` belong in a "metrics" class
-// TODO(@hayesall): `help_getScratchDirForUser` needs to be destroyed in a fire.
 // TODO(@hayesall): Many of these are FileSystem methods. Abstracting the file system as a class would help.
 
 package edu.wisc.cs.will.Utils;
@@ -15,8 +14,6 @@ import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.Utils.condor.*;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -457,18 +454,13 @@ public class Utils {
     	MYUSERNAME = Matcher.quoteReplacement(newValue);
     	environmentVariableResolutionCache.clear();
     }
-    private static void setMyScratchDir(String newValue) {
-    	MYSCRATCHDIR = Matcher.quoteReplacement(newValue);
-    	environmentVariableResolutionCache.clear();
-    }
-    
+
     private static String getMyUserName() {
     	if (MYUSERNAME == null) { setMyUserName(getUserName(true)); } 	// Probably no need for quoteReplacement on MYUSERNAME, but do on all for consistency/simplicity.
     	return MYUSERNAME;
     }
 
     private static String getMyScratchDir() {
-    	if (MYSCRATCHDIR == null) { setMyScratchDir(help_getScratchDirForUser()); } // Will get into an infinite loop without the "help_" prefix.
     	return MYSCRATCHDIR;
 	}
 
@@ -563,7 +555,6 @@ public class Utils {
      * printed the first time the warning occurs.
      */
     private static void warning(String str, String skipWarningString) {
-        // TODO(@hayesall): `skipWarningString` String is factored out, but the signature is still used.
         println("\n***** Warning: " + str + " *****\n");
     }
 
@@ -585,7 +576,6 @@ public class Utils {
      *
      */
     private static void warning(String str, int sleepInSeconds, String skipWarningString) {
-        // TODO(@hayesall): `skipWarningString` string is factored out of the body, but signature is still used.
         // Make sure we only wait if the user is at a verbosity level where it
         // makes sense to wait.
         if ( isWaitHereEnabled() ) {
@@ -652,7 +642,11 @@ public class Utils {
             CondorFileOutputStream outStream = new CondorFileOutputStream(fileName);
             dribbleStream = new PrintStream(outStream, false); // No auto-flush (can slow down code).
             dribbleFileName = fileName;
-            println("% Running on host: " + getHostName());
+
+            // TODO(@hayesall): `getHostName()` is called from several locations, but it's primarily used to set a `MYSCRATCHDIR` value.
+
+            System.out.println(getUserName());
+            // println("% Running on host: " + getHostName());
         } catch (FileNotFoundException e) {
         	reportStackTrace(e);
             error("Unable to successfully open this file for writing:\n " + fileName + ".\nError message: " + e.getMessage());
@@ -938,38 +932,6 @@ public class Utils {
     }
 
     /*
-     * Write these objects to this file. Start with a header string (e.g., a
-     * comment) and have all lines (except the header) ends with finalEOLchars.
-     * 
-     * @param fileName A string containing the name of the file to use for output.
-     * @param objects The objects to write to the named file.
-     * @param finalEOLchars A string appended to the end of each line, but before the newline.
-     * @param headerStringToPrint A description for the beginning of the file.
-     */
-    public static void writeObjectsToFile(String fileName, Collection<?> objects,
-            							  String finalEOLchars, String headerStringToPrint) { // If object is a number, need an extra space so the period doesn't look like a decimal point.
-        try {
-        	ensureDirExists(fileName);
-            CondorFileOutputStream outStream = new CondorFileOutputStream(fileName);
-            PrintStream      stream    = new PrintStream(outStream);
-            if (headerStringToPrint != null) {
-                stream.println(headerStringToPrint);
-            }
-            int counter = 0;
-            int total   = objects.size();
-            for (Object obj : objects) { // If speed is an issue, could first check for COUNT and FRACTION in finalEOLchars.
-            	counter++;
-                stream.println(obj.toString() + finalEOLchars.replace("COUNT", comma(counter) + "").replace("FRACTION", Utils.truncate((1.0 * counter) / total, 6)));
-            }
-            stream.close();
-        } catch (FileNotFoundException e) {
-        	reportStackTrace(e);
-            error("Unable to successfully open this file for writing: " + fileName + ".  Error message: " + e.getMessage());
-        }
-        
-    }    
-
-	/*
 	 * Reads file <filePath> into a string.
 	 * 
 	 * Works for gzipped files as well.  
@@ -1279,7 +1241,7 @@ public class Utils {
 	   return System.getProperty("user.home");
 	}
 
-    public static String getUserName() {
+    private static String getUserName() {
         return getUserName(false);
     }
 
@@ -1289,54 +1251,7 @@ public class Utils {
         return result;
     }
 
-    private static String help_getScratchDirForUser() {
-        // Don't call ensureDirExists() or CondorFile() from here or will get an infinite loop.
-
-        // Note: this will fail for any Condor jobs that flock.
-
-    	String userName = getUserName();
-    	if ("shavlik".equals(userName) || "tkhot".equals(userName) || "siddharth".equals(userName)) {
-    		String dir = "";
-    		if      (isRunningWindows()) {
-                // Be sure to end with '\\' (or '/' for Linux).  Use Linux notation since sometimes backslashes disappear as strings get pushed through many methods.
-    			dir = "C:/WILLscratch/"; }
-    		else if (isRunningLinux())   {
-    			// tkhot runs out of space on 15K docs so using shavlikgroup
-    			if ("tkhot".equals(userName)) {
-    				dir = "/u/shavlikgroup/people/Tushar/WILLscratch/";
-    			} else {
-                    // Had been (8/11) "/scratch/" but dont want these to be on every machine (sometimes didn't have 'write' privileges in Condor).
-    				dir = "/u/" + userName + "/WILLscratch/";
-    			}
-    		} else {
-        		error("Unclear which OS '" + userName + "' is running.");  
-    		}
-    		try {
-    			File f = new File(dir);
-                // If we have problems here, rewrite to use /u/userName if /scratch doesn't exist - but maybe scratch always exists?
-    			f.mkdirs();
-    		} catch (Exception e) {
-    			dir = "/u/" + userName + "/WILLscratch/";
-    			File f = new File(dir);
-    			f.mkdirs();
-    		}
-    		if ((new File(dir)).exists()) { return dir; }
-    		waitHere("Cannot create a scratch dir for: " + userName);
-    		return dir;
-    	}
-    	error("getScratchDirForWisconsinUser has encountered an unknown user name: " + userName);
-    	return null;
-    }
-
-	public static boolean isRunningWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("windows");
-    }
-	
-	private static boolean isRunningLinux() {
-        return System.getProperty("os.name").toLowerCase().contains("linux");
-    }
-	
-	public static Boolean fileExists(String fileName) {
+    public static Boolean fileExists(String fileName) {
 		return ((new CondorFile(fileName)).exists());
 	}
 
@@ -1447,23 +1362,8 @@ public class Utils {
 		
 		return truncate(millisec / 1000.0, digits) + " seconds"; 
 	}
-	
-	private static String getHostName() { // Written largely by Trevor.
-		try {
-			InetAddress addr = InetAddress.getLocalHost();
-			String hostName = addr.getHostName();
-			if (hostName == null) { return "unknownHost"; }
-			int locFirstPeriod = hostName.indexOf('.');
-			if (locFirstPeriod > 0) { // Not sure what a leading period would be, but keep it if this case ever occurs.
-				return hostName.substring(0, locFirstPeriod);
-			}
-			return hostName;
-		} catch (UnknownHostException e) {
-			return "unknownHost";
-		}
-    }
-	
-	private static final Runtime sys_runtime = Runtime.getRuntime();
+
+    private static final Runtime sys_runtime = Runtime.getRuntime();
 	public static String reportSystemInfo() {
 		sys_runtime.gc();
 		long   memoryInUse = sys_runtime.totalMemory() - sys_runtime.freeMemory();
@@ -1534,6 +1434,8 @@ public class Utils {
      * finer grain control by the end user.
 	 */
     private static boolean checkDevelopmentProperties() {
+
+        System.out.println("checkDevelopmentProperties");
 
 		// Find out if this is a development run.  Err on the side of answering no.
 

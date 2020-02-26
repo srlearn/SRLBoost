@@ -120,8 +120,6 @@ public final class WILLSetup {
 		Utils.touchFile(        resultsDir + prefix + getRunTypeMarker() + appendToPrefix  + "_started" + Utils.defaultFileExtensionWithPeriod);
 		createRegressionOuterLooper(file_paths, directory, prefix, cmdArgs.getSampleNegsToPosRatioVal(), cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples());
 
-		// This next chunk of code handles advice and creates BK.  IT THEN EXITS.  One should then MANUALLY edit your standard BK file to import the file of BK created.
-
 		Utils.println("\n% Initializing the ILP inner looper.");
 		getOuterLooper().initialize(false);
 
@@ -215,22 +213,6 @@ public final class WILLSetup {
 				}
 			}
 		}
-		
-		if (cmdArgs.isLearnOCC() && cmdArgs.getDropPos() > 0) {
-			double dropPos = cmdArgs.getDropPos();
-			// Move some pos to neg
-			// TODO(@hayesall): document the `dropPos` argument.
-			for (String pred : backupPosExamples.keySet()) {
-				List<Example> posEg = backupPosExamples.get(pred);
-				for (int i = 0; i < posEg.size(); i++) {
-					if (Utils.random() < dropPos) {
-						Example eg = posEg.remove(i);
-						backupNegExamples.get(pred).add(eg);
-						i--;
-					}
-				}
-			}
-		}
 
 		if (backupPosExamples != null) for (String target : backupPosExamples.keySet()) {
 			Collection<Example> posegs = backupPosExamples.get(target);
@@ -287,6 +269,8 @@ public final class WILLSetup {
 		}
 		
 		reportStats();
+
+		// TODO(@hayesall): `recursion` seems to be false by default, but is also loaded in from the handler?
 		String lookup = getHandler().getParameterSetting("recursion");
 		if (lookup != null) {
 			allowRecursion = Boolean.parseBoolean(lookup);
@@ -297,8 +281,6 @@ public final class WILLSetup {
 			Utils.waitHere("Is this still being used?");
 			getOuterLooper().randomlySelectWithoutReplacementThisManyModes = 0.50; // TODO - allow this to be turned off (or the fraction set) when bagging.
 		}
-
-		// Create hidden fact file from the sampled hidden examples.
 		return true;
 	}
 
@@ -411,10 +393,7 @@ public final class WILLSetup {
 	}	
 	
 	public void prepareFactsAndExamples(String predicate) {
-		prepareFactsAndExamples(backupPosExamples, backupNegExamples, predicate, 
-				true,  // for learning?
-				// Sampling hidden states?
-				null);
+		prepareFactsAndExamples(backupPosExamples, backupNegExamples, predicate, true, null);
 	}
 
 	// TODO(@hayesall): It seems like a bug that `allowRecursion = false`.
