@@ -103,9 +103,6 @@ public class CommandLineArguments {
 	private static final String targetPred = "target";
 	private Set<String> targetPredVal = null;
 
-	private static final String hiddenPredFlag = "hiddenPred";
-	private Set<String> hiddenPredVal = null;
-
 	private static final String loadModelPredFlag = "loadPredModel";
 	private Set<String> loadPredModelVal = null;
 
@@ -358,12 +355,6 @@ public class CommandLineArguments {
 				targetPredVal.addAll(Arrays.asList(targetStr.split(",")));
 				continue;
 			}
-			if (argMatches(args[i], hiddenPredFlag)) {
-				String targetStr = args[++i];
-				hiddenPredVal = new HashSet<>();
-				hiddenPredVal.addAll(Arrays.asList(targetStr.split(",")));
-				continue;
-			}
 			if (argMatches(args[i], loadModelPredFlag)) {
 				String targetStr = args[++i];
 				loadPredModelVal = new HashSet<>();
@@ -603,10 +594,6 @@ public class CommandLineArguments {
 
 	public Set<String> getTargetPredVal() {
 		return targetPredVal;
-	}
-
-	public Set<String> getHiddenPredVal() {
-		return hiddenPredVal;
 	}
 
 	public boolean isDisableMultiClass() {
