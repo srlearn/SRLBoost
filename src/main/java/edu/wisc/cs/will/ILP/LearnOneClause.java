@@ -832,7 +832,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         stringHandler.addKnownMode(pName);
     }
 
-    public void removeBodyMode(PredicateNameAndArity pName) {
+    void removeBodyMode(PredicateNameAndArity pName) {
         bodyModes.remove(pName);
         stringHandler.removeKnownMode(pName);
     }
@@ -1453,6 +1453,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private Theory readBackgroundTheory(Reader bkReader) {
 		if (bkReader == null) { return null; }
 		List<Sentence> sentences;
+		// TODO(@hayesall): Always returns null?
 		Utils.println("% Reading background theory from dir: " + null);
 		sentences = getParser().readFOPCreader(bkReader, null);
 		if (sentences == null) { return null; } // It is possible there are no inference rules, though some modes should have been read.

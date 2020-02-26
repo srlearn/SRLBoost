@@ -107,7 +107,7 @@ public class ILPouterLoop {
     private int			   maxTreeDepthInInteriorNodes         =  5; // Maximum height/depth of the tree in terms of interior nodes in the tree. NOTE: One node in the tree may have multiple literals.
     private String         prefixForExtractedRules             = "";
     private String         postfixForExtractedRules            = "";
-    private boolean		   learnMLNTheory					   = false;	
+    private boolean		   learnMLNTheory					   = false;
     private boolean        learnMultiValPredicates             = false;
     private boolean 	   learnOCCTree						   = false;
     ///////////////////////////////////////////////////////////////////
@@ -1048,6 +1048,8 @@ public class ILPouterLoop {
 		if (numbNewPosExamples <= 0) {
 			numbNewPosExamples = numbOrigPosExamples;
 		}
+
+		// TODO(@hayesall): integer division that returning a double. This is likely a bug.
 		double	   reweighPositiveExamples = numbOrigPosExamples / numbNewPosExamples;
 		
 		int countOfPosKept = 0;

@@ -89,7 +89,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         this.stringHandler = stringHandler;
     }
 
-    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, Term argument) {
+    Literal(HandleFOPCstrings stringHandler, PredicateName pred, Term argument) {
     	this();
         predicateName = pred;
         List<Term> args = new ArrayList<>(1);
@@ -99,7 +99,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         this.argumentNames = null;
     }
 
-    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, List<String> argumentNames) {
+    Literal(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, List<String> argumentNames) {
         this(stringHandler, pred, arguments);
         this.argumentNames = argumentNames;
         sortArgumentsByName();

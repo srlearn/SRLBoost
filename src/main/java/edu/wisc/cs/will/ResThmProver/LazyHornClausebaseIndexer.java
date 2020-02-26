@@ -2,8 +2,6 @@ package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.*;
 
-import java.util.Collection;
-
 /*
  * @author twalker
  */
@@ -67,11 +65,6 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
     @Override
     public boolean isBuilt() {
         return true;
-    }
-
-    @Override
-    public void buildIndex(Collection<? extends DefiniteClause> clauses) {
-        // We are lazy, so wait for it!
     }
 
     @Override

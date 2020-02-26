@@ -30,16 +30,6 @@ interface HornClausebaseIndexer<T extends DefiniteClause> {
      */
     boolean isBuilt();
 
-    /* Builds the index for the indicated collection of DefiniteClauses.
-     *
-     * After a reset, the index will not be built.  buildIndex(Collection)
-     * must be called prior to the index being used.
-     *
-     * @param clauses Clauses to build the index from.  May be null if the
-     * index should be started from scratch.
-     */
-    void buildIndex(Collection<? extends T> clauses);
-
     /* Indexes the definite clause rule.
      *
      * This should be called by the HornClauseFactBase every time a definite
