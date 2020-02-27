@@ -18,10 +18,6 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
         this.stringHandler = stringHandler;
     }
 
-    public boolean includeElement(PredicateNameAndArity predicateNameAndArity) {
-        return includeElement(predicateNameAndArity.getPredicateName(), predicateNameAndArity.getArity());
-    }
-
     public boolean includeElement(PredicateName predicateName, int arity) {
         boolean result = false;
 

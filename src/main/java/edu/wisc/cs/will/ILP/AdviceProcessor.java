@@ -18,13 +18,6 @@ import java.util.Map.Entry;
  */
 public class AdviceProcessor {
 
-    /* Original Relevance statements, prior to generalization.
-     *
-     * This list contains the original relevance statements prior to generalization.
-     * groundedRelevance is a bit of a misnomer, since the relevance may contain variables.
-     */
-    private final List<RelevantClauseInformation> relevantClauses = new ArrayList<>();
-
     private final List<RelevantFeatureInformation> relevantFeatures = new ArrayList<>();
 
     private final List<RelevantModeInformation> relevantModes = new ArrayList<>();
@@ -34,8 +27,6 @@ public class AdviceProcessor {
     private final HandleFOPCstrings stringHandler;
 
     private final LearnOneClause learnOneClause;
-
-    private int anonymousClauseIndex = 0;
 
     private Set<PredicateNameAndArity> assertedRelevanceModes = new HashSet<>();
 
@@ -58,19 +49,23 @@ public class AdviceProcessor {
         context.getStringHandler().setVariableIndicator(HandleFOPCstrings.VarIndicator.uppercase);
 
         Clause memberPruneCondition = context.getFileParser().parseDefiniteClause("prune(ExistingLiteral, AddedLiteral) :- member(Iter1,List1)=ExistingLiteral, member(Iter2,List2)=AddedLiteral, List1 == List2, Iter2 = Iter1.");
-        PruneDuplicatesIfTrueRule memberPruneRule = new PruneDuplicatesIfTrueRule(context.getStringHandler().getPredicate("member", 2), memberPruneCondition);
+        PruneDuplicatesIfTrueRule memberPruneRule = new PruneDuplicatesIfTrueRule(memberPruneCondition);
         addPruningRule(memberPruneRule);
 
         Clause compositeNamePruneCondition = context.getFileParser().parseDefiniteClause("prune(ExistingLiteral, AddedLiteral) :- ilField_Composite_name(W,Name1,Symbol1,S)=ExistingLiteral, ilField_Composite_name(W,Name2,Symbol2,S)=AddedLiteral, Symbol1 == Symbol2, Name2 = Name1.");
-        PruneDuplicatesIfTrueRule compositeNamePruneRule = new PruneDuplicatesIfTrueRule(context.getStringHandler().getPredicate("ilField_Composite_name", 4), compositeNamePruneCondition);
+        PruneDuplicatesIfTrueRule compositeNamePruneRule = new PruneDuplicatesIfTrueRule(
+                compositeNamePruneCondition);
         addPruningRule(compositeNamePruneRule);
 
         Clause sameAsCondition1 = context.getFileParser().parseDefiniteClause("prune(AddedLiteral) :- sameAsIL(W,X,X,S)=AddedLiteral.");
-        PruneIfTrueRule sameAsPrune1 = new PruneIfTrueRule(context.getStringHandler().getPredicate("sameAsIL", 4), sameAsCondition1);
+
+        PruneIfTrueRule sameAsPrune1 = new PruneIfTrueRule(sameAsCondition1);
+
         addPruningRule(sameAsPrune1);
 
         Clause forEachInChainPruneCondition = context.getFileParser().parseDefiniteClause("prune(Literal, Literal).");
-        PruneDuplicatesIfTrueRule forEachInChainPruneRule = new PruneDuplicatesIfTrueRule(context.getStringHandler().getPredicate("forEachIn_chain", 7), forEachInChainPruneCondition);
+        PruneDuplicatesIfTrueRule forEachInChainPruneRule = new PruneDuplicatesIfTrueRule(
+                forEachInChainPruneCondition);
         addPruningRule(forEachInChainPruneRule);
 
         context.getStringHandler().setVariableIndicator(oldVI);
@@ -81,7 +76,7 @@ public class AdviceProcessor {
     private ActiveAdvice getActiveAdvice(RelevanceStrength relevanceStrength, List<? extends Example> positiveExamples, List<? extends Example> negativeExamples) {
         ActiveAdvice activeAdvice = new ActiveAdvice(stringHandler);
 
-        processRelevantClauses(activeAdvice, relevanceStrength, positiveExamples, negativeExamples);
+        processRelevantClauses(relevanceStrength);
 
         processRelevantFeatures(activeAdvice, relevanceStrength, positiveExamples, negativeExamples);
 
@@ -105,104 +100,10 @@ public class AdviceProcessor {
         return activeAdvice;
     }
 
-    private void processRelevantClauses(ActiveAdvice activeAdvice, RelevanceStrength relevanceStrength, List<? extends Example> positiveExamples, List<? extends Example> negativeExamples) {
-
-
-        // First, make sure that the world/state variable positions are included
-        // in the unsplitable set.
-
-        // Filter out duplicate relevance statements that exist on multiple examples.
-        MapOfSets<Example, RelevantClauseInformation> filteredGroundedPerPieceMap = createFilteredGroundedPerPieceMap(positiveExamples, negativeExamples);
-
-        // Create the generalized, split, per piece map.
-        MapOfSets<Example, RelevantClauseInformation> generalizedPerPieceMap = createPerPieceMap(filteredGroundedPerPieceMap);
-
-        // Create the generalized, split, per example map.
-        MapOfSets<Example, RelevantClauseInformation> generalizedPerExampleMap = createPerExampleMap(filteredGroundedPerPieceMap);
-
-        // When we generate clauses, we always generate mega first, then per-single-example, then per-piece.
-        // That way, if duplicates occur, the highest relevance levels will be kept.
-        List<Clause> megaClauses = generateMegaCombinations(activeAdvice, generalizedPerExampleMap);
-        List<Clause> allClauses = new ArrayList<>(megaClauses);
-
-        List<Clause> singleExampleClauses = generateActiveAdviceForRCIs(activeAdvice, generalizedPerExampleMap, "single_example_advice", relevanceStrength, RelevanceStrength.VERY_STRONGLY_RELEVANT, RelevanceStrength.VERY_STRONGLY_RELEVANT_NEG);
-        allClauses.addAll(singleExampleClauses);
-
-        List<Clause> singlePieceClauses = generateActiveAdviceForRCIs(activeAdvice, generalizedPerPieceMap, "single_piece_advice", relevanceStrength, RelevanceStrength.STRONGLY_RELEVANT, RelevanceStrength.STRONGLY_RELEVANT_NEG);
-        allClauses.addAll(singlePieceClauses);
-
-        if (allClauses.isEmpty()) {
-            Utils.print("% [AdviceProcessor]  Generated 0 clauses at relevance level " + relevanceStrength + ".");
-            Utils.print("\n");
-        }
-        else {
-            Utils.print("% [AdviceProcessor]  Generated " + allClauses.size() + " clause(s) at relevance level " + relevanceStrength + ":\n");
-
-            boolean first = true;
-            for (Clause clause : allClauses) {
-                if (!first) {
-                    Utils.print("\n");
-                }
-                first = false;
-
-                RelevanceStrength strongestStrength = RelevanceStrength.getWeakestRelevanceStrength();
-                for (ModeInfo modeInfo : activeAdvice.getModeInfo(clause.getDefiniteClauseHead().getPredicateNameAndArity())) {
-                    RelevanceStrength rs = modeInfo.strength;
-                    if (rs.isStronger(strongestStrength)) {
-                        strongestStrength = rs;
-                    }
-                }
-
-                PrettyPrinterOptions ppo = new PrettyPrinterOptions();
-                ppo.setMaximumLiteralsPerLine(1);
-                ppo.setSentenceTerminator("");
-                ppo.setMaximumIndentationAfterImplication(10);
-                ppo.setNewLineAfterImplication(true);
-
-                String s = PrettyPrinter.print(clause, "% [AdviceProcessor]   ", ppo);
-
-                Utils.print(s + "  " + strongestStrength);
-            }
-
-            Utils.print("\n\n");
-        }
-
-    }
-
-    private MapOfSets<Example, RelevantClauseInformation> createFilteredGroundedPerPieceMap(List<? extends Example> positiveExamples, List<? extends Example> negativeExamples) {
-        //   ex1 : adviceA
-        //   ex1 : adviceB
-        //   ex2 : adviceC
-        //
-        // We get the map:
-        //   ex1 => { adviceA, adviceB }
-        //   ex2 => { adviceC }
-        MapOfSets<Example, RelevantClauseInformation> exampleToAdviceMap = createExampleToAdviceMap(relevantClauses);
-
-        // This will also remove any relevance that is not associate with an current relevanceFromPositiveExample or negative example.
-        MapOfSets<Example, RelevantClauseInformation> activeExampleToAdviceMap = createActiveExampleMap(exampleToAdviceMap, positiveExamples, negativeExamples, RelevanceStrength.getWeakestRelevanceStrength());
-
-        return filterDuplicateRelevance(activeExampleToAdviceMap);
-    }
-
-    private MapOfSets<Example, RelevantClauseInformation> createPerPieceMap(MapOfSets<Example, RelevantClauseInformation> filteredGroundedPerPieceMap) {
-
-        MapOfSets<Example, RelevantClauseInformation> generalizedPerPieceMap = createExampleToGeneralizedMap(filteredGroundedPerPieceMap);
-        //Tag the possible set of output variables on the PerPiece map
-        collectOutputVariables(generalizedPerPieceMap);
-
-        return createExampleToSplitVariableMap(generalizedPerPieceMap);
-    }
-
-    private MapOfSets<Example, RelevantClauseInformation> createPerExampleMap(MapOfSets<Example, RelevantClauseInformation> filteredGroundedPerPieceMap) {
-        MapOfSets<Example, RelevantClauseInformation> grounedPerExampleAdviceMap = createExampleToPerExampleAdviceMap(filteredGroundedPerPieceMap);
-
-        MapOfSets<Example, RelevantClauseInformation> generalizedPerExampleConjunctiveMap = createExampleToGeneralizedMap(grounedPerExampleAdviceMap);
-        //Tag the possible set of output variables on the PerExample map
-        collectOutputVariables(generalizedPerExampleConjunctiveMap);
-
-        // That way, if duplicates occur, the highest relevance levels will be kept.
-        return createExampleToSplitVariableMap(generalizedPerExampleConjunctiveMap);
+    private void processRelevantClauses(RelevanceStrength relevanceStrength) {
+        // TODO(@hayesall): `allClauses.isEmpty()` always appears to be true when I run on each data set.
+        Utils.print("% [AdviceProcessor]  Generated 0 clauses at relevance level " + relevanceStrength + ".");
+        Utils.print("\n");
     }
 
     private void processRelevantFeatures(ActiveAdvice activeAdvice, RelevanceStrength relevanceStrength, List<? extends Example> positiveExamples, List<? extends Example> negativeExamples) {
@@ -327,108 +228,6 @@ public class AdviceProcessor {
         return learnOneClause.getStringHandler();
     }
 
-    private void collectOutputVariables(MapOfSets<Example, RelevantClauseInformation> rciMap) {
-
-        for (Set<RelevantClauseInformation> set : rciMap.values()) {
-            for (RelevantClauseInformation rci : set) {
-                // We assume at this point that the rci only contains clauses
-
-                Sentence s = SentenceCompressor.getCompressedSentence(rci.getSentence());
-
-                if (s instanceof Clause) {
-                    Clause clause = (Clause) s;
-                    if (clause.getPosLiteralCount() > 0) {
-                        Literal lastLiteral = clause.getPosLiteral(clause.getPosLiteralCount() - 1);
-
-                        if (lastLiteral.getArity() > 2) {
-                            Variable outputVariable = null;
-
-                            // We are going to cheat here and assume that the last argument
-                            // of the last literal is the "State" argument and therefore is
-                            // not an output variable.  This should really be based upon the
-                            // HandleFOPCstrings.locationOfStateArg...but that would require
-                            // that I look up that argument location in the example head and
-                            // then trace that argument to determine where it occurs in
-                            // the last literal.
-                            //
-                            // We make the same assumption for the "World" argument too.
-                            // Hence we iteration from argity-2 to 1
-                            for (int i = lastLiteral.getArity() - 2; i > 0; i--) {
-                                Term arg = lastLiteral.getArgument(i);
-                                if (arg instanceof Variable) {
-                                    outputVariable = (Variable) arg;
-                                    break;
-                                }
-                            }
-
-                            if (outputVariable != null) {
-                                rci.addOutputVariable(outputVariable);
-                            }
-                        }
-                    }
-                }
-                else {
-                    Utils.warning("Error collecting advice output variables.  Expected a clause.  Got:\n" + rci.getSentence());
-                }
-
-            }
-        }
-    }
-
-    private MapOfSets<Example, RelevantClauseInformation> createExampleToPerExampleAdviceMap(MapOfSets<Example, RelevantClauseInformation> exampleToAdviceMap) {
-        MapOfSets<Example, RelevantClauseInformation> exampleToConjunctionMap = new LinkedMapOfSets<>();
-
-        for (Map.Entry<Example, Set<RelevantClauseInformation>> entry : exampleToAdviceMap.entrySet()) {
-            RelevantClauseInformation conjunct = null;
-
-            for (RelevantClauseInformation anRCI : entry.getValue()) {
-                if (conjunct == null) {
-                    conjunct = anRCI;
-                }
-                else {
-                    conjunct = conjunct.getConjunction(anRCI);
-                }
-            }
-
-            if (conjunct != null) {
-                exampleToConjunctionMap.put(entry.getKey(), conjunct);
-            }
-            else {
-                Utils.warning("No advice with all pieces exists for example " + entry.getKey() + ".");
-            }
-        }
-
-        return exampleToConjunctionMap;
-    }
-
-    private MapOfSets<Example, RelevantClauseInformation> createExampleToGeneralizedMap(MapOfSets<Example, RelevantClauseInformation> exampleToGroundedConjunctiveMap) {
-        MapOfSets<Example, RelevantClauseInformation> result = new LinkedMapOfSets<>();
-
-        for (Map.Entry<Example, Set<RelevantClauseInformation>> entry : exampleToGroundedConjunctiveMap.entrySet()) {
-            Example example = entry.getKey();
-            Set<RelevantClauseInformation> groundAdviceForExample = entry.getValue();
-
-            for (RelevantClauseInformation rci : groundAdviceForExample) {
-                RelevantClauseInformation newRCI = rci.getGeneralizeRelevantInformation();
-
-                result.put(example, newRCI);
-            }
-        }
-
-        return result;
-    }
-
-    private MapOfSets<Example, RelevantClauseInformation> createExampleToSplitVariableMap(MapOfSets<Example, RelevantClauseInformation> exampleToGeneralizedConjunctiveMap) {
-
-        new LinkedMapOfSets<>();
-        MapOfSets<Example, RelevantClauseInformation> result;
-
-        // Don't split for now...
-        result = exampleToGeneralizedConjunctiveMap;
-
-        return result;
-    }
-
     private <T extends RelevantInformation> MapOfSets<Example, T> createActiveExampleMap(MapOfSets<Example, T> exampleToAdviceMap, List<? extends Example> positiveExamples, List<? extends Example> negativeExamples, RelevanceStrength minimumRelevance) {
 
         MapOfSets<Example, T> result = new LinkedMapOfSets<>();
@@ -469,172 +268,6 @@ public class AdviceProcessor {
         return result;
     }
 
-    private List<Clause> generateMegaCombinations(ActiveAdvice activeAdvice, MapOfSets<Example, RelevantClauseInformation> exampleToSplitVariableMap) {
-
-        Map<Example, RelevantClauseInformation> singleExampleConjunctMap = new HashMap<>();
-
-        for (Map.Entry<Example, Set<RelevantClauseInformation>> entry : exampleToSplitVariableMap.entrySet()) {
-            RelevantClauseInformation conjunct = null;
-            for (RelevantClauseInformation anRCI : entry.getValue()) {
-                if (conjunct == null) {
-                    conjunct = anRCI;
-                }
-                else {
-                    conjunct = conjunct.getConjunction(anRCI);
-                }
-            }
-
-            if (conjunct != null) {
-                conjunct = conjunct.getCompressed();
-                singleExampleConjunctMap.put(entry.getKey(), conjunct);
-            }
-            else {
-                Utils.warning("No advice with all pieces exists for example " + entry.getKey() + ".");
-            }
-        }
-
-        RelevantClauseInformation comboPosAND = null;
-        RelevantClauseInformation comboPosOR = null;
-        RelevantClauseInformation comboNotPosOR = null;
-        RelevantClauseInformation comboNegAND = null;
-        RelevantClauseInformation comboNegOR = null;
-        RelevantClauseInformation comboNotNegOR = null;
-
-        for (RelevantClauseInformation rci : singleExampleConjunctMap.values()) {
-            if (rci.isRelevanceFromPositiveExample()) {
-                if (comboPosAND == null) {
-                    comboPosAND = rci;
-                }
-                else {
-                    comboPosAND = comboPosAND.getConjunction(rci);
-                }
-
-                if (comboPosOR == null) {
-                    comboPosOR = rci;
-                }
-                else {
-                    comboPosOR = comboPosOR.getDisjunction(rci);
-                }
-
-                if (comboNotPosOR == null) {
-                    comboNotPosOR = rci.getNegationByFailure();
-                }
-                else {
-                    comboNotPosOR = comboNotPosOR.getConjunction(rci.getNegationByFailure());
-                }
-            }
-            else {
-                if (comboNegAND == null) {
-                    comboNegAND = rci;
-                }
-                else {
-                    comboNegAND = comboNegAND.getConjunction(rci);
-                }
-
-                if (comboNegOR == null) {
-                    comboNegOR = rci;
-                }
-                else {
-                    comboNegOR = comboNegOR.getDisjunction(rci);
-                }
-
-                if (comboNotNegOR == null) {
-                    comboNotNegOR = rci.getNegationByFailure();
-                }
-                else {
-                    comboNotNegOR = comboNotNegOR.getConjunction(rci.getNegationByFailure());
-                }
-            }
-        }
-
-        if (comboPosAND != null) {
-            comboPosAND = comboPosAND.getCompressed();
-        }
-
-        if (comboNegAND != null) {
-            comboNegAND = comboNegAND.getCompressed();
-        }
-
-        List<Clause> assertedClauses = new ArrayList<>();
-
-        RelevantClauseInformation rule;
-        RelevantClauseInformation that;
-
-        String predSuffix = "";
-        if (!getStringHandler().getInventedPredicateNameSuffix().isEmpty()) {
-            predSuffix = getStringHandler().getInventedPredicateNameSuffix();
-            if (!predSuffix.startsWith("_")) {
-                predSuffix = "_" + predSuffix;
-            }
-        }
-
-        // At this point, either comboPosAND or comboNegAND must be non-null (possibly both will be non-null).
-        // Thus, our logic can reflect that. Also, if comboPosAND != null, then comboNegatedPosOR != null, and
-        // if comboNegAND != null, then comboNegatedNegOR != null.
-
-        if (comboPosAND != null) {
-            // Below all 8 rules are generated.  However, if the Negative combos are null, only four 
-            // will be unique.  I could adjust the logic here, but they
-            rule = comboPosAND.getConjunction(comboNotNegOR);
-            rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-            activeAdvice.addAdviceClause(this, "mega_posAnd_notNegOr" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-            rule = comboPosAND.getNegationByFailure().getConjunction(comboNegAND);
-            rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-            activeAdvice.addAdviceClause(this, "mega_notPosAnd_negAnd" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-            rule = comboPosOR.getConjunction(comboNotNegOR);
-            rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-            activeAdvice.addAdviceClause(this, "mega_posOr_notNegOr" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-            rule = comboNotPosOR.getConjunction(comboNegAND);
-            rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-            activeAdvice.addAdviceClause(this, "mega_notPosOr_negAnd" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-            if (comboNegAND != null) {
-                rule = comboPosAND.getConjunction(comboNegAND.getNegationByFailure());
-                rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-                activeAdvice.addAdviceClause(this, "mega_posAnd_notNegAnd" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-                rule = comboPosAND.getNegationByFailure().getConjunction(comboNegOR);
-                rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-                activeAdvice.addAdviceClause(this, "mega_negPosAnd_negOr" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-                that = comboNegAND.getNegationByFailure();
-                rule = comboPosOR.getConjunction(that);
-                rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-                activeAdvice.addAdviceClause(this, "mega_posOr_notNegAnd" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-                rule = comboNotPosOR.getConjunction(comboNegOR);
-                rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-                activeAdvice.addAdviceClause(this, "mega_negPosOr_negOr" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-            }
-
-        }
-        else if (comboNegAND != null) {
-            // At this point, the positive combos will null.  Thus, there are only four negative rules to generate.
-            // corresponding directly to comboNegAND and comboNegatedNegOR, since the other four will be
-            // redundant.
-            rule = comboNegAND.getNegationByFailure();
-            rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-            activeAdvice.addAdviceClause(this, "mega_posAnd_notNegAnd" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-            rule = comboNegAND;
-            rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-            activeAdvice.addAdviceClause(this, "mega_notPosAnd_negAnd" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-            rule = comboNotNegOR;
-            rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-            activeAdvice.addAdviceClause(this, "mega_posAnd_notNegOr" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-
-            rule = comboNegOR;
-            rule.setRelevanceStrength(RelevanceStrength.POSSIBLE_ANSWER);
-            activeAdvice.addAdviceClause(this, "mega_negPosAnd_negOr" + (anonymousClauseIndex++) + predSuffix, rule, assertedClauses);
-        }
-
-        return assertedClauses;
-    }
-
     private int getIndexOfSubsumedRelevanceClauseInformation(Collection<? extends RelevantInformation> list, RelevantInformation info) {
 
         int index = -1;
@@ -650,39 +283,6 @@ public class AdviceProcessor {
             count++;
         }
         return index;
-    }
-
-    private List<Clause> generateActiveAdviceForRCIs(ActiveAdvice activeAdvice, MapOfSets<Example, RelevantClauseInformation> rcis, String namePrefix, RelevanceStrength minimumRelevanceStrength, RelevanceStrength positiveClauseStrength, RelevanceStrength negativeClauseStrength) {
-
-        List<Clause> clauses = new ArrayList<>();
-        String name;
-
-        String predSuffix = "";
-        if (!getStringHandler().getInventedPredicateNameSuffix().isEmpty()) {
-            predSuffix = getStringHandler().getInventedPredicateNameSuffix();
-            if (!predSuffix.startsWith("_")) {
-                predSuffix = "_" + predSuffix;
-            }
-        }
-
-        for (Set<RelevantClauseInformation> set : rcis.values()) {
-            for (RelevantClauseInformation rci : set) {
-                if (positiveClauseStrength.isEqualOrStronger(minimumRelevanceStrength)) {
-                    name = namePrefix + (anonymousClauseIndex++) + predSuffix;
-                    rci.setRelevanceStrength(positiveClauseStrength);
-                    activeAdvice.addAdviceClause(this, name, rci, clauses);
-
-                    if (negativeClauseStrength.isEqualOrStronger(minimumRelevanceStrength)) {
-                        RelevantClauseInformation not = rci.getNegationByFailure();
-                        not.setRelevanceStrength(negativeClauseStrength);
-                        name = "not_" + name;
-                        activeAdvice.addAdviceClause(this, name, not, clauses);
-                    }
-                }
-            }
-        }
-
-        return clauses;
     }
 
     void retractRelevanceAdvice() {
@@ -790,8 +390,6 @@ public class AdviceProcessor {
         RelevantClauseInformation rci = new RelevantClauseInformation(example, relevanceClause);
         rci.setRelevanceFromPositiveExample(true);
         rci.setOriginalRelevanceStrength(relevanceStrength);
-
-        relevantClauses.add(rci);
     }
 
     private void addRelevantMode(Example example, Literal mode, RelevanceStrength relevanceStrength) {
@@ -805,10 +403,6 @@ public class AdviceProcessor {
 
     public HornClauseContext getContext() {
         return learnOneClause.getContext();
-    }
-
-    List<PruningRule> getPruningRules() {
-        return pruningRules;
     }
 
     private void addPruningRule(PruningRule rule) {

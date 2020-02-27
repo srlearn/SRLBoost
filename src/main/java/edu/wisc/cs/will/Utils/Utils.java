@@ -145,9 +145,6 @@ public class Utils {
     	}
     }
 
-    public static void printlnErr(MessageType type, String str) { // Use this when adding some temp prints so it is easy to find them when you want to later delete (or comment out) them.
-    	if ( isMessageTypeEnabled(type) ) printlnErr(str);
-    }
     public static void printlnErr(String strRaw) {
     	if ( isVerbose() ) {
     		String str = (strRaw == null || strRaw.length() <= maxStringLength ? strRaw : strRaw.substring(0, maxStringLength) + " ... [string too long]");
@@ -183,7 +180,7 @@ public class Utils {
     public static String comma(int value) { // Always use separators (e.g., "100,000").
     	return String.format("%,d", value);    	
     }    
-    public static String comma(long value) { // Always use separators (e.g., "100,000").
+    private static String comma(long value) { // Always use separators (e.g., "100,000").
     	return String.format("%,d", value);    	
     }   
     public static String comma(double value) { // Always use separators (e.g., "100,000").

@@ -291,27 +291,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
 		return performSearchIteration();
     }
 
-    /* Continues a search that previously returned an answer.
-     *
-     * This requires that redoable be set to true and that there
-     * are additional valid solutions to the search.
-     */
-    public SearchResult continueSearch(boolean resetCounters) throws SearchInterrupted {
-
-        SearchResult sr;
-
-        if ( resetCounters ) {
-            nodesConsidered = 0; // Clear some counters, etc.
-            nodesCreated    = 0;
-        }
-
-        bestScoreSeenSoFar = Double.NEGATIVE_INFINITY;
-
-        sr = performSearchIteration();
-
-        return sr;
-    }
-
 
     /*
      * Performs a basic search, that is, either not an iterative deepening

@@ -84,11 +84,7 @@ public enum RelevanceStrength {
         return this.ordinal() < that.ordinal();
     }
 
-    public boolean isStronger(RelevanceStrength that) {
-        return this.ordinal() > that.ordinal();
-    }
-
-    public boolean isEqualOrWeaker(RelevanceStrength that) {
+	public boolean isEqualOrWeaker(RelevanceStrength that) {
         return this.ordinal() <= that.ordinal();
     }
 

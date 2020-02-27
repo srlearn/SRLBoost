@@ -115,11 +115,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public final Literal cutLiteral;
 	public final Clause    trueClause;
 
-	// Invented predicates should have the following suffix.
-	// This is useful if one is creating multiple theories, one can reset this for every theory
-	// to make sure that the invented predicates have unique names.
-	private String inventedPredicateNameSuffix = "";
-
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
 	final boolean useFastHashCodeForClauses   = true;
 
@@ -308,7 +303,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	public        int getOperatorPrecedence(FunctionName fName) {
 		Integer result = precedenceTableForOperators.get(fName);
-		if (result == null) { Utils.error("No precedence is known for this operator: " + fName); }
+		assert result != null;
 		return result;
 	}
 	static int getOperatorPrecedence_static(String fName) {
@@ -543,11 +538,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
         }
     }
 
-    public Literal getLiteral(String predicateName, List<Term> terms) {
-        PredicateName pn = getPredicateName(predicateName);
-        return getLiteral(pn, terms);
-    }
-
 	public Literal getTermAsLiteral(Term term) {
 		return new TermAsLiteral(this, term);
 	}
@@ -667,30 +657,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
         return result;
     }
 
-    /* Returns the contents of a negation-by-failure as a clause with all positive literals.
-     *
-     * Per the discussion in getNegativeByFailure, the clause within a negation-by-failure should
-     * contain positive literals only.  As such, getNegationByFailureContents always returns
-     * a clause with positive literals.  If the actual content clause contains negative literals,
-     * it will be rewritten to contain positive literals.
-     *
-     * @param negationByFailure A clause with a single literal (either positive or negative) with predicate name of \+ and arity 1.
-     * @return Contents of a negation-by-failure as a clause with all positive literals
-     */
-    public Clause getNegationByFailureContents(Clause negationByFailure) {
-        if ( negationByFailure.getPosLiteralCount() == 0 && negationByFailure.getNegLiteralCount() == 1 && negationByFailure.getNegLiteral(0).predicateName == standardPredicateNames.negationByFailure) {
-            return getNegationByFailureContents(negationByFailure.getNegLiteral(0));
-        }
-        else if ( negationByFailure.getPosLiteralCount() == 1 && negationByFailure.getNegLiteralCount() == 0 && negationByFailure.getPosLiteral(0).predicateName == standardPredicateNames.negationByFailure) {
-            return getNegationByFailureContents(negationByFailure.getPosLiteral(0));
-        }
-        else  {
-            Utils.error("getNegationContets expect a clause with no positive lits and one neg lit with pname \\+.");
-            return null;
-        }
-    }
-
-    /* Returns the contents of a negation-by-failure as a clause with all positive literals.
+	/* Returns the contents of a negation-by-failure as a clause with all positive literals.
      *
      * Per the discussion in getNegativeByFailure, the clause within a negation-by-failure should
      * contain positive literals only.  As such, getNegationByFailureContents always returns
@@ -747,41 +714,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
         return getNegationByFailureContents((LiteralOrFunction)negationByFailure);
     }
 
-    /* Returns whether the positiveNegationByFailure clause is a negation-by-failure.
-     *
-     * A clause is a negation-by-failure if it is either a single positive literal or a
-     * single negative literal and that literal has a predicate name of \+ and arity 1.
-     *
-     * @param possibleNegationByFailure Clause to evaluate.
-     * @return True if clause is either a single positive literal or a
-     * single negative literal and that literal has a predicate name of \+ and arity 1.
-     */
-    public boolean isNegationByFailure(Sentence possibleNegationByFailure) {
-
-
-        if ( possibleNegationByFailure instanceof Clause ) {
-            Clause possibleNegationByFailureClause = (Clause) possibleNegationByFailure;
-
-            Literal possibleNegationByFailureLiteral = null;
-
-            if ( possibleNegationByFailureClause.getPosLiteralCount() == 0 && possibleNegationByFailureClause.getNegLiteralCount() == 1) {
-                possibleNegationByFailureLiteral = possibleNegationByFailureClause.getNegLiteral(0);
-            }
-            else if ( possibleNegationByFailureClause.getPosLiteralCount() == 1 && possibleNegationByFailureClause.getNegLiteralCount() == 0 ) {
-                possibleNegationByFailureLiteral = possibleNegationByFailureClause.getPosLiteral(0);
-            }
-
-            return isNegationByFailure((LiteralOrFunction)possibleNegationByFailureLiteral);
-        }
-        else if ( possibleNegationByFailure instanceof Literal ) {
-            return isNegationByFailure((LiteralOrFunction)possibleNegationByFailure);
-        }
-
-        return false;
-
-    }
-
-    /* Returns whether the possibleNegationByFailure literal is a negation-by-failure.
+	/* Returns whether the possibleNegationByFailure literal is a negation-by-failure.
      *
      * A literal is a negation-by-failure if it has a predicate name of \+ and arity 1.
      *
@@ -1713,23 +1646,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		if (lookup == null) { return null; }
 		return lookup.parameterValue;
 	}
-
-    public String getInventedPredicateNameSuffix() {
-        if ( inventedPredicateNameSuffix == null ) {
-            inventedPredicateNameSuffix = getParameterSetting("inventedPredicateNameSuffix");
-        }
-
-        if ( inventedPredicateNameSuffix == null ) {
-            return "";
-        }
-        else {
-            return inventedPredicateNameSuffix;
-        }
-    }
-
-    public void setInventedPredicateNameSuffix(String inventedPredicateNameSuffix) {
-        this.inventedPredicateNameSuffix = inventedPredicateNameSuffix;
-    }
 
 	public boolean haveLoadedThisFile(String fileName, boolean recordLoaded) {
 		if (filesLoaded.contains(fileName)) { return true; }

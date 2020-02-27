@@ -152,7 +152,7 @@ public class ILPouterLoop {
             prefix = new CondorFile(workingDirectory).getName();
         }
 
-		if (LearnOneClause.debugLevel >= 0) { Utils.println("\n% Welcome to the " + systemName + " ILP/SRL systems.\n"); }
+        Utils.println("\n% Welcome to the " + systemName + " ILP/SRL systems.\n");
 
         // LearnOneClause performs the inner loop of ILP.
 		// TODO maybe we should send in the full outer loop instance (ie, this).
@@ -346,10 +346,6 @@ public class ILPouterLoop {
                 Utils.waitHere("Have learningTreeStructuredTheory=true but stack of tasks is empty (or equal to null).");
             }
 
-            if (LearnOneClause.debugLevel > 1) {
-                reportOuterLooperStatus();
-            }
-
             SingleClauseNode savedBestNode = null; // When learning tree-structured models, we need to remember the node learned at the parent.
             long start;
             boolean foundUncoveredPosSeed;
@@ -390,13 +386,7 @@ public class ILPouterLoop {
 
                 Stopwatch stopwatch = new Stopwatch();
 
-                if (LearnOneClause.debugLevel > 1) { Utils.println(MessageType.ILP_OUTERLOOP,"\n% ********************\n% Outer Loop Iteration #" + Utils.comma(getNumberOfCycles()) + " with strategy=" + (isRRR() ? "RRR" : "heuristic") + " (created a total of " + Utils.comma(getTotal_nodesCreated()) + " clauses so far and explored " + Utils.comma(getTotal_nodesConsidered()) + ")"); }
-                if (LearnOneClause.debugLevel > 1 && getMaximumClockTimeInMillisec() < Long.MAX_VALUE) {
-                                                   // Use 'err' here so we see these.
-                                                   Utils.printlnErr(MessageType.ILP_OUTERLOOP,"%  The outer looper (iteration #" + Utils.comma(getNumberOfCycles()) + ") has been running " + Utils.convertMillisecondsToTimeSpan(getClockTimeUsedInMillisec()) + " and has " + Utils.convertMillisecondsToTimeSpan(getMaximumClockTimeInMillisec() - getClockTimeUsedInMillisec()) + " remaining."); }
-                if (LearnOneClause.debugLevel > 1) { Utils.println(MessageType.ILP_OUTERLOOP,"%  [Min precision = " + Utils.truncate(innerLoopTask.minPrecision, 3) + ", (weighted) " + (innerLoopTask.regressionTask ? "minPosCov" : "minCover") + " = " + Utils.truncate(innerLoopTask.getMinPosCoverage(), 2) + (innerLoopTask.regressionTask ? "" : ", and (weighted) maxNegCov = " + Utils.truncate(innerLoopTask.getMaxNegCoverage(), 2)) + "]\n% ********************"); }
-
-				// WE NEED TO PICK A NEW SET OF SEEDS EACH TIME SINCE SEEDS CHOSEN AT THE ROOT WILL FOLLOW VARIOUS PATHS THROUGH THE TREE.  if (!foundUncoveredPosSeed || !learningTreeStructuredTheory) { // If tree-structured task, we want to use the same seeds for the full tree (otherwise maybe no [new] seeds reach the current interior node).
+                // WE NEED TO PICK A NEW SET OF SEEDS EACH TIME SINCE SEEDS CHOSEN AT THE ROOT WILL FOLLOW VARIOUS PATHS THROUGH THE TREE.  if (!foundUncoveredPosSeed || !learningTreeStructuredTheory) { // If tree-structured task, we want to use the same seeds for the full tree (otherwise maybe no [new] seeds reach the current interior node).
 				// Specify the specific seeds to use if requested.
 				foundUncoveredPosSeed = false;
 				if (numberPosSeedsToUse > 1 || numberNegSeedsToUse > 0) { foundUncoveredPosSeed = collectMultipleSeeds(); }
@@ -413,8 +403,7 @@ public class ILPouterLoop {
 					for (int index = 0; index < getNumberOfPosExamples(); index++) {
 						int indexToUse = (randomOffset + index)	% getNumberOfPosExamples();
 						foundUncoveredPosSeed = isaGoodPosSeed(indexToUse);
-						if (LearnOneClause.debugLevel > 2) { Utils.println("  considering pos seed #" + indexToUse + ": acceptability=" + foundUncoveredPosSeed); }
-						if (foundUncoveredPosSeed) { break; }
+                        if (foundUncoveredPosSeed) { break; }
 					}
 				}
 
@@ -436,7 +425,6 @@ public class ILPouterLoop {
                         double denominator = 1.0; // If there is a time limit, leave some for later cycles, but allow at least 25% of the time for this one.
                         if (maxNumberOfCycles > 1 && getMaximumClockTimeInMillisec() != Long.MAX_VALUE) { denominator = Math.max(1.0, Math.min(4.0, maxNumberOfCycles / (1 + getNumberOfCycles()))); }
                         long innerLoopTimeLimit = (long) (getTimeAvailableInMillisec() / denominator);
-                        if (LearnOneClause.debugLevel > 1) { Utils.printlnErr("%  The inner looper is being allocated " + Utils.convertMillisecondsToTimeSpan(innerLoopTimeLimit) + "."); }
                         innerLoopTask.setMaximumClockTimePerIterationInMillisec(innerLoopTimeLimit);
                     } else {
                         innerLoopTask.setMaximumClockTimePerIterationInMillisec(getMaximumClockTimeInMillisec());
@@ -543,11 +531,6 @@ public class ILPouterLoop {
                                                              newlyCoveredNegExamples, getNumberOfNegExamples());
 
                         if (learningTreeStructuredTheory) {
-
-                            if (LearnOneClause.debugLevel > 1) {
-                                Utils.println("\n% New full clause: "  + newClause);
-                                Utils.println("\n% New LOCAL clause: " + bestNode.getLocallyAddedClause() + "\n");
-                            }
 
                             TreeStructuredLearningTask       currentTask  = outerLoopState.getCurrentTreeLearningTask();
                             TreeStructuredTheoryInteriorNode interiorNode = currentTask.getNode();
@@ -1350,16 +1333,6 @@ public class ILPouterLoop {
 
 	public void setOverallMinPosWeight(double wgt) {
         outerLoopState.setOverallMinPosWeight(wgt);
-    }
-
-    private void reportOuterLooperStatus() {
-        Utils.println("\n% STARTING executeOuterLoop()");
-        Utils.println("%  getNumberOfLearnedClauses() = " + getNumberOfLearnedClauses() + " vs " + Utils.comma(maxNumberOfClauses));
-		Utils.println("%  getNumberOfCycles()         = " + getNumberOfCycles()         + " vs " + Utils.comma(maxNumberOfCycles));
-		Utils.println("%  getFractionOfPosCovered()   = " + getFractionOfPosCovered()   + " vs " + Utils.comma(minFractionOfPosCoveredToStop));
-		Utils.println("%  getTotal_nodesConsidered()  = " + getTotal_nodesConsidered()  + " vs " + Utils.comma(max_total_nodesExpanded));
-		Utils.println("%  getTotal_nodesCreated()     = " + getTotal_nodesCreated()     + " vs " + Utils.comma(max_total_nodesCreated));
-		Utils.println("%  getClockTimeUsedInMillisec()          = " + getClockTimeUsedInMillisec()          + " vs " + Utils.comma(getMaximumClockTimeInMillisec()) );
     }
 
     public String getWorkingDirectory() {

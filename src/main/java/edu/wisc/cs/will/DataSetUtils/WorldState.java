@@ -12,11 +12,12 @@ public class WorldState {
 	private final Constant world;
 	private final Constant state;
 	
-	WorldState(Constant world, Constant state) {
-		this.world = world;
-		this.state = state;
+	WorldState() {
+		// TODO(@hayesall): always initializes final values as null.
+		this.world = null;
+		this.state = null;
 	}
-	public Constant getWorld() {
+	Constant getWorld() {
 		return world;
 	}
 

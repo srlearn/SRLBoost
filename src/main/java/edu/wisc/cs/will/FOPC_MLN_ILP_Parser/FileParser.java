@@ -2076,10 +2076,7 @@ public class FileParser {
 
 			// Handle parser strings here.
 			if        (parameterName.equalsIgnoreCase("parsingWithNamedArguments")) {
-
 				// Indicates parsing IL ("interlingua") for the BL (Bootstrap Learning) project.
-				Boolean.parseBoolean(parameterValue);
-
 			} else if (parameterName.equalsIgnoreCase("maxWarnings")) {
 				maxWarnings               = Integer.parseInt(parameterValue);
 			} else if (parameterName.equalsIgnoreCase("variablesStartWithQuestionMarks")) {

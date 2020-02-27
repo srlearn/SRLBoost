@@ -5,7 +5,7 @@ import edu.wisc.cs.will.FOPC.*;
 /*
  * @author twalker
  */
-public class LazyHornClausebaseIndexer {
+class LazyHornClausebaseIndexer {
 
   private final HornClausebase clausebase;
 
@@ -59,10 +59,6 @@ public class LazyHornClausebaseIndexer {
         singleGroundArgIndexHitCount = new long[indexWidth];
         groundClauseHitCount = 0;
         predicateHitCount = 0;
-    }
-
-    public boolean isBuilt() {
-        return true;
     }
 
     void indexAssertion(DefiniteClause definiteClause) {

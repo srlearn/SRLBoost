@@ -264,9 +264,7 @@ public class LazyHornClausebase implements HornClausebase {
     }
 
     private void removeFromIndexes(DefiniteClause definiteClause) {
-        if (indexerForAllAssertions.isBuilt()) {
-            indexerForAllAssertions.removeAssertion(definiteClause);
-        }
+        indexerForAllAssertions.removeAssertion(definiteClause);
     }
 
     @Override

@@ -816,7 +816,4 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return total;
     }
 
-    public Term asTerm() {
-        return asFunction();
-    }
 }

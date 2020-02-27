@@ -4,7 +4,6 @@ import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.visitors.*;
 import edu.wisc.cs.will.FOPC.visitors.ElementPositionVisitor.ElementPositionData;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
 
@@ -19,7 +18,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     private static final SentenceGeneralizerVisitor SENTENCE_GENERALIZER_VISITOR = new SentenceGeneralizerVisitor();
 
-    Example example;
+    private Example example;
 
     private boolean relevanceFromPositiveExample = true;
 
@@ -29,19 +28,9 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     private List<TypeSpec> typeSpecList;
 
-    private boolean constantsSplit = false;
-
     private Set<ElementPath> constantPositions = null;
 
     private Map<Term, Term> mappings;
-
-    private Set<Variable> outputVariables = null;
-
-    private RelevantClauseInformation(Example example, Sentence generalizeAdviceSentence, List<TypeSpec> typeSpecList) {
-        this.example = example;
-        this.sentence = generalizeAdviceSentence;
-        this.typeSpecList = typeSpecList;
-    }
 
     RelevantClauseInformation(Example generalizedExample, Sentence sentence) {
         this.example = generalizedExample;
@@ -50,7 +39,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         markConstants();
     }
 
-    public Sentence getSentence() {
+    private Sentence getSentence() {
         return sentence;
     }
 
@@ -77,244 +66,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return newRCI;
     }
 
-    RelevantClauseInformation getConjunction(RelevantClauseInformation that) {
-        RelevantClauseInformation newGAC;
-
-        if (this.sentence instanceof Clause && ((Clause) this.sentence).getPosLiteralCount() == 0) {
-            newGAC = that;
-        }
-        else if (that == null) {
-            newGAC = this;
-        }
-        else if (that.sentence instanceof Clause && ((Clause) that.sentence).getPosLiteralCount() == 0) {
-            newGAC = this;
-        }
-        else {
-            BindingList bl = Unifier.UNIFIER.unify(this.example, that.example);
-
-            Sentence thisRebound = this.getSentence().applyTheta(bl);
-            Sentence thatRebound = that.getSentence().applyTheta(bl);
-
-            Sentence newSentence = getStringHandler().getConnectedSentence(thisRebound, ConnectiveName.AND, thatRebound);
-
-            Set<ElementPath> newConstantPositions = new HashSet<>();
-            for (ElementPath elementPath : this.constantPositions) {
-                newConstantPositions.add(elementPath.prepend(0));
-            }
-
-            for (ElementPath elementPath : that.constantPositions) {
-                newConstantPositions.add(elementPath.prepend(1));
-            }
-
-            newGAC = new RelevantClauseInformation(that.example, newSentence, this.getTypeSpecList());
-            newGAC.constantPositions = newConstantPositions;
-            newGAC.setConstantsSplit(this.isConstantsSplit() || that.isConstantsSplit());
-            newGAC.setRelevanceFromPositiveExample(this.relevanceFromPositiveExample && that.relevanceFromPositiveExample);
-
-            newGAC.mappings = new HashMap<>();
-            if (this.mappings != null) {
-                newGAC.mappings.putAll(this.mappings);
-            }
-            if (that.mappings != null) {
-                newGAC.mappings.putAll(that.mappings);
-            }
-
-            // Collect the output variables from each...we might want
-            // to do something smarter at a latter point.
-            for (Variable variable : this.getOutputVariables()) {
-                newGAC.addOutputVariable((Variable) variable.applyTheta(bl));
-            }
-
-            for (Variable variable : that.getOutputVariables()) {
-                newGAC.addOutputVariable((Variable) variable.applyTheta(bl));
-            }
-        }
-
-        return newGAC;
-    }
-
-    RelevantClauseInformation getDisjunction(RelevantClauseInformation that) {
-        RelevantClauseInformation newGAC;
-
-        if (this.sentence instanceof Clause && ((Clause) this.sentence).getPosLiteralCount() == 0) {
-            newGAC = that;
-        }
-        else if (that == null) {
-            newGAC = this;
-        }
-        else if (that.sentence instanceof Clause && ((Clause) that.sentence).getPosLiteralCount() == 0) {
-            newGAC = this;
-        }
-        else {
-            BindingList bl = Unifier.UNIFIER.unify(this.example, that.example);
-
-            Sentence thisRebound = this.getSentence().applyTheta(bl);
-            Sentence thatRebound = that.getSentence().applyTheta(bl);
-
-            Sentence newSentence = getStringHandler().getConnectedSentence(thisRebound, ConnectiveName.OR, thatRebound);
-
-            Set<ElementPath> newConstantPositions = new HashSet<>();
-            for (ElementPath elementPath : this.constantPositions) {
-                newConstantPositions.add(elementPath.prepend(0));
-            }
-
-            for (ElementPath elementPath : that.constantPositions) {
-                newConstantPositions.add(elementPath.prepend(1));
-            }
-
-            newGAC = new RelevantClauseInformation(that.example, newSentence, this.getTypeSpecList());
-            newGAC.constantPositions = newConstantPositions;
-
-            // Collect the output variables from each...we might want
-            // to do something smarter at a latter point.
-            for (Variable variable : this.getOutputVariables()) {
-                newGAC.addOutputVariable((Variable) variable.applyTheta(bl));
-            }
-
-            for (Variable variable : that.getOutputVariables()) {
-                newGAC.addOutputVariable((Variable) variable.applyTheta(bl));
-            }
-
-            newGAC.mappings = new HashMap<>();
-            if (this.mappings != null) {
-                newGAC.mappings.putAll(this.mappings);
-            }
-            if (that.mappings != null) {
-                newGAC.mappings.putAll(that.mappings);
-            }
-
-
-
-            newGAC.setConstantsSplit(this.isConstantsSplit() || that.isConstantsSplit());
-            newGAC.setRelevanceFromPositiveExample(true);
-        }
-
-        return newGAC;
-    }
-
-    public RelevantClauseInformation getNegationByFailure() {
-        Sentence newSentence;
-        Set<ElementPath> newConstantPositions = new HashSet<>();
-        
-        if (sentence instanceof Clause && sentence.getStringHandler().isNegationByFailure(sentence)) {
-            newSentence = sentence.getStringHandler().getNegationByFailureContents((Clause) sentence);
-            
-            for (ElementPath elementPath : this.constantPositions) {
-                newConstantPositions.add(elementPath.removeFirstElement());
-            }
-        }
-        else if (sentence instanceof Clause) {
-            newSentence = sentence.getStringHandler().getNegationByFailure((Clause) sentence);
-            for (ElementPath elementPath : this.constantPositions) {
-                newConstantPositions.add(elementPath.prepend(0));
-            }
-        }
-        else {
-            Clause c = sentence.asClause();
-            newSentence = sentence.getStringHandler().getNegationByFailure(c);
-            // We can't keep track of the constant positions since the asClause() method
-            // may rearrange the sentence.
-        }
-
-        RelevantClauseInformation newGAC = new RelevantClauseInformation(example, newSentence, getTypeSpecList());
-        newGAC.constantPositions = newConstantPositions;
-
-        // We purposefully ignore the output variables of the original
-        // RCI.  They no longer apply once the RCI is wrapped by the
-        // negation-by-failure.
-
-        return newGAC;
-    }
-
-    RelevantClauseInformation getInlined(HornClauseContext context) {
-
-
-        Sentence newSentence = Inliner.getInlinedSentence(sentence, context);
-
-        RelevantClauseInformation rci = copy();
-        rci.setSentence(newSentence);
-
-        return rci;
-    }
-
-    RelevantClauseInformation removeDuplicateDeterminates() {
-
-
-        Sentence newSentence = DuplicateDeterminateRemover.removeDuplicates(sentence);
-
-        RelevantClauseInformation rci = copy();
-        rci.setSentence(newSentence);
-
-        return rci;
-    }
-
-    RelevantClauseInformation removeDoubleNegations() {
-
-
-        Sentence newSentence = DoubleNegationByFailureRemover.removeDoubleNegationByFailure(sentence);
-
-        RelevantClauseInformation rci = copy();
-        rci.setSentence(newSentence);
-
-        return rci;
-    }
-
-    RelevantClauseInformation applyPruningRules(AdviceProcessor ap) {
-
-        RelevantClauseInformation result = this;
-
-        if ( ap.getPruningRules() != null ) {
-            ConnectedSentence implication = getImpliedSentence();
-            ConnectedSentence newSentence = (ConnectedSentence)SentencePruner.pruneSentence(ap.getContext(), implication, ap.getPruningRules());
-
-            if (!implication.equals(newSentence)) {
-                result = copy();
-                result.setSentence(newSentence.getSentenceA());
-                result.example = new Example(newSentence.getSentenceB().asClause().getPosLiteral(0));
-            }
-        }
-
-        return result;
-    }
-
-    RelevantClauseInformation getCompressed() {
-        Sentence newSentence = SentenceCompressor.getCompressedSentence(sentence);
-
-        RelevantClauseInformation rci = copy();
-        rci.setSentence(newSentence);
-
-        return rci;
-
-    }
-
-    List<RelevantClauseInformation> expandNonOperationalPredicates() {
-
-        List<? extends Sentence> sentences = NonOperationalExpander.getExpandedSentences(sentence);
-
-        int expansionCount = sentences.size();
-
-        if (expansionCount > 64) {
-            Utils.waitHere("Number of non-operation exapansions exceeds 64.  RCI:\n" + this + ".");
-        }
-
-        List<RelevantClauseInformation> result;
-
-        if (sentences.size() == 1) {
-            result = Collections.singletonList(this);
-        }
-        else {
-            result = new ArrayList<>();
-
-            for (Sentence newSentence : sentences) {
-                RelevantClauseInformation newRCI = copy();
-                newRCI.sentence = newSentence;
-                result.add(newRCI);
-            }
-        }
-
-        return result;
-    }
-
     @Override
     public String toString() {
 
@@ -334,24 +85,8 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     }
 
-    private HandleFOPCstrings getStringHandler() {
-        return getSentence().getStringHandler();
-    }
-
-    private boolean isConstantsSplit() {
-        return constantsSplit;
-    }
-
-    private void setConstantsSplit(boolean constantsSplit) {
-        this.constantsSplit = constantsSplit;
-    }
-
     void setOriginalRelevanceStrength(RelevanceStrength relevanceStrength) {
         this.setRelevanceStrength(relevanceStrength);
-    }
-
-    RelevanceStrength getFinalRelevanceStrength() {
-        return relevanceStrength;
     }
 
     public RelevantClauseInformation copy() {
@@ -398,9 +133,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         if (this.getTypeSpecList() != other.getTypeSpecList() && (this.getTypeSpecList() == null || !this.typeSpecList.equals(other.typeSpecList))) {
             return false;
         }
-        if (this.isConstantsSplit() != other.isConstantsSplit()) {
-            return false;
-        }
         return Objects.equals(this.mappings, other.mappings);
     }
 
@@ -412,12 +144,11 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         hash = 59 * hash + (this.getSentence() != null ? this.getSentence().hashCode() : 0);
         hash = 59 * hash + (this.getRelevanceStrength() != null ? this.getRelevanceStrength().hashCode() : 0);
         hash = 59 * hash + (this.getTypeSpecList() != null ? this.getTypeSpecList().hashCode() : 0);
-        hash = 59 * hash + (this.isConstantsSplit() ? 1 : 0);
         hash = 59 * hash + (this.mappings != null ? this.mappings.hashCode() : 0);
         return hash;
     }
 
-    public List<TypeSpec> getTypeSpecList() {
+    private List<TypeSpec> getTypeSpecList() {
         if (typeSpecList == null) {
             List<TypeSpec> specs = example.getTypeSpecs();
 
@@ -434,19 +165,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         }
 
         return typeSpecList;
-    }
-
-    public boolean isEquivalentUptoVariableRenaming(RelevantInformation ri) {
-        if (ri instanceof RelevantClauseInformation) {
-            RelevantClauseInformation that = (RelevantClauseInformation) ri;
-            Sentence c1 = this.getImpliedSentence();
-            Sentence c2 = that.getImpliedSentence();
-            return c1.isEquivalentUptoVariableRenaming(c2);
-        }
-        else {
-            return false;
-        }
-
     }
 
     public boolean subsumes(RelevantInformation ri) {
@@ -483,7 +201,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return relevanceStrength;
     }
 
-    void setRelevanceStrength(RelevanceStrength relevanceStrength) {
+    private void setRelevanceStrength(RelevanceStrength relevanceStrength) {
         this.relevanceStrength = relevanceStrength;
     }
 
@@ -573,23 +291,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     private void setSentence(Sentence sentence) {
         this.sentence = sentence;
-    }
-
-    void addOutputVariable(Variable e) {
-        if (outputVariables == null) {
-            outputVariables = new HashSet<>();
-        }
-
-        outputVariables.add(e);
-    }
-
-    private Set<Variable> getOutputVariables() {
-        if (outputVariables == null) {
-            return Collections.EMPTY_SET;
-        }
-        else {
-            return outputVariables;
-        }
     }
 
     static class ConstantMarkerData {

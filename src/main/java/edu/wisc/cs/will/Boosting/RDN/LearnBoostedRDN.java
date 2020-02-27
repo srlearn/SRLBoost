@@ -159,7 +159,6 @@ public class LearnBoostedRDN {
 			setup.getOuterLooper().resetAll();
 			if ((sampler instanceof SingleModelSampler) &&
 				doEarlyStop(old_eg_set, (SingleModelSampler)sampler)) { // THIS NEEDS TO BE EXTENDED TO HANDLE MULTIPLE TREES.
-				if (RunBoostedRDN.numbModelsToMake > 1) { Utils.error("THIS NEEDS TO BE EXTENDED TO HANDLE MULTIPLE TREES."); }
 				break;
 			}
 
@@ -314,7 +313,6 @@ public class LearnBoostedRDN {
 			// WILL somehow loses all the examples after every run.  TODO - JWS: Guess there is some final cleanup. 
 			setup.getOuterLooper().setPosExamples(BoostingUtils.convertToListOfExamples(newDataSet));
 			// Make sure the invented predicates (if any) have unique names.
-			setup.getHandler().setInventedPredicateNameSuffix("_" + (i + 1));
 			setup.getOuterLooper().setPrefixForExtractedRules("");
 			if (learnSingleTheory) {
 				setup.getOuterLooper().setPostfixForExtractedRules(getTreeSuffix(i + 1));

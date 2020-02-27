@@ -52,20 +52,6 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         }
     }
 
-    public void addAllValues(Key key, Collection<? extends Value> c) {
-        if ( map == null ) {
-            map = createMap();
-        }
-
-        List<Value> result = map.get(key);
-        if ( result == null ) {
-            result = createValueList();
-            map.put(key, result);
-        }
-
-        result.addAll(c);
-    }
-
     public void add(Key key, Value e) {
         if ( map == null ) {
             map = createMap();

@@ -19,13 +19,6 @@ public class ElementPath implements Comparable<ElementPath>{
         this.index = index;
     }
 
-    private ElementPath(List<Integer> indices) {
-        if (indices.size() > 1) {
-            parent = new ElementPath(indices.subList(0, indices.size() - 1));
-        }
-        index = indices.get(indices.size() - 1);
-    }
-
     @Override
     public String toString() {
         if (parent != null) {
@@ -34,17 +27,6 @@ public class ElementPath implements Comparable<ElementPath>{
         else {
             return Integer.toString(index);
         }
-    }
-
-    public ElementPath prepend(int prependedIndex) {
-        List<Integer> list = asList();
-        list.add(0, prependedIndex);
-        return new ElementPath(list);
-    }
-
-    public ElementPath removeFirstElement() {
-        List<Integer> list = asList();
-        return new ElementPath(list.subList(1, list.size() - 1));
     }
 
     private List<Integer> asList() {

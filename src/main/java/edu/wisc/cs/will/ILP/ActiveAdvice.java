@@ -1,8 +1,6 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.FOPC.visitors.DefiniteClauseCostAggregator;
 import edu.wisc.cs.will.FOPC.visitors.DuplicateDeterminateRemover;
 import edu.wisc.cs.will.FOPC.visitors.Inliner;
 import edu.wisc.cs.will.Utils.LinkedMapOfSets;
@@ -30,126 +28,6 @@ class ActiveAdvice {
 
     ActiveAdvice(HandleFOPCstrings stringHandler) {
         this.stringHandler = stringHandler;
-    }
-
-    void addAdviceClause(AdviceProcessor ap, String name, RelevantClauseInformation rci, List<Clause> clauses) throws IllegalArgumentException {
-
-        rci = rci.getInlined(ap.getContext());
-
-        // When removing double negation by failures
-        // and removing duplicate determinates, we have to iteration
-        // back and forth since each simplification may result
-        // in additional simplications by the other visitor.
-        while (true) {
-            RelevantClauseInformation start = rci;
-            rci = rci.removeDoubleNegations();
-
-            rci = rci.removeDuplicateDeterminates();
-
-            rci = rci.applyPruningRules(ap);
-
-            if (start.isEquivalentUptoVariableRenaming(rci)) {
-                break;
-            }
-        }
-
-        MapOfLists<PredicateNameAndArity, Clause> supportClausesForExpansions = new MapOfLists<>();
-        List<RelevantClauseInformation> expandedRCIs = rci.expandNonOperationalPredicates();
-
-        // We will add all of the support clauses...just for the hell of it...
-        for (Map.Entry<PredicateNameAndArity, List<Clause>> entry : supportClausesForExpansions.entrySet()) {
-            if (!supportClauses.containsKey(entry.getKey())) {
-                supportClauses.addAllValues(entry.getKey(), entry.getValue());
-            }
-        }
-
-        int count = 0;
-        for (RelevantClauseInformation expandedRCI : expandedRCIs) {
-            String expandedName = name;
-            if (expandedRCIs.size() != 1) {
-                expandedName = name + "_op" + (count++);
-            }
-
-            expandedRCI = expandedRCI.getCompressed();
-            Sentence sentence = expandedRCI.getSentence();
-
-            Sentence cnf = sentence.getConjunctiveNormalForm();  // This may still have AND connectives.
-            Sentence compressedCNF = SentenceCompressor.getCompressedSentence(cnf);
-
-            compressedCNF.collectAllVariables();
-
-            Example example = expandedRCI.example;
-            List<TypeSpec> exampleTypeSpecs = example.getTypeSpecs();
-
-            PredicateName pn = stringHandler.getPredicateName(expandedName);
-            RelevanceStrength rs = expandedRCI.getFinalRelevanceStrength();
-
-            List<Term> headArguments = new ArrayList<>();
-            List<TypeSpec> headSpecList = new ArrayList<>();
-
-            // Create the head arguments.
-            // Only add terms that are actually used in the body somewhere...
-            for (int i = 0; i < example.getArity(); i++) {
-                Term term = example.getArgument(i);
-                headArguments.add(term);
-                headSpecList.add(exampleTypeSpecs.get(i));
-            }
-
-            Literal head = stringHandler.getLiteral(pn, headArguments);
-            PredicateNameAndArity predicateNameAndArity = head.getPredicateNameAndArity();
-
-            Sentence impliedSentence = stringHandler.getConnectedSentence(compressedCNF, ConnectiveName.IMPLIES, head);
-            List<Clause> impliedClauses = impliedSentence.convertToClausalForm();
-
-            boolean duplicate = false;
-
-            // Check for duplicate clauses.
-            // We don't check disjunct clause cause it is hard once we have converted
-            // to clausal form.  Unfortunatedly, we don't store the non-clausal implied sentence,
-            // so we can't check for duplicates before clausal convertion.
-            if (impliedClauses.size() == 1) {
-                Clause theNewClause = impliedClauses.get(0);
-                assert clauses != null;
-                for (Clause existing : clauses) {
-                    if (areClausesEqualUptoHeadAndVariableRenaming(existing, theNewClause)) {
-                        duplicate = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!duplicate) {
-                RelevanceStrength strength = expandedRCI.getFinalRelevanceStrength();
-
-                if (expandedRCI.getTypeSpecList() != null) {  // TODO SHOULD WE BE DOING THE setRelevance, add, mark, assert above if this fails?
-
-                    List<Term> signature = new ArrayList<>();
-                    for (int i = 0; i < head.getArity(); i++) {
-                        signature.add(stringHandler.getStringConstant("constant"));
-                    }
-
-                    headSpecList = new ArrayList<>(expandedRCI.getTypeSpecList());
-
-                    ModeInfo mi = addModeAndRelevanceStrength(predicateNameAndArity, signature, headSpecList, rs);
-
-                    double contentsCost = 0;
-                    double cost = strength.defaultCost();
-
-                    for (Clause clause : impliedClauses) {
-                        // Calculate the average cost over all literals in the clause and across clauses for ORs.
-                        contentsCost = DefiniteClauseCostAggregator.PREDICATE_COST_AGGREGATOR.getAggregateCost(DefiniteClauseCostAggregator.AggregationMode.MEAN, clause) / impliedClauses.size();
-
-                        addClause(clause, strength);
-
-                        if (clauses != null) {
-                            clauses.add(clause);
-                        }
-                    }
-
-                    mi.cost = cost + 1e-5 * contentsCost;
-                }
-            }
-        }
     }
 
     void addAdviceMode(AdviceProcessor ap, RelevantModeInformation rci) {
@@ -200,10 +78,6 @@ class ActiveAdvice {
 
     }
 
-    private void addClause(Clause clause, RelevanceStrength strength) {
-        clauses.put(clause.getDefiniteClauseHead().getPredicateNameAndArity(), new ClauseInfo(clause, strength));
-    }
-
     public MapOfSets<PredicateNameAndArity, ClauseInfo> getClauses() {
         return clauses;
     }
@@ -212,7 +86,7 @@ class ActiveAdvice {
         adviceFeaturesAndStrengths.put(null, new RelevanceInfo(value));
     }
 
-    private ModeInfo addModeAndRelevanceStrength(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> headSpecList, RelevanceStrength relevanceStrength) {
+    private void addModeAndRelevanceStrength(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> headSpecList, RelevanceStrength relevanceStrength) {
         ModeInfo mi = new ModeInfo(predicate, signature, headSpecList, relevanceStrength);
 
         Set<ModeInfo> existingModeInfos = adviceModes.getValues(predicate);
@@ -237,11 +111,6 @@ class ActiveAdvice {
         }
 
 
-        return mi;
-    }
-
-    Set<ModeInfo> getModeInfo(PredicateNameAndArity key) {
-        return adviceModes.getValues(key);
     }
 
     public Iterable<ModeInfo> getModes() {
@@ -254,17 +123,6 @@ class ActiveAdvice {
 
     MapOfLists<PredicateNameAndArity, Clause> getSupportClauses() {
         return supportClauses;
-    }
-
-    private boolean areClausesEqualUptoHeadAndVariableRenaming(Clause clause1, Clause clause2) {
-
-        Literal newHead1 = clause1.getStringHandler().getLiteral("head", clause1.getDefiniteClauseHead().getArguments());
-        clause1 = clause1.getStringHandler().getClause(Collections.singletonList(newHead1), clause1.getNegativeLiterals());
-
-        Literal newHead2 = clause2.getStringHandler().getLiteral("head", clause2.getDefiniteClauseHead().getArguments());
-        clause2 = clause2.getStringHandler().getClause(Collections.singletonList(newHead2), clause2.getNegativeLiterals());
-
-        return clause1.isEquivalentUptoVariableRenaming(clause2, new BindingList()) != null;
     }
 
     @Override
@@ -299,7 +157,7 @@ class ActiveAdvice {
 
         final RelevanceStrength strength;
 
-        double cost = Double.NaN;
+        final double cost = Double.NaN;
 
         ModeInfo(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> specs, RelevanceStrength strength) {
             this.predicate = predicate;
@@ -350,6 +208,7 @@ class ActiveAdvice {
         final RelevanceStrength strength;
 
         ClauseInfo(Clause clause, RelevanceStrength strength) {
+            // TODO(@hayesall): Constructor is never used.
             this.setClause(clause);
             this.strength = strength;
         }

@@ -105,9 +105,6 @@ import java.util.*;
 
 public class LearnOneClause extends StateBasedSearchTask {
 
-	// TODO(@hayesall): This `LearnOneClause.debugLevel` is called into from the Gleaner and OuterLooper
-	final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
-
 	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
 
 	private boolean             createCacheFiles                  = false;   // Create files that cache computations, to save time, for debugging, etc.

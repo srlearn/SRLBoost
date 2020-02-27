@@ -17,10 +17,6 @@ public class PrettyPrinter {
 
     private static final int MIN_PRECEDENCE = 0;
 
-    public static String print(Sentence s, String prefix, PrettyPrinterOptions options) {
-        return print(s, prefix, prefix, options, null);
-    }
-
     public static String print(Sentence s, String firstLinePrefix, String additionalLinesPrefix, PrettyPrinterOptions options, BindingList variableBindings) {
 
         FOPCPrettyPrinterData data = new FOPCPrettyPrinterData();
