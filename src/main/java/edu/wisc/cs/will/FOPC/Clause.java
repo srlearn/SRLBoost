@@ -20,7 +20,7 @@ public class Clause extends Sentence implements DefiniteClause {
 	private String        extraLabel      = null; // This is partially implemented so that we can take extraLabels from SingleClauseNodes and have them persist when clauses are created.  However, weight until we are sure we want the overhead of doing this, plus if a comment should be printed inside a comment, we might have parser problems.
 	public String getExtraLabel()                  {	return extraLabel; }
 
-    public Clause() {
+    protected Clause() {
     }
     
 	public Clause(HandleFOPCstrings stringHandler, List<Literal> posLiterals, List<Literal> negLiterals) { // If called this, there is no error checking to confirm 'sign' of literals. This is done to save cpu time.
@@ -33,13 +33,13 @@ public class Clause extends Sentence implements DefiniteClause {
 		this(stringHandler, posLiterals, negLiterals);
 		this.extraLabel = extraLabel;
 	}
-	public Clause(HandleFOPCstrings stringHandler, Clause other)  {
+	protected Clause(HandleFOPCstrings stringHandler, Clause other)  {
     	this();
 		this.stringHandler = stringHandler;
 		this.posLiterals   = other.posLiterals;
 		this.negLiterals   = other.negLiterals;
 	}
-	protected Clause(HandleFOPCstrings stringHandler, List<Literal> literals, boolean literalsAreAllPos) { // If not all positive, assumes all are negative.
+	Clause(HandleFOPCstrings stringHandler, List<Literal> literals, boolean literalsAreAllPos) { // If not all positive, assumes all are negative.
     	this();
 		this.stringHandler = stringHandler;
 		if (literalsAreAllPos) {
@@ -51,7 +51,7 @@ public class Clause extends Sentence implements DefiniteClause {
 			negLiterals = literals;
 		}
 	}
-	protected Clause(HandleFOPCstrings stringHandler, Literal literal, boolean literalIsPos) {
+	Clause(HandleFOPCstrings stringHandler, Literal literal, boolean literalIsPos) {
     	this();
 		this.stringHandler = stringHandler;
 		if (literalIsPos) {
@@ -239,7 +239,6 @@ public class Clause extends Sentence implements DefiniteClause {
 		return (Clause) stringHandler.getClause(newPosLiterals, newNegLiterals, extraLabel).setWeightOnSentence(wgtSentence);
 	}
 
-    @Override
     public Clause applyTheta(BindingList bindingList) {
         if ( bindingList != null ) {
             return applyTheta(bindingList.theta);
@@ -415,27 +414,6 @@ public class Clause extends Sentence implements DefiniteClause {
 		return true;
 	}
 
-    public ConnectedSentence asConnectedSentence() {
-        Sentence b;
-        Sentence a;
-
-        if ( getNegLiteralCount() == 0 ) {
-            a = stringHandler.trueLiteral;
-        }
-        else {
-            a = stringHandler.getClause(negLiterals, null);
-        }
-
-        if ( getPosLiteralCount() == 0 ) {
-            b = stringHandler.trueLiteral;
-        }
-        else {
-            b = stringHandler.getClause(posLiterals, null);
-        }
-
-        return stringHandler.getConnectedSentence(a, ConnectiveName.IMPLIES, b);
-    }
-	
     @Override
 	public BindingList variants(Sentence other, BindingList bindings) { 
 	

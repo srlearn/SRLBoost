@@ -21,7 +21,7 @@ public class Function extends Term implements LiteralOrFunction {
 		this.functionName  = functionName;
 		this.arguments     = arguments;
 		this.setTypeSpec(typeSpec);
-		if (functionName == null) {         Utils.error("You have not provided a function name!"); }
+		assert functionName != null;
 		if (functionName.name.equals("")) { Utils.error("You have not provided a function name that is the empty string!"); }
 	}
 	Function(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
@@ -433,25 +433,11 @@ public class Function extends Term implements LiteralOrFunction {
 		return total;
 	}
 
-    /* Returns the function name as predicate and arity.
-     *
-     * Technically, a function doesn't have predicate name, but
-     * we convert of the function to the a predicate of the same
-     * name.
-     */
-    public PredicateNameAndArity getPredicateNameAndArity() {
-        return stringHandler.getPredicate(stringHandler.getPredicateName(functionName.name), getArity());
-    }
-
-    public int getArity() {
+	public int getArity() {
         return numberArgs();
     }
 
-	public FunctionName getFunctionName() {
-        return functionName;
-    }
-
-    public PredicateName getPredicateName() {
+	public PredicateName getPredicateName() {
         return getStringHandler().getPredicateName( functionName.name );
     }
 

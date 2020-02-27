@@ -10,7 +10,7 @@ import java.util.Set;
 /*
  * @author twalker
  */
-public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
+class ArityFilter implements Filter<Integer>, Iterable<Integer> {
 
     /* Indicates that all arities are included in this filter.
      *
@@ -29,7 +29,7 @@ public class ArityFilter implements Filter<Integer>, Iterable<Integer> {
 
     ArityFilter() {}
 
-    public boolean includeElement(Integer arity) {
+    boolean includeElement(Integer arity) {
 
         boolean result = false;
 

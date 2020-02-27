@@ -34,7 +34,7 @@ public class CreateSyntheticExamples {
 		List<WorldState>  worldStatesToProcess2 = worldStatesToProcess;		
 		if (!usingWorldStates) {
 			worldStatesToProcess2 = new ArrayList<>(1);
-			worldStatesToProcess2.add(new WorldState(null, null)); // Create a dummy world state, so the FOR LOOP below is used once.
+			worldStatesToProcess2.add(new WorldState()); // Create a dummy world state, so the FOR LOOP below is used once.
 		}
 
 		Set< Example>  resultsAsSet      = new HashSet<>(4); // Use this to quickly look for duplicates.
@@ -175,20 +175,7 @@ public class CreateSyntheticExamples {
 
                 if (worldState == null || worldState.isaNullWorldState() || worldState.equals(worldArg, stateArg)) { // See if a match.
                     help_getConstantsOfThisTypeInThisWorldState(stringHandler, type, lit.getArguments(), results);
-                    Map<Integer, List<Object>> constrainInfo = lit.predicateName.getConstrainsArgumentTypes(lit.numberArgs());
-                    if (constrainInfo != null) {
-                        for (Integer index : constrainInfo.keySet()) {
-                            Type typeConstainedTo = (Type) constrainInfo.get(index).get(0);
-                            if (stringHandler.isaHandler.isa(typeConstainedTo, type)) {
-                                Term arg = lit.getArguments().get(index - 1); // Recall counting from 0 here (but from 1 externally).
-                                if (arg instanceof Constant) {
-                                    Constant argAsConstant = (Constant) arg;
-									results.add(argAsConstant);
-                                }
-                            }
-                        }
-                    }
-                }
+				}
             }
         }
 		if (worldState == null && Utils.getSizeSafely(results) < 1) {
@@ -196,7 +183,7 @@ public class CreateSyntheticExamples {
 		}
 		return results;		
 	}
-	
+
 	private static void help_getConstantsOfThisTypeInThisWorldState(HandleFOPCstrings stringHandler, Type type, List<Term> arguments, Set<Term> results) {
 		if (arguments == null) { return; }
 		for (Term arg : arguments) { // If so, look at each argument and see if of the proper type (could skip locationOfWorldArg_countingLeftToRight and locationOfStateArg_countingRightToLeft, but not worth it).

@@ -1,6 +1,4 @@
 
 usePrologVariables: true.
 
-// Different/2 is defined in comparisonInLogic.
-
 importLibrary: comparisonInLogic.

@@ -6,9 +6,6 @@ importLibrary: modes_arithmeticInLogic.
 relevant: addList/2,      @relevance. // Assume this is set.  If not, an error will result.
 relevant: multiplyList/2, @relevance.
 
-//relevant: isaInterestingNumber/2, @relevance. // Assume this is set.  If not, an error will result.
-//relevant: isaInterestingNumber/1, @relevance. 
-
 relevant: max/3, @relevance.
 relevant: min/3, @relevance.
 relevant: abs/3, @relevance.

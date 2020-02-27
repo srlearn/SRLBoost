@@ -5,7 +5,6 @@ import edu.wisc.cs.will.FOPC.HandleFOPCstrings.VarIndicator;
 import edu.wisc.cs.will.FOPC.PredicateName.FunctionAsPredType;
 import edu.wisc.cs.will.ResThmProver.VariantClauseAction;
 import edu.wisc.cs.will.Utils.*;
-import edu.wisc.cs.will.Utils.condor.CompressedInputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 
@@ -34,8 +33,6 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  * Parse a file (or some other text stream) as one containing FOPC sentences as well as "directives" to MLN's, ILP, etc.
  * Directives include the following.   Note that many commands need to be terminated with a '.' or a ';'
  *
- *   define:         constant = f(&lt;constants&gt;).     // The semantics (extensional definition) of this grounded function is this constant.  E.g, Bill = neighborOf(John, Mary).
- *
  *   setParam:       paramName = paramValue.        // Set this parameter to the value.  The equal sign and EOF are optional (so must all be on one line).
  *                                                  // Note that the parser does not check for valid parameter names nor values.  Later instances check this, and hence
  *                                                  // error reports might come much later.
@@ -44,7 +41,6 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *                                                  //       CURRENTLY THIS ONLY WORDS FOR NUMBERS (more specifically, only via calls to processNumber) AND SINGLE TOKENS.
  *
  * 	 import:         fileName.                      // Read in another file.  Can provide full path names; otherwise will be relative to the directory in which the current file resides.  An extension of Utils.defaultFileExtensionWithPeriod will be added if the file name w/o any extension does not exist.
- *   importIfExists: fileName.                      // Same as 'import:' but do not complain if the file doesn't exist.
  *   importLibrary:  fileName.                      // Read in a pre-existing library file.  Only file names without an extension should be provided.
  *                                                  //  Existing libraries: arithmeticInLogic
  *                                                  //                      comparisonInLogic
@@ -53,17 +49,11 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *                                                  //  Modes for each of those libraries have the same names as above, but are prefixed with "modes_"
  *                                                  //  Currently all libraries are automatically loaded.  To override, do:     setParam: loadAllLibraries = false.
  *
- * 	 isa:            typeA isa typeB.               // Type A isa type B.  The 'isa' is optional as is the EOL ('.' or ';').
- *
- *   determinate:    predName/numbArgs,             // For predName/numbArgs, the specified argument (counting from 1) will have AT MOST ONE value (of the specified type).
- *   				 arg=#, type=TYPE
- *
  *   numericFunctionAsPred: predName/numbArgs,      // A special-case determinate, where the specified argument (counting from 1) is the "output"
  *                   arg=#                          // when all the other variables are bound.  In addition, this argument is NUMERIC (TODO might want to redefine this).
  *
  *   				 Besides 'numeric' other prefixes are allowed to "FunctionAsPred."  Here is the complete list:
- *   					      numeric,       bool,          categorical,       structured,       anything,  // 'Categorical' is a "string token" (ie, an atom) and 'structured' is something involving an FOPC function.
-							  listOfNumeric, listOfBoolean, listOfCategorical, listOfStructured, listOfAnything
+ *   					      numeric,       bool,  // 'Categorical' is a "string token" (ie, an atom) and 'structured' is something involving an FOPC function.
  *
  *
  *   bridger:        predName/numbArgs              // A special-case determinate, where the role of this predicate is to enable the addition of some other predicate(s).
@@ -72,15 +62,6 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *   												// learned clauses.  For example, if we inline 'Q(x) :- R(x), S(x)' and have learned
  *   												// 'P(x) :- Q(x), W(x)', the result will be 'P(x) :- R(x), S(x), W(x)'.
  *   												// It is an error if predName/arity matches more than one clause.
- *
- *   threshold:      typed_literal,                 // For this typed literal, the specified argument (counting from 1) has a NUMERIC feature (can be MANY possible values)
- *   				 arg=#, [maxCuts=#],            // and the data will be analyzed to choose good thresholds (if specified, there is a maximum number of thresholds).
- *   				 [createTiles],  		        // Boolean predicates will be created, e.g. 'f_less_than_10'.  If 'createTiles' is present, compound constraints (eg, f_between_5_and7) will also be produced.
- *                   [firstArgIsExampleID]          // Appropriate 'isaInterval' specifications will automatically be constructed to prune useless search paths.  Commas are optional.
- *                   							    // If firstArgIsExampleID is present, then the code can look at the positive and negative examples
- *                   								// and will only consider thresholds that lie between a positive and negative.
- *                   							    // maxCuts, createTiles, and firstArgIsExampleID can occur in any order.
- *                   								// New literals created by 'threshold' are automatically inline'd (see above).
  *
  *   relevant:       predName/numbArgs, strength.   // A way to give hints about the relevance of literals to the concept being learned.
  *   												// The strengths are one of those in 'enum RelevanceStrength' (if the strength is
@@ -117,20 +98,11 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *           ... noAutoNegate                       // The AND, OR, and 'bare' literal relevant's will also create not_P :- \+ P, with one lower relevance value (but never less than neutral
  *                                                  // (no provided strength is less than neutral, not additional relevant's created).  This flag overrides that.  (TODO - add a global flag that does for all relevant's.)
  *
- *   relevantClause:  exampleLit : clause, strength. // Specify a relevant clause for an example.
- *
- *   relevantFeature: exampleLit : predicate/arity, strength. // Specify a relevant predicate for an example.
- *
  *   containsCallable: predicate/arity.             // Specifies that the terms of the literal/function with the indicates predicate name may be callable elements.
  *                                                  // An example of this is negation by failure, in which the first term is the clause to execute to determine if
  *                                                  // the negation by failure succeeds or fails.
  *
- *
- *   supportingLiteral: predName/numbArgs           // The clauses that define this predicate need to be kept as 'supporting clauses' in learned theories.  Typically internally generated clauses get this marking, but users might want to do this as well.
- *
  *   cost:           predName/numbArgs, real        // The cost (e.g., for scoring clauses) associated with this predicate name (with this many arguments) is 'real.'  The comma is optional.  The EOL should be ';' if the 'real' is an integer (since otherwise the decimal point ['.'] confuses the parser).  Default cost = 1.
- *   costFinal:      predName/numbArgs, real        // Same as above, but this version will not be changed (otherwise the lower cost is chosen if there are multiple settings).
- *
  *   mode:           typed_literal                  // This states the types of the arguments in this literal.
  *                   [target=pred/numbArgs]         // Types are + (an 'input' variable; MUST be present earlier in the clause), - (an 'output' variable; need not already be present in the clause), and # (a constant; need not already be present).
  *                   [max=#]                        // Also, '$' means use a variable that only appears ONCE and '^' means only use a NEW variable.  A variable can be followed by '!k' or $k' - the former means "this predicate will be true for EXACTLY k possible values for this argument, where the latter is similar but for "AT MOST K."
@@ -147,18 +119,8 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *				//   If a &mode, then combine '-' and '#'.
  *				//   If a :mode, then combine '+' and '#'.  TODO - allow MULTIPLE CHARACTERS (eg, any pair)!
  *
- *   noMode:    same args as for 'mode:"            // Turn OFF a mode with these args (useful if a library of modes is loaded and for some runs we want to disable some).
- *   												// This works even if a mode happens AFTER the noMode.   
- *   												// CURRENTLY ONLY CHECKS *ARITY* AND IGNORES SPECIFIC TYPE OF EACH ARG (TODO - cleanup)    
  *
  *   isaInterval:    predName/numbArgs.             // Inform ILP that this predicate specifies a 1D (numbArgs=3), 2D (numbArgs=6), or 3D (numbArgs=9) number interval (a.k.a., a 'tile').  E.g.: 'isaInterval: ageInRange/3' says that ageInRange(lower, value, upper) is true when lower &lt;= value &lt; upper.  This information is used to prune search spaces.
- *
- *   constrains: 	 predName/numbArgs,         	// When this literal is in a clause, its Nth argument (counting from 1) is of this type.
- *   			     arg=#,                     	// The commas and EOL ('.' or ';') are optional, so these need to be on ONE line.
- *   				 type,                      	// This allows a "type checking" literal to restrict a type of a variable, thereby possibly allowing other modes to become applicable.  (If already a SUBCLASS of 'type' then this has no effect on a variable.)
- *                   pruneIfNoEffect.               // If X is of type 'physical object', then 'isaCar(X)' can constrain X to be a 'vehicle' and modes that are restricted to vehicles now come into play.
- *                   								// If pruneIfNoEffect is present, then do not add this literal UNLESS it has an impact on the type of the constrained argument (some constrainers might have other effects and so we do not want to ALWAYS do this).
- *                                                  // Also, if pruneIfNoEffect is present, set the cost of this literal low (e.g., 0.001) since this literal is presumably only there for 'side effect' on the argument type.
  *
  *   precompute:     fileName = string, clause.     // This Horn ('definite' actually) clause should be precomputed.  Can also use 'precompute1' to 'precompute99' to put results in separate files (so if there is a crash, only need to precompute some of the data).
  *                                                  // Precomputed facts in precomputeN will be available when precomputing M, for M > N.
@@ -174,17 +136,11 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *   pruneTrue and pruneFalse                       // These can be used instead of 'prune' to state the REASON for the pruning.
  *
  *   queryPred:      predName/numbArgs.             // Used for MLNs.  The EOL ('.' or ';') is optional.
- *   hiddenPred:     predName/numbArgs.             // Used for MLNs.  The EOL ('.' or ';') is optional.
- *
- *   isVariant:      literalA, literalB.            // Specify that these two literals are equivalent.  The comma and EOL are optional.
- *
- *   filter:         predName.                      // This predicate (all arities) will always be true once learning is complete and should be filtered from learned rules.
  *
  *   range:          type = {value1, ..., valueN}.  // Specify the possible values for this type.  The outer braces are optional. The shorthand "..." can be used for integer-valued ranges.
  *
  *   usePrologVariables:   true/false/yes/no/1/0.   // These determine whether or not lower case is a variable (standard logic) or a constant (Prolog).
  *   useStdLogicVariables:   ditto                  // These can be reset in the middle of files, and the instances created will be correct, but text files produced are likely to be inconsistent (TODO: each variable and constant needs to record its case at time of creation?  Tricky, though since 'john' and 'John' might map to the same constant.)
- *   useLeadingQuestionMarkVariables: ditto         // There can be any of {true, false, yes, no, 1, 0} after these commands and an optional EOL ('.' or ';').
  *   useStdLogicNotation:             ditto
  *   usePrologNotation:               ditto
  *
@@ -196,7 +152,6 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *   The following all take predicateName/arity (and an optional EOL ['.' or ';']).
  *
  *      okIfUnknown:                                // It is OK if during theorem proving this predicate is undefined.  Helps catch typos.  If numberArgs='#' then applies to all versions of predName.  The EOL ('.' or ';') is optional.
- *      dontComplainAboutMultipleTypes:             // Don't warn if this predicate/arity has more than one type.
  *
  * Everything else is interpreted as an FOPC sentence (using the strings "ForAll" and "ThereExists" ["Exists" is also OK, but "All" is NOT since it is a built-in Prolog predicate] and
  * the standard logical connectives of {'and', 'or', '^', '&', 'v', '->', ':-', etc.).  FOPC sentences can be weighted using one of the following:
@@ -205,8 +160,6 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *      wgt    = double  FOPC.
  *      weight(double)   FOPC.
  *      wgt(double)      FOPC.
- *      weight: double   FOPC.
- *      wgt:    double   FOPC.
  *
  *   Can also use this to mark examples that are not binary valued.  NOTE: this is stored in the 'weight' field and so cannot currently have weighted examples with non-Boolean output values.
  *      output = double  FOPC.
@@ -303,52 +256,25 @@ public class FileParser {
 		return prefix;
 	}
 
-	public List<Literal> readLiteralsInFile(String fNameRaw, boolean readQuietly, boolean okIfNoSuchFile) {
-		String fName = Utils.replaceWildCards(fNameRaw);
-		if (okIfNoSuchFile && !(new CondorFile(fName).exists())) { return null; }
-		boolean hold_dontPrintUnlessImportant               =               dontPrintUnlessImportant; // TODO - allow this elsewhere?
-		boolean hold_stringHandler_dontPrintUnlessImportant = stringHandler.dontPrintUnlessImportant;
-		if (readQuietly) {
-			dontPrintUnlessImportant               = true;
-			stringHandler.dontPrintUnlessImportant = true;
-		}
-		List<Sentence> sentences = readFOPCfile(fName);
-
-		if (sentences == null) { 
-			dontPrintUnlessImportant               =               hold_dontPrintUnlessImportant; 
-			stringHandler.dontPrintUnlessImportant = hold_stringHandler_dontPrintUnlessImportant;
-			return null;
-		}
-		List<Literal>  literals  = new ArrayList<>(sentences.size());
-		for (Sentence s : sentences) {
-			if (s instanceof Literal) { literals.add((Literal) s); } else { Utils.error("readLiteralsInFile: this is not a literal: " + s); }
-		}
-		dontPrintUnlessImportant               =               hold_dontPrintUnlessImportant;
-		stringHandler.dontPrintUnlessImportant = hold_stringHandler_dontPrintUnlessImportant;
-		return literals;
-	}
-
 	// This does not allow any non-literals in the file (other than comments).
 	// However it DOES allow a literal to NOT have a trailing '.' or ';' (some programs output their results in such a notation).
 	public List<Literal> readLiteralsInPureFile(String fNameRaw) {
 		String  fName          = Utils.replaceWildCardsAndCheckForExistingGZip(fNameRaw);
-		boolean isaGzippedFile = fName.endsWith(".gz");
 
 		List<Literal> results = new ArrayList<>(4);
 		try {
-			File   file               = (isaGzippedFile ? new CondorFile(fName) : getFileWithPossibleExtension(fName));
+			File   file               = (getFileWithPossibleExtension(fName));
 			String newDirectoryName   = file.getParent();
 			String hold_directoryName = directoryName;
 			checkDirectoryName(newDirectoryName);
 			this.fileName = fName; // Used to report errors.
-			InputStream  inStream = (isaGzippedFile ? new CompressedInputStream(file) : new CondorFileInputStream(file));
+			InputStream  inStream = new CondorFileInputStream(file);
 
 			tokenizer = new StreamTokenizerJWS(new InputStreamReader(inStream)); // Don't need to do more than 2-3 push backs, so don't need a big buffer.
 			initTokenizer(tokenizer);
-			int counter = 0;
 			while (tokenizer.nextToken() != StreamTokenizer.TT_EOF) {
 				tokenizer.pushBack();
-				Literal lit = processLiteral(false); counter++;
+				Literal lit = processLiteral(false);
 				results.add(lit);
 				peekEOL(true); // Suck up an optional EOL.
 			}			
@@ -382,15 +308,13 @@ public class FileParser {
 
 	private List<Sentence> readFOPCfile(String fNameRaw, boolean okIfNoSuchFile) {
 		String fName = Utils.replaceWildCardsAndCheckForExistingGZip(fNameRaw);
-		
-		boolean isaGzippedFile = fName.endsWith(".gz");
 		try {
-			File   file               = (isaGzippedFile ? new CondorFile(fName) : getFileWithPossibleExtension(fName));
+			File   file               = (getFileWithPossibleExtension(fName));
 			String newDirectoryName   = file.getParent();
 			String hold_directoryName = directoryName;
 			checkDirectoryName(newDirectoryName);
 			this.fileName = fName; // Used to report errors.
-			InputStream  inStream = (isaGzippedFile ? new CompressedInputStream(file) : new CondorFileInputStream(file));
+			InputStream  inStream = new CondorFileInputStream(file);
 			List<Sentence> result = readFOPCstream(file, inStream);
 			inStream.close();
 			checkDirectoryName(hold_directoryName);
@@ -411,38 +335,30 @@ public class FileParser {
 	
 	// If a file exists, add the default Utils.defaultFileExtensionWithPeriod extension.
 	private File getFileWithPossibleExtension(String fileNameRaw) throws IOException {
-		if (fileNameRaw == null) { Utils.error("Should not call with a NULL file name."); }
+		if (fileNameRaw == null) {
+			Utils.error("Should not call with a NULL file name.");
+		}
 		String fileName = Objects.requireNonNull(fileNameRaw).trim();
 		File f = new CondorFile(fileName);
-        if (!f.exists()) {
-        	f = new CondorFile(fileName + Utils.defaultFileExtensionWithPeriod);
-            if (!f.exists()) {
-        		f = new CondorFile(fileName + ".bk"); // Try another built-in file name.
-             	if (!f.exists()) {
-             		f = new CondorFile(fileName + ".mln"); // Try yet another built-in file name.
-             		if (!f.exists()) {
-                 		f = new CondorFile(fileName + ".db"); // Try yet another built-in file name.
-                 		if (!f.exists()) {
-                     		f = new CondorFile(fileName + ".fopcLibrary"); // Try yet another built-in file name.
-                     		if (!f.exists()) {
-                     			f =  new CondorFile(fileName + ".gz");
-                     			if (!f.exists()) {
-                     				throw new FileNotFoundException();
-                     			}
-                     			String newFileName = Utils.unzipFileIfNeeded(fileName + ".gz"); // TODO - can we do this without unzipping?
-                     			if (newFileName != null) {
-                     				f = new CondorFile(newFileName); // This should be same as fileName.
-                     				if (!f.exists()) {
-                     					throw new FileNotFoundException();
-                     				}
-                     			}
-                     		}
-                 		}
-             		}
-             	}
-            }
-        }
-        return f;
+		if (!f.exists()) {
+			f = new CondorFile(fileName + Utils.defaultFileExtensionWithPeriod);
+			if (!f.exists()) {
+				f = new CondorFile(fileName + ".bk"); // Try another built-in file name.
+				if (!f.exists()) {
+					f = new CondorFile(fileName + ".mln"); // Try yet another built-in file name.
+					if (!f.exists()) {
+						f = new CondorFile(fileName + ".db"); // Try yet another built-in file name.
+						if (!f.exists()) {
+							f = new CondorFile(fileName + ".fopcLibrary"); // Try yet another built-in file name.
+							if (!f.exists()) {
+								throw new FileNotFoundException();
+							}
+						}
+					}
+				}
+			}
+		}
+		return f;
 	}
 
 	/*
@@ -554,36 +470,15 @@ public class FileParser {
 					case StreamTokenizer.TT_WORD:
 						String currentWord = tokenizer.sval();
 						boolean colonNext = checkAndConsume(':'); // If the next character is a colon, it will be "sucked up" and 'true' returned.  Otherwise it will be puhsed back and 'false' returned.
-						if (colonNext && currentWord.equalsIgnoreCase("define"))         { processDefinition( );  break; }
 						if (colonNext && currentWord.equalsIgnoreCase("setParam"))       { processSetParameter(); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("setParameter"))   { processSetParameter(); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("mode"))           { processMode(listOfSentencesReadOrCreated, false); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("noMode"))         { processMode(listOfSentencesReadOrCreated, true);  break; }
-						if (colonNext && currentWord.equalsIgnoreCase("constrains"))     { processConstrains( ); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("determinate"))    { processDeterminate(); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("numericFunctionAsPred"))           { processFunctionAsPred(FunctionAsPredType.numeric);           break; }
-						if (colonNext && currentWord.equalsIgnoreCase("booleanFunctionAsPred"))           { processFunctionAsPred(FunctionAsPredType.bool);              break; }
-						if (colonNext && currentWord.equalsIgnoreCase("categoricalFunctionAsPred"))       { processFunctionAsPred(FunctionAsPredType.categorical);       break; }
-						if (colonNext && currentWord.equalsIgnoreCase("structuredFunctionAsPred"))        { processFunctionAsPred(FunctionAsPredType.structured);        break; }
-						if (colonNext && currentWord.equalsIgnoreCase("anythingFunctionAsPred"))          { processFunctionAsPred(FunctionAsPredType.anything);          break; }
-						if (colonNext && currentWord.equalsIgnoreCase("listOfNumericFunctionAsPred"))     { processFunctionAsPred(FunctionAsPredType.listOfNumeric);     break; }
-						if (colonNext && currentWord.equalsIgnoreCase("listOfBooleanFunctionAsPred"))     { processFunctionAsPred(FunctionAsPredType.listOfBoolean);     break; }
-						if (colonNext && currentWord.equalsIgnoreCase("listOfCategoricalFunctionAsPred")) { processFunctionAsPred(FunctionAsPredType.listOfCategorical); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("listOfStructuredFunctionAsPred"))  { processFunctionAsPred(FunctionAsPredType.listOfStructured);  break; }
-						if (colonNext && currentWord.equalsIgnoreCase("listOfAnythingFunctionAsPred"))    { processFunctionAsPred(FunctionAsPredType.listOfAnything);    break; }
+						if (colonNext && currentWord.equalsIgnoreCase("mode"))           { processMode(listOfSentencesReadOrCreated); break; }
+						if (colonNext && currentWord.equalsIgnoreCase("numericFunctionAsPred"))           { processFunctionAsPred();           break; }
 						if (colonNext && currentWord.equalsIgnoreCase("bridger"))        { processBridger();     break; }
 						if (colonNext && currentWord.equalsIgnoreCase("temporary"))      { processTemporary();   break; }
 						if (colonNext && currentWord.equalsIgnoreCase("inline"))         { processInline();      break; }
-						if (colonNext && currentWord.equalsIgnoreCase("threshold"))      { processThreshold();   break; }
-						if (colonNext && currentWord.equalsIgnoreCase("filter"))         { processFilter();      break; }
 						if (colonNext && currentWord.equalsIgnoreCase("relevant"))       { processRelevant(       listOfSentencesReadOrCreated); break; } // Can add a sentence, so pass in the collector.
-						if (colonNext && currentWord.equalsIgnoreCase("relevantClause")) { processRelevantClause( listOfSentencesReadOrCreated); break; } // Can add a sentence, so pass in the collector.
-						if (colonNext && currentWord.equalsIgnoreCase("relevantFeature")){ processRelevantFeature(listOfSentencesReadOrCreated); break; } // Can add a sentence, so pass in the collector.
                         if (colonNext && currentWord.equalsIgnoreCase("nonOperational")) { processNonOperational(); break; }
-                        if (colonNext && currentWord.equalsIgnoreCase("relevantMode")) {
-                            processRelevantMode(listOfSentencesReadOrCreated);
-                            break;
-                        } // Can add a sentence, so pass in the collector.
                         if (colonNext && currentWord.equalsIgnoreCase("relevantLiteral")) {
                             processRelevantLiteralNew(listOfSentencesReadOrCreated);
                             break;
@@ -593,12 +488,10 @@ public class FileParser {
                             break;
                         }
                         if ( colonNext && currentWord.equalsIgnoreCase("containsCallable"))  { processContainsCallables(); break; }
-                        if (colonNext && currentWord.equalsIgnoreCase("supportingLiteral"))   { processSupporter();   break;}
                         if (colonNext && currentWord.equalsIgnoreCase("supportLiteral"))      { processSupporter();   break; }
                         if (colonNext && currentWord.equalsIgnoreCase("supportingPredicate")) { processSupporter();   break;}
                         if (colonNext && currentWord.equalsIgnoreCase("supportPredicate"))    { processSupporter();   break; }
-						if (colonNext && currentWord.equalsIgnoreCase("cost"))                { processCost(false);   break; }
-						if (colonNext && currentWord.equalsIgnoreCase("costFinal"))           { processCost(true);    break; }
+						if (colonNext && currentWord.equalsIgnoreCase("cost"))                { processCost();   break; }
 						if (colonNext && currentWord.equalsIgnoreCase("precompute"))          { processPrecompute(0); break; } 
 						if (colonNext && currentWord.startsWith("precompute"))     {
 							// Do the regex matching now.
@@ -611,46 +504,35 @@ public class FileParser {
 							}
 							Utils.waitHere("Word starts with 'precompute' but doesn't match: " + precomputePattern);
 						}
-						if (colonNext && currentWord.equalsIgnoreCase("prune"))          { processPrune(false,  0); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("pruneTrue"))      { processPrune(false,  1); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("pruneFalse"))     { processPrune(false, -1); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("isVariant"))      { processPrune(true,   0); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("isa"))            { processISA(        ); break; }
+						if (colonNext && currentWord.equalsIgnoreCase("prune"))          { processPrune(0); break; }
+						if (colonNext && currentWord.equalsIgnoreCase("pruneTrue"))      { processPrune(1); break; }
+						if (colonNext && currentWord.equalsIgnoreCase("pruneFalse"))     { processPrune(-1); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("isaInterval"))    { processISAInterval(); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("range"))          { processTypeRange(  ); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("queryPred"))      { processQueryPred(  ); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("hiddenPred"))     { processHiddenPred( ); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("weight"))         { nextSentence = processWeight(':'); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("wgt"))            { nextSentence = processWeight(':'); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("output"))         { nextSentence = processWeight(':'); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("out"))            { nextSentence = processWeight(':'); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("okIfUnknown"))                    { processDirective(currentWord);  break; }
-						if (colonNext && currentWord.equalsIgnoreCase("dontComplainAboutMultipleTypes")) { processDirective(currentWord);  break; }
 						if (colonNext && currentWord.equalsIgnoreCase("useStdLogicVariables"))           { processCaseForVariables(true);  break; }
 						if (colonNext && currentWord.equalsIgnoreCase("useStdLogicNotation"))            { processCaseForVariables(true);  break; }
 						if (colonNext && currentWord.equalsIgnoreCase("usePrologVariables"))             { processCaseForVariables(false); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("usePrologNotation"))              { processCaseForVariables(false); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("useLeadingQuestionMarkVariables")){ processUseQuestionMarkForVariables(); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("import"))      {
-							List<Sentence>  sentencesInOtherFile =                         processAnotherFile(false, true);
-							if (sentencesInOtherFile         == null) { break; }
-							listOfSentencesReadOrCreated.addAll(sentencesInOtherFile);
-							break;
-						}
-						if (colonNext && currentWord.equalsIgnoreCase("importIfExists"))      {
-							List<Sentence>  sentencesInOtherFile =                         processAnotherFile(false, false);
+							List<Sentence>  sentencesInOtherFile =                         processAnotherFile(false);
 							if (sentencesInOtherFile         == null) { break; }
 							listOfSentencesReadOrCreated.addAll(sentencesInOtherFile);
 							break;
 						}
 						if (colonNext && currentWord.equalsIgnoreCase("importLibrary"))      {
-							List<Sentence>  sentencesInOtherFile =                         processAnotherFile(true, true);
+							List<Sentence>  sentencesInOtherFile =                         processAnotherFile(true);
 							if (sentencesInOtherFile         == null) { break; }
 							listOfSentencesReadOrCreated.addAll(sentencesInOtherFile);
 							break;
 						}
 						if (colonNext) { tokenizer.pushBack(); } // Need to push the colon back if it wasn't part of a special instruction.  It can also appear in modes of terms.
-						if (currentWord.equalsIgnoreCase("weight") || currentWord.equalsIgnoreCase("wgt")) { nextSentence = processWeight(getNextToken()); break; }
+
+						// TODO(@hayesall): I dropped "weight" and "wgt" above, maybe they can be dropped here?
+						if (currentWord.equalsIgnoreCase("weight") || currentWord.equalsIgnoreCase("wgt")) {
+							nextSentence = processWeight(getNextToken()); break;
+						}
 						if (!ignoreThisConnective(true, currentWord) && ConnectiveName.isaConnective(currentWord) && !ConnectiveName.isTextualConnective(currentWord)) { // NOT's handled by processFOPC_sentence.
 							//Utils.error("Need to handle a PREFIX connective: '" + currentWord + "'.");
 							// If here, there must be exactly two arguments.
@@ -792,17 +674,6 @@ public class FileParser {
 		}
 	}
 
-	private void processUseQuestionMarkForVariables() throws ParsingException, IOException {
-		int nextToken = tokenizer.nextToken();
-		if (nextToken != StreamTokenizer.TT_WORD) { throw new ParsingException("Expecting a token after useLeadingQuestionMarkVariables, but read: '" + reportLastItemRead()); }
-		if (tokenizer.sval().equalsIgnoreCase("true") || tokenizer.sval().equalsIgnoreCase("yes") || tokenizer.sval().equalsIgnoreCase("1")) {
-			stringHandler.setVariablesStartWithQuestionMarks();
-		} else {
-			stringHandler.usePrologNotation(); // If NO is given to setVariablesStartWithQuestionMarks? then use standard Prolog notation.
-		}
-		peekEOL(true);
-	}
-
 	/*
 	 * Allow specification of notation for logical variables.  See comments about "useStdLogicVariables" and "usePrologVariables" above.
 	 */
@@ -817,47 +688,6 @@ public class FileParser {
 			if (defaultIsUseStdLogic) { stringHandler.usePrologNotation();   } else { stringHandler.useStdLogicNotation(); }
 		}
 		peekEOL(true);
-	}
-
-	/*
-	 Read something of the form: Mary = motherOf(John). The EOL ('.' or ';') is optional.
-    */
-	private void processDefinition() throws ParsingException, IOException  {
-		Constant  lhs       = processConstant();
-		int       nextToken = tokenizer.nextToken();
-
-		if (nextToken == '=') {
-			Function rhs = processFunction();
-
-			if (!rhs.isGrounded()) { throw new ParsingException("In a function definition, the right-hand side must be a function of constants.  You provided: '" + lhs + " = " + rhs + "'."); }
-			peekEOL(true);
-			if (rhs.getArguments() != null) {
-				List<Constant> constants = new ArrayList<>(rhs.numberArgs());
-				for (Term term : rhs.getArguments()) { constants.add((Constant) term); } // Have already checked that these are all constants.
-				rhs.functionName.addExtensionalDefinition(constants, lhs);
-			}
-			else {
-				rhs.functionName.addExtensionalDefinition(null, lhs);
-			}
-
-		}
-		else { throw new ParsingException("Expecting an '=' if the specification of the semantics of a function, but read '" +  reportLastItemRead()); }
-	}
-
-	private Function processFunction() throws ParsingException, IOException {
-		Term term = processTerm(false);
-
-		if (term instanceof Function) { return (Function) term; }
-		throw new ParsingException("Expecting to read a grounded function in the specification of the semantics of a function, but read '" + term + "'.");
-	}
-
-	private Constant processConstant() throws ParsingException, IOException  {
-		int      nextToken = tokenizer.nextToken();
-
-		if (nextToken != StreamTokenizer.TT_WORD) { throw new ParsingException("Was expecting a constant and read: '" + reportLastItemRead() + "'."); }
-		Constant result = stringHandler.getStringConstant(null, tokenizer.sval(), false);
-		if (result == null) { throw new ParsingException("The term '" + tokenizer.sval() + "' is not the proper case (upper/lower) to be a constant."); }
-		return result;
 	}
 
 	private Literal processInfixLiteral(Term firstTerm, String inFixOperatorName) throws ParsingException, IOException {
@@ -1638,81 +1468,7 @@ public class FileParser {
         stringHandler.addLiteralAlias(alias, example);
     }
 
-    /* Process a Relevant Clause statement.
-     *
-     * The relevantClause statement
-     */
-    private void processRelevantClause(List<Sentence> listOfSentences) throws ParsingException, IOException {
-
-        Sentence relevantClause;
-
-        Literal exampleLiteral;
-
-        if ( checkAndConsumeToken("@") ) {
-            exampleLiteral = processLiteral(true);
-            exampleLiteral = stringHandler.lookupLiteralAlias(exampleLiteral);
-        }
-        else {
-            exampleLiteral = processLiteral(true);
-        }
-
-        expectAndConsumeToken(":");
-
-        if ( checkAndConsumeToken("[") ) {
-            NamedTermList list = processListOfTerms('[', false);
-            List<Literal> literals = convertTermsToLiterals(list.getTerms());
-
-            relevantClause = stringHandler.getClause(literals, true);
-        }
-        else if(checkAndConsumeToken("(")) {
-            NamedTermList list = processListOfTerms('(', false);
-            List<Literal> literals = convertTermsToLiterals(list.getTerms());
-
-            relevantClause = stringHandler.getClause(literals, true);
-        }
-        else {
-            relevantClause = processLiteral(false);
-        }
-
-        expectAndConsumeToken(",");
-
-        RelevanceStrength strength = readRelevanceStrength();
-
-        Literal relevanceFact = stringHandler.getLiteral("relevant_clause", exampleLiteral.convertToFunction(stringHandler), stringHandler.getSentenceAsTerm(relevantClause, ""), stringHandler.getStringConstant(strength.name()));
-
-        listOfSentences.add(relevanceFact);
-
-    }
-
-    private void processRelevantFeature(List<Sentence> listOfSentences) throws ParsingException, IOException {
-
-        Literal exampleLiteral;
-
-        if ( checkAndConsumeToken("@") ) {
-            exampleLiteral = processLiteral(true);
-            exampleLiteral = stringHandler.lookupLiteralAlias(exampleLiteral);
-        }
-        else {
-            exampleLiteral = processLiteral(true);
-        }
-
-        expectAndConsumeToken(":");
-
-        String predicateName = getNextString();
-        expectAndConsumeToken("/");
-        String arity = getNextString();
-
-        expectAndConsumeToken(",");
-
-        RelevanceStrength strength = readRelevanceStrength();
-
-        Literal relevanceFact = stringHandler.getLiteral("relevant_feature", exampleLiteral.convertToFunction(stringHandler), stringHandler.getStringConstant(predicateName + "/" + arity, false), stringHandler.getStringConstant(strength.name()));
-
-        listOfSentences.add(relevanceFact);
-
-    }
-
-    private void processRelevantLiteralNew(List<Sentence> listOfSentences) throws ParsingException, IOException {
+	private void processRelevantLiteralNew(List<Sentence> listOfSentences) throws ParsingException, IOException {
 
         Literal exampleLiteral;
 
@@ -1737,39 +1493,7 @@ public class FileParser {
         listOfSentences.add(relevanceFact);
     }
 
-    private void processRelevantMode(List<Sentence> listOfSentences) throws ParsingException, IOException {
-
-        Literal exampleLiteral;
-
-        if ( checkAndConsumeToken("@") ) {
-            exampleLiteral = processLiteral(true);
-            exampleLiteral = stringHandler.lookupLiteralAlias(exampleLiteral);
-        }
-        else {
-            exampleLiteral = processLiteral(true);
-        }
-
-        expectAndConsumeToken(":");
-
-        Literal relevantLiteral = processLiteral(true);
-
-        expectAndConsumeToken(",");
-
-        RelevanceStrength strength = readRelevanceStrength();
-
-		if ( checkAndConsumeToken(",") ) {
-            if ( checkAndConsumeToken("max")) {
-                expectAndConsumeToken("=");
-				readInteger();
-            }
-        }
-
-        Literal relevanceFact = stringHandler.getLiteral("relevant_mode", exampleLiteral.convertToFunction(stringHandler), relevantLiteral.convertToFunction(stringHandler), stringHandler.getStringConstant(strength.name()));
-
-        listOfSentences.add(relevanceFact);
-    }
-
-    private void processNonOperational() throws IOException {
+	private void processNonOperational() throws IOException {
         PredicateNameAndArity pnaa = processPredicateNameAndArity();
 
         while(!checkToken(".") && !atEOL()) {
@@ -1889,7 +1613,7 @@ public class FileParser {
 	 * Process something like:  cost: p/2, 1.5;
 	 * Such costs can be used when scoring clauses (default cost is 1.0).
 	 */
-	private void processCost(boolean isFinal) throws ParsingException, IOException {
+	private void processCost() throws ParsingException, IOException {
 		// Have already read the 'cost:"
 		int tokenRead = checkForPredicateNamesThatAreCharacters(getNextToken());
 
@@ -1904,7 +1628,7 @@ public class FileParser {
 
 			tokenRead = getNextToken();
 			double cost = processNumber(tokenRead);
-			pName.setCost(arity, cost, isFinal);
+			pName.setCost(arity, cost, false);
 			return;
 		}
 		throw new ParsingException("Expecting the name of a predicate in a 'cost' but read: '" + reportLastItemRead() + "'.");
@@ -1992,44 +1716,35 @@ public class FileParser {
 	 *         ifPresentLiteral,   // do not add something that also unifies with 'prunableLiteral' - the commas and the final '.' (or ';') are optional.
 	 *         [warnIf(N)]         // The optional third argument says to complain if there are N or more existing rules whose head unifies with 'ifPresentLiteral' since this pruning is based on the assumption that less than N such rules exist (i.e., the 'precompute:' facility assumes N=1).
 	 */
-	private void processPrune(boolean isaVariant, int truthValue) throws ParsingException, IOException {  // TruthValue: -1 means 'prune because false', 1 means because true, and 0 means unknown.
+	private void processPrune(int truthValue) throws ParsingException, IOException {  // TruthValue: -1 means 'prune because false', 1 means because true, and 0 means unknown.
 		Literal prunableLiteral  = processLiteral(false);
 		String commaOne = " ";
 		if (checkAndConsume(',')) { commaOne = ", "; } // Commas are optional.
 		if (peekEOL(false)) { // Have something like "prune: f(x,x)."
-			if (isaVariant) { throw new ParsingException("Cannot have items of the form: isaVariant: f(x)."); }
 			prunableLiteral.predicateName.recordPrune(prunableLiteral,  null, -1, truthValue);
 			return;
 		}
 		Literal ifPresentLiteral = processLiteral(false);
-		if (isaVariant) {
+		String commaTwo = " ";
+		if (checkAndConsume(',')) { commaTwo = ", "; } // Commas are optional.
+		if (!commaTwo.equalsIgnoreCase(" ") || !peekEOL(true)) {
+			Literal warnLiteral = processLiteral(false);
+			if (warnLiteral != null && warnLiteral.predicateName == stringHandler.getPredicateName("warnIf") && warnLiteral.numberArgs() == 1) {
+				  // TODO(?):   Process 'prune: " + prunableLiteral + commaOne + ifPresentLiteral + commaTwo + warnLiteral + "'.");
+				  Term term = warnLiteral.getArgument(0);
+				  if (term instanceof NumericConstant) {
+					  int n = ((NumericConstant) term).value.intValue(); // Use the integer value regardless (enough thrown exceptions already ...).
+					  stringHandler.needPruner = true;
+					  prunableLiteral.predicateName.recordPrune(prunableLiteral, ifPresentLiteral, n, truthValue);
+				  }
+				  else { throw new ParsingException("Read '" + warnLiteral + "' after 'prune: " + prunableLiteral + commaOne + ifPresentLiteral + commaTwo + "' and was expecting that the argument to 'warnIf(N)' be a number."); }
+			}
+			else { throw new ParsingException("Read '" + warnLiteral + "' after 'prune: " + prunableLiteral + commaOne + ifPresentLiteral + commaTwo + "' and was expecting 'warnIf(N)'."); }
+			peekEOL(true);
+		}
+		else {
 			stringHandler.needPruner = true;
-			prunableLiteral.predicateName.recordPrune(    prunableLiteral,  ifPresentLiteral, 1, truthValue);
-			ifPresentLiteral.predicateName.recordPrune(   ifPresentLiteral, prunableLiteral,  1, truthValue);
-			prunableLiteral.predicateName.recordVariants( prunableLiteral,  ifPresentLiteral, stringHandler);
-			ifPresentLiteral.predicateName.recordVariants(ifPresentLiteral, prunableLiteral,  stringHandler);
-		} else {
-			String commaTwo = " ";
-			if (checkAndConsume(',')) { commaTwo = ", "; } // Commas are optional.
-			if (!commaTwo.equalsIgnoreCase(" ") || !peekEOL(true)) {
-				Literal warnLiteral = processLiteral(false);
-				if (warnLiteral != null && warnLiteral.predicateName == stringHandler.getPredicateName("warnIf") && warnLiteral.numberArgs() == 1) {
-					  // TODO(?):   Process 'prune: " + prunableLiteral + commaOne + ifPresentLiteral + commaTwo + warnLiteral + "'.");
-					  Term term = warnLiteral.getArgument(0);
-					  if (term instanceof NumericConstant) {
-						  int n = ((NumericConstant) term).value.intValue(); // Use the integer value regardless (enough thrown exceptions already ...).
-						  stringHandler.needPruner = true;
-						  prunableLiteral.predicateName.recordPrune(prunableLiteral, ifPresentLiteral, n, truthValue);
-					  }
-					  else { throw new ParsingException("Read '" + warnLiteral + "' after 'prune: " + prunableLiteral + commaOne + ifPresentLiteral + commaTwo + "' and was expecting that the argument to 'warnIf(N)' be a number."); }
-				}
-				else { throw new ParsingException("Read '" + warnLiteral + "' after 'prune: " + prunableLiteral + commaOne + ifPresentLiteral + commaTwo + "' and was expecting 'warnIf(N)'."); }
-				peekEOL(true);
-			}
-			else {
-				stringHandler.needPruner = true;
-				prunableLiteral.predicateName.recordPrune(prunableLiteral, ifPresentLiteral, Integer.MAX_VALUE, truthValue);
-			}
+			prunableLiteral.predicateName.recordPrune(prunableLiteral, ifPresentLiteral, Integer.MAX_VALUE, truthValue);
 		}
 	}
 
@@ -2187,7 +1902,7 @@ public class FileParser {
 		for (String library : knownLibraries) if (!loadedLibraries.contains(library)) {
 			if (results == null) { results = new ArrayList<>(4); }
 			try {
-				List<Sentence> allLibrarySentences = loadThisFile(true, library, false);
+				List<Sentence> allLibrarySentences = loadThisFile(true, library);
 				if (allLibrarySentences != null) { results.addAll(allLibrarySentences); }
 			} catch (Exception e) {
 				Utils.reportStackTrace(e);
@@ -2198,6 +1913,7 @@ public class FileParser {
 		return results;
 	}
 
+	// TODO(@hayesall): move this into `loadAllBasicModes`
 	private final Set<String> loadedBasicModes = new HashSet<>(4);
 
 	public List<Sentence> loadAllBasicModes() throws ParsingException {
@@ -2209,7 +1925,7 @@ public class FileParser {
 		for (String library : knownBasicModes) if (!loadedBasicModes.contains(library)) {
 			if (results == null) { results = new ArrayList<>(4); }
 			try {
-				List<Sentence> allLibrarySentences = loadThisFile(true, library, false);
+				List<Sentence> allLibrarySentences = loadThisFile(true, library);
 				if (allLibrarySentences != null) { results.addAll(allLibrarySentences); }
 			} catch (Exception e) {
 				Utils.reportStackTrace(e);
@@ -2236,7 +1952,7 @@ public class FileParser {
 	 * Parse the file named after this 'import:' directive. For example:
 	 * import: text. The EOL ('.' or ';') at the end is optional.
 	 */
-	private List<Sentence> processAnotherFile(boolean isaLibraryFile, boolean complainIfFileDoesNotExist) throws ParsingException, IOException {
+	private List<Sentence> processAnotherFile(boolean isaLibraryFile) throws ParsingException, IOException {
 		// Have already read the "import:" or "importLibrary:"
 		int     nextToken = getNextToken();
 		boolean quoted    = atQuotedString(nextToken);
@@ -2257,14 +1973,12 @@ public class FileParser {
 					       Objects.requireNonNull(newFileName).replace("IMPORT_VAR1", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar1)));
 			newFileName =  newFileName.replace("IMPORT_VAR2", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar2));
 			newFileName =  newFileName.replace("IMPORT_VAR3", Utils.removeAnyOuterQuotes(stringHandler.import_assignmentToTempVar3));
-			newFileName =  newFileName.replace("FACTS",       Utils.removeAnyOuterQuotes(stringHandler.FACTS));
 			newFileName =  newFileName.replace("PRECOMP",     Utils.removeAnyOuterQuotes(stringHandler.PRECOMP));
-			newFileName =  newFileName.replace("SWD",         Utils.removeAnyOuterQuotes(stringHandler.SWD));
 			newFileName =  newFileName.replace("TASK",        Utils.removeAnyOuterQuotes(stringHandler.TASK));
 			
 			if (!isaLibraryFile && !newFileName.contains(".")) { newFileName += stringHandler.precompute_file_postfix; } //only add extension _after_ doing substitutions
 
-			return loadThisFile(isaLibraryFile, newFileName, !complainIfFileDoesNotExist);
+			return loadThisFile(isaLibraryFile, newFileName);
 		}
 		throw new ParsingException("Expecting the file name of a file to import, but read: '" + reportLastItemRead() + "'.");
 	}
@@ -2286,12 +2000,6 @@ public class FileParser {
 		if (vStr != null) {                       stringHandler.precompute_assignmentToTempVar3 = Matcher.quoteReplacement(vStr); }	
 
 		// Imports
-		vStr = stringHandler.getParameterSetting("importPrefix");
-		if (vStr != null) {
-		}
-		vStr = stringHandler.getParameterSetting("importPostfix");
-		if (vStr != null) {
-        }
 		vStr = stringHandler.getParameterSetting("importVar1"); // Will replace instances of IMPORT_VAR1 in files names for imported files.
 		if (vStr != null) {                       stringHandler.import_assignmentToTempVar1 = Matcher.quoteReplacement(vStr); }
 		vStr = stringHandler.getParameterSetting("importVar2");
@@ -2301,7 +2009,7 @@ public class FileParser {
 		
 	}
 
-	private List<Sentence> loadThisFile(boolean isaLibraryFile, String newFileNameRaw, Boolean okIfFileDoesntExist) throws ParsingException, IOException {
+	private List<Sentence> loadThisFile(boolean isaLibraryFile, String newFileNameRaw) throws ParsingException, IOException {
 		String   newFileName = Utils.replaceWildCards(newFileNameRaw);
 		FileParser newParser = new FileParser(stringHandler); // Needs to use the same string handler.
 		newParser.dontPrintUnlessImportant = dontPrintUnlessImportant;
@@ -2323,7 +2031,7 @@ public class FileParser {
 			if (stringHandler.haveLoadedThisFile(file2load, true)) {
 				return null;
 			}
-			result = newParser.readFOPCfile(file2load, okIfFileDoesntExist);
+			result = newParser.readFOPCfile(file2load, false);
 		}
 		if (newParser.sentencesToPrecompute != null) {
 			if (sentencesToPrecompute == null) { initializeSentencesToPrecompute(); }
@@ -2369,10 +2077,7 @@ public class FileParser {
 
 			// Handle parser strings here.
 			if        (parameterName.equalsIgnoreCase("parsingWithNamedArguments")) {
-
 				// Indicates parsing IL ("interlingua") for the BL (Bootstrap Learning) project.
-				Boolean.parseBoolean(parameterValue);
-
 			} else if (parameterName.equalsIgnoreCase("maxWarnings")) {
 				maxWarnings               = Integer.parseInt(parameterValue);
 			} else if (parameterName.equalsIgnoreCase("variablesStartWithQuestionMarks")) {
@@ -2402,32 +2107,6 @@ public class FileParser {
 		}
 		peekEOL(true);
 		if (parameterName.contains("precompute") || parameterName.contains("import")) { checkForDefinedImportAndPrecomputeVars(); }
-	}
-
-	/*
-	 * Process an 'typeA isa typeB.' The 'isa' is optional. The EOL ('.' or ';') also is optional.
-	 */
-	private void processISA() throws ParsingException, IOException {
-		int    tokenRead = getNextToken();
-		String beforeIsa = getPossiblyQuotedString(tokenRead);
-
-		tokenRead = getNextToken();
-		String afterIsa;
-		if (tokenRead != StreamTokenizer.TT_WORD) { Utils.error("Expecting 'isa' or the name of a type, but got: '" + reportLastItemRead() + "'.  beforeIsa=" + beforeIsa); }
-		if (tokenizer.sval().equalsIgnoreCase("isa")) {  // If the optional isa is present, suck it up.
-			tokenRead = getNextToken();
-			if (tokenRead != StreamTokenizer.TT_WORD) { Utils.error("Expecting the name of a type, but got: " + reportLastItemRead() + "."); }
-		}
-		afterIsa = tokenizer.sval();
-		peekEOL(true); // Suck up an optional EOL.
-
-		Term childAsConstant  = stringHandler.getVariableOrConstant(beforeIsa);
-		if (!(childAsConstant instanceof Constant))  { throw new ParsingException("Items in ISA's must be constants.  You provided: >> " + beforeIsa + " << isa " + afterIsa); }
-		//if (!(parent instanceof StringConstant)) { throw new ParsingException("Items in ISA's must be (string) constants.  You provided: " + child + " isa >> " + parent + " <<"); }
-		Type child  = stringHandler.isaHandler.getIsaType(beforeIsa);
-		Type parent = stringHandler.isaHandler.getIsaType(afterIsa);
-
-		stringHandler.isaHandler.addISA(child, parent);
 	}
 
 	/*
@@ -2522,7 +2201,7 @@ public class FileParser {
 	 *  			   [max=#]                 // Optionally say that typed_literal can appear in a learned clauses at most # (some integer) times.
 	 *  			   [maxPerInputVars=#]     // Optionally indicate that PER SETTING to the 'input' (i.e. '+') variables, can occur at most this many times (an idea taken from Aleph).
 	 */
-	private void processMode(List<Sentence> listOfSentences, boolean thisIsaNoMode) throws ParsingException, IOException {  // TODO if token not a known optional argument could pushback() w/o needing an EOL, but be more restrictive for now.
+	private void processMode(List<Sentence> listOfSentences) throws ParsingException, IOException {  // TODO if token not a known optional argument could pushback() w/o needing an EOL, but be more restrictive for now.
 		Literal       typedHeadLiteral = processLiteral(true);
 		int           tokenRead    = getNextToken();
 		PredicateName targetPred   = null;
@@ -2564,14 +2243,13 @@ public class FileParser {
 		if (typedHeadLiteral.getArguments() != null) {
 			for (Term term : typedHeadLiteral.getArguments()) {
 				if (term instanceof Function) {
-					//processTypesInFunction((Function) term); // Seems these are properly marked with their types.
 					continue;
 				}
 				if (term.getTypeSpec() != null) { continue; }
 				throw new ParsingException("All arguments in mode specifications must be typed.  There is no type for '" + term + "' in '" + typedHeadLiteral + "'.");
 			}
 		}
-		stringHandler.recordMode(typedHeadLiteral, max, maxPerInputVars, thisIsaNoMode);
+		stringHandler.recordMode(typedHeadLiteral, max, maxPerInputVars, false);
 		
 
         listOfSentences.add(stringHandler.getClause(stringHandler.getLiteral("mode", typedHeadLiteral.convertToFunction(stringHandler)), true));
@@ -2579,92 +2257,14 @@ public class FileParser {
 		// Do NOT skipToEOL() here since that is what ended the while loop.
 	}
 
-	private void processConstrains() throws ParsingException, IOException {
+	private void processFunctionAsPred() throws ParsingException, IOException {
 		checkForPredicateNamesThatAreCharacters(getNextToken());
 		int tokenRead;
 		String        currentWord = tokenizer.reportCurrentToken();
 		PredicateName predicate = stringHandler.getPredicateName(currentWord);
 		tokenRead = getNextToken();
 
-		if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in a constrains specification for '" + predicate + "', but got: '" + reportLastItemRead() + "'."); }
-		int arity = readInteger();
-
-		tokenRead = getNextToken();
-		if (tokenRead == ',') {
-			getNextToken();
-		} // OK if there are some commas separating the items.
-		currentWord = tokenizer.reportCurrentToken();
-		if (!currentWord.equalsIgnoreCase("arg")) { throw new ParsingException("Expecting to read: 'arg' but instead read '" + reportLastItemRead() + "'."); }
-		tokenRead    = getNextToken();
-		if (tokenRead != '=') { throw new ParsingException("Expecting to read '=' (after 'arg'), but instead read: '" + reportLastItemRead() + "'."); }
-		int position = readInteger();
-		if (position < 1 || position > arity) { throw new ParsingException("Expecting to read an integer between 1 and " + arity + ", but instead read '" + position + "."); }
-		tokenRead    = getNextToken();
-		if (tokenRead == ',') {
-			getNextToken();
-		}
-		Type type = stringHandler.isaHandler.getIsaType(tokenizer.reportCurrentToken());
-		boolean pruneIfNoEffect = false;
-		if (!atEOL()) {
-			tokenRead    = getNextToken();
-			if (tokenRead == ',') {
-				getNextToken();
-			}
-			currentWord = tokenizer.reportCurrentToken();
-			if (!currentWord.equalsIgnoreCase("pruneIfNoEffect")) { throw new ParsingException("Expecting to read: 'arg' but instead read '" + reportLastItemRead() + "'."); }
-			pruneIfNoEffect = true;
-		}
-		predicate.addConstrainsArgumentType(arity, position, type, pruneIfNoEffect);
-		peekEOL(true); // Suck up an optional EOL.
-	}
-
-	/* Process a specification of a determinate literal.
-	 *
-	 *   Eg, determinate: p/3 arg=2 type=integer.
-	 *
-	 * When all other arguments are fixed, the specified arg's is deterministic and of this type.
-	 *
-	 */
-	private void processDeterminate() throws ParsingException, IOException {
-		checkForPredicateNamesThatAreCharacters(getNextToken());
-		int tokenRead;
-		String        currentWord = tokenizer.reportCurrentToken();
-		PredicateName predicate = stringHandler.getPredicateName(currentWord);
-		tokenRead = getNextToken();
-
-		if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in a determinate specification for '" + predicate + "', but got: '" + reportLastItemRead() + "'."); }
-		int arity = readInteger();
-
-        expectAndConsumeToken(",");
-        expectAndConsumeToken("arg");
-        expectAndConsumeToken("=");
-        int position = readInteger();
-
-		if (position < 1 || position > arity) { throw new ParsingException("Expecting to read an integer between 1 and " + arity + ", but instead read '" + position + "."); }
-
-		getNextToken();
-
-        Type type = null;
-
-        if ( checkAndConsumeToken("," ) ) {
-            expectAndConsumeToken("type");
-            expectAndConsumeToken("=");
-
-            String typeAsString = getNextString();
-            type = stringHandler.isaHandler.getIsaType(typeAsString);
-        }
-		predicate.setDeterminateInfo(arity, position, type);
-		peekEOL(true); // Suck up an optional EOL.
-	}
-
-	private void processFunctionAsPred(FunctionAsPredType prefix) throws ParsingException, IOException {
-		checkForPredicateNamesThatAreCharacters(getNextToken());
-		int tokenRead;
-		String        currentWord = tokenizer.reportCurrentToken();
-		PredicateName predicate = stringHandler.getPredicateName(currentWord);
-		tokenRead = getNextToken();
-
-		if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in a " + prefix + "FunctionAsPred specification for '" + predicate + "', but got: '" + reportLastItemRead() + "'."); }
+		if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in a " + FunctionAsPredType.numeric + "FunctionAsPred specification for '" + predicate + "', but got: '" + reportLastItemRead() + "'."); }
 		int arity = readInteger();
 
 		tokenRead = getNextToken();
@@ -2677,7 +2277,7 @@ public class FileParser {
 		int position = readInteger();
 		if (position < 1 || position > arity) { throw new ParsingException("Expecting to read an integer between 1 and " + arity + ", but instead read '" + position + "."); }
 
-		predicate.addFunctionAsPred(prefix, arity, position);
+		predicate.addFunctionAsPred(FunctionAsPredType.numeric, arity, position);
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
@@ -2723,16 +2323,6 @@ public class FileParser {
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
-	private void processFilter() throws ParsingException, IOException {
-		checkForPredicateNamesThatAreCharacters(getNextToken());
-		String        currentWord = tokenizer.reportCurrentToken();
-		PredicateName predicate   = stringHandler.getPredicateName(currentWord);
-		getNextToken();
-
-		predicate.addFilter();
-		peekEOL(true); // Suck up an optional EOL.
-	}
-
 	private void processQueryPred() throws ParsingException, IOException {
 		checkForPredicateNamesThatAreCharacters(getNextToken());
 		int           tokenRead;
@@ -2745,71 +2335,6 @@ public class FileParser {
 
 		predicate.addQueryPred(arity);
 		peekEOL(true); // Suck up an optional EOL.
-	}
-
-	private void processHiddenPred() throws ParsingException, IOException {
-		checkForPredicateNamesThatAreCharacters(getNextToken());
-		int tokenRead;
-		String        currentWord = tokenizer.reportCurrentToken();
-		PredicateName predicate = stringHandler.getPredicateName(currentWord);
-		tokenRead = getNextToken();
-
-		if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in a hidden-predicate specification for '" + predicate + "', but got: '" + reportLastItemRead() + "'."); }
-		int arity = readInteger();
-
-		predicate.addHiddenPred(arity);
-		peekEOL(true); // Suck up an optional EOL.
-	}
-
-	private void processThreshold()  throws ParsingException, IOException {
-		Literal typedHeadLiteral = processLiteral(true);
-		tokenizer.reportCurrentToken();
-		String  currentWord;
-		getNextToken();
-		int     tokenRead;
-		int     maxCuts      = -1;
-		boolean createTiles  = false;
-		boolean firstArgIsExampleID = false;
-
-		tokenRead = getNextToken();
-		if (tokenRead == ',') {
-			getNextToken();
-		} // OK if there are some commas separating the items.
-		currentWord = tokenizer.reportCurrentToken();
-		tokenRead    = getNextToken();
-		if (tokenRead != '=') { throw new ParsingException("Expecting to read '=' (after 'arg'), but instead read: '" + reportLastItemRead() + "'."); }
-		int position = readInteger();
-		if (position < 1 || position > typedHeadLiteral.numberArgs()) { throw new ParsingException("Expecting to read an integer between 1 and " + typedHeadLiteral.numberArgs() + ", but instead read '" + position + "."); }
-
-		while (!atEOL()) { // Have some optional arguments since not yet at EOL. {
-			tokenRead   = getNextToken();
-			currentWord = tokenizer.reportCurrentToken();
-
-			if (tokenRead == ',' || atEOL()) {
-
-			}
-			else if (currentWord.equalsIgnoreCase("maxCuts")) {
-				tokenRead = getNextToken();
-				if (tokenRead != '=') { throw new ParsingException("Expecting to read '=' (after 'maxCuts'), but instead read: '" + reportLastItemRead() + "'."); }
-				maxCuts = readInteger();
-				if (maxCuts < 2) { throw new ParsingException("Expecting to read an integer great than 1, but instead read '" + maxCuts + "."); }
-			}
-
-
-			else if (currentWord.equalsIgnoreCase("createTiles")) {
-				createTiles = true;
-			}
-			else if (currentWord.equalsIgnoreCase("firstArgIsExampleID")) {
-				firstArgIsExampleID = true;
-			}
-			else { throw new ParsingException("Expecting to read 'maxCuts' or 'createTiles' or 'firstArgIsExampleID,' but instead read: '" + reportLastItemRead() + "'."); }
-
-		}
-		skipToEOL();
-        if (literalsToThreshold == null) {
-            literalsToThreshold = new HashSet<>(4);
-        }
-        literalsToThreshold.add(stringHandler.getLiteralToThreshold(typedHeadLiteral.predicateName, typedHeadLiteral.getArguments(), position, maxCuts, createTiles, firstArgIsExampleID));
 	}
 
 	private int getNextToken() throws IOException {
@@ -3797,14 +3322,6 @@ public class FileParser {
 		results.addAll(collection);
 		return results;
 	}
-
-    private List<Literal> convertTermsToLiterals(List<Term> terms) throws ParsingException {
-        List<Literal> literals = new ArrayList<>(terms.size());
-		for (Term term : terms) {
-			literals.add(convertTermToLiteral(term));
-		}
-        return literals;
-    }
 
 	private void setNumberOfPrecomputeFiles(int numberOfPrecomputeFiles) {
 		FileParser.numberOfPrecomputeFiles = numberOfPrecomputeFiles;

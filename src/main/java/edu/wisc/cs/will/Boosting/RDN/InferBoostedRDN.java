@@ -5,9 +5,7 @@ import edu.wisc.cs.will.Boosting.MLN.MLNInference;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Boosting.Utils.ThresholdSelector;
 import edu.wisc.cs.will.DataSetUtils.ComputeAUC;
-import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.ILP.CoverageScore;
-import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
@@ -22,7 +20,6 @@ public class InferBoostedRDN {
 
 	private boolean printExamples = false;
 	private final boolean writeQueryAndResults = true;
-	private boolean useOldFileLocations = true;
 	private double  minRecallForAUCPR = 0;
 	private double minLCTrees = 20;
 	private double incrLCTrees = 2;
@@ -34,11 +31,6 @@ public class InferBoostedRDN {
 		this.cmdArgs = args;
 		this.setup = setup;
 		setParamsUsingSetup(setup);
-
-		// TODO(@hayesall): All calls to `Utils.getUserName()` should probably be removed.
-		if (Utils.getUserName().equalsIgnoreCase("tkhot")) {
-			useOldFileLocations = true;	
-		}
 	}
 	
 	public void runInference(JointRDNModel rdns, double thresh) {
@@ -109,14 +101,14 @@ public class InferBoostedRDN {
 					}
 				}
 			}
-			processExamples(jointExamples, thresh, startCount, false);
+			processExamples(jointExamples, thresh, startCount);
 			jointExamples = backupJointExamples;
 		}
 	}
 
 	private void processExamples(
 			Map<String, List<RegressionRDNExample>> jointExamples,
-			double thresh, int startCount, boolean usingAllEgs) {
+			double thresh, int startCount) {
 		for (String pred : jointExamples.keySet()) {
 			// clear the results file for each predicate
 			if (writeQueryAndResults) {
@@ -125,7 +117,7 @@ public class InferBoostedRDN {
 					f.delete();
 				}
 			}
-			getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount, usingAllEgs);
+			getF1ForEgs(jointExamples.get(pred), thresh, pred, startCount);
 		}
 	}
 
@@ -196,70 +188,19 @@ public class InferBoostedRDN {
 			incrLCTrees = Double.parseDouble(lookup);
 		}
 	}
-	
-	private void reportResultsToCollectorFile(BufferedWriter collectorBW, String category, ProbDistribution prob, double wgt, RegressionRDNExample example) throws IOException {
-		if (category == null) {
-			collectorBW.append("// Results of '").append("unnamedModel").append("'.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
-			return;
-		}
-		collectorBW.append("modelPrediction(model(").append(RunBoostedRDN.nameOfCurrentModel).append("), category(").append(category).append("), prob(").append(String.valueOf(prob)).append("), wgt(").append(String.valueOf(wgt)).append("), ").append(String.valueOf(example)).append(").\n").append("\n");
-	}
 
 	private String getQueryFile(String target) {
-		if (useOldFileLocations) {
-			return setup.getOuterLooper().getWorkingDirectory() + "/query_" + target + ".db";
-		}
-		return getQueryFile(target, false);
+		return setup.getOuterLooper().getWorkingDirectory() + "/query_" + target + ".db";
 	}
-	private String getFullQueryFile(String target) {
-		if (useOldFileLocations) {
-			return setup.getOuterLooper().getWorkingDirectory() + "/query_full_" + target + ".db";
-		}
-		return getQueryFile(target, false);
-	}
-	
-	private String getQueryFile(String target, boolean getLocalFile) {
-		String modelDir = cmdArgs.getResultsDirVal(); // Try to put in the place other results go.
-		String result   = Utils.replaceWildCards((getLocalFile ? "MYSCRATCHDIR"
-                 											   : (modelDir != null ? modelDir : setup.getOuterLooper().getWorkingDirectory()))
-                 								 + "bRDNs/" + (target == null || target.isEmpty() ? "" : target + "_") 
-                 								 + "query" + cmdArgs.getExtraMarkerForFiles(true) + ".db");
-		Utils.ensureDirExists(result);
-		return result;
-	}
-	
+
 	private String getResultsFile(String target) {
-		if (useOldFileLocations) {
-			String suff ="";
-			if (cmdArgs.getModelFileVal() != null) {
-				suff = cmdArgs.getModelFileVal() + "_";
-			}
-			return setup.getOuterLooper().getWorkingDirectory() + "/results_" + suff + target + ".db";
+		String suff ="";
+		if (cmdArgs.getModelFileVal() != null) {
+			suff = cmdArgs.getModelFileVal() + "_";
 		}
-		return getResultsFile(target, false);
+		return setup.getOuterLooper().getWorkingDirectory() + "/results_" + suff + target + ".db";
 	}
-	
-	private String getFullResultsFile(String target) {
-		if (useOldFileLocations) {
-			String suff ="";
-			if (cmdArgs.getModelFileVal() != null) {
-				suff = cmdArgs.getModelFileVal() + "_";
-			}
-			return setup.getOuterLooper().getWorkingDirectory() + "/results_full_" + suff + target + ".db";
-		}
-		return getResultsFile(target, false);
-	}
-	
-	private String getResultsFile(String target, boolean getLocalFile) {
-		String modelDir = cmdArgs.getResultsDirVal();
-		String result =  Utils.replaceWildCards((getLocalFile ? "MYSCRATCHDIR"
-														      : (modelDir != null ? modelDir : setup.getOuterLooper().getWorkingDirectory()))
-												+ "bRDNs/" + (target == null || target.isEmpty() ? "" : target + "_") 
-												+ "results" + cmdArgs.getExtraMarkerForFiles(true)
-												+ (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) + ".db");
-		Utils.ensureDirExists(result);
-		return result;
-	}
+
 	private String getTestsetInfoFile(String target) {
 		String modelDir = cmdArgs.getResultsDirVal();
 		String result   = Utils.replaceWildCards((modelDir != null ? modelDir : setup.getOuterLooper().getWorkingDirectory())
@@ -277,7 +218,7 @@ public class InferBoostedRDN {
 	}
 
 	private void getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
-							 String target, int trees, boolean usingAllEgs) {
+							 String target, int trees) {
 		// TODO(@hayesall): Why does this return a double when the double is never used?
 
 		// We repeatedly loop over the examples, but the code at least is cleaner.
@@ -290,12 +231,7 @@ public class InferBoostedRDN {
 
 			// Print examples and some 'context' for possible use by other MLN software.
 			if (writeQueryAndResults) {
-				printExamples(examples, target, usingAllEgs);
-			}
-
-			// Write to "collector file"
-			if (!useOldFileLocations) {
-				writeToCollectorFile(examples);
+				printExamples(examples, target);
 			}
 		}
 
@@ -366,86 +302,21 @@ public class InferBoostedRDN {
 			}
 		}
 
-		String extraMarker = cmdArgs.getExtraMarkerForFiles(true);
-
 		// If models are written somewhere, then also write AUC's there
 		// (This allows us to avoid writing in a dir that only contains INPUT files)
 		// Hence, multiple runs can simultaneously use the same input directory, yet write to different output dirs.
 
-		String aucTempDirectory = null;
-		if (useOldFileLocations) {
-			aucTempDirectory = setup.getOuterLooper().getWorkingDirectory() + "/AUC/" + (cmdArgs.getModelFileVal() == null ? "" : cmdArgs.getModelFileVal() +"/");
-			if (cmdArgs.getTargetPredVal().size() > 1) {
-				aucTempDirectory += target + "/";
-			}
-			extraMarker = "";
-			ComputeAUC.deleteAUCfilesAfterParsing = false;
-		} else {
-			Utils.replaceWildCards(Utils.isRunningWindows() ? "MYSCRATCHDIR" + "calcAUC/" + target + "/" :  cmdArgs.getDirForAUCfiles(target, setup));
+		String aucTempDirectory;
+		aucTempDirectory = setup.getOuterLooper().getWorkingDirectory() + "/AUC/" + (cmdArgs.getModelFileVal() == null ? "" : cmdArgs.getModelFileVal() +"/");
+		if (cmdArgs.getTargetPredVal().size() > 1) {
+			aucTempDirectory += target + "/";
 		}
-
+		String extraMarker = "";
+		ComputeAUC.deleteAUCfilesAfterParsing = false;
 		return new ComputeAUC(positiveProbabilities, negativeProbabilities, aucTempDirectory, cmdArgs.getAucPathVal(), extraMarker, minRecallForAUCPR, cmdArgs.useLockFiles);
 	}
-	
-	private String ensureThisIsaSubdir(String modelDirRaw) {
-		String modelDir = Utils.replaceWildCards(modelDirRaw);
-		if (modelDir == null)      { return null;     }
-		if (modelDir.length() < 2) { return modelDir; }
-		if (modelDir.contains(":")) {
-			modelDir = modelDir.substring(modelDir.indexOf(':') + 1);
-		}
-		while (modelDir.length() > 0 && modelDir.charAt(0) == File.separatorChar) {
-			modelDir = modelDir.substring(1); // Remove any leading (back) slashes
-		}
-		return modelDir;
-	}
 
-	private void writeToCollectorFile(List<RegressionRDNExample> examples) {
-		String fileNamePrefix = "testSetResults/testSetInferenceResults"
-				+ cmdArgs.getExtraMarkerForFiles(true);
-
-		String localPrefix = "MYSCRATCHDIR"
-				+ "bRDNs/"
-				+ ensureThisIsaSubdir(cmdArgs.getResultsDirVal());
-		String fileName = Utils.replaceWildCards(localPrefix + fileNamePrefix + "_unsorted" + Utils.defaultFileExtensionWithPeriod);
-		String fileNameSorted = Utils.replaceWildCards(localPrefix + fileNamePrefix +   "_sorted" + Utils.defaultFileExtensionWithPeriod);
-
-		int posCounter = 0;
-		int negCounter = 0;
-		try {
-			File           collectorFile = Utils.ensureDirExists(fileName);
-			BufferedWriter collectBuffer = new BufferedWriter(new CondorFileWriter(collectorFile)); // Clear the file if it already exists.
-			
-			Utils.println("\nwriteToCollectorFile: Writing out predictions on " + Utils.comma(examples) + " examples for '" + cmdArgs.getTargetPredVal()  + "'\n  " + fileName);
-			if (collectorFile != null) { reportResultsToCollectorFile(collectBuffer, null, null, 0.0, null); }
-			for (RegressionRDNExample pex : examples) {
-				ProbDistribution prob    = pex.getProbOfExample();
-				double wgtOnEx = pex.getWeightOnExample();
-			
-				if (pex.isOriginalTruthValue()) { posCounter++; } else { negCounter++; }
-				if (collectorFile != null) { reportResultsToCollectorFile(collectBuffer, pex.isOriginalTruthValue() ? "pos" : "neg", prob, wgtOnEx, pex); }
-			}
-			collectBuffer.close();
-			if (collectorFile != null) { sortLinesInPredictedProbsFile(fileName, fileNameSorted); }
-		} catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Something went wrong:\n   " + e);
-		}
-		
-		Utils.moveAndGzip(fileName,       cmdArgs.getResultsDirVal() + fileNamePrefix + "_unsorted" + Utils.defaultFileExtensionWithPeriod, true);
-		Utils.moveAndGzip(fileNameSorted, cmdArgs.getResultsDirVal() + fileNamePrefix +   "_sorted" + Utils.defaultFileExtensionWithPeriod, true);
-		Utils.println("writeToCollectorFile:  " + fileName + "\n   |pos| = " + Utils.comma(posCounter) + "\n   |neg| = " + Utils.comma(negCounter));
-	}
-	
-	private void sortLinesInPredictedProbsFile(String fileToRead, String fileToWrite) {
-		Utils.ensureDirExists(fileToWrite);
-		List<Literal> lits = setup.getInnerLooper().getParser().readLiteralsInFile(fileToRead, false, false);
-		CompareProbsInModelPredictions comparator = new CompareProbsInModelPredictions();
-		lits.sort(comparator);
-		Utils.writeObjectsToFile(fileToWrite, lits, ". // #COUNT", "// Results of '" + RunBoostedRDN.nameOfCurrentModel + "' sorted by the predicted probability.\n\nuseLeadingQuestionMarkVariables: true.\n\n");
-	}
-
-	private void printExamples(List<RegressionRDNExample> examples, String target, boolean usingAllEgs) {
+	private void printExamples(List<RegressionRDNExample> examples, String target) {
 
 		// Will collect the 'context' around a fact.  Turn off until we think this is needed.  It is a slow calculation.
 
@@ -459,26 +330,16 @@ public class InferBoostedRDN {
 		// Results/Probs to results.db
 		String resultsFileString = "?";
 		String queryFileString = "?";
-		String resultsFileStringLocal = "?";
+		String resultsFileStringLocal;
 		String queryFileStringLocal = "?";
 
 		BufferedWriter queryFile = null;
 		BufferedWriter resultsFile = null;
 		try {
-			if (usingAllEgs) {
-				queryFileString        = getFullQueryFile(  target);
-				resultsFileString      = getFullResultsFile(target);
-			} else {
-				queryFileString        = getQueryFile(  target);
-				resultsFileString      = getResultsFile(target);
-			}
-			if (!useOldFileLocations) {
-				queryFileStringLocal   = getQueryFile(  target, Utils.isRunningWindows());
-				resultsFileStringLocal = getResultsFile(target, Utils.isRunningWindows());
-			} else {
-				queryFileStringLocal = queryFileString;
-				resultsFileStringLocal = resultsFileString;
-			}
+            queryFileString        = getQueryFile(  target);
+            resultsFileString      = getResultsFile(target);
+            queryFileStringLocal = queryFileString;
+			resultsFileStringLocal = resultsFileString;
 			queryFile              = new BufferedWriter(new CondorFileWriter(queryFileStringLocal, true));
 			resultsFile            = new BufferedWriter(new CondorFileWriter(resultsFileStringLocal,   true));
 		} catch (IOException e) {
@@ -519,11 +380,6 @@ public class InferBoostedRDN {
 		if (!resultsFileString.equals(queryFileStringLocal)) {
 			Utils.moveAndGzip(queryFileStringLocal,   queryFileString,   true);
 		}
-		
-		if (!resultsFileString.equals(resultsFileStringLocal)) {
-			Utils.moveAndGzip(resultsFileStringLocal, resultsFileString, true);
-		}
-
 	}
 
 	private String getNameOfCSVFile() {
@@ -626,23 +482,5 @@ public class InferBoostedRDN {
 		return "//" + testSetReport1 + "testsetLikelihood(sum(" + Utils.truncate(sum, 3) + "), countOfExamples(" + Utils.truncate(count, 2) + "), mean(" + Utils.truncate(sum / count, 6) + ")).\n\n"
 				+ "//" + testSetReport2 + "\nweightedSumPos(" + Utils.truncate(countOfPos, 3) + ").\nweightedSumNeg(" + Utils.truncate(countOfNeg, 3) + ").\n";
 
-	}
-}
-
-class CompareProbsInModelPredictions implements java.util.Comparator<Literal> {
-	
-	public int compare(Literal lit1, Literal lit2) {
-		if (lit1 == lit2) { return 0; }		   
-		Term arg2_lit1      = lit1.getArgument(2);	
-		Term arg2_lit2      = lit2.getArgument(2);
-		Term arg0_arg2_lit1 = ((Function) arg2_lit1).getArgument(0);
-		Term arg0_arg2_lit2 = ((Function) arg2_lit2).getArgument(0);
-		NumericConstant   nc1 = (NumericConstant) arg0_arg2_lit1;
-		NumericConstant   nc2 = (NumericConstant) arg0_arg2_lit2;
-		double           dbl1 = nc1.value.doubleValue();
-		double           dbl2 = nc2.value.doubleValue();
-
-		// We want HIGHER numbers at the front of the sorted list.
-		return Double.compare(dbl2, dbl1);
 	}
 }

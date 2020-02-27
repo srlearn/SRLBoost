@@ -6,7 +6,6 @@
  */
 
 // TODO(@hayesall): `getPrecision`, `getRecall`, `getFBeta`, `getF1`, `getAccuracy` belong in a "metrics" class
-// TODO(@hayesall): `help_getScratchDirForUser` needs to be destroyed in a fire.
 // TODO(@hayesall): Many of these are FileSystem methods. Abstracting the file system as a class would help.
 
 package edu.wisc.cs.will.Utils;
@@ -15,12 +14,9 @@ import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.Utils.condor.*;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /*
@@ -36,20 +32,6 @@ public class Utils {
 	// For large-scale runs we do not want to create dribble (nor 'debug') files. 
 	public static final Boolean doNotCreateDribbleFiles  = false;
 	private static Boolean doNotPrintToSystemDotOut = false;
-
-    // If the strings MYUSERNAME appear in file names, they will be replaced with these settings.
-	private static String MYUSERNAME       = null; // If we add to this list, edit replaceWildCards().
-    private static String MYSCRATCHDIR     = null;
-	
-
-	/* Stores whether this is a developer run.
-     *
-     * This should null initially.  The getter/setter will initialize it
-     * appropriately the first time it is accessed.  Please do not use it
-     * directly, as that will probably result in a null exception somewhere
-     * along the line.
-     */
-    private static Boolean developmentRun = null; // Should be null.  See comment.
 
     /* Stores whether verbose output should be used.
      *
@@ -80,16 +62,6 @@ public class Utils {
 
     private static final Set<MessageType> filteredMessageTypes = EnumSet.noneOf(MessageType.class);
 
-	// These relate to determining whether or not someone is a WILL developer.
-	// WILL developers should create a file whose name is that stored by DEVELOPER_MACHINE_FILE_NAME 
-	// in their 'home directory'.  
-	//   In Windows this typically is "C:\\Documents and Settings\\shavlik", where 'shavlik' is replaced by one's login name.
-	//   In Unix, this is "~/:
-	// You can call getUserHomeDir() to find out.	
-    private static final String DEVELOPER_MACHINE_PROPERTY_KEY = "edu.wisc.cs.bl.devrun"; // Used to see if this is a 'developer run' - if not, less might be printed and waitHere()'s will become warnings.
-    private static final String DEVELOPER_MACHINE_FILE_NAME    = "runWILLasDeveloper.txt";
-
-
     /* Some Standard verbosity levels.
      * 
      * The verbosity level can be set via the setVerbosity method.  That actually updates
@@ -99,18 +71,15 @@ public class Utils {
      * the appropriate value through the setter.
      */
     public enum Verbosity {
-        Developer(true, true,true),  // Print everything and waitHeres wait, severeError cause a throw.
         // Print everything, waitHeres don't wait, severeError cause a throw.
-        Medium(false, false,false)   // Print everything, waitHeres don't wait, severeError just print error
+        Medium(false,false)   // Print everything, waitHeres don't wait, severeError just print error
         ;
 
-        final boolean developmentRun;
         final boolean print;
         final boolean waitHere;
         final boolean severeWarningThrowsError;
 
-        Verbosity(boolean developmentRun, boolean waitHere, boolean severeWarningThrowsError) {
-            this.developmentRun = developmentRun;
+        Verbosity(boolean waitHere, boolean severeWarningThrowsError) {
             this.print    = true;
             this.waitHere = waitHere;
             this.severeWarningThrowsError = severeWarningThrowsError;
@@ -123,7 +92,14 @@ public class Utils {
      * for the specific settings.
      */
     public static void setVerbosity(Verbosity verbosity) {
-        developmentRun           = verbosity.developmentRun;
+        /* Stores whether this is a developer run.
+         *
+         * This should null initially.  The getter/setter will initialize it
+         * appropriately the first time it is accessed.  Please do not use it
+         * directly, as that will probably result in a null exception somewhere
+         * along the line.
+         */
+        // Should be null.  See comment.
         verbose                  = verbosity.print;
         waitHereEnabled          = verbosity.waitHere;
         severeErrorThrowsEnabled = verbosity.severeWarningThrowsError;
@@ -169,9 +145,6 @@ public class Utils {
     	}
     }
 
-    public static void printlnErr(MessageType type, String str) { // Use this when adding some temp prints so it is easy to find them when you want to later delete (or comment out) them.
-    	if ( isMessageTypeEnabled(type) ) printlnErr(str);
-    }
     public static void printlnErr(String strRaw) {
     	if ( isVerbose() ) {
     		String str = (strRaw == null || strRaw.length() <= maxStringLength ? strRaw : strRaw.substring(0, maxStringLength) + " ... [string too long]");
@@ -207,7 +180,7 @@ public class Utils {
     public static String comma(int value) { // Always use separators (e.g., "100,000").
     	return String.format("%,d", value);    	
     }    
-    public static String comma(long value) { // Always use separators (e.g., "100,000").
+    private static String comma(long value) { // Always use separators (e.g., "100,000").
     	return String.format("%,d", value);    	
     }   
     public static String comma(double value) { // Always use separators (e.g., "100,000").
@@ -292,21 +265,6 @@ public class Utils {
 	public static void error() {
 		throw new WILLthrownError("\n Should not happen ...");
 	}
-
-	/*
-	 * Provide a simple way to mark code that still needs to be written.
-     *
-     */
-	public static void writeMe(String msg) {
-		error("writeMe: " + msg);
-	}
-
-    /*
-     * Flushes the standard output stream.
-     */
-    private static void flush() {
-        if (isVerbose() && !doNotPrintToSystemDotOut) { System.out.flush(); }
-    }
 
     /*
      * Sort (in place this list of doubles and remove duplicate values (where
@@ -418,11 +376,8 @@ public class Utils {
     	if (lookup != null) { return lookup; }
 
         lookup = original;
-
-		lookup = !lookup.contains("MYUSERNAME") ? lookup : lookup.replaceAll("MYUSERNAME", getMyUserName()); // Break into multiple lines so we can localize bugs better.
     	lookup = !lookup.contains("MYPATHPREFIX") ? lookup : lookup.replaceAll("MYPATHPREFIX",     "MYPATHPREFIXisUnset");
     	lookup = !lookup.contains("SHAREDPATHPREFIX") ? lookup : lookup.replaceAll("SHAREDPATHPREFIX", "SHAREDPATHPREFIXisUnset");
-    	lookup = !lookup.contains("MYSCRATCHDIR") ? lookup : lookup.replaceAll("MYSCRATCHDIR",     getMyScratchDir());
     	environmentVariableResolutionCache.put(original, lookup);
     	return lookup;
     }	
@@ -450,26 +405,6 @@ public class Utils {
 			return fileName + ".gz";
 		}
 		return fileName;
-	}
-    
-    // Allow user names to be overwritten, though that can be dangerous.
-    private static void setMyUserName(String newValue) {
-    	MYUSERNAME = Matcher.quoteReplacement(newValue);
-    	environmentVariableResolutionCache.clear();
-    }
-    private static void setMyScratchDir(String newValue) {
-    	MYSCRATCHDIR = Matcher.quoteReplacement(newValue);
-    	environmentVariableResolutionCache.clear();
-    }
-    
-    private static String getMyUserName() {
-    	if (MYUSERNAME == null) { setMyUserName(getUserName(true)); } 	// Probably no need for quoteReplacement on MYUSERNAME, but do on all for consistency/simplicity.
-    	return MYUSERNAME;
-    }
-
-    private static String getMyScratchDir() {
-    	if (MYSCRATCHDIR == null) { setMyScratchDir(help_getScratchDirForUser()); } // Will get into an infinite loop without the "help_" prefix.
-    	return MYSCRATCHDIR;
 	}
 
     /*
@@ -563,7 +498,6 @@ public class Utils {
      * printed the first time the warning occurs.
      */
     private static void warning(String str, String skipWarningString) {
-        // TODO(@hayesall): `skipWarningString` String is factored out, but the signature is still used.
         println("\n***** Warning: " + str + " *****\n");
     }
 
@@ -585,7 +519,6 @@ public class Utils {
      *
      */
     private static void warning(String str, int sleepInSeconds, String skipWarningString) {
-        // TODO(@hayesall): `skipWarningString` string is factored out of the body, but signature is still used.
         // Make sure we only wait if the user is at a verbosity level where it
         // makes sense to wait.
         if ( isWaitHereEnabled() ) {
@@ -638,6 +571,7 @@ public class Utils {
      * @param fileNameRaw The name of the dribble file.
      */
     public static void createDribbleFile(String fileNameRaw) {
+        // TODO(@hayesall): The `createDribbleFile` is always called, so I'm using it for debugging.
 
         if (dribbleStream != null) {
             dribbleStream.println("\n\n// Closed by a createDribble call with file = " + fileNameRaw);
@@ -652,7 +586,7 @@ public class Utils {
             CondorFileOutputStream outStream = new CondorFileOutputStream(fileName);
             dribbleStream = new PrintStream(outStream, false); // No auto-flush (can slow down code).
             dribbleFileName = fileName;
-            println("% Running on host: " + getHostName());
+
         } catch (FileNotFoundException e) {
         	reportStackTrace(e);
             error("Unable to successfully open this file for writing:\n " + fileName + ".\nError message: " + e.getMessage());
@@ -938,38 +872,6 @@ public class Utils {
     }
 
     /*
-     * Write these objects to this file. Start with a header string (e.g., a
-     * comment) and have all lines (except the header) ends with finalEOLchars.
-     * 
-     * @param fileName A string containing the name of the file to use for output.
-     * @param objects The objects to write to the named file.
-     * @param finalEOLchars A string appended to the end of each line, but before the newline.
-     * @param headerStringToPrint A description for the beginning of the file.
-     */
-    public static void writeObjectsToFile(String fileName, Collection<?> objects,
-            							  String finalEOLchars, String headerStringToPrint) { // If object is a number, need an extra space so the period doesn't look like a decimal point.
-        try {
-        	ensureDirExists(fileName);
-            CondorFileOutputStream outStream = new CondorFileOutputStream(fileName);
-            PrintStream      stream    = new PrintStream(outStream);
-            if (headerStringToPrint != null) {
-                stream.println(headerStringToPrint);
-            }
-            int counter = 0;
-            int total   = objects.size();
-            for (Object obj : objects) { // If speed is an issue, could first check for COUNT and FRACTION in finalEOLchars.
-            	counter++;
-                stream.println(obj.toString() + finalEOLchars.replace("COUNT", comma(counter) + "").replace("FRACTION", Utils.truncate((1.0 * counter) / total, 6)));
-            }
-            stream.close();
-        } catch (FileNotFoundException e) {
-        	reportStackTrace(e);
-            error("Unable to successfully open this file for writing: " + fileName + ".  Error message: " + e.getMessage());
-        }
-        
-    }    
-
-	/*
 	 * Reads file <filePath> into a string.
 	 * 
 	 * Works for gzipped files as well.  
@@ -1037,8 +939,6 @@ public class Utils {
 
     private static void touchFile(File file) {
     	ensureDirExists(file);
-        // Seems unnecessar
-    	if (isDevelopmentRun()) { appendString(file, "\n// Touched at " + getDateTime() + ".\n", false); }
     }
 
 	public static String setFirstCharToRequestedCase(String str, boolean uppercaseFirstChar) {
@@ -1275,68 +1175,7 @@ public class Utils {
         return stringHandler.getStringConstant(result).getName();
 	}
 
-    private static String getUserHomeDir() {
-	   return System.getProperty("user.home");
-	}
-
-    public static String getUserName() {
-        return getUserName(false);
-    }
-
-    private static String getUserName(boolean makeSafeString) {
-        String result = System.getProperty("user.name");
-        if (!makeSafeString) { return cleanString(result, null); }
-        return result;
-    }
-
-    private static String help_getScratchDirForUser() {
-        // Don't call ensureDirExists() or CondorFile() from here or will get an infinite loop.
-
-        // Note: this will fail for any Condor jobs that flock.
-
-    	String userName = getUserName();
-    	if ("shavlik".equals(userName) || "tkhot".equals(userName) || "siddharth".equals(userName)) {
-    		String dir = "";
-    		if      (isRunningWindows()) {
-                // Be sure to end with '\\' (or '/' for Linux).  Use Linux notation since sometimes backslashes disappear as strings get pushed through many methods.
-    			dir = "C:/WILLscratch/"; }
-    		else if (isRunningLinux())   {
-    			// tkhot runs out of space on 15K docs so using shavlikgroup
-    			if ("tkhot".equals(userName)) {
-    				dir = "/u/shavlikgroup/people/Tushar/WILLscratch/";
-    			} else {
-                    // Had been (8/11) "/scratch/" but dont want these to be on every machine (sometimes didn't have 'write' privileges in Condor).
-    				dir = "/u/" + userName + "/WILLscratch/";
-    			}
-    		} else {
-        		error("Unclear which OS '" + userName + "' is running.");  
-    		}
-    		try {
-    			File f = new File(dir);
-                // If we have problems here, rewrite to use /u/userName if /scratch doesn't exist - but maybe scratch always exists?
-    			f.mkdirs();
-    		} catch (Exception e) {
-    			dir = "/u/" + userName + "/WILLscratch/";
-    			File f = new File(dir);
-    			f.mkdirs();
-    		}
-    		if ((new File(dir)).exists()) { return dir; }
-    		waitHere("Cannot create a scratch dir for: " + userName);
-    		return dir;
-    	}
-    	error("getScratchDirForWisconsinUser has encountered an unknown user name: " + userName);
-    	return null;
-    }
-
-	public static boolean isRunningWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("windows");
-    }
-	
-	private static boolean isRunningLinux() {
-        return System.getProperty("os.name").toLowerCase().contains("linux");
-    }
-	
-	public static Boolean fileExists(String fileName) {
+    public static Boolean fileExists(String fileName) {
 		return ((new CondorFile(fileName)).exists());
 	}
 
@@ -1447,23 +1286,8 @@ public class Utils {
 		
 		return truncate(millisec / 1000.0, digits) + " seconds"; 
 	}
-	
-	private static String getHostName() { // Written largely by Trevor.
-		try {
-			InetAddress addr = InetAddress.getLocalHost();
-			String hostName = addr.getHostName();
-			if (hostName == null) { return "unknownHost"; }
-			int locFirstPeriod = hostName.indexOf('.');
-			if (locFirstPeriod > 0) { // Not sure what a leading period would be, but keep it if this case ever occurs.
-				return hostName.substring(0, locFirstPeriod);
-			}
-			return hostName;
-		} catch (UnknownHostException e) {
-			return "unknownHost";
-		}
-    }
-	
-	private static final Runtime sys_runtime = Runtime.getRuntime();
+
+    private static final Runtime sys_runtime = Runtime.getRuntime();
 	public static String reportSystemInfo() {
 		sys_runtime.gc();
 		long   memoryInUse = sys_runtime.totalMemory() - sys_runtime.freeMemory();
@@ -1491,14 +1315,6 @@ public class Utils {
        delete(new CondorFile(fileName));
    }
 
-    private static boolean isDevelopmentRun() {
-        if ( developmentRun == null ) {
-            setupVerbosity();
-        }
-
-        return developmentRun;
-    }
-
     private static boolean isSevereErrorThrowsEnabled() {
         if ( severeErrorThrowsEnabled == null ) {
             setupVerbosity();
@@ -1523,73 +1339,13 @@ public class Utils {
         return waitHereEnabled;
     }
 
-    /* Return whether the properties indicate that we are a developer.
-     *
-	 * Here is some code to decide whether a run is a development run based first on Java system properties
-	 * and then on the presence of a file. The system property is important because it allows more flexibility,
-	 * e.g. a particular run can be specified as a development run from the command line, from a Maven run,
-	 * from your Eclipse run configuration, etc.
-     * <P>
-     * Try to use the other isXXX settings to control what you print or do.  That will allow for
-     * finer grain control by the end user.
-	 */
-    private static boolean checkDevelopmentProperties() {
-
-		// Find out if this is a development run.  Err on the side of answering no.
-
-		// If a system property is already defined with a value, use that value.
-		// Otherwise, populate the system property by looking for a file.
-		String value = System.getProperty(DEVELOPER_MACHINE_PROPERTY_KEY);
-
-		if (value != null) {
-		    return value.equalsIgnoreCase("true");
-		}
-		// Decide whether this is a development run based on the presence of a file in the user's home directory
-		String userHomeDirectory  = getUserHomeDir();
-		ensureDirExists(userHomeDirectory);
-		File   developmentRunFile = new CondorFile(userHomeDirectory, DEVELOPER_MACHINE_FILE_NAME);
-		boolean result = developmentRunFile.exists();
-
-		if (result) {
-			// Set the system property as well (canonicalize if already set)
-			System.setProperty(DEVELOPER_MACHINE_PROPERTY_KEY, Boolean.toString(true));
-		}
-		return result;
-    }
-
     private static void setupVerbosity() {
-        if ( checkDevelopmentProperties() ) {
-            setVerbosity(Verbosity.Developer);
-        }
-        else {
-            setVerbosity(Verbosity.Medium);
-        }
+        setVerbosity(Verbosity.Medium);
     }
     
 	public static void reportStackTrace(Throwable e) {
-		if (isDevelopmentRun()) {
-			flush();
-			StackTraceElement[] trace = e.getStackTrace();
-			int traceSize = trace.length;
-			int sizeToUse = Math.min(traceSize, 50); // <-------- change this if you need to see more of the stack.
-			println("\n% Stack trace:");
-			if (sizeToUse < traceSize) {
-				for (int i = 0; i < sizeToUse / 2; i++) {
-					println("%  Element #" + (traceSize - i) + ": " + trace[i].toString());
-				}
-				println("% ...");
-				for (int i = sizeToUse / 2; i > 0; i--) {
-					println("%  Element #" +              i  + ": " + trace[traceSize - i].toString());
-				}
-			} else {
-				for (int i = 0; i < sizeToUse; i++) {
-					println("%  Element #" + (traceSize - i) + ": " + trace[i].toString());
-				}		
-			}
-		} else {
-			e.printStackTrace();
-		}
-	}
+        e.printStackTrace();
+    }
 
     public static <T> String toString(Collection<T> collection, String divider) {
         StringBuilder sb = new StringBuilder();
@@ -1707,18 +1463,8 @@ public class Utils {
 				bool.equalsIgnoreCase("y") ||
 				bool.equalsIgnoreCase("yes");
 	}
-	
-	public static String unzipFileIfNeeded(String fileName) throws IOException {
-		if (fileName.endsWith(".gz")) {
-			String readString  = readFromGzippedFile(fileName);
-			String newFileName = fileName.subSequence(0, fileName.lastIndexOf(".gz")).toString();
-			writeStringToFile(readString, new CondorFile(newFileName));
-			return newFileName;
-		}
-		return null;
-	}
 
-	public static void compressFile(String fileNameRaw) {
+    public static void compressFile(String fileNameRaw) {
 		int minSizeToCompressInK = 1000;
         compressFile(fileNameRaw, minSizeToCompressInK);
     }

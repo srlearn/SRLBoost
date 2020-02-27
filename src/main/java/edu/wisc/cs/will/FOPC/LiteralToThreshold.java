@@ -18,6 +18,7 @@ import java.util.List;
  *
  */
 public class LiteralToThreshold extends Literal {
+	// TODO(@hayesall): This can probably be removed, since the constructor is never used. But several other places will need to be changed.
 	public final int     positionToThreshold;
 	public final int     maxCuts;
 	public final boolean createTiles;

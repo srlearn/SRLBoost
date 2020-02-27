@@ -42,30 +42,6 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
         }
     }
 
-    public Value getValue(Key key, int index) {
-        if ( map == null ) {
-            throw new IndexOutOfBoundsException("List does not exist for key " + key + ".");
-        }
-        else {
-            List<Value> list;
-            return (((list = map.get(key)) != null) ? list.get(index) : null);
-        }
-    }
-
-    public void addAllValues(Key key, Collection<? extends Value> c) {
-        if ( map == null ) {
-            map = createMap();
-        }
-
-        List<Value> result = map.get(key);
-        if ( result == null ) {
-            result = createValueList();
-            map.put(key, result);
-        }
-
-        result.addAll(c);
-    }
-
     public void add(Key key, Value e) {
         if ( map == null ) {
             map = createMap();
@@ -88,24 +64,6 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
     public Set<Key> keySet() {
         if ( map != null) {
             return map.keySet();
-        }
-        else {
-            return Collections.EMPTY_SET;
-        }
-    }
-
-    public Collection<List<Value>> values() {
-        if ( map != null ) {
-            return map.values();
-        }
-        else {
-            return Collections.EMPTY_SET;
-        }
-    }
-
-    public Set<Entry<Key, List<Value>>> entrySet() {
-        if ( map != null ) {
-            return map.entrySet();
         }
         else {
             return Collections.EMPTY_SET;

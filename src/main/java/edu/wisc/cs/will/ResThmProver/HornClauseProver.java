@@ -33,9 +33,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 	public HornClauseProver(HornClausebase factbase) {
         this(factbase, new DepthFirstSearch());
 	}
-	public HornClauseProver(HornClausebase factbase, boolean redoable) {
-        this(new DefaultHornClauseContext(factbase), new DepthFirstSearch(), redoable);
-	}
+
 	private HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy) {
         this(new DefaultHornClauseContext(factbase), searchStrategy, false);
     }
@@ -92,7 +90,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         ((InitHornProofSpace) initializer).loadNegatedConjunctiveQuery(negatedConjunctiveQuery, open);
     }
 
-    void initialize(SLDQuery query) throws IllegalArgumentException {
+    private void initialize(SLDQuery query) throws IllegalArgumentException {
         initialize(query.getNegatedQueryClause().negLiterals);
     }
 

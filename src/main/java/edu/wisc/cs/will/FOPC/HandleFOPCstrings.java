@@ -19,7 +19,7 @@ import static edu.wisc.cs.will.Utils.MessageType.STRING_HANDLER_VARIABLE_INDICAT
  * It also handles the 'isa' hierarchy (hetrarchy, really) of types and the specification of ranges of variables.
  *
  */
-public final class HandleFOPCstrings implements CallbackRegister {
+public final class HandleFOPCstrings {
 
     public final StandardPredicateNames standardPredicateNames;
 	int warningCount =   1;
@@ -35,8 +35,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	int prologCounterC = 0;
 	int prologCounterD = 0;
 	int prologCounterE = 0;
-
-	public  boolean dontPrintUnlessImportant = false;
 
 	private boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
 	public  boolean cleanFunctionAndPredicateNames        = false; // Check for hyphens and spaces.  DO NOT SET UNTIL AFTER LIBRARIES ARE LOADED.
@@ -55,9 +53,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	public String  import_assignmentToTempVar1 = "UNASSIGNED_import_assignmentToTempVar1";
 	public String  import_assignmentToTempVar2 = "UNASSIGNED_import_assignmentToTempVar2";
 	public String  import_assignmentToTempVar3 = "UNASSIGNED_import_assignmentToTempVar3";
-	public final String  FACTS   = "FACTS_UNASSIGNED";  // The MachineReading project uses these, for BOTH import and precompute.
 	public final String  PRECOMP = "PRECOMP_UNASSIGNED";
-	public final String  SWD     = "SWD_UNASSIGNED";    // SWD = ScratchWorkingDir (do NOT use SCRATCH because we already use MYSCRATCHDIR).
 	public final String  TASK    = "TASK_UNASSIGNED";
 
 	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
@@ -117,12 +113,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	final Constant falseIndicator;
 	public final Literal   trueLiteral;
 	public final Literal cutLiteral;
-	public final Clause    trueClause;
-
-	// Invented predicates should have the following suffix.
-	// This is useful if one is creating multiple theories, one can reset this for every theory
-	// to make sure that the invented predicates have unique names.
-	private String inventedPredicateNameSuffix = "";
 
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
 	final boolean useFastHashCodeForClauses   = true;
@@ -180,9 +170,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
         standardPredicateNames = new StandardPredicateNames(this);
 
-        // TODO(@hayesall): What is `recordHandler` doing, and why is it never used?
-		RecordHandler recordHandler = new RecordHandler();
-
 		isaHandler          = new IsaHetrarchy(this);
 		mathHandler         = new DoBuiltInMath(this);
 		listHandler         = new DoBuiltInListProcessing(this);
@@ -190,10 +177,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		trueIndicator       = this.getStringConstant("true");
 		falseIndicator      = this.getStringConstant("false");
 		trueLiteral         = this.getLiteral(standardPredicateNames.trueName);
-		Literal falseLiteral = this.getLiteral(standardPredicateNames.falseName);
 		cutLiteral          = this.getLiteral(standardPredicateNames.cut);
-		trueClause          = this.getClause(trueLiteral,  true);
-		Clause falseClause = this.getClause(falseLiteral, false);
+		Clause trueClause = this.getClause(trueLiteral, true);
 		precedenceTableForOperators   = new HashMap<>( 8);
 		precedenceTableForConnectives = new HashMap<>(24);
 		initPrecedences(precedenceTableForOperators, precedenceTableForConnectives);
@@ -317,7 +302,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	public        int getOperatorPrecedence(FunctionName fName) {
 		Integer result = precedenceTableForOperators.get(fName);
-		if (result == null) { Utils.error("No precedence is known for this operator: " + fName); }
+		assert result != null;
 		return result;
 	}
 	static int getOperatorPrecedence_static(String fName) {
@@ -332,18 +317,22 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	public        int getConnectivePrecedence(ConnectiveName cName) {
 		Integer result = precedenceTableForConnectives.get(cName);
-		if (result == null) { Utils.error("No precedence is known for this connective: " + cName); }
+		assert result != null;
 		return result;
 	}
 	static int getConnectivePrecedence_static(ConnectiveName cName) {
 		Integer result = precedenceTableForConnectives_static.get(cName.name.toLowerCase());
-		if (result == null) { Utils.error("No precedence is known for this connective: " + cName); }
+		assert result != null;
 		return result;
 	}
 
 	public boolean isVariableIndicatorSet() {  return variableIndicator != null; } // This allows us to know that the first setting in a file should become the chosen setting even after that file is closed.
-	public void    usePrologNotation()     { if (!usingPrologNotation())   { if (!dontPrintUnlessImportant) Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to Prolog notation for variables; previous setting = "         + variableIndicator); } setVariableIndicator(VarIndicator.uppercase); }
-	public void    useStdLogicNotation()   { if (!usingStdLogicNotation()) { if (!dontPrintUnlessImportant) Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to standard-logic notation for variables; previous setting = " + variableIndicator); } setVariableIndicator(VarIndicator.lowercase);	 }
+	public void    usePrologNotation()     { if (!usingPrologNotation())   {
+		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to Prolog notation for variables; previous setting = "         + variableIndicator);
+	} setVariableIndicator(VarIndicator.uppercase); }
+	public void    useStdLogicNotation()   { if (!usingStdLogicNotation()) {
+		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to standard-logic notation for variables; previous setting = " + variableIndicator);
+	} setVariableIndicator(VarIndicator.lowercase);	 }
 	public boolean usingPrologNotation()   { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.uppercase; }
 	public boolean usingStdLogicNotation() { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.lowercase; }
 
@@ -354,7 +343,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	public void setVariablesStartWithQuestionMarks() {
 		if (!doVariablesStartWithQuestionMarks()) {
-			if (!dontPrintUnlessImportant) Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to using a leading '?' to denote a variable; previous setting = " + variableIndicator);
+			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to using a leading '?' to denote a variable; previous setting = " + variableIndicator);
 		}
 		setVariableIndicator(VarIndicator.questionMarks);
 	}
@@ -367,9 +356,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		if (variableIndicator == varIndicator) {
 			return;
 		}
-		if (!dontPrintUnlessImportant) {
-			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, (varIndicator == null ? "\n% Unset'ing VarIndicator." : "\n% Switching to VarIndicator = " + varIndicator + "."));
-		}
+		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, (varIndicator == null ? "\n% Unset'ing VarIndicator." : "\n% Switching to VarIndicator = " + varIndicator + "."));
 		variableIndicator = varIndicator;
 	}
 
@@ -550,17 +537,8 @@ public final class HandleFOPCstrings implements CallbackRegister {
         }
     }
 
-    public Literal getLiteral(String predicateName, List<Term> terms) {
-        PredicateName pn = getPredicateName(predicateName);
-        return getLiteral(pn, terms);
-    }
-
 	public Literal getTermAsLiteral(Term term) {
 		return new TermAsLiteral(this, term);
-	}
-
-	public LiteralToThreshold getLiteralToThreshold(PredicateName predicateName, List<Term> arguments, int position, int maxCuts, boolean createTiles, boolean firstArgIsExampleID) {
-		return new LiteralToThreshold(this, predicateName, arguments, position, maxCuts, createTiles, firstArgIsExampleID);
 	}
 
 	public LiteralAsTerm getLiteralAsTerm(Literal itemBeingWrapped) {
@@ -678,30 +656,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
         return result;
     }
 
-    /* Returns the contents of a negation-by-failure as a clause with all positive literals.
-     *
-     * Per the discussion in getNegativeByFailure, the clause within a negation-by-failure should
-     * contain positive literals only.  As such, getNegationByFailureContents always returns
-     * a clause with positive literals.  If the actual content clause contains negative literals,
-     * it will be rewritten to contain positive literals.
-     *
-     * @param negationByFailure A clause with a single literal (either positive or negative) with predicate name of \+ and arity 1.
-     * @return Contents of a negation-by-failure as a clause with all positive literals
-     */
-    public Clause getNegationByFailureContents(Clause negationByFailure) {
-        if ( negationByFailure.getPosLiteralCount() == 0 && negationByFailure.getNegLiteralCount() == 1 && negationByFailure.getNegLiteral(0).predicateName == standardPredicateNames.negationByFailure) {
-            return getNegationByFailureContents(negationByFailure.getNegLiteral(0));
-        }
-        else if ( negationByFailure.getPosLiteralCount() == 1 && negationByFailure.getNegLiteralCount() == 0 && negationByFailure.getPosLiteral(0).predicateName == standardPredicateNames.negationByFailure) {
-            return getNegationByFailureContents(negationByFailure.getPosLiteral(0));
-        }
-        else  {
-            Utils.error("getNegationContets expect a clause with no positive lits and one neg lit with pname \\+.");
-            return null;
-        }
-    }
-
-    /* Returns the contents of a negation-by-failure as a clause with all positive literals.
+	/* Returns the contents of a negation-by-failure as a clause with all positive literals.
      *
      * Per the discussion in getNegativeByFailure, the clause within a negation-by-failure should
      * contain positive literals only.  As such, getNegationByFailureContents always returns
@@ -711,7 +666,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
      * @param negationByFailure A literal with predicate name of \+ and arity 1.
      * @return Contents of a negation-by-failure as a clause with all positive literals
      */
-    public Clause getNegationByFailureContents(LiteralOrFunction negationByFailure) {
+	private Clause getNegationByFailureContents(LiteralOrFunction negationByFailure) {
 
         Clause result;
 
@@ -758,55 +713,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
         return getNegationByFailureContents((LiteralOrFunction)negationByFailure);
     }
 
-    /* Returns whether the positiveNegationByFailure clause is a negation-by-failure.
-     *
-     * A clause is a negation-by-failure if it is either a single positive literal or a
-     * single negative literal and that literal has a predicate name of \+ and arity 1.
-     *
-     * @param possibleNegationByFailure Clause to evaluate.
-     * @return True if clause is either a single positive literal or a
-     * single negative literal and that literal has a predicate name of \+ and arity 1.
-     */
-    public boolean isNegationByFailure(Sentence possibleNegationByFailure) {
-
-
-        if ( possibleNegationByFailure instanceof Clause ) {
-            Clause possibleNegationByFailureClause = (Clause) possibleNegationByFailure;
-
-            Literal possibleNegationByFailureLiteral = null;
-
-            if ( possibleNegationByFailureClause.getPosLiteralCount() == 0 && possibleNegationByFailureClause.getNegLiteralCount() == 1) {
-                possibleNegationByFailureLiteral = possibleNegationByFailureClause.getNegLiteral(0);
-            }
-            else if ( possibleNegationByFailureClause.getPosLiteralCount() == 1 && possibleNegationByFailureClause.getNegLiteralCount() == 0 ) {
-                possibleNegationByFailureLiteral = possibleNegationByFailureClause.getPosLiteral(0);
-            }
-
-            return isNegationByFailure((LiteralOrFunction)possibleNegationByFailureLiteral);
-        }
-        else if ( possibleNegationByFailure instanceof Literal ) {
-            return isNegationByFailure((LiteralOrFunction)possibleNegationByFailure);
-        }
-
-        return false;
-
-    }
-
-    /* Returns whether the possibleNegationByFailure literal is a negation-by-failure.
-     *
-     * A literal is a negation-by-failure if it has a predicate name of \+ and arity 1.
-     *
-     * @param possibleNegationByFailure literal to evaluate.
-     * @return True if literal has a predicate name of \+ and arity 1.
-     */
-    public boolean isNegationByFailure(LiteralOrFunction possibleNegationByFailure) {
-        return (possibleNegationByFailure != null && possibleNegationByFailure.getPredicateName() == standardPredicateNames.negationByFailure);
-    }
-
-    public boolean isNegationByFailure(Literal possibleNegationByFailure) {
-        return isNegationByFailure((LiteralOrFunction)possibleNegationByFailure);
-    }
-
 	/*
 	 * Call the math or list handler to simplify an expression.
 	 * @return The numeric result of computing the given expression.
@@ -847,7 +753,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private void recordModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
         if (typedLiteral != null ) recordModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
 	}
-	public void recordModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
+	private void recordModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
         if ( predicate != null ) {
             recordPredicatesWithKnownModes(predicate);
             predicate.getPredicateName().recordMode(signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
@@ -984,10 +890,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
         }
 	}
 
-    public void removePredicateWithKnownModes(PredicateNameAndArity predicateName) {
-		knownModes.remove(predicateName);
-	}
-
 	public ConsCell getNil() {
 		if (nil == null) { nil = this.getConsCell(); } // The empty cons cell is 'nil'
 		return nil;
@@ -1051,11 +953,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return result;
 	}
 
-    public PredicateNameAndArity getPredicate(String name, int arity) {
-        return new PredicateNameAndArity(getPredicateName(name), arity);
-    }
-
-    public PredicateNameAndArity getPredicate(PredicateName pName, int arity) {
+	public PredicateNameAndArity getPredicate(PredicateName pName, int arity) {
         return new PredicateNameAndArity(pName, arity);
     }
 
@@ -1547,7 +1445,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private Variable getExternalVariable(String name, boolean createNewVariable) {
 		return getExternalVariable(null, convertToVarString(name), createNewVariable);
 	}
-	public Variable getExternalVariable(TypeSpec spec, String name, boolean createNewVariable) {
+	Variable getExternalVariable(TypeSpec spec, String name, boolean createNewVariable) {
 		if (createNewVariable || (name != null && name.length() > 0 && name.charAt(0) == '_')) { return pushVariable(spec, name); } // A variable of the form '_' is always a NEW variable.
 		return getExternalVariable(spec, name);
 	}
@@ -1700,7 +1598,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	}
 	double convertRelevanceStrengthToCost(RelevanceStrength strength) {
 		String hasBeenSet = getParameterSetting(strength.toString()); // See if overridden.
-		if (hasBeenSet != null) { Double.parseDouble(hasBeenSet); }
+		if (hasBeenSet != null) {
+			Double.parseDouble(hasBeenSet);
+		}
+		// TODO(@hayesall): This looks like an error, this was probably supposed to `return Double.parseDouble(hasBeenSet);`
 		return strength.defaultCost();
 	}
 
@@ -1722,23 +1623,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return lookup.parameterValue;
 	}
 
-    public String getInventedPredicateNameSuffix() {
-        if ( inventedPredicateNameSuffix == null ) {
-            inventedPredicateNameSuffix = getParameterSetting("inventedPredicateNameSuffix");
-        }
-
-        if ( inventedPredicateNameSuffix == null ) {
-            return "";
-        }
-        else {
-            return inventedPredicateNameSuffix;
-        }
-    }
-
-    public void setInventedPredicateNameSuffix(String inventedPredicateNameSuffix) {
-        this.inventedPredicateNameSuffix = inventedPredicateNameSuffix;
-    }
-
 	public boolean haveLoadedThisFile(String fileName, boolean recordLoaded) {
 		if (filesLoaded.contains(fileName)) { return true; }
 		if (recordLoaded) { filesLoaded.add(fileName); }
@@ -1749,12 +1633,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		return Utils.createSafeStringConstantForWILL(string, this);
 	}
 
-	boolean usingStrictEqualsForLiterals() {
-		// Be very careful if you want to change these!
-		// If 'true,' only say literals are equal if they are '=='.
-		// TODO(@hayesall): Method always returns `false`.
-		return false;
-	}
 	boolean usingStrictEqualsForFunctions() {
 		return useStrictEqualsForFunctions;
 	}
@@ -1825,13 +1703,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
         }
     }
 
-    public void removeKnownMode(PredicateNameAndArity predicateName) {
-        if ( knownModes != null ) {
-            knownModes.remove(predicateName);
-        }
-    }
-
-    public void addLiteralAlias(Literal alias, Literal literal) {
+	public void addLiteralAlias(Literal alias, Literal literal) {
        literalAliases.put(alias, literal);
     }
 
@@ -1858,7 +1730,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
     }
 
 	public void setStringsAreCaseSensitive(boolean matchingShouldBeCaseSensitive) {
-		if (ignoreCaseOfStringsOtherThanFirstChar == matchingShouldBeCaseSensitive && !dontPrintUnlessImportant) { Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "% Changing setStringsAreCaseSensitive to " + matchingShouldBeCaseSensitive + "."); }
+		if (ignoreCaseOfStringsOtherThanFirstChar == matchingShouldBeCaseSensitive) { Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "% Changing setStringsAreCaseSensitive to " + matchingShouldBeCaseSensitive + "."); }
 		ignoreCaseOfStringsOtherThanFirstChar = !matchingShouldBeCaseSensitive;
 	}
 	public boolean getStringsAreCaseSensitive() {

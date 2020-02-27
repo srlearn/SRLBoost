@@ -105,9 +105,6 @@ import java.util.*;
 
 public class LearnOneClause extends StateBasedSearchTask {
 
-	// TODO(@hayesall): This `LearnOneClause.debugLevel` is called into from the Gleaner and OuterLooper
-	final static int    debugLevel = 0; // Used to control output from this project (0 = no output, 1=some, 2=much, 3=all).
-
 	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
 
 	private boolean             createCacheFiles                  = false;   // Create files that cache computations, to save time, for debugging, etc.
@@ -228,14 +225,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   double               mEstimatePos = 0.1; // When computing coverage of a rule use these "m estimates."  NOTE these are also used when examples are weighted, so if total weight is small, might want to change these.
 	private   double               mEstimateNeg = 0.1; // Note: these are used in recall as well as precision.
 
-	private final RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
-
-	private List<ModeConstraint> modeConstraints = null;
-
-    private final AdviceProcessor adviceProcessor;
-    private ActiveAdvice activeAdvice = null;
-
-    private final EventListenerList searchListenerList = new EventListenerList();
+	private final EventListenerList searchListenerList = new EventListenerList();
 
     private List<Sentence> facts = null; // This temporarily stores the facts between construction and initialization.  After initialization it will be null.
 
@@ -279,7 +269,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 
         setInlineManager(new InlineManager(   stringHandler, getProver().getClausebase()));
         setThresholder(  new ThresholdManager(this, stringHandler, inlineHandler));
-        adviceProcessor = new AdviceProcessor(context, this);
+
+        // TODO(@hayesall): AdviceProcessor reads the current `context` and `this`, but does not appear to do anything with it.
+		// new AdviceProcessor(context, this);
 
 		// Load BK first since it is the place where 'usePrologVariables' etc is typically set.
 		if (backgroundClausesReader != null) { context.assertSentences(readBackgroundTheory(backgroundClausesReader)); }
@@ -394,14 +386,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       stopIfPerfectClauseFound                              = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("useCachedFiles");
 		if (vStr != null) {                       useCachedFiles                                        = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("usingWorldStates");
-		if (vStr != null) {                       // Does this task involve time-stamped facts?
-			boolean usingWorldStates = Boolean.parseBoolean(vStr);
-		}
-		vStr = stringHandler.getParameterSetting("errorToHaveModesWithoutInputVars");
-		if (vStr != null) {                       // Error if a mode of the form 'predicateName(-human,#age)' is provided since such literals are uncoupled from a clause and hence lead to search inefficiency (so only expert users should override this boolean).
-			Boolean.parseBoolean(vStr);
-		}
 		vStr = stringHandler.getParameterSetting("allowPosSeedsToBeReselected");
 		if (vStr != null) {                       allowPosSeedsToBeReselected                           = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("allowNegSeedsToBeReselected");
@@ -412,10 +396,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       collectTypedConstants                                 = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds");
 		if (vStr != null) {                       dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds    = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("findWorldStatesContainingNoPosExamples");
-		if (vStr != null) {
-			boolean findWorldStatesContainingNoPosExamples = Boolean.parseBoolean(vStr);
-		}
 		vStr = stringHandler.getParameterSetting("performRRRsearch");
 		if (vStr != null) {                       performRRRsearch                                      = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("allowMultipleTargets");
@@ -447,13 +427,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       clausesMustCoverFractPosSeeds       = Double.parseDouble(vStr); }
 		vStr = stringHandler.getParameterSetting("clausesMustNotCoverFractNegSeeds");
 		if (vStr != null) {                       clausesMustNotCoverFractNegSeeds    = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("fractionOfTimesUphillMoveCreated");
-		if (vStr != null) {                       // Occasionally, generalize a node by DROPPING one existing literal.
-			Double.parseDouble(vStr);
-		}
 		vStr = stringHandler.getParameterSetting("probOfDroppingChild");
 		if (vStr != null) {                       probOfDroppingChild                 = Double.parseDouble(vStr); }
-
 		vStr = stringHandler.getParameterSetting("minNumberOfNegExamples");
 		if (vStr != null) {                       minNumberOfNegExamples          = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("maxBodyLength");
@@ -474,10 +449,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       minChildrenBeforeRandomDropping = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("maxConstantBindingsPerLiteral");
 		if (vStr != null) {                       maxConstantBindingsPerLiteral   = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxPredOccursPerInputVars");
-		if (vStr != null) {                       // Maximum number of times a given predicate can occur PER SETTING of the input variables (can be overwritten on a per-predicate basis).
-			Integer.parseInt(vStr);
-		}
 		vStr = stringHandler.getParameterSetting("beamWidthRRR");
 		if (vStr != null) {                       beamWidthRRR                    = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("minBodyLengthRRR");
@@ -787,9 +758,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		String result = precomputeFileNameString.replace("PRECOMPUTE_VAR1", Utils.removeAnyOuterQuotes(stringHandler.precompute_assignmentToTempVar1));
 		result        =                   result.replace("PRECOMPUTE_VAR2", Utils.removeAnyOuterQuotes(stringHandler.precompute_assignmentToTempVar2));
 		result        =                   result.replace("PRECOMPUTE_VAR3", Utils.removeAnyOuterQuotes(stringHandler.precompute_assignmentToTempVar3));
-		result         =                  result.replace("FACTS",           Utils.removeAnyOuterQuotes(stringHandler.FACTS));
 		result         =                  result.replace("PRECOMP",         Utils.removeAnyOuterQuotes(stringHandler.PRECOMP)); // Note: this matches "PRECOMPUTE_VAR3"
-		result         =                  result.replace("SWD",             Utils.removeAnyOuterQuotes(stringHandler.SWD));
 		result         =                  result.replace("TASK",            Utils.removeAnyOuterQuotes(stringHandler.TASK));
 		return Utils.replaceWildCards(result);
 	}
@@ -832,12 +801,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         stringHandler.addKnownMode(pName);
     }
 
-    public void removeBodyMode(PredicateNameAndArity pName) {
-        bodyModes.remove(pName);
-        stringHandler.removeKnownMode(pName);
-    }
-
-    private int countOfSearchesPerformedWithCurrentModes = 0;  // Trevor - if you wish to see getSearchParametersString, feel free to add some reportFirstNsearches variable.  Jude
+	private int countOfSearchesPerformedWithCurrentModes = 0;  // Trevor - if you wish to see getSearchParametersString, feel free to add some reportFirstNsearches variable.  Jude
 
     @Override
     public SearchResult performSearch() throws SearchInterrupted {
@@ -848,21 +812,11 @@ public class LearnOneClause extends StateBasedSearchTask {
  
         if ( action == ILPSearchAction.PERFORM_LOOP ) {
 
-            ActiveAdvice createdActiveAdvice = null;
-
-			if ( getActiveAdvice() != null ) {
-				createdActiveAdvice = adviceProcessor.processAdvice(currentRelevanceStrength, posExamples, negExamples);
-			}
-
 			// Limit number of reports.
             if (++countOfSearchesPerformedWithCurrentModes < 2) { Utils.print(getSearchParametersString()); }
 			result = super.performSearch();
 
-			if ( createdActiveAdvice != null ) {
-                adviceProcessor.retractRelevanceAdvice();
-            }
-
-            fireInnerLoopFinished(this);
+			fireInnerLoopFinished(this);
         }
         else if (action == ILPSearchAction.SKIP_ITERATION) {
             Utils.println("ILPSearchListener skipped inner-loop.");
@@ -1453,6 +1407,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private Theory readBackgroundTheory(Reader bkReader) {
 		if (bkReader == null) { return null; }
 		List<Sentence> sentences;
+		// TODO(@hayesall): Always returns null?
 		Utils.println("% Reading background theory from dir: " + null);
 		sentences = getParser().readFOPCreader(bkReader, null);
 		if (sentences == null) { return null; } // It is possible there are no inference rules, though some modes should have been read.
@@ -1835,30 +1790,10 @@ public class LearnOneClause extends StateBasedSearchTask {
 		isaTreeStructuredTask = value;
 	}
 
-	AdviceProcessor getAdviceProcessor() {
-        return adviceProcessor;
-    }
-
-	void addModeConstraint(ModeConstraint modeConstraint) {
-        if ( modeConstraints == null ) {
-            modeConstraints = new ArrayList<>();
-        }
-
-        modeConstraints.add(modeConstraint);
-    }
-
-    void removeModeConstraint(ModeConstraint modeConstraint) {
-        if ( modeConstraints != null ) {
-			modeConstraints.remove(modeConstraint);
-		}
-	}
-
 	List<ModeConstraint> getModeConstraints() {
-        if (modeConstraints == null) {
-			return Collections.emptyList();
-        }
-		return modeConstraints;
-    }
+		// TODO(@hayesall): Always returns an empty list.
+		return Collections.emptyList();
+	}
 
 
 
@@ -1950,19 +1885,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return targets;
 }
 
-	RelevanceStrength getCurrentRelevanceStrength() {
-        return currentRelevanceStrength;
-    }
-
-	ActiveAdvice getActiveAdvice() {
-        return activeAdvice;
-    }
-
-	void setActiveAdvice(ActiveAdvice activeAdvice) {
-        this.activeAdvice = activeAdvice;
-    }
-
-    private void closeWithoutException(Reader posExamplesReader) {
+	private void closeWithoutException(Reader posExamplesReader) {
         if (posExamplesReader != null) {
             try {
                 posExamplesReader.close();

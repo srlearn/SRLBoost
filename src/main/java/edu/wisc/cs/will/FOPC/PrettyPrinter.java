@@ -17,10 +17,6 @@ public class PrettyPrinter {
 
     private static final int MIN_PRECEDENCE = 0;
 
-    public static String print(Sentence s, String prefix, PrettyPrinterOptions options) {
-        return print(s, prefix, prefix, options, null);
-    }
-
     public static String print(Sentence s, String firstLinePrefix, String additionalLinesPrefix, PrettyPrinterOptions options, BindingList variableBindings) {
 
         FOPCPrettyPrinterData data = new FOPCPrettyPrinterData();
@@ -370,15 +366,15 @@ public class PrettyPrinter {
             return null;
         }
 
-        public PPResult visitNumericConstant(NumericConstant numericConstant, FOPCPrettyPrinterData data) {
+        public PPResult visitNumericConstant(NumericConstant numericConstant) {
             return new PPResult(numericConstant.getName(), false, MIN_PRECEDENCE);
         }
 
-        public PPResult visitStringConstant(StringConstant stringConstant, FOPCPrettyPrinterData data) {
+        public PPResult visitStringConstant(StringConstant stringConstant) {
             return new PPResult(stringConstant.toString(), false, MIN_PRECEDENCE);
         }
 
-        public PPResult visitOtherTerm(Term term, FOPCPrettyPrinterData data) {
+        public PPResult visitOtherTerm(Term term) {
             return new PPResult(term.toString(), false, MIN_PRECEDENCE);
         }
 

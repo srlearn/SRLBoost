@@ -12,19 +12,12 @@ import java.util.List;
  *
  * @author twalker
  */
-public interface LiteralOrFunction {
-
-    Literal asLiteral();
+interface LiteralOrFunction {
 
     PredicateName getPredicateName();
 
     int getArity();
 
-    PredicateNameAndArity getPredicateNameAndArity();
-
     List<Term> getArguments();
 
-    Term getArgument(int index);
-
-    HandleFOPCstrings getStringHandler();
 }

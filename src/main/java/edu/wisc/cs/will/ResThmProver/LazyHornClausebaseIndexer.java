@@ -2,12 +2,10 @@ package edu.wisc.cs.will.ResThmProver;
 
 import edu.wisc.cs.will.FOPC.*;
 
-import java.util.Collection;
-
 /*
  * @author twalker
  */
-public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<DefiniteClause>{
+class LazyHornClausebaseIndexer {
 
   private final HornClausebase clausebase;
 
@@ -41,8 +39,7 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
         resetIndex();
     }
 
-    @Override
-    public final void resetIndex() {
+    final void resetIndex() {
     	if (singleGroundArgIndexArray != null) { // Added by JWS to get a glimpse of how often this is happening.
     		System.out.println("\nResetting the LazyGroundNthArgumentClauseIndex.");
     	}
@@ -64,18 +61,7 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
         predicateHitCount = 0;
     }
 
-    @Override
-    public boolean isBuilt() {
-        return true;
-    }
-
-    @Override
-    public void buildIndex(Collection<? extends DefiniteClause> clauses) {
-        // We are lazy, so wait for it!
-    }
-
-    @Override
-    public void indexAssertion(DefiniteClause definiteClause) {
+    void indexAssertion(DefiniteClause definiteClause) {
 
         if (definiteClause != null && definiteClause.isDefiniteClause()) {
 
@@ -93,8 +79,7 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
         }
     }
 
-    @Override
-    public void removeAssertion(DefiniteClause definiteClause) {
+    void removeAssertion(DefiniteClause definiteClause) {
 
         PredicateNameAndArity key = new PredicateNameAndArity(definiteClause);
 
@@ -105,8 +90,7 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
         }
     }
 
-    @Override
-    public DefiniteClauseList getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBindings) {
+    DefiniteClauseList getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBindings) {
         if (clauseHead != null) {
             DefiniteClauseList set;
 
@@ -160,8 +144,7 @@ public class LazyHornClausebaseIndexer implements HornClausebaseIndexer<Definite
         return null;
     }
 
-    @Override
-    public DefiniteClauseList getPossibleMatchingAssertions(PredicateName predicateName, int arity) {
+    DefiniteClauseList getPossibleMatchingAssertions(PredicateName predicateName, int arity) {
         PredicateNameAndArity pnaa = new PredicateNameAndArity(predicateName, arity);
 
         return lookupDefiniteClausesByPredicate(pnaa);

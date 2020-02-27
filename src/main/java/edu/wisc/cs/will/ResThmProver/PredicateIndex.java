@@ -3,7 +3,6 @@ package edu.wisc.cs.will.ResThmProver;
 import edu.wisc.cs.will.FOPC.DefiniteClause;
 import edu.wisc.cs.will.FOPC.PredicateNameAndArity;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +17,6 @@ class PredicateIndex<T extends DefiniteClause> {
 
     private final Map<PredicateNameAndArity, List<T>> definiteClausesByPredicateIndex = new HashMap<>();
 
-    void indexDefiniteClause(PredicateNameAndArity key, T definiteClause) {
-        List<T> definiteClausesForKey = definiteClausesByPredicateIndex.computeIfAbsent(key, k -> new ArrayList<>());
-        definiteClausesForKey.add(definiteClause);
-    }
-
     void removeDefiniteClause(PredicateNameAndArity key, T definiteClause) {
         List<T> definiteClausesForKey = definiteClausesByPredicateIndex.get(key);
         if (definiteClausesForKey != null) {
@@ -31,13 +25,6 @@ class PredicateIndex<T extends DefiniteClause> {
                 definiteClausesByPredicateIndex.remove(key);
             }
         }
-    }
-
-    List<T> lookupDefiniteClause(PredicateNameAndArity key) {
-        if (key != null) {
-            return definiteClausesByPredicateIndex.get(key);
-        }
-        return null;
     }
 
     @Override

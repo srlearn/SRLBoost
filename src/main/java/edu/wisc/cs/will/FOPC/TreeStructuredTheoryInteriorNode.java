@@ -182,10 +182,10 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 	@Override
 	public TreeStructuredTheoryInteriorNode applyTheta(Map<Variable, Term> bindings) {
 		return new TreeStructuredTheoryInteriorNode(weightedCountOfPositiveExamples, weightedCountOfNegativeExamples,
-													(fullNodeTest == null ? null : fullNodeTest.applyTheta(bindings)), 
-													(nodeTest     == null ? null : nodeTest.applyTheta(bindings)), 
+													(fullNodeTest == null ? null : fullNodeTest.applyTheta(bindings)),
+													(nodeTest     == null ? null : nodeTest.applyTheta(bindings)),
 													searchNodeThatLearnedTheClause, // NOTE: do to renaming this node's variables will no longer match the variables in this node.
-													(treeForTrue  == null ? null : treeForTrue.applyTheta(bindings)), 
+													(treeForTrue  == null ? null : treeForTrue.applyTheta(bindings)),
 													(treeForFalse == null ? null : treeForFalse.applyTheta(bindings)));
 	}
 

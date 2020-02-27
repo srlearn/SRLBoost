@@ -28,27 +28,23 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Map<Integer,Integer> maxOccurrencesPerArity = null; // During structure (i.e., rule) learning, cannot appear more than this many times in one rule.
 	private   Map<Integer,Map<List<Type>,Integer>> maxOccurrencesPerInputVars = null; // During structure (i.e., rule) learning, cannot appear more than this many times in one rule.
 	transient private   Map<Integer,MapOfLists<PredicateNameAndArity, Pruner>>  pruneHashMap      = null; // The first integer is the arity of this predicate (of 'prunableLiteral').  The second key is the predicate name of 'ifPresentLiteral' (could also index on the arity of this literal, but that doesn't seem necessary).  A Pruner instance contains 'prunableLiteral', 'ifPresentLiteral', and the max number of ways that 'ifPresentLiteral' can be proven from the current set of rules.
-    transient private   Map<Integer,List<ConnectedSentence>>          variantHashMap    = null; // The first integer is the arity of this predicate (of 'prunableLiteral').  The second contains all the variants.
 	private   Set<Integer> canBeAbsentThisArity                         = null;  // OK if this predicate name with one of these arities can be absent during theorem proving.
 	private   boolean      canBeAbsentAnyArity                          = false;
 	private   Set<Integer> dontComplainAboutMultipleTypesThisArity      = null;  // OF if this predicate/arity have multiple types for some argument.
 	private   boolean      dontComplainAboutMultipleTypesAnyArity       = false;
-	private   Map<Integer,Map<Integer,Type>> determinateSpec            = null;  // Used to say this predicate with this arity has only one (at most one?) value for this position, and that value is of this type.
 	private   Map<FunctionAsPredType,Map<Integer,Integer>>  functionAsPredSpec  = null;  // See if this predicate/arity holds a value of the type specified by String in this position.
 	private   Set<Integer>                   bridgerSpec                = null;  // See if this predicate/arity is meant to be a 'bridger' predicate during ILP's search for clauses.  If the arg# is given (defaults to -1 otherwise), then all other arguments should be bound before this is treated as a 'bridger.'
 	private   Set<Integer>                   temporary                  = null;  // See if this predicate/arity is only a temporary predicate and if so, it needs to be renamed to avoid name conflicts across runs.  So slightly different than inline.
 	private   Set<Integer>                   inlineSpec                 = null;  // See if this predicate/arity is meant to be a 'inline' predicate during ILP's search for clauses.  If the arg# is given (defaults to -1 otherwise), then all other arguments should be bound before this is treated as a 'bridger.'
 	private   boolean                        filter                     = false; // Should this predicate (all arities) be filtered from learned rules, presumably because it is a helper function for guiding search.
 	private   Set<Integer>                   queryPredSpec              = null;  // Used with MLNs.
-	private   Set<Integer>                   hiddenPredSpec             = null;  // Used with MLNs.
 	private   Set<Integer>                   supportingLiteral          = null;  // Is this a supporting literal that needs to attached to learned theories?
     private   Set<Integer>                   containsCallable           = null;  // One of the terms of the predicate is called during execution of the predicate.
 	private   Map<Integer,Double>            cost                       = null;  // See if this predicate/arity has a cost (default is 1.0).  Costs are used for scoring clauses.
 	private   boolean                        costIsFinal                = false; // Is the cost frozen?
-	private   Map<Integer,RelevanceStrength> relevance                  = null;  // See if this predicate/arity has a relevance (default is NEUTRAL).  
-	private   Map<Integer,Map<Integer, List<Object>>> constrainsType    = null;  // Record if this literal constrains the type of one of its arguments.
+	private   Map<Integer,RelevanceStrength> relevance                  = null;  // See if this predicate/arity has a relevance (default is NEUTRAL).
 
-    /* Map from non-operation arities to operational predicates.
+	/* Map from non-operation arities to operational predicates.
      *
      * Currently, the operational predicates must be the same arity as the
      * non-operational one.  Additionally, they must take the exact same arguments
@@ -111,11 +107,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return results;
 	}
 
-	private boolean isDeterminatePredicate(int arity) {
-		return (determinateSpec != null && determinateSpec.get(arity) != null);
-	}
-
-	// See if this literal is a predicate that holds a numeric value. 
+	// See if this literal is a predicate that holds a numeric value.
 	boolean isFunctionAsPredicate(List<Term> arguments) {
 		if (functionAsPredSpec == null) { return false; }
 		Map<Integer,Integer> lookup1 = functionAsPredSpec.get(null);
@@ -123,53 +115,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return (lookup1.get(Utils.getSizeSafely(arguments)) != null);
 	}
 
-    private boolean isFunctionAsPredicate(int arity) {
-        if ( functionAsPredSpec != null ) {
-            for (FunctionAsPredType type : FunctionAsPredType.values()) {
-                Map<Integer,Integer> lookup1 = functionAsPredSpec.get(type);
-                if ( lookup1 != null && lookup1.containsKey(arity) ) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private int getFunctionAsPredicateOutputIndex(int arity) {
-        if ( functionAsPredSpec != null ) {
-            for (FunctionAsPredType type : FunctionAsPredType.values()) {
-                Map<Integer, Integer> lookup1 = functionAsPredSpec.get(type);
-                if (lookup1 != null) {
-                    Integer i = lookup1.get(arity);
-                    if (i != null) {
-                        return i;
-                    }
-                }
-            }
-        }
-
-        return -1;
-    }
-
-    public boolean isDeterminateOrFunctionAsPred(int arity) {
-        return isDeterminatePredicate(arity) || isFunctionAsPredicate(arity);
-    }
-
-    public int getDeterminateOrFunctionAsPredOutputIndex(int arity) {
-        if ( isFunctionAsPredicate(arity) ) {
-            return getFunctionAsPredicateOutputIndex(arity);
-        }
-        else if ( isDeterminatePredicate(arity) ) {
-            return getDeterminateArgumentIndex(arity);
-        }
-        else {
-            return -1;
-        }
-    }
-	
-	public enum FunctionAsPredType {      numeric,       bool,          categorical,       structured,       anything,
-									listOfNumeric, listOfBoolean, listOfCategorical, listOfStructured, listOfAnything}
+	public enum FunctionAsPredType {      numeric
+	}
 
 	// See if this predicate name is temporary for this run (if so, it might need to be renamed to avoid name conflicts across runs).
 	public boolean isaTemporaryName(int arity) {
@@ -188,22 +135,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return (inlineSpec != null && inlineSpec.contains(arity));
 	}
 
-	boolean isNonOperational(int arity) {
-        return operationalExpansion != null && operationalExpansion.containsKey(arity);
-    }
-
-    /* Returns the set of operational expansions of the predicate/arity.
-     * @return Returns null if no operational expansions exist.
-     */
-    public Set<PredicateNameAndArity> getOperationalExpansions(int arity) {
-        Set<PredicateNameAndArity> result = null;
-        if ( operationalExpansion != null ) {
-            result = operationalExpansion.getValues(arity);
-        }
-        return result;
-    }
-
-    /* Adds an operational expansion of the predicate.
+	/* Adds an operational expansion of the predicate.
      *
      * Operational expansions are keyed on the predicate name and the arity.
      * A PredicateNameAndArity is used to provide both the name and arity of
@@ -227,24 +159,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         addOperationalExpansion(new PredicateNameAndArity(operationalPredicateName, arity));
     }
 
-	public void recordVariants(Literal lit1, Literal lit2, HandleFOPCstrings stringHandler) {
-    	assert lit1 != null;
-    	assert lit2 != null;
-		if (variantHashMap == null) {
-			variantHashMap = new HashMap<>(4);
-		}
-		int arity = lit1.numberArgs();
-		List<ConnectedSentence> lookup = variantHashMap.computeIfAbsent(arity, k -> new ArrayList<>(1));
-
-		// Rather than create a new class, use an existing one to hold two literals.
-		lookup.add(stringHandler.getConnectedSentence(lit1, stringHandler.getConnectiveName("AND"), lit2));		
-	}
-	
-	public List<ConnectedSentence> getVariants(int arity) {
-		if (variantHashMap == null) { return null; }
-		return variantHashMap.get(arity);
-	}
-	
 	/*
 	 * Can prune 'prunableLiteral' if 'ifPresentLiteral' is present (and both unify consistently with the current literal being considered for adding to the current clause during ILP search).
 	 * However, if 'ifPresentLiteral' has 'warnIfPresentLiteralCount' ways to be proven, warn the user (i.e., prune is based on the assumption that fewer than this number of clauses for this literal/arity exist).
@@ -281,29 +195,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return pruneHashMap.get(arityOfPrunableLiteral);
 	}
 
-	public void addConstrainsArgumentType(int arity, int position, Type type, boolean pruneIfNoEffect) throws IllegalStateException {
-		if (constrainsType == null) {
-			constrainsType = new HashMap<>(4);
-		}
-		Map<Integer, List<Object>> firstLookUp = constrainsType.computeIfAbsent(arity, k -> new HashMap<>(4));
-		List<Object> secondLookUp = firstLookUp.get(position);
-		if (secondLookUp == null) { // Not currently specified.
-			List<Object> newList = new ArrayList<>(2); // Not worth creating a new class for this.
-			newList.add(type);
-			newList.add(pruneIfNoEffect);
-			firstLookUp.put(position, newList);
-		}
-		else if (secondLookUp.get(0) != type || ((Boolean) secondLookUp.get(1)) != pruneIfNoEffect) {
-			throw new IllegalStateException("Cannot set constrains type of '" + name + "/" + arity + "' for position " + position + " to '" + type + "' (with prune=" + pruneIfNoEffect + ") because it is currently = '" + secondLookUp + "'.");
-		}
-		setCost(arity, 0.001, false);  // These should be cheap, but only do this by default if pruneIfNoEffect = true (since those should not be doing anything other than constraining).
-	}
-	 // Use a list to pass back two things (not worth creating another class just for this ...).
-	public Map<Integer,List<Object>> getConstrainsArgumentTypes(int arity) {
-		if (constrainsType == null) { return null; }
-		return constrainsType.get(arity);
-	}
-	
 	void recordMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars, boolean okIfDup) {
         if (Utils.getSizeSafely(signature) != Utils.getSizeSafely(typeSpecs)) {
             Utils.waitHere(this + " sig = " + signature + " specs = " + typeSpecs);
@@ -492,20 +383,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		if (boundariesAtEnd) { boundariesAtEnd_3D.add(arity); }
 	}
 
-	public void setDeterminateInfo(int arity, int position, Type type) throws IllegalStateException {
-		if (determinateSpec == null) {
-			determinateSpec = new HashMap<>(4);
-		}
-		Map<Integer, Type> firstLookUp = determinateSpec.computeIfAbsent(arity, k -> new HashMap<>(4));
-		Type secondLookUp = firstLookUp.get(position);
-		if (secondLookUp == null) { // Not currently specified.
-			firstLookUp.put(position, type);
-		}
-		else if (secondLookUp != type) {
-			throw new IllegalStateException("Cannot set determinate type of '" + name + "/" + arity + "' for position " + position + " to '" + type + "' because it is currently = '" + secondLookUp + "'.");
-		}		
-	}
-
 	public void addFunctionAsPred(FunctionAsPredType type, int arity, int position) throws IllegalStateException {
 		if (functionAsPredSpec == null) { 
 			functionAsPredSpec = new HashMap<>();
@@ -561,19 +438,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public boolean filter() {
 		return filter;
 	}
-	
-	public void addHiddenPred(int arity) { 
-		if (hiddenPredSpec == null) {
-			hiddenPredSpec = new HashSet<>(4);
-		}
-		boolean firstLookUp = hiddenPredSpec.contains(arity);
-		if (!firstLookUp) { // Not currently specified.
-			hiddenPredSpec.add(arity);
-		}
-		else if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate hidden predicate of " + name + "/" + arity + ".  Will ignore."); }		
-	}
-	
-	public void addQueryPred(int arity) { 
+
+	public void addQueryPred(int arity) {
 		if (queryPredSpec == null) {
 			queryPredSpec = new HashSet<>(4);
 		}
@@ -655,17 +521,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return null;
 	}
 
-	private int getDeterminateArgumentIndex(int arity) {
-		if (determinateSpec == null) { return -1; }
-		Map<Integer,Type> firstLookUp = determinateSpec.get(arity);
-		if (firstLookUp == null) { return -1; } // This means "not found."
-		for (Integer key : firstLookUp.keySet()) {
-			firstLookUp.get(key);
-			return key;
-		}
-		return -1; // Did not find what we sought, so return -1 to indicate "not found."
-	}
-
 	int returnFunctionAsPredPosition(int arity) {
 		if (functionAsPredSpec == null) { return -1; }
 		Map<Integer,Integer> lookup = functionAsPredSpec.get(null);
@@ -739,11 +594,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         }
         containsCallable.add(arity);
     }
-
-    public boolean isContainsCallable(int arity) {
-        return containsCallable != null && containsCallable.contains(arity);
-    }
-
 
 
 }

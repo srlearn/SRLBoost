@@ -78,9 +78,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 	 */
 	private List<Sentence> theory;
 
-	private final RegressionTree prior_advice;
-
-	public ConditionalModelPerPredicate(WILLSetup willsetup) {	
+	public ConditionalModelPerPredicate(WILLSetup willsetup) {
 		boostedTrees = new ArrayList<>(4);
 		stepLength = new ArrayList<>(4);
 		numTrees = 0;
@@ -88,7 +86,6 @@ public class ConditionalModelPerPredicate implements Serializable {
 		hasSingleTheory = false;
 		setup = willsetup;
 		theory = null;
-		prior_advice = null;
 	}
 
 	/*
@@ -112,11 +109,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 		}
 
 		int counter = 0;
-		
-		// First add the prior advice regression values
-		if (prior_advice != null) {
-			total_sum_grad.addValueOrVector(prior_advice.getRegressionValue(ex));
-		}
+
 		for (RegressionTree[] tree : boostedTrees) {
 			if (counter == numTrees) { break; }
 			
@@ -190,9 +183,6 @@ public class ConditionalModelPerPredicate implements Serializable {
 	 * Duplicate detection is responsibility of the caller
 	 */
 	public void getParentPredicates(Collection<PredicateName> preds) {
-		if(prior_advice != null) {
-			prior_advice.getParentPredicates(preds);
-		}
 		for (RegressionTree[] regTree : boostedTrees) {
 			for (int i = 0; i < RunBoostedRDN.numbModelsToMake; i++) {
 				regTree[i].getParentPredicates(preds);
@@ -387,11 +377,7 @@ public class ConditionalModelPerPredicate implements Serializable {
 					btree[i].reparseRegressionTrees();
 				}
 			}
-			if (prior_advice != null) {
-				prior_advice.setSetup(setup);
-				prior_advice.reparseRegressionTrees();
-			}
-			
+
 			setSetup(setup);
 		} else {
 			setSetup(setup);
@@ -422,11 +408,6 @@ public class ConditionalModelPerPredicate implements Serializable {
 				for (Clause regClause : tree.getRegressionClauses()) {
 					addClause(clauses, regClause);
 				}
-			}
-		}
-		if(prior_advice != null) {
-			for (Clause regClause : prior_advice.getRegressionClauses()) {
-				addClause(clauses, regClause);
 			}
 		}
 		return clauses;

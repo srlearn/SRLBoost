@@ -207,7 +207,9 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 				if (arg instanceof Function) {
 					Function f = (Function) arg;
 					if (f.functionName == notFname) {
-						if (f.numberArgs() != 1) { Utils.writeMe("Have a double negation: '" + f + "'  but with more than one argument.");  }
+						if (f.numberArgs() != 1) {
+							Utils.error("Have a double negation: '" + f + "'  but with more than one argument.");
+						}
 						Term argNotNot = f.getArgument(0);
 						if (argNotNot instanceof SentenceAsTerm) {
 							SentenceAsTerm satNotNot = (SentenceAsTerm) argNotNot;
@@ -641,7 +643,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	@Override
     public Theory applyTheta(Map<Variable, Term> bindings) {
     	// TODO Auto-generated method stub
-    	Utils.writeMe("Theory applyTheta");
+		// TODO(@hayesall): `applyTheta` in `FOPC.Theory` raises an error.
+    	Utils.error("Theory applyTheta");
     	return this;
     }
 

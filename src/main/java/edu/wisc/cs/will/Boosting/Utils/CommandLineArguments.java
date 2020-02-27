@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.Boosting.Utils;
 
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.Arrays;
@@ -54,10 +53,7 @@ public class CommandLineArguments {
 	
 	private static final String useOCC = "occ";
 	private boolean learnOCC=false;
-	
-	private static final String sampleOCCFlag = "dropPos";
-	private double dropPos=0.0;
-	
+
 	private static final String learnMLNClauses = "mlnClause";
 	private boolean learningMLNClauses=false;
 	
@@ -99,8 +95,6 @@ public class CommandLineArguments {
 
 	private static final String loadModelPredFlag = "loadPredModel";
 	private Set<String> loadPredModelVal = null;
-
-	private static final String saveModel = "save";
 
 	private static final String maxTrees = "trees";
 	private int maxTreesVal=10;
@@ -211,11 +205,6 @@ public class CommandLineArguments {
 				continue;
 			}
 
-			if (argMatches(args[i], sampleOCCFlag)) {
-				dropPos = Double.parseDouble(args[++i]);
-				continue;
-			}
-			
 			if (argMatches(args[i], learnCurve)) {
 				printLearningCurve = true;
 				if (isArgumentNotAFlag(args, i+1)) {
@@ -332,12 +321,6 @@ public class CommandLineArguments {
 				loadPredModelVal.addAll(Arrays.asList(targetStr.split(",")));
 				continue;
 			}
-			if (argMatches(args[i], saveModel)) {
-				if (isArgumentNotAFlag(args, i+1)) {
-					Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
 			if (argMatches(args[i], regressionFlag)) {
 				learnRegression=true;
 				if (isArgumentNotAFlag(args, i+1)) {
@@ -437,9 +420,7 @@ public class CommandLineArguments {
 		result += argPrefix + modelDir + " <Model directory> : Path to the directory with the stored models[or where they will be stored].\n";
 
 		result += argPrefix + targetPred + " <target predicates> : Comma separated list of predicates that need to be learned/inferred.\n";
-		
-		result += argPrefix + saveModel + " : Use this flag, if you want to save the learnt models.\n";
-		
+
 		result += argPrefix + maxTrees + " <Number of trees>: Number of boosting trees.\n";
 		
 		result += argPrefix + maxInteriorNodeLits +  " <Max number of literals at an interior node>: Max number of literals in an interior node.\n";
@@ -603,10 +584,6 @@ public class CommandLineArguments {
 		return learnOCC;
 	}
 
-	public double getDropPos() {
-		return dropPos;
-	}
-
 	public String getAucPathVal() {
 		return aucPathVal;
 	}
@@ -646,21 +623,6 @@ public class CommandLineArguments {
 
 	public boolean isJointModelDisabled() {
 		return jointModelDisabled;
-	}
-
-	public String getDirForAUCfiles(String target, WILLSetup setup) {
-		// If models are being written somewhere, then also write AUCs there
-		// (this allows us to avoid writing in a dir that only contains INPUT files)
-		// Hence, multiple runs can simultaneously use the same input dir, yet write to different output dirs.
-		String aucTempDirectory =  (getResultsDirVal() != null ? getResultsDirVal() : setup.getOuterLooper().getWorkingDirectory()) + "AUC/";
-		if (getTargetPredVal().size() > 1) { 
-			aucTempDirectory += target;
-		}			
-		if (getModelFileVal() != null) {
-			aucTempDirectory += getModelFileVal();
-		}
-		Utils.ensureDirExists(aucTempDirectory);
-		return aucTempDirectory;
 	}
 
 	public boolean isLearnMLN() {

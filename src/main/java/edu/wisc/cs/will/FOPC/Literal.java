@@ -20,28 +20,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     protected Literal() {
     }
-    
-    public Literal(Literal lit) { // This is used for classes that need to extend Literal.  *** USE WITH CARE. ***
-    	this();
-        predicateName      = lit.predicateName;
-        this.stringHandler = lit.stringHandler;
-        this.arguments     = lit.arguments;
-        this.argumentNames = lit.argumentNames;
-        if (predicateName == null) {
-            Utils.error("You have not provided a predicate name!");
-        }
-        if (predicateName.name.equals("")) {
-            Utils.error("You have not provided a predicate name that is the empty string!");
-        }
-    }
-
-    protected Literal(HandleFOPCstrings stringHandler) {
-    	this();
-        predicateName      = new PredicateName("thisIsADummyPredicate", stringHandler);
-        this.stringHandler = stringHandler;
-        this.arguments     = null;
-        this.argumentNames = null;
-    }
 
     protected Literal(HandleFOPCstrings stringHandler, PredicateName pred) {
     	this();
@@ -50,14 +28,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         this.arguments     = null;
         this.argumentNames = null;
     }
-
-    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments) {
-        predicateName      = pred;
-        this.arguments     = arguments;
-        this.argumentNames = null;
-        this.stringHandler = stringHandler;
-    }
-
     /* Create a Literal given a predicate name and list of terms.
      *
      * TAW: This uses the varargs semantics common in C.  It allows the user to
@@ -73,23 +43,15 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
      * @param pred predicate name
      * @param arguments Terms to be arguments of the predicate
      */
-    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, Term... arguments) {
-    	this();
-        predicateName = pred;
-
-        // Add the arguments to the this.arguments list.
-        if (arguments != null) {
-            this.arguments = new ArrayList<>(arguments.length);
-            this.arguments.addAll(Arrays.asList(arguments));
-        }
-        else {
-            this.arguments = null; // JWS: other code should handle arguments=null.
-        }
+    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments) {
+        predicateName      = pred;
+        this.arguments     = arguments;
         this.argumentNames = null;
         this.stringHandler = stringHandler;
     }
 
-    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, Term argument) {
+
+    Literal(HandleFOPCstrings stringHandler, PredicateName pred, Term argument) {
     	this();
         predicateName = pred;
         List<Term> args = new ArrayList<>(1);
@@ -99,7 +61,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         this.argumentNames = null;
     }
 
-    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, List<String> argumentNames) {
+    Literal(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, List<String> argumentNames) {
         this(stringHandler, pred, arguments);
         this.argumentNames = argumentNames;
         sortArgumentsByName();
@@ -228,7 +190,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return getBareCopy(newArguments);
     }
 
-    @Override
     public Literal applyTheta(BindingList bindingList) {
         if (bindingList != null) {
             return applyTheta(bindingList.theta);
@@ -361,10 +322,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return getStringHandler().getFunctionName(predicateName.name);
     }
 
-    public Literal asLiteral() {
-        return this;
-    }
-
     public Function asFunction() {
 
         // We need special handling for conCells for some reason...
@@ -382,9 +339,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     public boolean equals(Object obj, boolean considerUseStrictEqualsForLiterals) {
         if ( this == obj) {
             return true;
-        }
-        if (considerUseStrictEqualsForLiterals && stringHandler.usingStrictEqualsForLiterals()) {
-            return false;
         }
         if (obj == null) {
             return false;
@@ -405,17 +359,11 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     @Override
     public int hashCode() {
-
-        if (stringHandler.usingStrictEqualsForLiterals()) {
-            return super.hashCode();
-        }
-        else {
-            int hash = 7;
-            hash = 23 * hash + (this.predicateName != null ? this.predicateName.hashCode() : 0);
-            hash = 23 * hash + (this.arguments != null ? this.arguments.hashCode() : 0);
-            hash = 23 * hash + (this.argumentNames != null ? this.argumentNames.hashCode() : 0);
-            return hash;
-        }
+        int hash = 7;
+        hash = 23 * hash + (this.predicateName != null ? this.predicateName.hashCode() : 0);
+        hash = 23 * hash + (this.arguments != null ? this.arguments.hashCode() : 0);
+        hash = 23 * hash + (this.argumentNames != null ? this.argumentNames.hashCode() : 0);
+        return hash;
     }
 
     @Override
@@ -863,7 +811,4 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return total;
     }
 
-    public Term asTerm() {
-        return asFunction();
-    }
 }

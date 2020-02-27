@@ -37,22 +37,12 @@ public class TermAsLiteral extends Literal {
 		if (term == null || theta == null) { return false; }
 		return term.freeVariablesAfterSubstitution(theta);
 	}
-	
+
     @Override
 	public TermAsLiteral applyTheta(Map<Variable,Term> bindings) {
 		Term newTerm = term.applyTheta(bindings);
 		return new TermAsLiteral(stringHandler, newTerm);
 	}
-
-    @Override
-    public TermAsLiteral applyTheta(BindingList bindingList) {
-        if ( bindingList != null ) {
-            return applyTheta(bindingList.theta);
-        }
-        else {
-            return this;
-        }
-    }
 
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.

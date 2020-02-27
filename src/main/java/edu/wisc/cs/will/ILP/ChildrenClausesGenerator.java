@@ -536,7 +536,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 
 							// TODO(@hayesall): This is the only use of `isaVariantOfChildAlreadyGenerated`. Is there a simpler way to factor this out?
 							// Can't do this too early since this code doesn't understand that some variables are to be replaced by constants.
-							if (isaVariantOfChildAlreadyGenerated(pred, ((LearnOneClause) task).unifier)) {
+							if (isaVariantOfChildAlreadyGenerated(pred)) {
 								continue;
 							}
 
@@ -865,7 +865,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 	}
 
 	// TODO(@hayesall): Why is there a `[nothing]` and `_version1` and `_version2` of this function?
-	private boolean isaVariantOfChildAlreadyGenerated(Literal lit, Unifier unifier) {
+	private boolean isaVariantOfChildAlreadyGenerated(Literal lit) {
 		boolean result = false;
 
 		List<Literal> literalsWithThisPnameTriedSoFar = literalsTriedSoFar.get(lit.predicateName); // Could also hash on arity, but don't bother unless this method becomes a bottleneck.
@@ -875,97 +875,12 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 			literalsWithThisPnameTriedSoFar = new ArrayList<>(16);
 			literalsTriedSoFar.put(lit.predicateName, literalsWithThisPnameTriedSoFar);
 		} else {
-			result = (isaVariantOfChildAlreadyGenerated_version2(initNumberedLit) ||
-				      isaVariantOfChildAlreadyGenerated_version1(lit, initNumberedLit, unifier));
+			result = (isaVariantOfChildAlreadyGenerated_version2(initNumberedLit));
 		}
 		literalsWithThisPnameTriedSoFar.add(initNumberedLit);	
 		return result;
 	}
 
-	private boolean isaVariantOfChildAlreadyGenerated_version1(Literal lit, Literal initNumberedLit, Unifier unifier) {
-		PredicateName           pName            = lit.predicateName;
-		List<ConnectedSentence> possibleVariants = pName.getVariants(lit.numberArgs());
-		
-		if (possibleVariants == null) {
-			return false;
-		}
-
-		BindingList newBL = bindVarsToUniqueConstants(initNumberedLit);
-
-		// Need to get rid of all variables.
-		Literal fullyNumberedLit = initNumberedLit.applyTheta(newBL.theta);
-
-		// Look at every 'variant' matching this literal.
-		for (ConnectedSentence pair : possibleVariants) {
-
-			Literal litA = (Literal) pair.getSentenceA();
-
-			// Don't use dummyBindingList on this next line, since dummyBindingList is used below!
-			BindingList bindings1 = unifier.unify(fullyNumberedLit, litA); // Make sure it matches this specific literal IN ITS NUMBERED FORM (so as to not overly generalize).
-			
-			if (bindings1 == null) {
-				continue;
-			}
-			
-			Literal litB = (Literal) pair.getSentenceB();
-
-			PredicateName pName2 = litB.predicateName;
-
-			// See if previous literals match the 'partner' of this variant.
-			List<Literal> literalsWithPname2TriedSoFar = literalsTriedSoFar.get(pName2);
-
-			if (literalsWithPname2TriedSoFar == null) {
-				continue;
-			}
-			Literal litBmatched = litB.applyTheta(bindings1.theta);			
-
-			boolean anyNewVarsInBmatched = litBmatched.containsVariables();
-			if (anyNewVarsInBmatched) {
-
-				// TODO(@hayesall): This reports an error, but can likely be simplified.
-
-				Utils.println("*** VARIANT PRUNING:");
-				Utils.println("            lit: " + lit);
-				Utils.println("    litNumbered: " + fullyNumberedLit);
-				Utils.println("           litA: " + litA);
-				Utils.println("    litA@theta1: " + litA.applyTheta(bindings1.theta));
-				Utils.println("           litB: " + litB);
-				Utils.println("    litB@theta1: " + litBmatched);
-
-				Utils.error("Should there be new variables here? " + litBmatched.collectFreeVariables(null));
-			}
-			
-			for (Literal oldLit : literalsWithPname2TriedSoFar) {
-				dummyBindingList.theta.clear();
-				BindingList bindings2 = unifier.unify(oldLit, litBmatched, dummyBindingList);
-				if (bindings2 != null) { // Do a "sanity check" here.
-					boolean anyNewVarsInOldLit = oldLit.applyTheta(bindings2.theta).containsVariables();
-					if (anyNewVarsInOldLit) {
-
-						// TODO(@hayesall): This reports an error, but can likely be simplified.
-
-						Utils.println("*** VARIANT PRUNING:");
-						Utils.println("            lit: " + lit);
-						Utils.println("    litNumbered: " + fullyNumberedLit);
-						Utils.println("           litA: " + litA);
-						Utils.println("    litA@theta1: " + litA.applyTheta(bindings1.theta));
-						Utils.println("           litB: " + litB);
-						Utils.println("    litB@theta1: " + litBmatched);
-						Utils.println("         oldLit: " + oldLit);
-						Utils.println("  oldLit@theta2: " + oldLit.applyTheta(bindings2.theta));
-						Utils.println("  bl 1: " + bindings1);
-						Utils.println("  bl 2: " + bindings2);
-
-						Utils.error("Should there be new variables here? " + oldLit.applyTheta(bindings2.theta).collectFreeVariables(null));
-					}
-					countOfPruningDueToVariantChildren++;
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-	
 	private boolean isaVariantOfChildAlreadyGenerated_version2(Literal initNumberedLit) {
 		PredicateName pName = initNumberedLit.predicateName;
 

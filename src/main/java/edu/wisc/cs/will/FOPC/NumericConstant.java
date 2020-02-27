@@ -129,7 +129,7 @@ public class NumericConstant extends Constant implements Serializable {
 
     @Override
     public <Return, Data> Return accept(TermVisitor<Return, Data> visitor, Data data) {
-        return visitor.visitNumericConstant(this, data);
+        return visitor.visitNumericConstant(this);
     }
 
 	@Override

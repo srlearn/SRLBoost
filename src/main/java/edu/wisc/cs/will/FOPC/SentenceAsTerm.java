@@ -36,7 +36,7 @@ public class SentenceAsTerm extends Term {
 		Sentence newSentence = (sentence == null ? null : sentence.applyTheta(bindings));
 		return new SentenceAsTerm(stringHandler, newSentence, wrapperPredicate);
 	}
-	
+
 	public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
 		return (sentence == null? null : sentence.collectFreeVariables(boundVariables));
 	}

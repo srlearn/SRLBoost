@@ -72,11 +72,6 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 		setOriginalValue(originalTruthValue?1:0);
 	}
 
-	void setOriginalHiddenLiteralVal() {
-		// TODO(@hayesall): Always results in an error and terminates.
-		Utils.error("Not hidden literal!");
-	}
-
 	public ProbDistribution getProbOfExample() {
 		if (probOfExample == null) {
 			Utils.error("Probability was not set");

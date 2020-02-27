@@ -184,7 +184,7 @@ public class PairWiseExampleScore {
 	}
 
 	public double getVariance(List<Example> examples) {
-		return 1 - (1/examples.size());
+		return 1 - (1.0/examples.size());
 	}
 	public static List<Example> removeFromCopy(List<Example> allEgs, List<Example> subtractEg) {
 		List<Example> copy  = new ArrayList<>(allEgs);

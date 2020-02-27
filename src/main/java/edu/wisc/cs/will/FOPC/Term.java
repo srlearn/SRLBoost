@@ -87,17 +87,13 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
      */
     public Clause         asClause() { return null; }
 
-    public Term asTerm() {
-        return this;
-    }
-
-    public Literal asLiteral() {
+	public Literal asLiteral() {
         Utils.error("Term '" + this + "' can not be converted to a Literal.");
         return null;
     }
 
     public <Return,Data> Return accept(TermVisitor<Return,Data> visitor, Data data) {
-        return visitor.visitOtherTerm(this, data);
+        return visitor.visitOtherTerm(this);
     }
 
 

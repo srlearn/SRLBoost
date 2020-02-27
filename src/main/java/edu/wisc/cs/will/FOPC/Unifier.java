@@ -39,10 +39,6 @@ public class Unifier extends AllOfFOPC implements Serializable {
         return SentenceUnifier.unify(s1,s2,bl);
     }
 
-    public BindingList unify(Sentence s1, Sentence s2) {
-        return SentenceUnifier.unify(s1, s2, null);
-    }
-
 	private BindingList unify(List<Term> args1, List<Term> args2, BindingList bindingList) {
 		// The calling code checks arguments sizes, so no need to do that here.
 		// TAW: I normally wouldn't trust an external check...the check should probably be skipped
@@ -157,7 +153,7 @@ public class Unifier extends AllOfFOPC implements Serializable {
 		Utils.println("Why call this on a unifier?");
 		return null;
 	}
-	
+
 	@Override
 	public int countVarOccurrencesInFOPC(Variable v) {
 		return 0;

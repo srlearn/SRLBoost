@@ -6,7 +6,6 @@ member(X, Y) :- ground(X), ground(Y), !, contains(X, Y).
 
 member(X, [X | _]). // :- write(found(X), in(X)).
 member(X, [_ | Y]) :- member(X, Y).
-//cost: member/2, 1.2;
 
 contains(X, [X | _]) :- !.
 contains(X, [_ | Y]) :- contains(X,Y).
@@ -73,18 +72,12 @@ containsCallable: alwaysTrue/3.
 
 sometimesTrue(Index, List, Expression) :-
     L is length(List),
-//	write(st),
 	memberOfList(Index, List),
-//	write(checkSometimesTrue(Expression)),
 	call(Expression),
-//	write(index(Index), trueThisTimeST(Expression)),
-	//!, // Only want to return one solution?
 	true.
 cost: sometimesTrue/3, 1.3;
 containsCallable: sometimesTrue/3.
 
-//neverTrue(Index, List, Expression) :-
-//	\+ sometimesTrue(Index, List, Expression).
 neverTrue(Index, List, Expression) :-
 	member(Index, List),
 	call(Expression),

@@ -102,8 +102,6 @@ public interface HornClausebase {
      */
     boolean retractAllClauseWithHead(DefiniteClause clauseHead);
 
-    void retractAllClausesForPredicate(PredicateNameAndArity predicateNameAndArity);
-
     /* Returns a Collection of definite clauses whose head might match the specified clauseHead.
      *
      * The DefiniteClause returned can be either a Literal or a Clause from either the background
@@ -140,22 +138,6 @@ public interface HornClausebase {
      * @return Collection of Definite clauses matching the predName and arity.
      */
     List<DefiniteClause> getAssertions(PredicateName predName, int arity);
-
-    /* Returns a Collection of definite clauses from both the background knowledge and the facts whose head matches the predicateName and arity.
-     *
-     * This is guaranteed to be the complete list and to only contain definite clauses with
-     * a head that matches the predName and arity.
-     *
-     * The DefiniteClause returned can be either a Literal (representing a fact) or a
-     * Clause (representing a definite clause from the background knowledge).
-     *
-     * The iteration order of the collection returned is guaranteed to match the
-     * order in which the clauses were ordinally asserted.
-     *
-     * @param predicateNameAndArity Predicate name of head, Arity of head.
-     * @return Collection of Definite clauses matching the predName and arity.
-     */
-    List<DefiniteClause> getAssertions(PredicateNameAndArity predicateNameAndArity);
 
     /* Checks to see if there are any possible matching clauses in the background knowledge.
      *
@@ -208,10 +190,4 @@ public interface HornClausebase {
 
     boolean isOnlyInFacts(PredicateName predName, int arity);
 
-    void addAssertRetractListener(AssertRetractListener assertRetractListener, PredicateNameAndArity predicate);
-
-    /*
-     * Returns whether the predicate currently has a definition.
-     */
-    boolean isDefined(PredicateNameAndArity pnaa);
 }

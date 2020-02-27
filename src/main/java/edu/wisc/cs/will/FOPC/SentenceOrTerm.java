@@ -3,6 +3,6 @@ package edu.wisc.cs.will.FOPC;
 /*
  * @author twalker
  */
-public interface SentenceOrTerm {
-    Term asTerm();
+interface SentenceOrTerm {
+    // TODO(@hayesall): Empty interface, not necessary for other methods to implement this.
 }

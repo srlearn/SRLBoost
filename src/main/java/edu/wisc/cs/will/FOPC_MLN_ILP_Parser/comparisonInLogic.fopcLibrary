@@ -124,22 +124,7 @@ equalWithSmallTolerance(X, Y) :-
 	number(X), number(Y), !,
 	Scaled is 2 * abs(X - Y) / (abs(X) + abs(Y) + 1.0E-18),
 	Scaled < 0.000001.
-	/* OLD CODE
-	Xabs is abs(X),
-	Yabs is abs(Y),
-	safeLog(abs(X), 10, Xsafe),
-	safeLog(abs(Y), 10, Ysafe),
-	Power     is min(Xsafe, Ysafe) - 6, // One part in a million.
-	Tolerance is pow(10, Power),
-	equalWithTolerance(X, Y, Tolerance).
-	*/
-/* The first clause above handles the cases below, BUT if we want to GROUND x and y, then comment that out and use these below.
-equalWithSmallTolerance(X, Y) :-
-	number(X), var(Y), X == Y.
-equalWithSmallTolerance(X, Y) :-
-	number(Y), var(X), X == Y.
-*/
-	
+
 safeLog(0.0, Base, 1.0)    :- !.  // Use this definition for log(0).  The value 1.0 is far from the true answer of -infinity, but if one argument is 0, simply use the magnitude of the other to decide.  If both arguments to equalWithSmallTolerance are 0.0, then it is fine to say they are equal. 
 safeLog(X,   Base, Result) :- number(X), number(Base), Result is log(X, Base).
 
@@ -241,7 +226,6 @@ pruneTrue: equalWithSmallTolerance(X, Y), equalWithSmallTolerance(Y, X).
 
 prune: equalWithTolerance(X, Y, Z1), equalWithTolerance(X, Y, Z2), warnIf(2). // Should add "Z1 <= Z2" but does WILL support this?
 prune: equalWithTolerance(X, Y, Z),  equalWithTolerance(Y, X, Z),  warnIf(2).
-//prune: equalWithTolerance(X, Y, Z1), equalWithTolerance(Y, X, Z2), warnIf(2). // Really only need this since it covers previous line, but unless constraints can be added ("Z1 <= Z2") we might want to drop this one.
 
 // For consistency with other code, assume that 'inBetween' means [lower, upper) - e.g., this way intervals can be disjoint.
 // - switched to use all four possibilities (June 2009).

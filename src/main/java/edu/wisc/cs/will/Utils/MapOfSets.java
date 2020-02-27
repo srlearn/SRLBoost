@@ -18,11 +18,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
     public MapOfSets() {
     }
 
-    public boolean containsKey(Key key) {
-        return map != null && map.containsKey(key);
-    }
-
-    public Set<Value> getValues(Key key) {
+    private Set<Value> getValues(Key key) {
         return map == null ? null : map.get(key);
     }
 
@@ -41,57 +37,11 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
         result.add(value);
     }
 
-    public void removeValues(Key key) {
-        map.remove(key);
-    }
-
-    public void putAll(Key key, Set<? extends Value> values) {
-
-        if (!values.isEmpty()) {
-
-            Set<Value> set = map.get(key);
-            if ( set == null ) {
-                set = createValueSet();
-                map.put(key, set);
-            }
-
-            set.addAll(values);
-
-        }
-    }
-
-    public Set<Key> keySet() {
-        if ( map != null) {
-            return map.keySet();
-        }
-        else {
-            return Collections.EMPTY_SET;
-        }
-    }
-
-    public Collection<Set<Value>> values() {
-        if ( map != null ) {
-            return map.values();
-        }
-        else {
-            return Collections.EMPTY_SET;
-        }
-    }
-
-    public Set<Entry<Key, Set<Value>>> entrySet() {
-        if ( map != null ) {
-            return map.entrySet();
-        }
-        else {
-            return Collections.EMPTY_SET;
-        }
-    }
-
-    Set<Value> createValueSet() {
+    private Set<Value> createValueSet() {
         return new HashSet<>();
     }
 
-    Map<Key, Set<Value>> createMap() {
+    private Map<Key, Set<Value>> createMap() {
         return new HashMap<>();
     }
 

@@ -45,9 +45,6 @@ public class ExampleSubSampler {
 		if ((lookup =  willSetup.getHandler().getParameterSetting("histSampling")) != null) {
 			histogramSampling = Boolean.parseBoolean(lookup);
 		}
-		if ((lookup =  willSetup.getHandler().getParameterSetting("removeTopEg")) != null) {
-			boolean removeTopNExamples = Boolean.parseBoolean(lookup);
-		}
 	}
 	
 	public List<RegressionRDNExample> sampleExamples(List<RegressionRDNExample> all_exs) {
