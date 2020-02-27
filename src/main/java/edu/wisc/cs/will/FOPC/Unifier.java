@@ -153,7 +153,7 @@ public class Unifier extends AllOfFOPC implements Serializable {
 		Utils.println("Why call this on a unifier?");
 		return null;
 	}
-	
+
 	@Override
 	public int countVarOccurrencesInFOPC(Variable v) {
 		return 0;

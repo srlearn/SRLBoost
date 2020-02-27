@@ -22,11 +22,6 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
     protected DefaultFOPCVisitor() {
     }
 
-    DefaultFOPCVisitor(boolean buildSentence) {
-        // TODO(@hayesall): `boolean buildSentence` parameter is always false. This might be initialized in a better way.
-        this.buildSentence = false;
-    }
-
     public Sentence visitOtherSentence(Sentence otherSentence) {
         return !buildSentence ? null : otherSentence;
     } 

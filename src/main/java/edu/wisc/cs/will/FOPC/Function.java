@@ -433,17 +433,7 @@ public class Function extends Term implements LiteralOrFunction {
 		return total;
 	}
 
-    /* Returns the function name as predicate and arity.
-     *
-     * Technically, a function doesn't have predicate name, but
-     * we convert of the function to the a predicate of the same
-     * name.
-     */
-    public PredicateNameAndArity getPredicateNameAndArity() {
-        return stringHandler.getPredicate(stringHandler.getPredicateName(functionName.name), getArity());
-    }
-
-    public int getArity() {
+	public int getArity() {
         return numberArgs();
     }
 

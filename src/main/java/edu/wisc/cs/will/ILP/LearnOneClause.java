@@ -225,8 +225,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   double               mEstimatePos = 0.1; // When computing coverage of a rule use these "m estimates."  NOTE these are also used when examples are weighted, so if total weight is small, might want to change these.
 	private   double               mEstimateNeg = 0.1; // Note: these are used in recall as well as precision.
 
-	private final List<ModeConstraint> modeConstraints = null;
-
 	private final EventListenerList searchListenerList = new EventListenerList();
 
     private List<Sentence> facts = null; // This temporarily stores the facts between construction and initialization.  After initialization it will be null.

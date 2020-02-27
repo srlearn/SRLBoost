@@ -190,7 +190,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return getBareCopy(newArguments);
     }
 
-    @Override
     public Literal applyTheta(BindingList bindingList) {
         if (bindingList != null) {
             return applyTheta(bindingList.theta);

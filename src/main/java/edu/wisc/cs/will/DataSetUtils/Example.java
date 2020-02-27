@@ -45,7 +45,7 @@ public class Example extends Literal implements Serializable {
 	public Example(Function f) {
 		this(f.getStringHandler(), f.getStringHandler().getPredicateName(f.functionName.name), f.getArguments(), null, null);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see edu.wisc.cs.will.FOPC.AllOfFOPC#applyTheta(java.util.Map)
 	 */
@@ -57,13 +57,6 @@ public class Example extends Literal implements Serializable {
 		return new Example(stringHandler, predicateName, newArgs, provenance, extraLabel); // Be sure to USE ALL LOCAL arguments.
 	}
 
-    @Override
-    public Example applyTheta(BindingList bindingList) {
-        if ( bindingList != null ) {
-            return applyTheta(bindingList.theta);
-        }
-		return this;
-    }
     @Override
     public Example copy(boolean recursiveCopy) {
     	Example copy = new Example(super.copy(recursiveCopy)); // A bit of waste to make two instances, but better to save duplicating code.

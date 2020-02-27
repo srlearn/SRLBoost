@@ -273,10 +273,6 @@ public class LazyHornClausebase implements HornClausebase {
         return list == null ? null : list.getFactIterable();
     }
 
-    private boolean checkForPossibleMatchingAssertions(PredicateName predName, int arity) {
-        return assertions.containsKey( new PredicateNameAndArity(predName, arity));
-    }
-
     public MapOfDefiniteClauseLists getAssertionsMap() {
         return assertions;
     }
@@ -420,10 +416,6 @@ public class LazyHornClausebase implements HornClausebase {
                 }
             }
         }
-    }
-
-    public DefiniteClauseList getAssertions(PredicateNameAndArity predicateNameAndArity) {
-        return getAssertions(predicateNameAndArity.getPredicateName(), predicateNameAndArity.getArity());
     }
 
     public class SpyAssertRetractListener implements AssertRetractListener {

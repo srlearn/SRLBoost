@@ -59,16 +59,6 @@ public class UniversalSentence extends QuantifiedSentence {
 		return (UniversalSentence) new UniversalSentence(stringHandler, variables, newBody).setWeightOnSentence(wgtSentence);
 	}
 
-    @Override
-    public UniversalSentence applyTheta(BindingList bindingList) {
-        if ( bindingList != null ) {
-            return applyTheta(bindingList.theta);
-        }
-        else {
-            return this;
-        }
-    }
-
 
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.

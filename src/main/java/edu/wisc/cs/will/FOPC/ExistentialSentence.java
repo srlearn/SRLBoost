@@ -51,23 +51,13 @@ public class ExistentialSentence extends QuantifiedSentence {
 	public boolean containsFreeVariablesAfterSubstitution(BindingList theta) {
 		if (body == null || theta == null) { return false; }
 		return body.containsFreeVariablesAfterSubstitution(theta);
-	}	
+	}
 
     @Override
 	public ExistentialSentence applyTheta(Map<Variable,Term> bindings) {
 		Sentence newBody = body.applyTheta(bindings);
 		return (ExistentialSentence) stringHandler.getExistentialSentence(variables, newBody).setWeightOnSentence(wgtSentence);
 	}
-
-    @Override
-    public ExistentialSentence applyTheta(BindingList bindingList) {
-        if ( bindingList != null ) {
-            return applyTheta(bindingList.theta);
-        }
-        else {
-            return this;
-        }
-    }
 
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.

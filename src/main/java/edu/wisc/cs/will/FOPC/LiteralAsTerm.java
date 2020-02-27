@@ -23,7 +23,7 @@ public class LiteralAsTerm extends Term {
 		if (itemBeingWrapped == null || theta == null) { return false; }
 		return itemBeingWrapped.containsFreeVariablesAfterSubstitution(theta);
 	}
-	
+
     @Override
 	public Term applyTheta(Map<Variable,Term> bindings) {
 		return stringHandler.getLiteralAsTerm(itemBeingWrapped.applyTheta(bindings));

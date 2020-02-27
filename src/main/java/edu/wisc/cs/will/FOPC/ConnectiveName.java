@@ -40,9 +40,8 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 	private final static String LogicalNOT     = "LogicalNot";
 
     public final static ConnectiveName AND     = new ConnectiveName(ANDalt0);
-    public final static ConnectiveName OR      = new ConnectiveName(ORalt0);
+    final static ConnectiveName OR      = new ConnectiveName(ORalt0);
     public final static ConnectiveName NOT     = new ConnectiveName(NOTalt0);
-    public final static ConnectiveName IMPLIES = new ConnectiveName(IMPLIESalt0);
 
 	public final String name;
 

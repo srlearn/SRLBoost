@@ -239,7 +239,6 @@ public class Clause extends Sentence implements DefiniteClause {
 		return (Clause) stringHandler.getClause(newPosLiterals, newNegLiterals, extraLabel).setWeightOnSentence(wgtSentence);
 	}
 
-    @Override
     public Clause applyTheta(BindingList bindingList) {
         if ( bindingList != null ) {
             return applyTheta(bindingList.theta);

@@ -106,25 +106,15 @@ public class ConnectedSentence extends Sentence implements Serializable, Implica
 		if (theta == null) { return false; }
 		return ((sentenceA != null && sentenceA.containsFreeVariablesAfterSubstitution(theta)) ||
 				(sentenceB != null && sentenceB.containsFreeVariablesAfterSubstitution(theta)));
-	}	
-	
+	}
+
     @Override
 	public ConnectedSentence applyTheta(Map<Variable,Term> bindings) {
 		Sentence newA = (sentenceA == null ? null : sentenceA.applyTheta(bindings));
 		Sentence newB = (sentenceB == null ? null : sentenceB.applyTheta(bindings));
-		
+
 		return stringHandler.getConnectedSentence(newA, connective, newB);
 	}
-
-    @Override
-    public ConnectedSentence applyTheta(BindingList bindingList) {
-        if ( bindingList != null ) {
-            return applyTheta(bindingList.theta);
-        }
-        else {
-            return this;
-        }
-    }
 
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.

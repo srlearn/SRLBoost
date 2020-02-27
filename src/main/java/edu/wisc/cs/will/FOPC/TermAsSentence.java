@@ -71,16 +71,6 @@ public class TermAsSentence extends Sentence {
     }
 
     @Override
-    public TermAsSentence applyTheta(BindingList bindingList) {
-        if (bindingList != null) {
-            return applyTheta(bindingList.theta);
-        }
-        else {
-            return this;
-        }
-    }
-
-    @Override
     public int hashCode() { // Need to have equal objects produce the same hash code.
         final int prime = 31;
         int result = 1;

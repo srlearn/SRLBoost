@@ -18,10 +18,6 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
     public MapOfSets() {
     }
 
-    public boolean containsKey(Key key) {
-        return map != null && map.containsKey(key);
-    }
-
     private Set<Value> getValues(Key key) {
         return map == null ? null : map.get(key);
     }

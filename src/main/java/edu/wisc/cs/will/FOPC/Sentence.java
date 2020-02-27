@@ -169,9 +169,8 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 	public abstract Collection<Variable> collectAllVariables();
     @Override
 	public abstract Sentence             applyTheta(Map<Variable,Term> bindings);
-    public abstract Sentence             applyTheta(BindingList bindingList);
 
-    @Override
+	@Override
 	public abstract boolean              equals(Object other);
 	public abstract boolean              containsVariables();
 	public abstract BindingList          variants(Sentence other, BindingList bindings);

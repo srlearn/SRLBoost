@@ -67,10 +67,6 @@ public class PredicateNameAndArity {
         predicateName.setContainsCallable(arity);
     }
 
-    public boolean getContainsCallable() {
-        return predicateName.isContainsCallable(arity);
-    }
-
     @Override
     public String toString() {
         return predicateName + "/" + arity;
