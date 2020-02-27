@@ -20,28 +20,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     protected Literal() {
     }
-    
-    public Literal(Literal lit) { // This is used for classes that need to extend Literal.  *** USE WITH CARE. ***
-    	this();
-        predicateName      = lit.predicateName;
-        this.stringHandler = lit.stringHandler;
-        this.arguments     = lit.arguments;
-        this.argumentNames = lit.argumentNames;
-        if (predicateName == null) {
-            Utils.error("You have not provided a predicate name!");
-        }
-        if (predicateName.name.equals("")) {
-            Utils.error("You have not provided a predicate name that is the empty string!");
-        }
-    }
-
-    protected Literal(HandleFOPCstrings stringHandler) {
-    	this();
-        predicateName      = new PredicateName("thisIsADummyPredicate", stringHandler);
-        this.stringHandler = stringHandler;
-        this.arguments     = null;
-        this.argumentNames = null;
-    }
 
     protected Literal(HandleFOPCstrings stringHandler, PredicateName pred) {
     	this();
@@ -50,14 +28,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         this.arguments     = null;
         this.argumentNames = null;
     }
-
-    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments) {
-        predicateName      = pred;
-        this.arguments     = arguments;
-        this.argumentNames = null;
-        this.stringHandler = stringHandler;
-    }
-
     /* Create a Literal given a predicate name and list of terms.
      *
      * TAW: This uses the varargs semantics common in C.  It allows the user to
@@ -73,21 +43,13 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
      * @param pred predicate name
      * @param arguments Terms to be arguments of the predicate
      */
-    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, Term... arguments) {
-    	this();
-        predicateName = pred;
-
-        // Add the arguments to the this.arguments list.
-        if (arguments != null) {
-            this.arguments = new ArrayList<>(arguments.length);
-            this.arguments.addAll(Arrays.asList(arguments));
-        }
-        else {
-            this.arguments = null; // JWS: other code should handle arguments=null.
-        }
+    protected Literal(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments) {
+        predicateName      = pred;
+        this.arguments     = arguments;
         this.argumentNames = null;
         this.stringHandler = stringHandler;
     }
+
 
     Literal(HandleFOPCstrings stringHandler, PredicateName pred, Term argument) {
     	this();

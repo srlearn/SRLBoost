@@ -68,7 +68,7 @@ sameAsComponentContents(W, X, Y, S) :-
 isaCompoName(W, Name,   Name, S) :- ilField_Composite_name(W, Name, _,      S). % Already have the Name.
 isaCompoName(W, Symbol, Name, S) :- ilField_Composite_name(W, Name, Symbol, S). % Go from Symbol to Name.
 
-okIfUnknown: compositeContents/5. % These should be defined, but play it safe.
+okIfUnknown: compositeContents/5.
 
 differentIL(         W, X, Y, S) :- \+ sameAsIL(         W, X, Y, S).
 differentILbyContent(W, X, Y, S) :- \+ sameAsIL(         W, X, Y, S).

@@ -394,14 +394,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       stopIfPerfectClauseFound                              = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("useCachedFiles");
 		if (vStr != null) {                       useCachedFiles                                        = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("usingWorldStates");
-		if (vStr != null) {                       // Does this task involve time-stamped facts?
-			boolean usingWorldStates = Boolean.parseBoolean(vStr);
-		}
-		vStr = stringHandler.getParameterSetting("errorToHaveModesWithoutInputVars");
-		if (vStr != null) {                       // Error if a mode of the form 'predicateName(-human,#age)' is provided since such literals are uncoupled from a clause and hence lead to search inefficiency (so only expert users should override this boolean).
-			Boolean.parseBoolean(vStr);
-		}
 		vStr = stringHandler.getParameterSetting("allowPosSeedsToBeReselected");
 		if (vStr != null) {                       allowPosSeedsToBeReselected                           = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("allowNegSeedsToBeReselected");
@@ -412,10 +404,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       collectTypedConstants                                 = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds");
 		if (vStr != null) {                       dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds    = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("findWorldStatesContainingNoPosExamples");
-		if (vStr != null) {
-			boolean findWorldStatesContainingNoPosExamples = Boolean.parseBoolean(vStr);
-		}
 		vStr = stringHandler.getParameterSetting("performRRRsearch");
 		if (vStr != null) {                       performRRRsearch                                      = Boolean.parseBoolean(vStr); }
 		vStr = stringHandler.getParameterSetting("allowMultipleTargets");
@@ -447,13 +435,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       clausesMustCoverFractPosSeeds       = Double.parseDouble(vStr); }
 		vStr = stringHandler.getParameterSetting("clausesMustNotCoverFractNegSeeds");
 		if (vStr != null) {                       clausesMustNotCoverFractNegSeeds    = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("fractionOfTimesUphillMoveCreated");
-		if (vStr != null) {                       // Occasionally, generalize a node by DROPPING one existing literal.
-			Double.parseDouble(vStr);
-		}
 		vStr = stringHandler.getParameterSetting("probOfDroppingChild");
 		if (vStr != null) {                       probOfDroppingChild                 = Double.parseDouble(vStr); }
-
 		vStr = stringHandler.getParameterSetting("minNumberOfNegExamples");
 		if (vStr != null) {                       minNumberOfNegExamples          = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("maxBodyLength");
@@ -474,10 +457,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       minChildrenBeforeRandomDropping = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("maxConstantBindingsPerLiteral");
 		if (vStr != null) {                       maxConstantBindingsPerLiteral   = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxPredOccursPerInputVars");
-		if (vStr != null) {                       // Maximum number of times a given predicate can occur PER SETTING of the input variables (can be overwritten on a per-predicate basis).
-			Integer.parseInt(vStr);
-		}
 		vStr = stringHandler.getParameterSetting("beamWidthRRR");
 		if (vStr != null) {                       beamWidthRRR                    = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("minBodyLengthRRR");

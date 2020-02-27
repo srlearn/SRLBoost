@@ -1004,7 +1004,6 @@ public class ILPouterLoop {
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfCycles")) != null) {
 			maxNumberOfCycles = Integer.parseInt(lookup);
 		}
-        lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfFreeBridgers");// TODO set it once available
         if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxScoreToStop")) != null) {
 			setMaxAcceptableNodeScoreToStop(Double.parseDouble(lookup));
 		}

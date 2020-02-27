@@ -37,10 +37,10 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	List<Literal>            canonicalForm  = null; // Once put into a canonical form, cache it.
 	private Set<Example>  posExamplesThatFailedHere = null; // Record where each example fails to be satisfied.
 	private Set<Example>  negExamplesThatFailedHere = null; // Save space by not creating these until some examples fail at a node.
-	Map<Type,List<Term>>           typesMap = null; // Also store this piece-by-piece at nodes (i.e., need to climb to root to collect/check all of them).
+	Map<Type,List<Term>>           typesMap = null; // AlsogetConstrainsArgumentTypes store this piece-by-piece at nodes (i.e., need to climb to root to collect/check all of them).
 	private   Map<Term,Type>          typesOfNewTerms = null; // Record the types of new terms, if any, added here.  Used in at least the case where when evaluated on the full dataset a node has insufficient positive coverage to be kept.  This prevents it from being considered again.
 	Map<Term,Integer>           depthOfArgs = null; // For each 'leaf term' (i.e., recur into functions) in this clause's literal, record its distance from the head.  An input var's depth is the depth of its parent.  An output var's depth is 1 + the max depth of all the input args in the literal.
-	boolean                         pruneMe = false;// Can do some pruning here that the normal pruners don't handle.
+	final boolean                         pruneMe = false;// Can do some pruning here that the normal pruners don't handle.
 	boolean                        timedOut = false;
 	private   String                      extraString = null; // Used to augment the comment in the toString() with info about the examples that reach this node.
 	
@@ -59,33 +59,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		this.typesPresent    = typesPresent;
 		this.typesMap        = typesMap;
 		this.typesOfNewTerms = typesOfNewTerms;
-		Map<Integer,List<Object>> constraints = literalAdded.predicateName.getConstrainsArgumentTypes(literalAdded.numberArgs());
-		if (constraints != null) {
-			LearnOneClause theTask = (LearnOneClause) task;
-			for (Integer argNumber : constraints.keySet()) {
-				if (argNumber > literalAdded.numberArgs()) { Utils.error("Internal bug ...  indexing mistake."); }
-				Term    argN            = literalAdded.getArgument(argNumber - 1); // Counting starts from 0 internally but from 1 externally.
-				Type    oldType         = getTypeOfThisTerm(argN);
-				Type    newType         = (Type)    (constraints.get(argNumber).get(0)); // Use a list to pass back two things (not worth creating another class just for this ...).
-				boolean pruneIfNoEffect = (Boolean) (constraints.get(argNumber).get(1));
-				if (theTask.stringHandler.isaHandler.isa(oldType, newType)) {  // Nothing to do, since already of this type.
-					if (pruneIfNoEffect) { pruneMe = true; }
-				} else if (theTask.stringHandler.isaHandler.isa(newType, oldType)) {
-					// Update the type list stored at this node, overriding what is at a parent.
-					if ( this.typesPresent    == null)        { this.typesPresent    = new ArrayList<>(1); }
-					if ( this.typesOfNewTerms == null)        { this.typesOfNewTerms = new HashMap<>(4); }
-					if ( this.typesMap        == null)        { this.typesMap        = new HashMap<>(4); }
-					if (!this.typesPresent.contains(newType)) { this.typesPresent.add(newType); }
-					List<Term> newList = this.typesMap.get(newType);
-					if (newList == null) { newList = new ArrayList<>(1); }
-					newList.add(argN);  
-					this.typesMap.put(newType, newList);
-					this.typesOfNewTerms.put(argN, newType);
-				} else {
-					if (pruneIfNoEffect) { pruneMe = true; }
-				}
-			}
-		}
 	}
 
 	boolean matchesThisExample(Example ex, boolean isaPosExample) throws SearchInterrupted {
@@ -98,15 +71,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (typesOfNewTerms == null) { typesOfNewTerms = new HashMap<>(4); }
 		typesOfNewTerms.put(term, type);
 	}
-	private Type getTypeOfThisTerm(Term arg) {
-		if (typesOfNewTerms != null) {
-			Type types = typesOfNewTerms.get(arg);
-			if (types != null) { return types; }
-		}
-		if (getParentNode() == null) { return null; }
-		return getParentNode().getTypeOfThisTerm(arg);
-	}
-	
+
 	void markDepthOfLeafTerms(List<Term> arguments, int thisDepth) {
 		if (arguments == null) { return; }
 		for (Term arg : arguments) {
@@ -1153,7 +1118,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 
     }
 
-    
+    // TODO(@hayesall): `cachedBindingLists = new HashMap<>();` is final?
     private final HashMap<Example, Set<BindingList>> cachedBindingLists = new HashMap<>();
 
 	public long getNumberOfGroundingsForRegressionEx(Example eg) {

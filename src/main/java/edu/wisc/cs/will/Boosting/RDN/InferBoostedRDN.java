@@ -192,9 +192,6 @@ public class InferBoostedRDN {
 	private String getQueryFile(String target) {
 		return setup.getOuterLooper().getWorkingDirectory() + "/query_" + target + ".db";
 	}
-	private String getFullQueryFile(String target) {
-		return setup.getOuterLooper().getWorkingDirectory() + "/query_full_" + target + ".db";
-	}
 
 	private String getResultsFile(String target) {
 		String suff ="";
@@ -202,14 +199,6 @@ public class InferBoostedRDN {
 			suff = cmdArgs.getModelFileVal() + "_";
 		}
 		return setup.getOuterLooper().getWorkingDirectory() + "/results_" + suff + target + ".db";
-	}
-	
-	private String getFullResultsFile(String target) {
-		String suff ="";
-		if (cmdArgs.getModelFileVal() != null) {
-			suff = cmdArgs.getModelFileVal() + "_";
-		}
-		return setup.getOuterLooper().getWorkingDirectory() + "/results_full_" + suff + target + ".db";
 	}
 
 	private String getTestsetInfoFile(String target) {

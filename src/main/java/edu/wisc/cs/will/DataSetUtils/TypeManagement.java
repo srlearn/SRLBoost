@@ -73,11 +73,6 @@ public class TypeManagement {
         }
         return false;
     }
-    private int adds = 0;
-
-    private int dups = 0;
-
-    private int inHash = 0;
 
     private void collectImplicitTypeConstantsViaModeAndFactInspection(PrintStream printStream, Set<PredicateNameAndArity> bodyModes, Iterable<Sentence> backgroundFacts) {
         Map<Term, Set<Type>> alreadyCheckedConstantHash = new HashMap<>(4096);
@@ -102,20 +97,12 @@ public class TypeManagement {
                     firstTime = false; // The second (and subsequent) time around we need to see if the types are the same, e.g. may only differ in terms of +/-/# etc, which doesn't matter here.
                 }
                 if (ambiguous.size() < size) {
-                    adds = 0;
-                    dups = 0;
-                    inHash = 0;
-                    int counter = 0;
-                    int countMatches = 0;
 
                     if (backgroundFacts != null) {
                         for (Sentence sentence : backgroundFacts) {
                             if (sentence instanceof Literal) {
                                 Literal fact = (Literal) sentence;
-                                counter++; // Still need to check predicate name since the Horn-clause base might have returned some extras (but probably no longer need to check arity).
                                 if (fact.predicateName == predName.getPredicateName() && fact.getArity() == argSize) {
-                                    countMatches++;
-
                                     help_matchFactsAndModes(fact, fact.getArguments(), ambiguous, argTypes, printStream, alreadyCheckedConstantHash);
                                 }
                             }
@@ -151,17 +138,11 @@ public class TypeManagement {
                 Set<Type> lookup1 = alreadyCheckedConstantHash.get(arg);
 
                 if (lookup1 != null && lookup1.contains(thisType)) {
-                    inHash++;
                     counter++;
                     continue; // Already checked if this constant is of this type.
                 }
                 // Have inferred the type of this constant.
-                if (addNewConstant(printStream, stringHandler, arg, thisType, fact)) {
-                    adds++;
-                }
-                else {
-                    dups++;
-                }
+                addNewConstant(printStream, stringHandler, arg, thisType, fact);
                 if (lookup1 == null) {
                     lookup1 = new HashSet<>(4);
                     alreadyCheckedConstantHash.put(arg, lookup1);
@@ -281,10 +262,7 @@ public class TypeManagement {
                         Utils.error("#args do not match!  TargetArgSpecs = " + targetArgSpecs + " while ex = " + ex);
                     }
                     ArgSpec spec = targetArgSpecs.get(counter);
-                    if (addNewConstant(printStream, stringHandler, arg, spec.typeSpec.isaType, ex)) {
-                    }
-                    else {
-                    }
+                    addNewConstant(printStream, stringHandler, arg, spec.typeSpec.isaType, ex);
                     counter++;
                 }
                 else if (arg instanceof Function) {
@@ -303,7 +281,7 @@ public class TypeManagement {
 
     private int reportCounter = 0;
     // See if this is a new constant of this type.
-    private boolean addNewConstant(PrintStream printStream, HandleFOPCstrings stringHandler, Term constant, Type type, Literal generator) {
+    private void addNewConstant(PrintStream printStream, HandleFOPCstrings stringHandler, Term constant, Type type, Literal generator) {
         if (generator == null) {
             Utils.error("Cannot have generator=null.");
         }
@@ -318,7 +296,7 @@ public class TypeManagement {
         Set<Term> knownConstants = stringHandler.getConstantsOfExactlyThisType(type);
 
         if (knownConstants != null && knownConstants.contains(constant)) {
-            return false;
+            return;
         } // Already in the map.
         if (stringHandler.getTypesOfConstant(constant, false) != null) { // See if any types of this constant are already known.
 
@@ -328,7 +306,7 @@ public class TypeManagement {
                     // If the new type is a superclass of an existing type, don't add.
                     if (stringHandler.isaHandler.isa(existing, type)) {
                         reportCounter++;
-                        return false;
+                        return;
                     }
 
                     // If the new type is a subclass of an existing type, remove the old attachment to this constant, since the ISA hierarchy contains this information.
@@ -381,13 +359,12 @@ public class TypeManagement {
         // Possibly this line should be much earlier in this method, but the other warnings can be helpful.
         Type newType = stringHandler.isaHandler.getIsaType(constant.toString());
         if (newType != type && !stringHandler.isaHandler.okToAddToIsa(newType, type)) { // OK to add constant with same name as type.
-            return false;
+            return;
         }
         if (printStream != null) {
             printStream.println("isa: " + constant + " isa " + type + ";");
         }
         stringHandler.addNewConstantOfThisType(constant, type);
-        return true;
     }
 
     private void dontWorryAboutTheseTypes(Map<Type, Literal> types) {

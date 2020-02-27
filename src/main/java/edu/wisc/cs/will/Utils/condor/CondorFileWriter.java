@@ -12,10 +12,6 @@ public class CondorFileWriter extends Writer {
 
     private Writer writer;
 
-    public CondorFileWriter(File file) throws IOException {
-        writer = new OutputStreamWriter( new CondorFileOutputStream(file));
-    }
-
     public CondorFileWriter(File file, boolean append) throws IOException {
         writer = new OutputStreamWriter( new CondorFileOutputStream(file, append));
     }

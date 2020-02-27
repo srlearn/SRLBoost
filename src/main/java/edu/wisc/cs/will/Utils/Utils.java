@@ -71,18 +71,15 @@ public class Utils {
      * the appropriate value through the setter.
      */
     public enum Verbosity {
-        Developer(true, true,true),  // Print everything and waitHeres wait, severeError cause a throw.
         // Print everything, waitHeres don't wait, severeError cause a throw.
-        Medium(false, false,false)   // Print everything, waitHeres don't wait, severeError just print error
+        Medium(false,false)   // Print everything, waitHeres don't wait, severeError just print error
         ;
 
-        final boolean developmentRun;
         final boolean print;
         final boolean waitHere;
         final boolean severeWarningThrowsError;
 
-        Verbosity(boolean developmentRun, boolean waitHere, boolean severeWarningThrowsError) {
-            this.developmentRun = developmentRun;
+        Verbosity(boolean waitHere, boolean severeWarningThrowsError) {
             this.print    = true;
             this.waitHere = waitHere;
             this.severeWarningThrowsError = severeWarningThrowsError;
@@ -1469,18 +1466,8 @@ public class Utils {
 				bool.equalsIgnoreCase("y") ||
 				bool.equalsIgnoreCase("yes");
 	}
-	
-	public static String unzipFileIfNeeded(String fileName) throws IOException {
-		if (fileName.endsWith(".gz")) {
-			String readString  = readFromGzippedFile(fileName);
-			String newFileName = fileName.subSequence(0, fileName.lastIndexOf(".gz")).toString();
-			writeStringToFile(readString, new CondorFile(newFileName));
-			return newFileName;
-		}
-		return null;
-	}
 
-	public static void compressFile(String fileNameRaw) {
+    public static void compressFile(String fileNameRaw) {
 		int minSizeToCompressInK = 1000;
         compressFile(fileNameRaw, minSizeToCompressInK);
     }

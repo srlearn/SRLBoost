@@ -175,20 +175,7 @@ public class CreateSyntheticExamples {
 
                 if (worldState == null || worldState.isaNullWorldState() || worldState.equals(worldArg, stateArg)) { // See if a match.
                     help_getConstantsOfThisTypeInThisWorldState(stringHandler, type, lit.getArguments(), results);
-                    Map<Integer, List<Object>> constrainInfo = lit.predicateName.getConstrainsArgumentTypes(lit.numberArgs());
-                    if (constrainInfo != null) {
-                        for (Integer index : constrainInfo.keySet()) {
-                            Type typeConstainedTo = (Type) constrainInfo.get(index).get(0);
-                            if (stringHandler.isaHandler.isa(typeConstainedTo, type)) {
-                                Term arg = lit.getArguments().get(index - 1); // Recall counting from 0 here (but from 1 externally).
-                                if (arg instanceof Constant) {
-                                    Constant argAsConstant = (Constant) arg;
-									results.add(argAsConstant);
-                                }
-                            }
-                        }
-                    }
-                }
+				}
             }
         }
 		if (worldState == null && Utils.getSizeSafely(results) < 1) {

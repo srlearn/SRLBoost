@@ -36,8 +36,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	int prologCounterD = 0;
 	int prologCounterE = 0;
 
-	public  boolean dontPrintUnlessImportant = false;
-
 	private boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
 	public  boolean cleanFunctionAndPredicateNames        = false; // Check for hyphens and spaces.  DO NOT SET UNTIL AFTER LIBRARIES ARE LOADED.
 	public  boolean keepQuoteMarks                        = false; // Set to true if quote marks on string constants should be preserved.  NOTE: if true, then strings with quote marks will NOT be cleaned regardless of any other setting.
@@ -335,8 +333,12 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	}
 
 	public boolean isVariableIndicatorSet() {  return variableIndicator != null; } // This allows us to know that the first setting in a file should become the chosen setting even after that file is closed.
-	public void    usePrologNotation()     { if (!usingPrologNotation())   { if (!dontPrintUnlessImportant) Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to Prolog notation for variables; previous setting = "         + variableIndicator); } setVariableIndicator(VarIndicator.uppercase); }
-	public void    useStdLogicNotation()   { if (!usingStdLogicNotation()) { if (!dontPrintUnlessImportant) Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to standard-logic notation for variables; previous setting = " + variableIndicator); } setVariableIndicator(VarIndicator.lowercase);	 }
+	public void    usePrologNotation()     { if (!usingPrologNotation())   {
+		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to Prolog notation for variables; previous setting = "         + variableIndicator);
+	} setVariableIndicator(VarIndicator.uppercase); }
+	public void    useStdLogicNotation()   { if (!usingStdLogicNotation()) {
+		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to standard-logic notation for variables; previous setting = " + variableIndicator);
+	} setVariableIndicator(VarIndicator.lowercase);	 }
 	public boolean usingPrologNotation()   { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.uppercase; }
 	public boolean usingStdLogicNotation() { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.lowercase; }
 
@@ -347,7 +349,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	public void setVariablesStartWithQuestionMarks() {
 		if (!doVariablesStartWithQuestionMarks()) {
-			if (!dontPrintUnlessImportant) Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to using a leading '?' to denote a variable; previous setting = " + variableIndicator);
+			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to using a leading '?' to denote a variable; previous setting = " + variableIndicator);
 		}
 		setVariableIndicator(VarIndicator.questionMarks);
 	}
@@ -360,9 +362,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		if (variableIndicator == varIndicator) {
 			return;
 		}
-		if (!dontPrintUnlessImportant) {
-			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, (varIndicator == null ? "\n% Unset'ing VarIndicator." : "\n% Switching to VarIndicator = " + varIndicator + "."));
-		}
+		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, (varIndicator == null ? "\n% Unset'ing VarIndicator." : "\n% Switching to VarIndicator = " + varIndicator + "."));
 		variableIndicator = varIndicator;
 	}
 
@@ -550,10 +550,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 
 	public Literal getTermAsLiteral(Term term) {
 		return new TermAsLiteral(this, term);
-	}
-
-	public LiteralToThreshold getLiteralToThreshold(PredicateName predicateName, List<Term> arguments, int position, int maxCuts, boolean createTiles, boolean firstArgIsExampleID) {
-		return new LiteralToThreshold(this, predicateName, arguments, position, maxCuts, createTiles, firstArgIsExampleID);
 	}
 
 	public LiteralAsTerm getLiteralAsTerm(Literal itemBeingWrapped) {
@@ -1693,7 +1689,10 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	}
 	double convertRelevanceStrengthToCost(RelevanceStrength strength) {
 		String hasBeenSet = getParameterSetting(strength.toString()); // See if overridden.
-		if (hasBeenSet != null) { Double.parseDouble(hasBeenSet); }
+		if (hasBeenSet != null) {
+			Double.parseDouble(hasBeenSet);
+		}
+		// TODO(@hayesall): This looks like an error, this was probably supposed to `return Double.parseDouble(hasBeenSet);`
 		return strength.defaultCost();
 	}
 
@@ -1845,7 +1844,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
     }
 
 	public void setStringsAreCaseSensitive(boolean matchingShouldBeCaseSensitive) {
-		if (ignoreCaseOfStringsOtherThanFirstChar == matchingShouldBeCaseSensitive && !dontPrintUnlessImportant) { Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "% Changing setStringsAreCaseSensitive to " + matchingShouldBeCaseSensitive + "."); }
+		if (ignoreCaseOfStringsOtherThanFirstChar == matchingShouldBeCaseSensitive) { Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "% Changing setStringsAreCaseSensitive to " + matchingShouldBeCaseSensitive + "."); }
 		ignoreCaseOfStringsOtherThanFirstChar = !matchingShouldBeCaseSensitive;
 	}
 	public boolean getStringsAreCaseSensitive() {
