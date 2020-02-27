@@ -5,9 +5,6 @@ importLibrary: arithmeticInLogic.
 importLibrary: comparisonInLogic.
 
 // Note: if these are used, be sure to use Theory.simplify() - TODO do this after learning regardless.
-//tmp mode: isaInterestingNumber(+willNumber, #willNumber), max=@modeMax3.
-//tmp mode: isaInterestingNumber(             #willNumber), max=@modeMax3.
-//tmp mode: isaDifferentInterestingNumber(#willNumber, -willNumber), max = @modeMax3.
 
 mode: addList(     +willList, #willNumber), maxPerInputVars=1, max=@modeMax3. // Too risky (wasted cpu cycles) to add isaInterestingList?
 mode: multiplyList(+willList, #willNumber), maxPerInputVars=1, max=@modeMax3.
