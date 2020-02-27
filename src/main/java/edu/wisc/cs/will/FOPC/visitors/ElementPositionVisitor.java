@@ -15,10 +15,6 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
 
     private ElementPositionListener<Data> listener = null;
 
-    public <T extends ElementPositionListener<Data>> ElementPositionVisitor(T listener) {
-        this.listener = listener;
-    }
-
     protected ElementPositionVisitor() {
     }
 
@@ -244,10 +240,7 @@ public class ElementPositionVisitor<Data extends ElementPositionData> extends De
 
         protected ElementPath currentPosition = new ElementPath(0);
 
-        public ElementPositionData() {
-        }
-
-        public ElementPath getCurrentPosition() {
+        protected ElementPath getCurrentPosition() {
             return currentPosition;
         }
 

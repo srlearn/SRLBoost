@@ -4,8 +4,6 @@ import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.visitors.*;
 import edu.wisc.cs.will.FOPC.visitors.ElementPositionVisitor.ElementPositionData;
-import edu.wisc.cs.will.Utils.MapOfLists;
-import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.*;
 
@@ -28,8 +26,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     private List<TypeSpec> typeSpecList;
 
-    private Set<ElementPath> constantPositions = null;
-
     private Map<Term, Term> mappings;
 
     RelevantClauseInformation(Example generalizedExample, Sentence sentence) {
@@ -41,29 +37,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     private Sentence getSentence() {
         return sentence;
-    }
-
-    private ConnectedSentence getImpliedSentence() {
-        return example.getStringHandler().getConnectedSentence(getSentence(), ConnectiveName.IMPLIES, example);
-    }
-
-    public RelevantClauseInformation getGeneralizeRelevantInformation() {
-
-        Example groundExample = this.example;
-        Sentence groundSentence = this.getSentence();
-
-        Map<Term, Term> termToVariableMap = new LinkedHashMap<>();
-
-        Example newExample = new Example(GENERALIZER_SENTENCE_VISITOR.generalize(groundExample, null, termToVariableMap));
-        Sentence newSentence = GENERALIZER_SENTENCE_VISITOR.generalize(groundSentence, constantPositions, termToVariableMap);
-
-        RelevantClauseInformation newRCI = this.copy();
-        newRCI.example = newExample;
-        newRCI.setSentence(newSentence);
-        newRCI.mappings = termToVariableMap;
-        newRCI.constantPositions = constantPositions;
-
-        return newRCI;
     }
 
     @Override
@@ -87,14 +60,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
 
     void setOriginalRelevanceStrength(RelevanceStrength relevanceStrength) {
         this.setRelevanceStrength(relevanceStrength);
-    }
-
-    public RelevantClauseInformation copy() {
-        try {
-            return clone();
-        } catch (CloneNotSupportedException ex) {
-            return null;
-        }
     }
 
     protected RelevantClauseInformation clone() throws CloneNotSupportedException {
@@ -167,29 +132,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         return typeSpecList;
     }
 
-    public boolean subsumes(RelevantInformation ri) {
-        if (ri instanceof RelevantClauseInformation) {
-            RelevantClauseInformation that = (RelevantClauseInformation) ri;
-            Sentence c1 = this.getImpliedSentence();
-            Sentence c2 = that.getImpliedSentence();
-
-            BindingList bl1 = Unifier.UNIFIER.unify(c1, c2);
-
-            if (bl1 == null) {
-                return false;
-            }
-
-            Sentence c3 = c2.applyTheta(bl1);
-
-            return c2.isEquivalentUptoVariableRenaming(c3);
-
-        }
-        else {
-            return false;
-        }
-    }
-
-    public boolean isRelevanceFromPositiveExample() {
+    private boolean isRelevanceFromPositiveExample() {
         return relevanceFromPositiveExample;
     }
 
@@ -197,7 +140,7 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         this.relevanceFromPositiveExample = relevanceFromPositiveExample;
     }
 
-    public RelevanceStrength getRelevanceStrength() {
+    private RelevanceStrength getRelevanceStrength() {
         return relevanceStrength;
     }
 
@@ -210,83 +153,6 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         ConstantMarkerData data = new ConstantMarkerData();
 
         setSentence(getSentence().accept(sv, data));
-        constantPositions = data.constantPositions;
-    }
-
-    public boolean isValidAdvice(AdviceProcessor ap) {
-
-        Set<PredicateNameAndArity> usedPredicate = PredicateCollector.collectPredicates(sentence, ap.getContext());
-
-        for (PredicateNameAndArity pnaa : usedPredicate) {
-            // We want to check that all predicates that are used are defined in the clausebase.
-            // However, if it is a non-operational, we assume the operationals are defined somewhere.
-            if (!pnaa.isNonOperational() && !ap.getContext().getClausebase().isDefined(pnaa) && !pnaa.getPredicateName().name.startsWith("linked")) {
-                Utils.waitHere("Unknown predicate name in advice: " + pnaa + ".");
-                return false;
-            }
-        }
-
-        // Look for Singleton variables that occur as inputs to Functions...
-
-        Sentence s = getImpliedSentence();
-
-        Collection<Variable> headVariables = example.collectAllVariables();
-
-
-        Map<Variable, Integer> counts = VariableCounter.countVariables(sentence);
-
-        PositionData positions = null;
-
-        for (Map.Entry<Variable, Integer> entry : counts.entrySet()) {
-            if (entry.getValue() == 1) {
-                // Here is a singleton.  See if it is an argument to a functionAsPred.
-
-                // What we are going to do here is look up the position of the
-                // variable in the sentence.  Once we have the position, we will
-                // grap the variables "parent", i.e., the literal or function that
-                // is using it.  Once we have the literal/function, we will first
-                // check if it is a FunctionAsPred.  If it is, we will check if
-                // the singleton variable is in the output position.  If it isn't,
-                // we will assume that the advice was improperly bound and toss it.
-                Variable v = entry.getKey();
-
-                if (!headVariables.contains(v)) {
-
-                    if (positions == null) {
-                        positions = new PositionData();
-                        ElementPositionVisitor<PositionData> epv = new ElementPositionVisitor<>(new PositionRecorder());
-                        s.accept(epv, positions);
-                    }
-
-                    ElementPath path = positions.elementToPathMap.getValue(v, 0);
-
-                    ElementPath parentPath = path.getParent();
-
-                    AllOfFOPC parent = positions.pathToElementMap.get(parentPath);
-
-                    if (parent instanceof LiteralOrFunction) {
-                        LiteralOrFunction literalOrFunction = (LiteralOrFunction) parent;
-                        PredicateName pn = literalOrFunction.getPredicateName();
-
-                        if (pn.isDeterminateOrFunctionAsPred(literalOrFunction.getArity())) {
-                            // Damn output indices count from 1!!!!
-                            if (pn.getDeterminateOrFunctionAsPredOutputIndex(literalOrFunction.getArity()) - 1 != path.getIndex() && !literalOrFunction.getPredicateName().name.equals("ilField_Composite_name")) {
-                                // The ilField_Composite_name is a total hack for the BL project.  ilField_Composite_name is a function, but it is one
-                                // in which can either translate from argument 1 to 2 as in: ilField_Composite_name(world, nonSymbol, ?Symbol, state),
-                                // or translate from argument 2 to 1: ilField_Composite_name(world, nonSymbol, ?Symbol, state).
-                                // Thus, either argument could be unbound.  We really need a pruning rule for this, but
-                                // until I get around to writing pruning for the AdviceProcessor, I think I will just hack this up.
-                                // TODO(@hayesall): `isVerifyInputsToFunctionsAsPredAreBoundEnabled` was dropped since it was always true, this might be dropped as well.
-                                Utils.waitHere("isVerifyInputsToFunctionsAsPredAreBoundEnabled caused invalid advice: " + pn + ".");
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
     }
 
     private void setSentence(Sentence sentence) {
@@ -444,16 +310,8 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         }
     }
 
-    static class SentenceGeneralizer {
-
-        SentenceGeneralizer() {
-        }
-
-        <T extends Sentence> T generalize(T clause, Set<ElementPath> constantPositions, Map<Term, Term> mappings) {
-            GeneralizerData2 data = new GeneralizerData2(constantPositions, mappings);
-
-            return (T) clause.accept(SENTENCE_GENERALIZER_VISITOR, data);
-        }
+    private static class SentenceGeneralizer {
+        // TODO(@hayesall): Empty class.
     }
 
     private static class SentenceGeneralizerVisitor extends ElementPositionVisitor<GeneralizerData2> {
@@ -481,34 +339,8 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         }
 
         @Override
-        public Term visitConsCell(ConsCell consCell, GeneralizerData2 data) {
-            // Here we are going to generalize any given list as a single variable.
-            // This probably won't work when if there is important structure in the
-            // the list it's self.
-            Term newTerm = consCell;
-            if (!data.isCurrentPositionConstant()) {
-                Term mappedVariable;
-                if ((mappedVariable = data.currentMappings.get(consCell)) != null) {
-                    newTerm = mappedVariable;
-                }
-                else {
-                    mappedVariable = consCell.getStringHandler().getNewUnamedVariable();
-                    data.currentMappings.put(consCell, mappedVariable);
-                    newTerm = mappedVariable;
-                }
-            }
-
-            return newTerm;
-        }
-
-        @Override
         public Term visitNumericConstant(NumericConstant term, GeneralizerData2 data) {
             return handleConstant(term, data);
-        }
-
-        @Override
-        public Term visitOtherTerm(Term term, GeneralizerData2 data) {
-            return handleNonConstant(term, data);
         }
 
         @Override
@@ -550,26 +382,4 @@ public class RelevantClauseInformation implements Cloneable, RelevantInformation
         }
     }
 
-    static class PositionData extends ElementPositionData {
-
-        final Map<ElementPath, AllOfFOPC> pathToElementMap = new HashMap<>();
-
-        final MapOfLists<AllOfFOPC, ElementPath> elementToPathMap = new MapOfLists<>();
-
-    }
-
-    public static class PositionRecorder implements ElementPositionListener<PositionData> {
-
-        public boolean visiting(Sentence s, PositionData data) {
-            data.pathToElementMap.put(data.getCurrentPosition(), s);
-            data.elementToPathMap.add(s, data.getCurrentPosition());
-            return true;
-        }
-
-        public boolean visiting(Term t, PositionData data) {
-            data.pathToElementMap.put(data.getCurrentPosition(), t);
-            data.elementToPathMap.add(t, data.getCurrentPosition());
-            return true;
-        }
-    }
 }

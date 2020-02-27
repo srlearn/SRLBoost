@@ -14,5 +14,5 @@ public interface TermVisitor<Return, Data> {
     Return visitListAsTerm(ListAsTerm listAsTerm, Data data);
     Return visitNumericConstant(NumericConstant numericConstant, Data data);
     Return visitStringConstant(StringConstant stringConstant, Data data);
-    Return visitOtherTerm(Term term, Data data);
+    Return visitOtherTerm(Term term);
 }

@@ -63,30 +63,6 @@ public class PredicateNameAndArity {
         return result;
     }
 
-    public void markAsSupportingPredicate(boolean okIfDup) {
-        predicateName.markAsSupportingPredicate(arity, okIfDup);
-    }
-
-    public boolean isInlined() {
-        return predicateName.isaInlined(arity);
-    }
-
-    public boolean isNonOperational() {
-        return predicateName.isNonOperational(arity);
-    }
-
-    public void setCost(double cost) {
-        getPredicateName().setCost(arity, cost, false);
-    }
-
-    public boolean isDeterminateOrFunctionAsPred() {
-        return predicateName.isDeterminateOrFunctionAsPred(arity);
-    }
-
-    public int getDeterminateOrFunctionAsPredOutputIndex() {
-        return predicateName.getDeterminateOrFunctionAsPredOutputIndex(arity);
-    }
-
     public void setContainsCallable() {
         predicateName.setContainsCallable(arity);
     }

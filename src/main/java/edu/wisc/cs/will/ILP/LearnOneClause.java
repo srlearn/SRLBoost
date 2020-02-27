@@ -225,14 +225,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   double               mEstimatePos = 0.1; // When computing coverage of a rule use these "m estimates."  NOTE these are also used when examples are weighted, so if total weight is small, might want to change these.
 	private   double               mEstimateNeg = 0.1; // Note: these are used in recall as well as precision.
 
-	private final RelevanceStrength       currentRelevanceStrength = RelevanceStrength.getWeakestRelevanceStrength();
+	private final List<ModeConstraint> modeConstraints = null;
 
-	private List<ModeConstraint> modeConstraints = null;
-
-    private final AdviceProcessor adviceProcessor;
-    private ActiveAdvice activeAdvice = null;
-
-    private final EventListenerList searchListenerList = new EventListenerList();
+	private final EventListenerList searchListenerList = new EventListenerList();
 
     private List<Sentence> facts = null; // This temporarily stores the facts between construction and initialization.  After initialization it will be null.
 
@@ -276,7 +271,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 
         setInlineManager(new InlineManager(   stringHandler, getProver().getClausebase()));
         setThresholder(  new ThresholdManager(this, stringHandler, inlineHandler));
-        adviceProcessor = new AdviceProcessor(context, this);
+
+        // TODO(@hayesall): AdviceProcessor reads the current `context` and `this`, but does not appear to do anything with it.
+		// new AdviceProcessor(context, this);
 
 		// Load BK first since it is the place where 'usePrologVariables' etc is typically set.
 		if (backgroundClausesReader != null) { context.assertSentences(readBackgroundTheory(backgroundClausesReader)); }
@@ -806,12 +803,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         stringHandler.addKnownMode(pName);
     }
 
-    void removeBodyMode(PredicateNameAndArity pName) {
-        bodyModes.remove(pName);
-        stringHandler.removeKnownMode(pName);
-    }
-
-    private int countOfSearchesPerformedWithCurrentModes = 0;  // Trevor - if you wish to see getSearchParametersString, feel free to add some reportFirstNsearches variable.  Jude
+	private int countOfSearchesPerformedWithCurrentModes = 0;  // Trevor - if you wish to see getSearchParametersString, feel free to add some reportFirstNsearches variable.  Jude
 
     @Override
     public SearchResult performSearch() throws SearchInterrupted {
@@ -822,21 +814,11 @@ public class LearnOneClause extends StateBasedSearchTask {
  
         if ( action == ILPSearchAction.PERFORM_LOOP ) {
 
-            ActiveAdvice createdActiveAdvice = null;
-
-			if ( getActiveAdvice() != null ) {
-				createdActiveAdvice = adviceProcessor.processAdvice(currentRelevanceStrength, posExamples, negExamples);
-			}
-
 			// Limit number of reports.
             if (++countOfSearchesPerformedWithCurrentModes < 2) { Utils.print(getSearchParametersString()); }
 			result = super.performSearch();
 
-			if ( createdActiveAdvice != null ) {
-                adviceProcessor.retractRelevanceAdvice();
-            }
-
-            fireInnerLoopFinished(this);
+			fireInnerLoopFinished(this);
         }
         else if (action == ILPSearchAction.SKIP_ITERATION) {
             Utils.println("ILPSearchListener skipped inner-loop.");
@@ -1810,30 +1792,10 @@ public class LearnOneClause extends StateBasedSearchTask {
 		isaTreeStructuredTask = value;
 	}
 
-	AdviceProcessor getAdviceProcessor() {
-        return adviceProcessor;
-    }
-
-	void addModeConstraint(ModeConstraint modeConstraint) {
-        if ( modeConstraints == null ) {
-            modeConstraints = new ArrayList<>();
-        }
-
-        modeConstraints.add(modeConstraint);
-    }
-
-    void removeModeConstraint(ModeConstraint modeConstraint) {
-        if ( modeConstraints != null ) {
-			modeConstraints.remove(modeConstraint);
-		}
-	}
-
 	List<ModeConstraint> getModeConstraints() {
-        if (modeConstraints == null) {
-			return Collections.emptyList();
-        }
-		return modeConstraints;
-    }
+		// TODO(@hayesall): Always returns an empty list.
+		return Collections.emptyList();
+	}
 
 
 
@@ -1925,19 +1887,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return targets;
 }
 
-	RelevanceStrength getCurrentRelevanceStrength() {
-        return currentRelevanceStrength;
-    }
-
-	ActiveAdvice getActiveAdvice() {
-        return activeAdvice;
-    }
-
-	void setActiveAdvice(ActiveAdvice activeAdvice) {
-        this.activeAdvice = activeAdvice;
-    }
-
-    private void closeWithoutException(Reader posExamplesReader) {
+	private void closeWithoutException(Reader posExamplesReader) {
         if (posExamplesReader != null) {
             try {
                 posExamplesReader.close();

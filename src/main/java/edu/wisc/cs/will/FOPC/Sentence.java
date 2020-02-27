@@ -83,42 +83,6 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 		return this; // Returning this makes it convenient to append '.setWeight' to new's.
 	}
 
-	public Sentence getConjunctiveNormalForm() {
-        Sentence sentence = this;
-
-		// Convert equivalences to implications.   See pages 215 and 295-297 of Russell and Norvig, 2nd edition.
-		boolean containsEquivalence = sentence.containsThisFOPCtype("equivalent"); // Do some initial scanning since these steps lead to complete copying.  (I'm not sure this is a big deal ..)
-		if (containsEquivalence) { // Could also do these checks at each step, so only necessary parts are copied, but that might trade off too much time for space?
-			sentence = sentence.convertEquivalenceToImplication(); // This can produce a SET of sentences, but they'll be conjoined with an AND.
-		}
-
-		// Eliminate implications.
-		boolean containsImplications = sentence.containsThisFOPCtype("implies");
-		if (containsImplications) {
-			sentence = sentence.eliminateImplications();
-		}
-
-		// Move negation inwards.
-		boolean containsNegations = sentence.containsThisFOPCtype("not");
-		if (containsNegations) {
-			sentence = sentence.moveNegationInwards();
-		}
-
-		// Skolemize.
-		boolean needToSkolemize = sentence.containsThisFOPCtype("exists") || sentence.containsThisFOPCtype("forAll");
-		if (needToSkolemize ) { // Need to do the dropUniversalQuantifiers.
-			sentence = sentence.skolemize(null);
-		}
-
-		// Distribute disjunctions over conjunctions.
-		boolean containsDisjunction = sentence.containsThisFOPCtype("or");
-		if (containsDisjunction) {
-			sentence = sentence.distributeConjunctionOverDisjunction();
-		}
-
-        return sentence;
-    }
-
 	public List<Clause> convertToClausalForm() {
 		Sentence sentence = this;
 

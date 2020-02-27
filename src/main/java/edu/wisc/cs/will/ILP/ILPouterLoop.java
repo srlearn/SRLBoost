@@ -93,8 +93,7 @@ public class ILPouterLoop {
 
     public  int            maxNumberOfCycles             = 100;   // Call the inner loop at most this many times.
 	public  int            maxNumberOfClauses            = 100;   // Same as above EXCEPT only counts if a clause was learned.
-	private final double         minFractionOfPosCoveredToStop = 0.90;  // Stop when this fraction of the positive examples are covered by some acceptable clause.
-	public  int            max_total_nodesExpanded       = Integer.MAX_VALUE;
+    public  int            max_total_nodesExpanded       = Integer.MAX_VALUE;
 	public  int            max_total_nodesCreated        = Integer.MAX_VALUE;
     public  int            numberPosSeedsToUse           = 1;
 	private int            numberNegSeedsToUse           = 0;
@@ -126,9 +125,7 @@ public class ILPouterLoop {
 	private Set<PredicateNameAndArity> holdBodyModes;
 	public double randomlySelectWithoutReplacementThisManyModes = -1; // If in (0, 1), then is a FRACTION of the modes. If negative, then do not sample.	
 
-	private ActiveAdvice createdActiveAdvice = null;
-
-	public ILPouterLoop(String workingDir, String prefix, String[] args,
+    public ILPouterLoop(String workingDir, String prefix, String[] args,
     					SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, 
     	                HornClauseContext context, boolean useRRR, boolean deferLoadingExamples) throws IOException {
         this(workingDir, prefix, 
@@ -330,8 +327,6 @@ public class ILPouterLoop {
 
         if (action == ILPSearchAction.PERFORM_LOOP) {
 
-            setupAdvice();
-
             // If no body modes, no need to run.
             if (Utils.getSizeSafely(innerLoopTask.bodyModes) < 1) {
 				Utils.waitHere("Have no body modes.");
@@ -349,6 +344,10 @@ public class ILPouterLoop {
             SingleClauseNode savedBestNode = null; // When learning tree-structured models, we need to remember the node learned at the parent.
             long start;
             boolean foundUncoveredPosSeed;
+            // Stop when this fraction of the positive examples are covered by some acceptable clause.
+
+            // TODO(@hayesall): `minFractionOfPosCoveredToStop` is always `0.9`, this might be an interesting parameter to tune, particularly with more boosted trees.
+            double minFractionOfPosCoveredToStop = 0.90;
             while (!stoppedBecauseNoMoreSeedsToTry && !stoppedBecauseTreeStructuredQueueEmpty &&
                     getNumberOfLearnedClauses() < maxNumberOfClauses &&
                     getNumberOfCycles() < maxNumberOfCycles &&
@@ -776,7 +775,7 @@ public class ILPouterLoop {
 			Utils.println(MessageType.ILP_INNERLOOP, "\n% ******************************************\n");
 			if (!innerLoopTask.regressionTask && getFractionOfPosCovered() >= minFractionOfPosCoveredToStop) {
 				Utils.println(MessageType.ILP_INNERLOOP, "% Have stopped ILP's outer loop because have exceeded the minimal fraction ("
-								+ minFractionOfPosCoveredToStop	+ ") of positive examples to cover.");
+								+ minFractionOfPosCoveredToStop + ") of positive examples to cover.");
 			} else {
                 if (stoppedBecauseTreeStructuredQueueEmpty) {
                     Utils.println(MessageType.ILP_INNERLOOP, "%  Have stopped ILP's outer loop because the tree-structured queue is empty.");
@@ -805,8 +804,6 @@ public class ILPouterLoop {
 
             if (holdBodyModes != null) { innerLoopTask.setBodyModes(holdBodyModes); holdBodyModes = null; }
             Theory finalTheory = produceFinalTheory();
-
-            unsetAdvice();
 
             innerLoopTask.fireOuterLoopFinished(this);
 
@@ -1186,32 +1183,7 @@ public class ILPouterLoop {
         return innerLoopTask.proveExample(clause, ex);
     }
 
-    private void setupAdvice() {
-	    // TODO(@hayesall): Is advice ever used in this manner?
-
-        if (getActiveAdvice() == null) {
-            createdActiveAdvice = innerLoopTask.getAdviceProcessor().processAdvice(innerLoopTask.getCurrentRelevanceStrength(), getPosExamples(), getNegExamples());
-            setActiveAdvice(createdActiveAdvice);
-        }
-    }
-
-    private void unsetAdvice() {
-        if ( createdActiveAdvice != null ) {
-            innerLoopTask.getAdviceProcessor().retractRelevanceAdvice();
-            setActiveAdvice(null);
-            createdActiveAdvice = null;
-        }
-    }
-
-    private ActiveAdvice getActiveAdvice() {
-        return innerLoopTask.getActiveAdvice();
-    }
-
-	private void setActiveAdvice(ActiveAdvice activeAdvice) {
-        innerLoopTask.setActiveAdvice(activeAdvice);
-    }
-
-	private void setTotal_nodesRemovedFromOPENsinceMaxScoreNowTooLow(int total_nodesRemovedFromOPENsinceMaxScoreNowTooLow) {
+    private void setTotal_nodesRemovedFromOPENsinceMaxScoreNowTooLow(int total_nodesRemovedFromOPENsinceMaxScoreNowTooLow) {
         outerLoopState.setTotal_nodesRemovedFromOPENsinceMaxScoreNowTooLow(total_nodesRemovedFromOPENsinceMaxScoreNowTooLow);
     }
 

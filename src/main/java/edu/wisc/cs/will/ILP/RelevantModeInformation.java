@@ -2,10 +2,7 @@ package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /*
@@ -33,40 +30,11 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
         return example + " : " + mode + ", " + getRelevanceStrength();
     }
 
-    public boolean isRelevanceFromPositiveExample() {
-        return relevanceFromPositiveExample;
-    }
-
-    public void setRelevanceFromPositiveExample(boolean positive) {
-        this.relevanceFromPositiveExample = positive;
-    }
-
-    @Override
-    public RelevantModeInformation getGeneralizeRelevantInformation() {
-        return this;
-    }
-
     /*
      * @return the relevanceStrength
      */
-    public RelevanceStrength getRelevanceStrength() {
+    private RelevanceStrength getRelevanceStrength() {
         return relevanceStrength;
-    }
-
-    public PredicateNameAndArity getPredicateNameAndArity() {
-        return mode.getPredicateNameAndArity();
-    }
-
-    List<Term> getSignature() {
-        List<Term> signature = new ArrayList<>();
-        for (int i = 0; i < mode.getArity(); i++) { // TREVOR: this is probably ok since we only have 'flat' Examples, but there is (possibly) more robust code.  See how I did it for the negation-by-failure stuff.
-            signature.add(mode.getStringHandler().getStringConstant("constant"));
-        }
-        return signature;
-    }
-
-    List<TypeSpec> getTypeSpecs() {
-        return mode.getTypeSpecs();
     }
 
     @Override
@@ -101,66 +69,8 @@ public class RelevantModeInformation implements RelevantInformation, Cloneable {
     }
 
 
-    public RelevantModeInformation copy() {
-        try {
-            return clone();
-        } catch (CloneNotSupportedException ex) {
-            return null;
-        }
-    }
-
     protected RelevantModeInformation clone() throws CloneNotSupportedException {
         return (RelevantModeInformation) super.clone();
     }
 
-    public boolean isValidAdvice(AdviceProcessor ap) {
-        return true;
-    }
-
-    ConnectedSentence getSentence(HornClauseContext context) {
-        List<DefiniteClause> clauses = context.getClausebase().getAssertions(getPredicateNameAndArity());
-
-        ConnectedSentence result = null;
-
-        if ( clauses != null && !clauses.isEmpty()) {
-            if ( clauses.size() == 1) {
-                Clause theClause = clauses.get(0).getDefiniteClauseAsClause();
-                result = theClause.asConnectedSentence();
-            }
-            else {
-
-                Sentence s = null;
-
-                BindingList bl = new BindingList();
-
-                Literal firstHead = null;
-
-                for (DefiniteClause definiteClause : clauses) {
-                    Clause aClause = definiteClause.getDefiniteClauseAsClause();
-                    Literal head = aClause.getDefiniteClauseHead();
-
-                    if ( firstHead == null) {
-                        firstHead = head;
-                        s = context.getStringHandler().getClause(null, aClause.getNegativeLiterals());
-                    }
-                    else {
-                        // This probably won't work...but I have no examples of when it
-                        // will fail, so whatever...
-                        bl = Unifier.UNIFIER.unify(firstHead, head, bl);
-                        aClause = aClause.applyTheta(bl);
-                        s = context.getStringHandler().getConnectedSentence(s, ConnectiveName.OR, context.getStringHandler().getClause(null, aClause.getNegativeLiterals()));
-                    }
-                }
-
-                result = context.getStringHandler().getConnectedSentence(s, ConnectiveName.IMPLIES, firstHead);
-            }
-
-        }
-
-        return result;
-    }
-
-    public boolean subsumes(RelevantInformation that) {
-        return false;
-    }
 }

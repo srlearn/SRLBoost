@@ -19,7 +19,7 @@ import static edu.wisc.cs.will.Utils.MessageType.STRING_HANDLER_VARIABLE_INDICAT
  * It also handles the 'isa' hierarchy (hetrarchy, really) of types and the specification of ranges of variables.
  *
  */
-public final class HandleFOPCstrings implements CallbackRegister {
+public final class HandleFOPCstrings {
 
     public final StandardPredicateNames standardPredicateNames;
 	int warningCount =   1;
@@ -113,7 +113,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	final Constant falseIndicator;
 	public final Literal   trueLiteral;
 	public final Literal cutLiteral;
-	public final Clause    trueClause;
 
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
 	final boolean useFastHashCodeForClauses   = true;
@@ -179,7 +178,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		falseIndicator      = this.getStringConstant("false");
 		trueLiteral         = this.getLiteral(standardPredicateNames.trueName);
 		cutLiteral          = this.getLiteral(standardPredicateNames.cut);
-		trueClause          = this.getClause(trueLiteral,  true);
+		Clause trueClause = this.getClause(trueLiteral, true);
 		precedenceTableForOperators   = new HashMap<>( 8);
 		precedenceTableForConnectives = new HashMap<>(24);
 		initPrecedences(precedenceTableForOperators, precedenceTableForConnectives);
@@ -667,7 +666,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
      * @param negationByFailure A literal with predicate name of \+ and arity 1.
      * @return Contents of a negation-by-failure as a clause with all positive literals
      */
-    public Clause getNegationByFailureContents(LiteralOrFunction negationByFailure) {
+	private Clause getNegationByFailureContents(LiteralOrFunction negationByFailure) {
 
         Clause result;
 
@@ -714,21 +713,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
         return getNegationByFailureContents((LiteralOrFunction)negationByFailure);
     }
 
-	/* Returns whether the possibleNegationByFailure literal is a negation-by-failure.
-     *
-     * A literal is a negation-by-failure if it has a predicate name of \+ and arity 1.
-     *
-     * @param possibleNegationByFailure literal to evaluate.
-     * @return True if literal has a predicate name of \+ and arity 1.
-     */
-    public boolean isNegationByFailure(LiteralOrFunction possibleNegationByFailure) {
-        return (possibleNegationByFailure != null && possibleNegationByFailure.getPredicateName() == standardPredicateNames.negationByFailure);
-    }
-
-    public boolean isNegationByFailure(Literal possibleNegationByFailure) {
-        return isNegationByFailure((LiteralOrFunction)possibleNegationByFailure);
-    }
-
 	/*
 	 * Call the math or list handler to simplify an expression.
 	 * @return The numeric result of computing the given expression.
@@ -769,7 +753,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
 	private void recordModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
         if (typedLiteral != null ) recordModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
 	}
-	public void recordModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
+	private void recordModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
         if ( predicate != null ) {
             recordPredicatesWithKnownModes(predicate);
             predicate.getPredicateName().recordMode(signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
@@ -904,10 +888,6 @@ public final class HandleFOPCstrings implements CallbackRegister {
 		if (!disallowedModes.contains(predicateName)) {
 			disallowedModes.add(predicateName);
         }
-	}
-
-    public void removePredicateWithKnownModes(PredicateNameAndArity predicateName) {
-		knownModes.remove(predicateName);
 	}
 
 	public ConsCell getNil() {
@@ -1727,13 +1707,7 @@ public final class HandleFOPCstrings implements CallbackRegister {
         }
     }
 
-    public void removeKnownMode(PredicateNameAndArity predicateName) {
-        if ( knownModes != null ) {
-            knownModes.remove(predicateName);
-        }
-    }
-
-    public void addLiteralAlias(Literal alias, Literal literal) {
+	public void addLiteralAlias(Literal alias, Literal literal) {
        literalAliases.put(alias, literal);
     }
 

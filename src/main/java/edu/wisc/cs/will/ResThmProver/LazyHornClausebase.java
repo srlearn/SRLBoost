@@ -172,17 +172,6 @@ public class LazyHornClausebase implements HornClausebase {
         return result;
     }
 
-    @Override
-    public void retractAllClausesForPredicate(PredicateNameAndArity predicateNameAndArity) {
-        DefiniteClauseList matchAssertions = getAssertions(predicateNameAndArity.getPredicateName(), predicateNameAndArity.getArity());
-        DefiniteClauseList clausesToRemove;
-        if (matchAssertions != null) {
-            clausesToRemove = new DefiniteClauseList();
-            clausesToRemove.addAll(matchAssertions);
-            removeClauses(clausesToRemove);
-        }
-    }
-
     /* Checks to fact to make sure we should add it.
      *
      * Depending on the settings stringHandler.variantFactHandling settings, various checks will be performed.
@@ -435,19 +424,6 @@ public class LazyHornClausebase implements HornClausebase {
 
     public DefiniteClauseList getAssertions(PredicateNameAndArity predicateNameAndArity) {
         return getAssertions(predicateNameAndArity.getPredicateName(), predicateNameAndArity.getArity());
-    }
-
-    public boolean isDefined(PredicateNameAndArity pnaa) {
-        if (getStringHandler().standardPredicateNames.buildinPredicates.contains(pnaa.getPredicateName())) {
-            return true;
-        }
-        if (getUserProcedurallyDefinedPredicateHandler() != null && getUserProcedurallyDefinedPredicateHandler().canHandle(pnaa.getPredicateName(), pnaa.getArity())) {
-            return true;
-        }
-        if (getBuiltinProcedurallyDefinedPredicateHandler() != null && getBuiltinProcedurallyDefinedPredicateHandler().canHandle(pnaa.getPredicateName(), pnaa.getArity())) {
-            return true;
-        }
-        return checkForPossibleMatchingAssertions(pnaa.getPredicateName(), pnaa.getArity());
     }
 
     public class SpyAssertRetractListener implements AssertRetractListener {

@@ -93,7 +93,7 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
     }
 
     public <Return,Data> Return accept(TermVisitor<Return,Data> visitor, Data data) {
-        return visitor.visitOtherTerm(this, data);
+        return visitor.visitOtherTerm(this);
     }
 
 

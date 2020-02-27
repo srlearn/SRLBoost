@@ -7,7 +7,7 @@ import java.util.Map;
  */
 public abstract class AllOfFOPC {
 	final static int defaultPrecedence = Integer.MIN_VALUE;  // This plays it safe and uses a lot of parentheses.
-	public          static boolean renameVariablesWhenPrinting = false;
+	static final boolean renameVariablesWhenPrinting = false;
 	static final boolean truncateStrings             = true; // Prevent printing very long strings if true.
 	public          static boolean printUsingAlchemyNotation   = false;
  

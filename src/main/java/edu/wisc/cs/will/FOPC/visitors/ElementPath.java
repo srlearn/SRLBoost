@@ -19,16 +19,6 @@ public class ElementPath implements Comparable<ElementPath>{
         this.index = index;
     }
 
-    @Override
-    public String toString() {
-        if (parent != null) {
-            return parent.toString() + ":" + index;
-        }
-        else {
-            return Integer.toString(index);
-        }
-    }
-
     private List<Integer> asList() {
         List<Integer> list = new ArrayList<>();
         ElementPath ep = this;
@@ -37,10 +27,6 @@ public class ElementPath implements Comparable<ElementPath>{
             ep = ep.parent;
         }
         return list;
-    }
-
-    public int getIndex() {
-        return index;
     }
 
     public ElementPath getParent() {
@@ -60,14 +46,6 @@ public class ElementPath implements Comparable<ElementPath>{
             return false;
         }
         return this.index == other.index;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 17 * hash + (this.parent != null ? this.parent.hashCode() : 0);
-        hash = 17 * hash + this.index;
-        return hash;
     }
 
     public int compareTo(ElementPath that) {

@@ -415,27 +415,6 @@ public class Clause extends Sentence implements DefiniteClause {
 		return true;
 	}
 
-    public ConnectedSentence asConnectedSentence() {
-        Sentence b;
-        Sentence a;
-
-        if ( getNegLiteralCount() == 0 ) {
-            a = stringHandler.trueLiteral;
-        }
-        else {
-            a = stringHandler.getClause(negLiterals, null);
-        }
-
-        if ( getPosLiteralCount() == 0 ) {
-            b = stringHandler.trueLiteral;
-        }
-        else {
-            b = stringHandler.getClause(posLiterals, null);
-        }
-
-        return stringHandler.getConnectedSentence(a, ConnectiveName.IMPLIES, b);
-    }
-	
     @Override
 	public BindingList variants(Sentence other, BindingList bindings) { 
 	

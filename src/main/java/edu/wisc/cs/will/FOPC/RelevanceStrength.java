@@ -21,8 +21,6 @@ public enum RelevanceStrength {
 	POSSIBLE_ANSWER;        // *Be sure to change getStrongestRelevanceStrength if this is not last.*  This combines all the relevance, including comments positive and negative examples.
 		
 	RelevanceStrength() { }
-	
-	public static RelevanceStrength getWeakestRelevanceStrength()         { return STRONGLY_IRRELEVANT; }
 
 	public static RelevanceStrength getDefaultRelevanceStrength()         { return RELEVANT;            }
 	private static RelevanceStrength getNeutralRelevanceStrength()         { return NEUTRAL;             }
@@ -80,16 +78,4 @@ public enum RelevanceStrength {
 		return this.compareTo(NEUTRAL) < 0;
 	}
 
-	public boolean isWeaker(RelevanceStrength that) {
-        return this.ordinal() < that.ordinal();
-    }
-
-	public boolean isEqualOrWeaker(RelevanceStrength that) {
-        return this.ordinal() <= that.ordinal();
-    }
-
-    public boolean isEqualOrStronger(RelevanceStrength that) {
-        return this.ordinal() >= that.ordinal();
-    }
-	
 }

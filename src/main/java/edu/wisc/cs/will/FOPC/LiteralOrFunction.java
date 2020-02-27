@@ -20,8 +20,6 @@ public interface LiteralOrFunction {
 
     int getArity();
 
-    PredicateNameAndArity getPredicateNameAndArity();
-
     List<Term> getArguments();
 
     Term getArgument(int index);

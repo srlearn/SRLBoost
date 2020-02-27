@@ -44,7 +44,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
      * cases, specially handling will be required to maintain the semantics of the returned
      * sentence, but this provided a simple why to handle null values.
      */
-    static Sentence getCombinedConnectedSentence(ConnectedSentence originalSentence, Sentence newA, Sentence newB) {
+    private static Sentence getCombinedConnectedSentence(ConnectedSentence originalSentence, Sentence newA, Sentence newB) {
 
         Sentence result;
 
@@ -298,7 +298,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
         return !buildSentence ? null : stringConstant;
     }
 
-    public Term visitOtherTerm(Term term, Data data) {
+    public Term visitOtherTerm(Term term) {
         return !buildSentence ? null : term;
     }
 }

@@ -102,8 +102,6 @@ public interface HornClausebase {
      */
     boolean retractAllClauseWithHead(DefiniteClause clauseHead);
 
-    void retractAllClausesForPredicate(PredicateNameAndArity predicateNameAndArity);
-
     /* Returns a Collection of definite clauses whose head might match the specified clauseHead.
      *
      * The DefiniteClause returned can be either a Literal or a Clause from either the background
@@ -210,8 +208,4 @@ public interface HornClausebase {
 
     void addAssertRetractListener(AssertRetractListener assertRetractListener, PredicateNameAndArity predicate);
 
-    /*
-     * Returns whether the predicate currently has a definition.
-     */
-    boolean isDefined(PredicateNameAndArity pnaa);
 }

@@ -374,7 +374,7 @@ public class PrettyPrinter {
             return new PPResult(stringConstant.toString(), false, MIN_PRECEDENCE);
         }
 
-        public PPResult visitOtherTerm(Term term, FOPCPrettyPrinterData data) {
+        public PPResult visitOtherTerm(Term term) {
             return new PPResult(term.toString(), false, MIN_PRECEDENCE);
         }
 

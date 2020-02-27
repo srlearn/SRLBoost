@@ -28,7 +28,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Map<Integer,Integer> maxOccurrencesPerArity = null; // During structure (i.e., rule) learning, cannot appear more than this many times in one rule.
 	private   Map<Integer,Map<List<Type>,Integer>> maxOccurrencesPerInputVars = null; // During structure (i.e., rule) learning, cannot appear more than this many times in one rule.
 	transient private   Map<Integer,MapOfLists<PredicateNameAndArity, Pruner>>  pruneHashMap      = null; // The first integer is the arity of this predicate (of 'prunableLiteral').  The second key is the predicate name of 'ifPresentLiteral' (could also index on the arity of this literal, but that doesn't seem necessary).  A Pruner instance contains 'prunableLiteral', 'ifPresentLiteral', and the max number of ways that 'ifPresentLiteral' can be proven from the current set of rules.
-    final transient private   Map<Integer,List<ConnectedSentence>>          variantHashMap    = null; // The first integer is the arity of this predicate (of 'prunableLiteral').  The second contains all the variants.
 	private   Set<Integer> canBeAbsentThisArity                         = null;  // OK if this predicate name with one of these arities can be absent during theorem proving.
 	private   boolean      canBeAbsentAnyArity                          = false;
 	private   Set<Integer> dontComplainAboutMultipleTypesThisArity      = null;  // OF if this predicate/arity have multiple types for some argument.
@@ -116,48 +115,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return (lookup1.get(Utils.getSizeSafely(arguments)) != null);
 	}
 
-    private boolean isFunctionAsPredicate(int arity) {
-        if ( functionAsPredSpec != null ) {
-            for (FunctionAsPredType type : FunctionAsPredType.values()) {
-                Map<Integer,Integer> lookup1 = functionAsPredSpec.get(type);
-                if ( lookup1 != null && lookup1.containsKey(arity) ) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private int getFunctionAsPredicateOutputIndex(int arity) {
-        if ( functionAsPredSpec != null ) {
-            for (FunctionAsPredType type : FunctionAsPredType.values()) {
-                Map<Integer, Integer> lookup1 = functionAsPredSpec.get(type);
-                if (lookup1 != null) {
-                    Integer i = lookup1.get(arity);
-                    if (i != null) {
-                        return i;
-                    }
-                }
-            }
-        }
-
-        return -1;
-    }
-
-    public boolean isDeterminateOrFunctionAsPred(int arity) {
-        return isFunctionAsPredicate(arity);
-    }
-
-    public int getDeterminateOrFunctionAsPredOutputIndex(int arity) {
-        if ( isFunctionAsPredicate(arity) ) {
-            return getFunctionAsPredicateOutputIndex(arity);
-        }
-        else {
-            return -1;
-        }
-    }
-	
 	public enum FunctionAsPredType {      numeric,       bool,          categorical,       structured,       anything,
 									listOfNumeric, listOfBoolean, listOfCategorical, listOfStructured, listOfAnything}
 
@@ -178,22 +135,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return (inlineSpec != null && inlineSpec.contains(arity));
 	}
 
-	boolean isNonOperational(int arity) {
-        return operationalExpansion != null && operationalExpansion.containsKey(arity);
-    }
-
-    /* Returns the set of operational expansions of the predicate/arity.
-     * @return Returns null if no operational expansions exist.
-     */
-    public Set<PredicateNameAndArity> getOperationalExpansions(int arity) {
-        Set<PredicateNameAndArity> result = null;
-        if ( operationalExpansion != null ) {
-            result = operationalExpansion.getValues(arity);
-        }
-        return result;
-    }
-
-    /* Adds an operational expansion of the predicate.
+	/* Adds an operational expansion of the predicate.
      *
      * Operational expansions are keyed on the predicate name and the arity.
      * A PredicateNameAndArity is used to provide both the name and arity of
@@ -217,11 +159,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         addOperationalExpansion(new PredicateNameAndArity(operationalPredicateName, arity));
     }
 
-	public List<ConnectedSentence> getVariants(int arity) {
-		if (variantHashMap == null) { return null; }
-		return variantHashMap.get(arity);
-	}
-	
 	/*
 	 * Can prune 'prunableLiteral' if 'ifPresentLiteral' is present (and both unify consistently with the current literal being considered for adding to the current clause during ILP search).
 	 * However, if 'ifPresentLiteral' has 'warnIfPresentLiteralCount' ways to be proven, warn the user (i.e., prune is based on the assumption that fewer than this number of clauses for this literal/arity exist).
@@ -658,7 +595,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         containsCallable.add(arity);
     }
 
-    public boolean isContainsCallable(int arity) {
+    boolean isContainsCallable(int arity) {
         return containsCallable != null && containsCallable.contains(arity);
     }
 
