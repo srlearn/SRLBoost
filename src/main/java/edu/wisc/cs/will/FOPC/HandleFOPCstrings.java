@@ -953,11 +953,7 @@ public final class HandleFOPCstrings {
 		return result;
 	}
 
-    public PredicateNameAndArity getPredicate(String name, int arity) {
-        return new PredicateNameAndArity(getPredicateName(name), arity);
-    }
-
-    public PredicateNameAndArity getPredicate(PredicateName pName, int arity) {
+	public PredicateNameAndArity getPredicate(PredicateName pName, int arity) {
         return new PredicateNameAndArity(pName, arity);
     }
 

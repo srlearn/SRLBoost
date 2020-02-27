@@ -322,10 +322,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return getStringHandler().getFunctionName(predicateName.name);
     }
 
-    public Literal asLiteral() {
-        return this;
-    }
-
     public Function asFunction() {
 
         // We need special handling for conCells for some reason...

@@ -39,11 +39,8 @@ public class Example extends Literal implements Serializable {
 	public Example(HandleFOPCstrings stringHandler, Literal literal, String provenance, String extraLabel) {
 		this(stringHandler, literal.predicateName, literal.getArguments(), provenance, extraLabel);
 	}	
-	public Example(Literal literal) {
+	private Example(Literal literal) {
 		this(literal.getStringHandler(), literal.predicateName, literal.getArguments(), null, null);
-	}
-	public Example(Function f) {
-		this(f.getStringHandler(), f.getStringHandler().getPredicateName(f.functionName.name), f.getArguments(), null, null);
 	}
 
 	/* (non-Javadoc)

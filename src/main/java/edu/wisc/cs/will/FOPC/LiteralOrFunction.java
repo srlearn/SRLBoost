@@ -12,9 +12,7 @@ import java.util.List;
  *
  * @author twalker
  */
-public interface LiteralOrFunction {
-
-    Literal asLiteral();
+interface LiteralOrFunction {
 
     PredicateName getPredicateName();
 
@@ -22,7 +20,4 @@ public interface LiteralOrFunction {
 
     List<Term> getArguments();
 
-    Term getArgument(int index);
-
-    HandleFOPCstrings getStringHandler();
 }

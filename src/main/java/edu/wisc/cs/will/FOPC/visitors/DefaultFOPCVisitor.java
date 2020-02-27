@@ -10,27 +10,18 @@ import java.util.List;
  */
 public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>, TermVisitor<Term, Data> {
 
-    /* Indicates that a sentence should be constructed as we visit the Sentence/Terms.
-     *
-     * If false, all default visitor methods will return null and no Sentence/Terms will be constructed.
-     *
-     * Note: Even if this is true, an overriden method can return null to indicate that the caller should
-     * not construct a Sentence/Term from that result.
-     */
-    private boolean buildSentence = true;
-
     protected DefaultFOPCVisitor() {
     }
 
     public Sentence visitOtherSentence(Sentence otherSentence) {
-        return !buildSentence ? null : otherSentence;
+        return otherSentence;
     } 
 
     public Sentence visitConnectedSentence(ConnectedSentence sentence, Data data) {
         Sentence a = sentence.getSentenceA() == null ? null : sentence.getSentenceA().accept(this, data);
         Sentence b = sentence.getSentenceB() == null ? null : sentence.getSentenceB().accept(this, data);
 
-        return !buildSentence ? null : getCombinedConnectedSentence(sentence, a, b);
+        return getCombinedConnectedSentence(sentence, a, b);
     }
 
     /* Performs some "smart" recombining of connected sentences.
@@ -85,30 +76,26 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
         List<Literal> negativeLits = null;
 
         if (clause.getPosLiteralCount() > 0) {
-            if (buildSentence) {
-                positiveLits = new ArrayList<>();
-            }
+            positiveLits = new ArrayList<>();
             for (Literal literal : clause.getPositiveLiterals()) {
                 Sentence newStuff = literal.accept(this, data);
-                if (buildSentence && newStuff != null) {
+                if (newStuff != null) {
                     positiveLits.addAll(newStuff.asClause().getPositiveLiterals());
                 }
             }
         }
 
         if (clause.getNegLiteralCount() > 0) {
-            if (buildSentence) {
-                negativeLits = new ArrayList<>();
-            }
+            negativeLits = new ArrayList<>();
             for (Literal literal : clause.getNegativeLiterals()) {
                 Sentence newStuff = literal.accept(this, data);
-                if (buildSentence && newStuff != null) {
+                if (newStuff != null) {
                     negativeLits.addAll(newStuff.asClause().getPositiveLiterals());
                 }
             }
         }
 
-        return !buildSentence ? null : clause.getStringHandler().getClause(positiveLits, negativeLits);
+        return clause.getStringHandler().getClause(positiveLits, negativeLits);
     }
 
     /* Visit the literal.
@@ -123,51 +110,39 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
 
         Literal result = literal;
 
-        List<Term> newTerms = null;
+        List<Term> newTerms;
 
         if (literal.getArity() != 0) {
-            if (buildSentence) {
-                newTerms = new ArrayList<>();
-            }
-            
+            newTerms = new ArrayList<>();
+
             for (Term term : literal.getArguments()) {
                 Term newTerm = term.accept(this, data);
-                if (buildSentence) {
-                    newTerms.add(newTerm);
-                }
+                newTerms.add(newTerm);
             }
 
-            if (buildSentence) {
-                result = literal.getStringHandler().getLiteral(literal, newTerms);
-            }
+            result = literal.getStringHandler().getLiteral(literal, newTerms);
         }
 
-        return !buildSentence ? null : result;
+        return result;
     }
 
     public Term visitFunction(Function function, Data data) {
 
         Function result = function;
 
-        List<Term> newTerms = null;
+        List<Term> newTerms;
 
         if (function.getArity() != 0) {
-            if (buildSentence) {
-                newTerms = new ArrayList<>();
-            }
+            newTerms = new ArrayList<>();
             for (Term term : function.getArguments()) {
                 Term newTerm = term.accept(this, data);
-                if (buildSentence) {
-                    newTerms.add(newTerm);
-                }
+                newTerms.add(newTerm);
             }
 
-            if (buildSentence) {
-                result = function.getStringHandler().getFunction(function, newTerms);
-            }
+            result = function.getStringHandler().getFunction(function, newTerms);
         }
 
-        return !buildSentence ? null : result;
+        return result;
 
     }
 
@@ -192,7 +167,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
                         // Call accept on the car() of the cellPosition cell.
                         Term newCar = cellPosition.car().accept(this, data);
 
-                        if (buildSentence && newCar != null) {
+                        if (newCar != null) {
 
                             ConsCell newCell = consCell.getStringHandler().getConsCell(newCar, consCell.getStringHandler().getNil(), null);
                             if (tail == null) {
@@ -214,7 +189,7 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
                     // It is probably a variable since that is the only thing that
                     // should occur in a cdr position.
                     Term newTerm = currentPosition.accept(this, data);
-                    if (buildSentence && newTerm != null && tail != null) {
+                    if (newTerm != null && tail != null) {
                         // We are extending the tail, so set the cdr of tail.
 
                         // If tail is null here...hmm...that shouldn't happen
@@ -229,11 +204,11 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
             }
         }
 
-        return !buildSentence ? null : result;
+        return result;
     }
 
     public Term visitVariable(Variable variable, Data data) {
-        return !buildSentence ? null : variable;
+        return variable;
     }
 
     public Term visitSentenceAsTerm(SentenceAsTerm sentenceAsTerm, Data data) {
@@ -242,12 +217,12 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
 
         Sentence s = sentenceAsTerm.sentence.accept(this, data);
 
-        if (buildSentence && s != null) {
+        if (s != null) {
             result = s.asTerm();
         }
 
 
-        return !buildSentence ? null : result;
+        return result;
     }
 
     public Term visitLiteralAsTerm(LiteralAsTerm literalAsTerm, Data data) {
@@ -255,45 +230,41 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
 
         Sentence s = literalAsTerm.itemBeingWrapped.accept(this, data);
 
-        if (buildSentence && s != null) {
+        if (s != null) {
             result = s.asTerm();
         }
 
-        return !buildSentence ? null : result;
+        return result;
     }
 
     public Term visitListAsTerm(ListAsTerm listAsTerm, Data data) {
         Term result = listAsTerm;
 
         if (listAsTerm.getObjects() != null) {
-            List<Term> objects = null;
+            List<Term> objects;
 
-            if (buildSentence) {
-                objects = new ArrayList<>();
-            }
+            objects = new ArrayList<>();
             for (Term term : listAsTerm.getObjects()) {
                 Term newTerm = term.accept(this, data);
-                if (buildSentence && newTerm != null) {
+                if (newTerm != null) {
                     objects.add(newTerm);
                 }
             }
-            if (buildSentence) {
-                result = listAsTerm.getStringHandler().getListAsTerm(objects);
-            }
+            result = listAsTerm.getStringHandler().getListAsTerm(objects);
         }
 
-        return !buildSentence ? null : result;
+        return result;
     }
 
-    public Term visitNumericConstant(NumericConstant numericConstant, Data data) {
-        return !buildSentence ? null : numericConstant;
+    public Term visitNumericConstant(NumericConstant numericConstant) {
+        return numericConstant;
     }
 
-    public Term visitStringConstant(StringConstant stringConstant, Data data) {
-        return !buildSentence ? null : stringConstant;
+    public Term visitStringConstant(StringConstant stringConstant) {
+        return stringConstant;
     }
 
     public Term visitOtherTerm(Term term) {
-        return !buildSentence ? null : term;
+        return term;
     }
 }

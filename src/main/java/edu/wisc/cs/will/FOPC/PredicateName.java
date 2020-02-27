@@ -115,8 +115,8 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return (lookup1.get(Utils.getSizeSafely(arguments)) != null);
 	}
 
-	public enum FunctionAsPredType {      numeric,       bool,          categorical,       structured,       anything,
-									listOfNumeric, listOfBoolean, listOfCategorical, listOfStructured, listOfAnything}
+	public enum FunctionAsPredType {      numeric
+	}
 
 	// See if this predicate name is temporary for this run (if so, it might need to be renamed to avoid name conflicts across runs).
 	public boolean isaTemporaryName(int arity) {
@@ -594,11 +594,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         }
         containsCallable.add(arity);
     }
-
-    boolean isContainsCallable(int arity) {
-        return containsCallable != null && containsCallable.contains(arity);
-    }
-
 
 
 }

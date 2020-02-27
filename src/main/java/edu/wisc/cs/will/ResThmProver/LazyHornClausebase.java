@@ -384,7 +384,7 @@ public class LazyHornClausebase implements HornClausebase {
         return indexerForAllAssertions;
     }
 
-    public void addAssertRetractListener(AssertRetractListener assertRetractListener, PredicateNameAndArity predicate) {
+    private void addAssertRetractListener(AssertRetractListener assertRetractListener, PredicateNameAndArity predicate) {
         if (listenerMap == null) {
             listenerMap = new HashMap<>();
         }

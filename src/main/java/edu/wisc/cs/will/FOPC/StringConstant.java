@@ -198,6 +198,6 @@ public class StringConstant extends Constant implements Serializable {
 
     @Override
     public <Return, Data> Return accept(TermVisitor<Return, Data> visitor, Data data) {
-        return visitor.visitStringConstant(this, data);
+        return visitor.visitStringConstant(this);
     }
 }

@@ -366,11 +366,11 @@ public class PrettyPrinter {
             return null;
         }
 
-        public PPResult visitNumericConstant(NumericConstant numericConstant, FOPCPrettyPrinterData data) {
+        public PPResult visitNumericConstant(NumericConstant numericConstant) {
             return new PPResult(numericConstant.getName(), false, MIN_PRECEDENCE);
         }
 
-        public PPResult visitStringConstant(StringConstant stringConstant, FOPCPrettyPrinterData data) {
+        public PPResult visitStringConstant(StringConstant stringConstant) {
             return new PPResult(stringConstant.toString(), false, MIN_PRECEDENCE);
         }
 

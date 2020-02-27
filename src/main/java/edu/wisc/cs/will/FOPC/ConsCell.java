@@ -129,15 +129,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
     }
 
-    public Literal asLiteral() {
-        if (this == stringHandler.getNil()) {
-            return stringHandler.getNilAsLiteral();
-        }
-        else {
-            return super.asLiteral();
-        }
-    }
-
     static <T> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items) {
         if (items == null) {
             return null;

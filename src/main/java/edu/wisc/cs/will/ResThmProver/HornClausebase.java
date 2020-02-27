@@ -190,6 +190,4 @@ public interface HornClausebase {
 
     boolean isOnlyInFacts(PredicateName predName, int arity);
 
-    void addAssertRetractListener(AssertRetractListener assertRetractListener, PredicateNameAndArity predicate);
-
 }

@@ -1913,6 +1913,7 @@ public class FileParser {
 		return results;
 	}
 
+	// TODO(@hayesall): move this into `loadAllBasicModes`
 	private final Set<String> loadedBasicModes = new HashSet<>(4);
 
 	public List<Sentence> loadAllBasicModes() throws ParsingException {
