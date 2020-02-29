@@ -107,7 +107,7 @@ mode: wheels( +car, #int) maxPerInputVars=1.
 I'm not entirely clear on the meaning of maxPerInputVars, but here is what was in the FileParser.java comments:
 \begin{itemize}
 \item Optionally [not yet implemented] can say that the above mode only applies when learning this target.  A sample is 'parentOf/2' (the literal whose predicate name is 'parentOf' and which has two arguments).
-\item Optionally say that typed literal can appear in a learned clauses at most # (some integer) times.
+\item Optionally say that typed literal can appear in a learned clauses at most \# (some integer) times.
 \item Optionally indicate that PER SETTING to the 'input' (i.e. '+') variables, can occur at most this many times (an idea taken from Aleph).
 \end{itemize}  
 Are all of these/one of these true?
@@ -142,7 +142,10 @@ eastbound(west7).
 
 \subsubsection{Additional fact file (\emph{prefix}\_facts.txt)}
 
-The fact file contains facts about the data set.  These facts generally would not appear in the background knowledge file because they are specific to the data set and not generalizable to the entired data domain.  The fact file may also contain typing predicates which define the types of constants in the data set.  The following statements mean that east1 is of type train, car_11 is of type train, and rectangle is of type shape.
+The fact file contains facts about the data set.  These facts generally would not appear in the background knowledge
+file because they are specific to the data set and not generalizable to the entire data domain.
+The fact file may also contain typing predicates which define the types of constants in the data set.
+The following statements mean that east1 is of type train, car\_11 is of type train, and rectangle is of type shape.
 
 \begin{verbatim}
 train(east1). 
@@ -340,7 +343,11 @@ Example: \code{java -jar WILL.jar SampleTestbeds/chess -folds=5 -fold=0}
 Causes ILPMain to use 5 folds starting with fold 0.  (Folds are numbered from 0, not 1.)
 \item[-checkpoint] Enables checkpointing.  If enabled, this option forces ILPMain to write to a gleaner file (summary result file) periodically.   Default is disabled.
 % Relevance details provided by Trevor
-\item[-relevance]  Enables relevance.  If enabled, ILPMain will attempt to find an additional data file, of the form \emph{prefix}\_bkRel.txt in the data file directory.  This file will contain ``advice'' about relevant and irrelevant examples.  These examples add predicates and/or modes to the ILP search space.  Relevance advice can include ground advice (i.e., this example is true because x & y), feature advice (i.e., predicate q is relevant to the concept), and statement advice (i.e., literal q(x,y) should be included in the search space). Default is disabled.
+\item[-relevance]  Enables relevance.  If enabled, ILPMain will attempt to find an additional data file, of the form
+\emph{prefix}\_bkRel.txt in the data file directory.  This file will contain ``advice'' about relevant and irrelevant
+examples.  These examples add predicates and/or modes to the ILP search space.  Relevance advice can include ground
+advice (i.e., this example is true because x \& y), feature advice (i.e., predicate q is relevant to the concept), and
+statement advice (i.e., literal q(x,y) should be included in the search space). Default is disabled.
 \item[-norelevance] Disables relevance
 \item[-maxTime=\emph{n}] The program will be terminated after \emph{n} seconds.  If this argument is omitted, the maxTime argument defaults to three days.
 % Onion details provided by Trevor Walker
