@@ -1,8 +1,9 @@
 # SRLBoost
 
-A package for learning Statistical Relational Models with Gradient Boosting.
+A package for learning Statistical Relational Models with Gradient Boosting,
+making up [`srlearn's`](https://github.com/hayesall/srlearn) core.
 
-*It's basically BoostSRL but half the size.*
+*It's basically BoostSRL, but half the size and twice as fast.*
 
 ![Graph comparing the number of lines of code in each fork: BoostSRL, BoostSRL-Lite, and SRLBoost. SRLBoost is about half the size of BoostSRL.](https://raw.githubusercontent.com/hayesall/SRLBoost/master/docs/lines_of_code_graph.png)
 

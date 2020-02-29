@@ -15,11 +15,9 @@ bridger: friends/2.
 
 
 
-//precompute1: 
+precompute:
 num_of_smoking_friends(x, n) :- 
    friends(x, y), // grounding x first
    countUniqueBindings((friends(x,z)^smokes(z)), n).
 
 mode: num_of_smoking_friends(+Person, #Number).
-
-
