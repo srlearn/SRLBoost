@@ -15,8 +15,6 @@ public class PrettyPrinter {
 
     private static final PrettyPrinterVisitor PRETTY_PRINTER_VISITOR = new PrettyPrinterVisitor();
 
-    private static final int MIN_PRECEDENCE = 0;
-
     public static String print(Sentence s, String firstLinePrefix, String additionalLinesPrefix, PrettyPrinterOptions options, BindingList variableBindings) {
 
         FOPCPrettyPrinterData data = new FOPCPrettyPrinterData();
@@ -246,7 +244,7 @@ public class PrettyPrinter {
 
             if (clause.getNegLiteralCount() == 0) {
                 if (clause.getPosLiteralCount() == 0) {
-                    result = new PPResult("true", false, MIN_PRECEDENCE);
+                    result = new PPResult("true", false, 0);
                 }
                 else {
                     result = prettyPrintLiterals(clause.getPositiveLiterals(), data);
@@ -254,7 +252,7 @@ public class PrettyPrinter {
             }
             else if (clause.getPosLiteralCount() == 0) {
                 PPResult negResult = prettyPrintLiterals(clause.getNegativeLiterals(), data);
-                result = new PPResult(negResult.resultString, negResult.isMultiline(), MIN_PRECEDENCE);
+                result = new PPResult(negResult.resultString, negResult.isMultiline(), 0);
 
             }
             else {
@@ -324,7 +322,7 @@ public class PrettyPrinter {
                     // onces who created the binding...
                     if (binding instanceof StringConstant) {
                         StringConstant stringConstant = (StringConstant) binding;
-                        result = new PPResult(stringConstant.getBareName(), false, MIN_PRECEDENCE);
+                        result = new PPResult(stringConstant.getBareName(), false, 0);
                     }
                     else {
                         result = binding.accept(this, data);
@@ -335,14 +333,14 @@ public class PrettyPrinter {
                     StringConstant variableName = data.getNextVariableName(variable);
 
                     data.variableBindings.addBinding(variable, variableName);
-                    result = new PPResult(variableName.getBareName(), false, MIN_PRECEDENCE);
+                    result = new PPResult(variableName.getBareName(), false, 0);
                 }
                 else {
-                    result = new PPResult(variable.getName(), false, MIN_PRECEDENCE);
+                    result = new PPResult(variable.getName(), false, 0);
                 }
             }
             else {
-                return new PPResult(variable.name, false, MIN_PRECEDENCE);
+                return new PPResult(variable.name, false, 0);
             }
 
             return result;
@@ -367,15 +365,15 @@ public class PrettyPrinter {
         }
 
         public PPResult visitNumericConstant(NumericConstant numericConstant) {
-            return new PPResult(numericConstant.getName(), false, MIN_PRECEDENCE);
+            return new PPResult(numericConstant.getName(), false, 0);
         }
 
         public PPResult visitStringConstant(StringConstant stringConstant) {
-            return new PPResult(stringConstant.toString(), false, MIN_PRECEDENCE);
+            return new PPResult(stringConstant.toString(), false, 0);
         }
 
         public PPResult visitOtherTerm(Term term) {
-            return new PPResult(term.toString(), false, MIN_PRECEDENCE);
+            return new PPResult(term.toString(), false, 0);
         }
 
         private PPResult prettyPrintLiterals(List<Literal> literals, FOPCPrettyPrinterData data) {
@@ -565,7 +563,7 @@ public class PrettyPrinter {
 
             data.popIndent();
 
-            return new PPResult(stringBuilder.toString(), multiline, MIN_PRECEDENCE);
+            return new PPResult(stringBuilder.toString(), multiline, 0);
 
         }
 
@@ -610,7 +608,7 @@ public class PrettyPrinter {
 
                     if (infix && i == 1) {
                         // Insert the infix operator...
-                        PPResult tpp = new PPResult(" " + pred + " ", false, MIN_PRECEDENCE);
+                        PPResult tpp = new PPResult(" " + pred + " ", false, 0);
                         list.add(tpp);
 
                         totalWidth += tpp.getMaximumWidth();
@@ -631,7 +629,7 @@ public class PrettyPrinter {
                             infixSB.append("\n");
                         }
                         infixSB.append(")");
-                        tpp = new PPResult(infixSB.toString(), tpp.multiline, MIN_PRECEDENCE);
+                        tpp = new PPResult(infixSB.toString(), tpp.multiline, 0);
                     }
 
                     list.add(tpp);

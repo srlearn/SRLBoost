@@ -87,9 +87,7 @@ import java.util.*;
  */
 public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefinedPredicateHandler {
 
-    private static final BindingList FAIL = null;
-
-    private final HandleFOPCstrings stringHandler;
+	private final HandleFOPCstrings stringHandler;
 
 
     private DateFormat       dateTimeInstance;
@@ -681,7 +679,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
                 context.getClausebase().assertBackgroundKnowledge(clause);
                 return bindingList;
             }
-			return FAIL;
+			return null;
         }
         if ( (pred == stringHandler.standardPredicateNames.assertifnotName || pred == stringHandler.standardPredicateNames.assertifunknownName) && numbArgs == 1) {
             Term arg0 = args.get(0);
@@ -702,7 +700,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
                 }
                     return bindingList;
             }
-			return FAIL;
+			return null;
         }
         if (pred == stringHandler.standardPredicateNames.createUniqueStringConstant && numbArgs == 2) {
 			Term arg0 = args.get(0);
@@ -788,7 +786,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
                         String newName = prefixAsString + suffixAsString;
                         if ( concatIsConstant ) {
                             // Form: Constant, Constant, Constant
-                            return concat.toString().equals(newName) ? bindingList : FAIL;
+                            return concat.toString().equals(newName) ? bindingList : null;
                         }
 						// Form: Constant, Constant, Variable
 						bindingList.addBinding((Variable)concat, stringHandler.getStringConstant(newName, false));
@@ -806,14 +804,14 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
                         	if (concatIsQuoted) { concatAsString = concatAsString.substring(1, concatAsString.length() - 1); }
 
                             if (!concatAsString.startsWith(prefixAsString)) {
-                                return FAIL;
+                                return null;
                             }
 							String suffixAsString = concatAsString.substring(prefixAsString.length());
 							bindingList.addBinding((Variable)suffix, stringHandler.getStringConstant(suffixAsString, false));
 							return bindingList;
                         }
 						// Form: Constant, Variable, Variable
-						return FAIL;
+						return null;
                     }
                 }
                 else if ( prefixIsVariable ) {
@@ -830,30 +828,30 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 
 
                             if (!concatAsString.endsWith(suffixAsString)) {
-                                return FAIL;
+                                return null;
                             }
 							String prefixAsString = concatAsString.substring(0, concatAsString.length() - suffixAsString.length());
 							bindingList.addBinding((Variable)prefix, stringHandler.getStringConstant(prefixAsString, false));
 							return bindingList;
                         }
 						// Form: Variable, Constant, Variable
-						return FAIL;
+						return null;
                     }
                     else if ( suffixIsVariable ) {
                         if ( concatIsConstant ) {
                             // Form: Variable, Variable, Constant
                             // This is legal in ISO, but since we don't support backtracking,
                             // we certainly don't support it here!
-                            return FAIL;
+                            return null;
                         }
 						// Form: Variable, Variable, Variable
-						return FAIL;
+						return null;
                     }
                 }
             }
 
             // This will catch the case were Prefix and/or suffix are not variables or constants.
-            return FAIL;
+            return null;
 
         }
 

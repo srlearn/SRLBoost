@@ -48,12 +48,12 @@ public class CreateSyntheticExamples {
 			for (int argCounter = 0; argCounter < numbArgs; argCounter++) { // Look at each argument in the target's specification.
 				Term sig = targetPredicateSignature.get(argCounter);
 				
-				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)) {
+				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(0, numbArgs)) {
 					crossProduct.add(dummyConstantSet); 
 					leafCounter++;
 					continue; 
 				}
-				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)) {
+				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(-1, numbArgs)) {
 					crossProduct.add(dummyConstantSet);
 					leafCounter++;
 					continue; 
@@ -87,8 +87,8 @@ public class CreateSyntheticExamples {
 					Example  example  = new Example(stringHandler, target.predicateName, null, provenanceString + (usingWorldStates ? " (" + worldState + ")." : "."), "createdNeg");
 					List<Term> arguments2 = new ArrayList<>(numbArgs);
 					for (int argCounter = 0; argCounter < numbArgs; argCounter++) {
-						if      (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)) { arguments2.add(worldState.getWorld()); }
-						else if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)) { arguments2.add(worldState.getState()); }
+						if      (usingWorldStates && argCounter == stringHandler.getArgumentPosition(0, numbArgs)) { arguments2.add(worldState.getWorld()); }
+						else if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(-1, numbArgs)) { arguments2.add(worldState.getState()); }
 						else { arguments2.add(args.get(argCounter));	}
 					}
 					example.setArguments(arguments2);
@@ -170,8 +170,8 @@ public class CreateSyntheticExamples {
 
                 int numbArgs = lit.numberArgs();
                 // If worldState = null, then we ignore these special arguments.
-                Term worldArg = (worldState == null || worldState.isaNullWorldState() ? null : lit.getArguments().get(stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)));  // Pull out the world argument.
-                Term stateArg = (worldState == null || worldState.isaNullWorldState() ? null : lit.getArguments().get(stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)));  // Pull out the state argument.
+                Term worldArg = (worldState == null || worldState.isaNullWorldState() ? null : lit.getArguments().get(stringHandler.getArgumentPosition(0, numbArgs)));  // Pull out the world argument.
+                Term stateArg = (worldState == null || worldState.isaNullWorldState() ? null : lit.getArguments().get(stringHandler.getArgumentPosition(-1, numbArgs)));  // Pull out the state argument.
 
                 if (worldState == null || worldState.isaNullWorldState() || worldState.equals(worldArg, stateArg)) { // See if a match.
                     help_getConstantsOfThisTypeInThisWorldState(stringHandler, type, lit.getArguments(), results);

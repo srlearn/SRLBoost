@@ -39,9 +39,7 @@ public final class HandleFOPCstrings {
 	private boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
 	public  boolean cleanFunctionAndPredicateNames        = false; // Check for hyphens and spaces.  DO NOT SET UNTIL AFTER LIBRARIES ARE LOADED.
 	public  boolean keepQuoteMarks                        = false; // Set to true if quote marks on string constants should be preserved.  NOTE: if true, then strings with quote marks will NOT be cleaned regardless of any other setting.
-	final boolean alwaysUseParensForInfixFunctions      = false; // Useful for debugging the parser, and possibly for safely writing out expressions.
 
-	final boolean printTypedStrings     = false; // If set to true, then Terms will have their types printed.
 	public boolean printVariableCounters = false; // If set to true, then variables will have their counters printed.
 
 	public String  precompute_file_prefix = ""; // Allow overriding of these.
@@ -56,18 +54,11 @@ public final class HandleFOPCstrings {
 	public final String  PRECOMP = "PRECOMP_UNASSIGNED";
 	public final String  TASK    = "TASK_UNASSIGNED";
 
-	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
+	int numberOfLiteralsPerRowInPrintouts = 1;
 	int     numberOfTermsPerRowInPrintouts            = 4; // Actually only if this is 1 does it matter (used for debugging).
 	int     numberOfTermsPerRowInPrintoutsForLiterals = 4; // The Literal class will use the MIN of this and the above.
 
 	private int     starModeMap = TypeSpec.plusMode; // '*' modes are defined via this (this allows a program to change modes within a run).
-
-	// These constants indicate where in Literals 'special' terms are located.
-	// A non-negative value V means this special term is in position V (counting starts at zero).
-	// A negative value W means this special term is in position "#args - W" (so '-1' means LAST arg).
-	// Indicating an argument out of range means 'ignore' (TODO - check that code works this way).
-	public final int locationOfWorldArg         =  0;
-    public final int locationOfStateArg         = -1;
 
 	public final IsaHetrarchy                isaHandler;
 	private final DoBuiltInMath               mathHandler;
@@ -84,7 +75,6 @@ public final class HandleFOPCstrings {
 	// NOTE: if variableIndicator=lowercase, then standard FOPC notation is used when printing.  Otherwise Prolog notation is used.  TODO - allow a separate variable to decide how to print?
 
 	public    boolean                     prettyPrintClauses     = true;
-	final boolean                     duplicateCostWarningEnabled = true;
 
 	private final Map<String,PredicateName>   predicateNameHash; // These map a given string to one and only one instance.
 	private final Map<String,FunctionName>    functionNameHash;
@@ -115,9 +105,8 @@ public final class HandleFOPCstrings {
 	public final Literal cutLiteral;
 
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
-	final boolean useFastHashCodeForClauses   = true;
 
-    private final Map<String,Integer> nameCounter    = new HashMap<>(4);  // Unique name counter for anonymous names...
+	private final Map<String,Integer> nameCounter    = new HashMap<>(4);  // Unique name counter for anonymous names...
 
 	private   static Map<String,Integer> precedenceTableForOperators_static   = null; // To avoid the need to pass around a stringHandler, there is also a static version that uses String.equals instead of '=='.
 	private   static Map<String,Integer> precedenceTableForConnectives_static = null;
@@ -1211,9 +1200,9 @@ public final class HandleFOPCstrings {
 		int valueAsInt = (int) value;
 
 		if (Utils.diffDoubles(value, valueAsInt)) { // The integer value is sufficiently different than the double, so use the double.
-			return NumericConstant.isaDouble;
+			return 1;
 		}
-		return     NumericConstant.isaInteger;
+		return     0;
 	}
 
 	// Uniquely store numbers (which will waste memory if lots of numbers ...).  Notice that matching will be as exact as the string rep, which seems reasonable.
@@ -1225,17 +1214,17 @@ public final class HandleFOPCstrings {
 		return getNumericConstant(null, value);
 	}
 	NumericConstant getNumericConstant(TypeSpec spec, int value) {
-		return getNumericConstant(spec, value, NumericConstant.isaInteger, Integer.toString(value)); // So '1' and '1.0' match, convert everything to a double.
+		return getNumericConstant(spec, value, 0, Integer.toString(value)); // So '1' and '1.0' match, convert everything to a double.
 	}
 	NumericConstant getNumericConstant(TypeSpec spec, long value) {
-		return getNumericConstant(spec, value, NumericConstant.isaLong,       Long.toString(value));
+		return getNumericConstant(spec, value, 3,       Long.toString(value));
 	}
 	public NumericConstant getNumericConstant(double value) {
 		return getNumericConstant(null, value);
 	}
 	public NumericConstant getNumericConstant(TypeSpec spec, double value) {
 		int ncType = chooseStringForDouble(value);
-		return getNumericConstant(spec, value, ncType, (ncType == NumericConstant.isaInteger ? Integer.toString((int) value) : Double.toString(value)));
+		return getNumericConstant(spec, value, ncType, (ncType == 0 ? Integer.toString((int) value) : Double.toString(value)));
 	}
 
 	NumericConstant getNumericConstant(TypeSpec spec, float value) {

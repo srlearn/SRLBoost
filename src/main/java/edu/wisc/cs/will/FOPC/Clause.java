@@ -9,10 +9,8 @@ import java.util.*;
  * @author shavlik
  */
 public class Clause extends Sentence implements DefiniteClause {
-	static final int defaultNumberOfLiteralsPerRowInPrintouts = 1;
-	private static final int maxLiteralsToPrint = 100; // This maximum applies INDEPENDENTLY to both the positive and negative literals.
-	
-	public  List<Literal> posLiterals;
+
+    public  List<Literal> posLiterals;
 	public  List<Literal> negLiterals;
 
 	private Boolean       bodyContainsCut = null; // This is now a tristate-variable.  True/False mean the normal thing.  Null means not yet evaluated.
@@ -382,15 +380,10 @@ public class Clause extends Sentence implements DefiniteClause {
 	}
 	@Override
 	public int hashCode() {
-		if (stringHandler.useFastHashCodeForClauses) { return super.hashCode(); }
-		final int prime = (getBodyContainsCut() ? 4889 : 2447); // http://primes.utm.edu/lists/small/10000.txt
-		int result = 1;
-		result = prime * result
-				+ ((negLiterals == null) ? 677 : negLiterals.hashCode() + 2531); // Make positive and negative literals different.
-		result = prime * result
-				+ ((posLiterals == null) ? 739 : posLiterals.hashCode() + 1889);
-		return result;
-	}
+        // TODO(@hayesall): uses same as super, but super does not appear to implement a hashCode definition.
+        return super.hashCode();
+    }
+
     @Override
 	public boolean equals(Object other) { // TODO doesn't deal with permutations in the literals.  Not sure doing so is necessary; other code deals with canonical forms.
 		if (this == other) { return true; }
@@ -580,7 +573,7 @@ public class Clause extends Sentence implements DefiniteClause {
 		int     numPosLits = Utils.getSizeSafely(posLiterals);
 		int     numNegLits = Utils.getSizeSafely(negLiterals);
 		int     precedence = stringHandler.getConnectivePrecedence(stringHandler.getConnectiveName("=>"));
-		int currentMaxLiteralsToPrint = (AllOfFOPC.truncateStrings ? maxLiteralsToPrint : 1000000); // Still use a huge limit just in case there is an infinite loop/
+		int currentMaxLiteralsToPrint = 100;
 		
 		if (numPosLits == 0 && numNegLits == 0) { return result + "true"  + extra; }
 
@@ -705,7 +698,7 @@ public class Clause extends Sentence implements DefiniteClause {
 		
 		StringBuilder result = new StringBuilder(returnWeightString() + (AllOfFOPC.printUsingAlchemyNotation ? "" : "{ "));
 		boolean firstOne = true;
-		int currentMaxLiteralsToPrint = (AllOfFOPC.truncateStrings ? maxLiteralsToPrint : 1000000); // Still use a huge limit just in case there is an infinite loop/
+		int currentMaxLiteralsToPrint = 100; // Still use a huge limit just in case there is an infinite loop/
 		
 		int counter = 0;
 		if (posLiterals != null) for (Literal literal : posLiterals) {

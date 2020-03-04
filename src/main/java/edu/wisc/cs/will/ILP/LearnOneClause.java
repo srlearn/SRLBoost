@@ -105,7 +105,7 @@ import java.util.*;
 
 public class LearnOneClause extends StateBasedSearchTask {
 
-	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
+	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set.
 
 	private boolean             createCacheFiles                  = false;   // Create files that cache computations, to save time, for debugging, etc.
 	private boolean             useCachedFiles                    = false;   // Files cached (if requested):
@@ -1903,8 +1903,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 	boolean isWorldStateArgPairInAnPosExample(Term argumentW, Term argumentS) {
 		if (posExamples != null) for (Example ex : posExamples) {
 			int numbArgs = ex.numberArgs();
-			int wArg = stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs);
-			int sArg = stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs);	
+			int wArg = stringHandler.getArgumentPosition(0, numbArgs);
+			int sArg = stringHandler.getArgumentPosition(-1, numbArgs);
 			if (ex.getArgument(wArg).equals(argumentW) && ex.getArgument(sArg).equals(argumentS)) { return true; }
 		}
 		return false;
@@ -1912,8 +1912,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 	boolean isWorldStateArgPairInAnNegExample(Term argumentW, Term argumentS) {
 		if (negExamples != null) for (Example ex : negExamples) {
 			int numbArgs = ex.numberArgs();
-			int wArg = stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs);
-			int sArg = stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs);	
+			int wArg = stringHandler.getArgumentPosition(0, numbArgs);
+			int sArg = stringHandler.getArgumentPosition(-1, numbArgs);
 			if (ex.getArgument(wArg) == argumentW && ex.getArgument(sArg) == argumentS) { return true; }
 		}
 		return false;

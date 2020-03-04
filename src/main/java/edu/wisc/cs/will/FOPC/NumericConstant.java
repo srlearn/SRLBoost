@@ -13,15 +13,9 @@ public class NumericConstant extends Constant implements Serializable {
 
     public Number value;
 
+    // TODO(@hayesall): A comment previously suggested that case: 2 in this file is unused.
+
     private int type;
-
-    static final int isaInteger = 0;
-
-    static final int isaDouble = 1;
-
-    private static final int isaFloat = 2; // Not used, but leave in case this changes.
-
-    static final int isaLong = 3;
 
     private NumericConstant() {
     }
@@ -37,13 +31,13 @@ public class NumericConstant extends Constant implements Serializable {
 
     public String getName() {
         switch (getType()) {
-            case isaInteger:
+            case 0:
                 return Integer.toString(value.intValue());
-            case isaLong:
+            case 3:
                 return Long.toString(value.longValue());
-            case isaDouble:
+            case 1:
                 return Double.toString(value.doubleValue());
-            case isaFloat:
+            case 2:
                 return Float.toString(value.floatValue());
             default:
                 Utils.error("Have a numeric constant whose type is undefined: " + this);
@@ -60,15 +54,15 @@ public class NumericConstant extends Constant implements Serializable {
     }
 
     boolean isaInteger() {
-        return getType() == isaInteger;
+        return getType() == 0;
     }
 
     boolean isaDouble() {
-        return getType() == isaDouble;
+        return getType() == 1;
     }
 
     boolean isaFloat() {
-        return getType() == isaFloat;
+        return getType() == 2;
     }
 
     @Override
@@ -87,11 +81,6 @@ public class NumericConstant extends Constant implements Serializable {
         return false;
     }
 
-    private String toTypedString() {
-        String end = (typeSpec != null ? typeSpec.getCountString() : "");
-        return (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" + value + end : value.toString() + end);
-    }
-
     @Override
     public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
         return toString(precedenceOfCaller, bindingList);
@@ -99,9 +88,6 @@ public class NumericConstant extends Constant implements Serializable {
 
     @Override
     protected String toString(int precedenceOfCaller, BindingList bindingList) {
-        if (stringHandler.printTypedStrings) {
-            return toTypedString();
-        }
         return getName();
     }
 
@@ -109,16 +95,16 @@ public class NumericConstant extends Constant implements Serializable {
      * Replace with the cached version from stringHandler.
      */
     private Object readResolve() throws ObjectStreamException {
-        if (type == isaInteger) {
+        if (type == 0) {
             return stringHandler.getNumericConstant(typeSpec, value.intValue());
         }
-        else if (type == isaDouble) {
+        else if (type == 1) {
             return stringHandler.getNumericConstant(typeSpec, value.doubleValue());
         }
-        else if (type == isaFloat) {
+        else if (type == 2) {
             return stringHandler.getNumericConstant(typeSpec, value.floatValue());
         }
-        else if (type == isaLong) {
+        else if (type == 3) {
             return stringHandler.getNumericConstant(typeSpec, value.longValue());
         }
         else {

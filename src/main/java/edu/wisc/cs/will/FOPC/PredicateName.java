@@ -463,7 +463,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 			if (isFinal) {
 				cost.put(arity, predicateCost);
 			}
-			else if (stringHandler.duplicateCostWarningEnabled && stringHandler.warningCount < HandleFOPCstrings.maxWarnings && cost.get(arity) != predicateCost) {
+			else if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings && cost.get(arity) != predicateCost) {
 				Utils.println(MessageType.STRING_HANDLER_PREDICATE_COSTS, "% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate cost of '" + name + "/" + arity + "'.  Had previously said cost = " + cost.get(arity) + " and now saying cost = " + predicateCost + ".\n% Will use this latest setting.\n");
 			}
 		}

@@ -3,15 +3,12 @@ package edu.wisc.cs.will.FOPC;
 import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class Variable extends Term {
-
-    private static final boolean useShortNames = true; // If false, will write out x1, x2, etc so printouts are more readable during debugging.
 
     public String name;
 
@@ -230,12 +227,6 @@ public class Variable extends Term {
 
     }
 
-    private String toTypedString() {
-        StringBuilder sb = new StringBuilder();
-        appendTypedString(sb);
-        return sb.toString();
-    }
-
     private String getNameToUse(String name) {
     	if (name == null) { return getAnonNameToUse(); }
         // See if we need to print this variable using a different notation for what was used when read.
@@ -279,9 +270,6 @@ public class Variable extends Term {
 
     @Override
     protected String toString(int precedenceOfCaller, BindingList bindingList) {
-        if (stringHandler.printTypedStrings) {
-            return toTypedString();
-        }
 
         String stringToPrint = null;
 
@@ -305,41 +293,9 @@ public class Variable extends Term {
                 if (stringHandler.printVariableCounters) {
                     stringToPrint += "_" + counter;
                 }
-                else if (!useShortNames && counter > 0) {
-                    stringToPrint += "_v" + counter;
-                }
             }
         }
         return stringToPrint;
-    }
-
-    private void appendTypedString(Appendable appendable) {
-        String nameToUse = getNameToUse(getName());
-
-        try {
-            if (typeSpec != null) {
-                String modeString = typeSpec.getModeString();
-                appendable.append(modeString).append(typeSpec.isaType.typeName).append(":").append(nameToUse);
-            }
-            else {
-                appendable.append(nameToUse);
-            }
-
-            if (stringHandler.printVariableCounters) {
-                String counterString = Long.toString(counter);
-                appendable.append(":").append(counterString);
-            }
-            else if (!useShortNames && counter > 0) {
-                String counterString = Long.toString(counter);
-                appendable.append(" v").append(counterString);
-            }
-
-            if (typeSpec != null) {
-                String s = typeSpec.getCountString();
-                appendable.append(s);
-            }
-        } catch (IOException ignored) {
-        }
     }
 
     /* Replace with the cached version from stringHandler.

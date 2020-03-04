@@ -100,8 +100,8 @@ class ThresholdManager {
 		for (Term factAsTerm : groundings) {
 			Literal fact = factAsTerm.asLiteral();
 			int numbArgs = fact.numberArgs();
-			int wArg     = stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs);
-			int sArg     = stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs);
+			int wArg     = stringHandler.getArgumentPosition(0, numbArgs);
+			int sArg     = stringHandler.getArgumentPosition(-1, numbArgs);
 			Term argToThreshold = fact.getArgument(literalToThreshold.positionToThreshold - 1);  // Remember that counting starts from 1.
 			Term firstArg       = (firstArgIsExampleID ? fact.getArgument(0) : null);
 

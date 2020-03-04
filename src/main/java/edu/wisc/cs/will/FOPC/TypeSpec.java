@@ -14,6 +14,8 @@ import java.util.Map;
  */
 public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // IMPORTANT NOTE: if adding more symbols here, also edit atTypeSpec() in the parser.
 
+	// TODO(@hayesall): Modes appear to be set here, removing some of these may be a good place to simplify the CollectChildren.
+
     private final static int unspecifiedMode = -1; // For use when modes aren't needed.
 	private final static int modeNotYetSet = 0; // Mark that this mode will be set later, when more information is available.
 	final static int plusMode      = 1; // An 'input' argument (should be bound when the predicate or function containing this is called).

@@ -459,7 +459,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		if (sentences == null) { sentences = new ArrayList<>(standardSentences);      }
 		else                   { sentences.addAll(standardSentences); }
 		for (Sentence s : standardSentences) {
-			Boolean hold = stringHandler.prettyPrintClauses;
+			boolean hold = stringHandler.prettyPrintClauses;
 			stringHandler.prettyPrintClauses = false;
 			List<Clause> theseClauses = s.convertToClausalForm();
 			stringHandler.prettyPrintClauses = hold;
@@ -522,9 +522,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 
 	public String toPrettyString() {
         BindingList bl = null;
-        if ( renameVariablesWhenPrinting ) {
-            bl = new BindingList();
-        }
 		return toPrettyString("", Integer.MIN_VALUE, bl);
 	}
 	protected String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
@@ -656,12 +653,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 
     @Override
     public String toString() {
-        BindingList bl = null;
-        if ( renameVariablesWhenPrinting ) {
-            bl = new BindingList();
-        }
-
-        return toPrettyString("", 0, bl);
+		return toPrettyString("", 0, null);
     }
 
    /* Methods for reading a Object cached to disk.
