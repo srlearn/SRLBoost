@@ -1,4 +1,7 @@
-# BoostSRL Temporary files created during learning/inference
+# SRLBoost Precomputes
+precomputed*.txt*
+
+# SRLBoost Temporary files created during learning/inference
 **/query_*.db
 **/results_*.db
 **/*_dribble.*
