@@ -158,7 +158,6 @@ public class CommandLineArguments {
 		return "whenModEquals" + doInferenceIfModNequalsThis + "_";
 	}
 
-	// TODO(@hayesall): Abandon all hope ye who enter here.
 	public boolean parseArgs(String[] args) {
 
 		for (int i = 0; i < args.length; i++) {
@@ -166,7 +165,10 @@ public class CommandLineArguments {
 			if (args[i].trim().isEmpty())
 				continue;
 
-			Utils.println("args[" + i + "] = " + args[i]);
+			if (argMatches(args[i], "h") || argMatches(args[i], "help")) {
+				System.out.println(getUsageString());
+				System.exit(0);
+			}
 
 			if (argMatches(args[i], "noLockFiles")) {
 				useLockFiles = false;
@@ -403,8 +405,6 @@ public class CommandLineArguments {
 	}
 	
 	public static String getUsageString() {
-		// TODO(@hayesall): This should be the result of a -h/--help flag.
-
 		String result = "Usage:\n";
 		
 		result += argPrefix + learn + " : Use this flag, if you want to enable learning.\n";
@@ -597,6 +597,7 @@ public class CommandLineArguments {
 	}
 
 	public String getExtraMarkerForFiles(boolean includeTestSkew) {
+		// TODO(@hayesall): Factor out the need for the file system.
 		String result = "_";
 		if (stringForTestsetPos != null)            { result += stringForTestsetPos + "_"; }
 		if (stringForTestsetNeg != null)            { result += stringForTestsetNeg + "_"; }
