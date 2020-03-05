@@ -942,14 +942,14 @@ public final class WILLSetup {
 		getOuterLooper().setMaxNumberOfLiteralsAtAnInteriorNode(cmdArgs.getMaxLiteralsInAnInteriorNode());
 
 		// Counting is from 0 (i.e., this is really "max number of ancestor nodes").  maxNumberOfClauses might 'dominate' this setting.
-		getOuterLooper().setMaxTreeDepth(5);
+		getOuterLooper().setMaxTreeDepth(2);
 
 		// This is the body of ONE node.  By allowing more bridgers that literals we can, say, create comparators between two extracted values.
-		getOuterLooper().innerLoopTask.maxFreeBridgersInBody = 1;
+		getOuterLooper().innerLoopTask.maxFreeBridgersInBody = 0;
 		// Add 1 here since the root has literals but is at depth 0.
 		// We don't want the individual trees to get too complicated, so limit to 4 literals (so if 2 lits per nodes and depth is 2, instead of a max of 6 literals, the limit of 4 will be used).
 		// Recall there could be some bridgers at each interior node, so this is allowing some bridgers.
-		getOuterLooper().setMaxTreeDepthInLiterals(Math.max(4, (getOuterLooper().getMaxTreeDepth() + 1) * (getOuterLooper().innerLoopTask.maxFreeBridgersInBody + getOuterLooper().getMaxNumberOfLiteralsAtAnInteriorNode())));
+		getOuterLooper().setMaxTreeDepthInLiterals(Math.max(3, (getOuterLooper().getMaxTreeDepth() + 1) * (getOuterLooper().innerLoopTask.maxFreeBridgersInBody + getOuterLooper().getMaxNumberOfLiteralsAtAnInteriorNode())));
 
 		// Reminder: "consider" means "expand" (i.e., remove from the OPEN list and generate its children);  "create" is a counter on children.
 		int matLitsAtNode = cmdArgs.getMaxLiteralsInAnInteriorNode() + getOuterLooper().innerLoopTask.maxFreeBridgersInBody;
