@@ -19,7 +19,6 @@ public class NumberGroundingsCalculator {
 	private final Unifier unifier;
 	private final HornClauseProver groundings_prover;
 	private final HornClauseContext context;
-	private final boolean disableTrivialGndgs = false;
 
 	public NumberGroundingsCalculator(HornClauseContext context) {
 		this.context = context;
@@ -34,20 +33,7 @@ public class NumberGroundingsCalculator {
 			BindingList theta = unifier.unify(cl.getDefiniteClauseHead(), eg.extractLiteral());
 			Clause unifiedClause = cl.applyTheta(theta);
 			List<Literal> posLits = new ArrayList<>();
-			if (disableTrivialGndgs) {
-				posLits.add(unifiedClause.getDefiniteClauseHead());
-				context.getClausebase().assertFact(eg.extractLiteral());
-				long n1 = countGroundingsForConjunction(unifiedClause.negLiterals, posLits);
-				
-				context.getClausebase().retractAllClausesWithUnifyingBody(eg.extractLiteral());
-				long n2 = countGroundingsForConjunction(unifiedClause.negLiterals, posLits);
-				if (n2 < n1 || n1 != 0) {
-					Utils.waitHere("Wrong num of groundings: " + n2 +":" + n1);
-				}
-				return n2 - n1;
-			} else {
-				return countGroundingsForConjunction(unifiedClause.negLiterals, posLits);
-			}
+			return countGroundingsForConjunction(unifiedClause.negLiterals, posLits);
 		}
 		return countNonTrivialGroundingsFromBody(cl,eg);
 	}
@@ -225,13 +211,8 @@ public class NumberGroundingsCalculator {
 										      Set<BindingList> blSet) {
 		List<Literal> newPosLits = new ArrayList<>();
 		List<Literal> newNegLits = new ArrayList<>();
-		if (disableTrivialGndgs) {
-			newPosLits.addAll(posLiterals);
-			newNegLits.addAll(negLiterals);
-		} else {
-			if (!filterLiteralsWithNoVariables(posLiterals, negLiterals, newPosLits, newNegLits)) {
-				return 0;
-			}
+		if (!filterLiteralsWithNoVariables(posLiterals, negLiterals, newPosLits, newNegLits)) {
+			return 0;
 		}
 		if (newPosLits.isEmpty() && newNegLits.isEmpty()) {
 			if (blSet != null) {
@@ -292,10 +273,7 @@ public class NumberGroundingsCalculator {
 	private long countGroundingsForConjunctionUsingProver(List<Literal> posLiterals,
 														  List<Literal> negLiterals) {
 
-		List<Literal> sortedPos = posLiterals;
-		if (!disableTrivialGndgs) {
-			sortedPos = sortByVariables(posLiterals);
-		}
+		List<Literal> sortedPos = sortByVariables(posLiterals);
 		((InitHornProofSpace) groundings_prover.initializer).loadNegatedConjunctiveQuery(sortedPos,
 					groundings_prover.open);
 		        

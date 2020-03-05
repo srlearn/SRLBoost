@@ -182,10 +182,7 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
  *
  */
 public class FileParser {
-	private                 boolean dontPrintUnlessImportant = true;
-    
-    public          static final boolean allowSingleQuotes        = true; // If true, can use single quotes to wrap strings.
-	 
+
 	// Allows user to set it to a higher number but doesn't penalize all runs where there are fewer precomputes
 	// It is mildly risky to make this a static, but acceptable.
 	private    static int numberOfPrecomputeFiles = 125;
@@ -204,8 +201,6 @@ public class FileParser {
 	private String             directoryName      = null;
 	private String             prefix             = null;
 	private String             fileName           = null;
-
-	private final boolean treatAND_OR_NOTasRegularNames = false; // If true, treat AND and OR as function or predicate names.  (Used for IL parsing, for example.)
 
 
 	public FileParser(HandleFOPCstrings stringHandler) {
@@ -645,8 +640,7 @@ public class FileParser {
     }
 
 	private boolean ignoreThisConnective(boolean ignoreNOTs, String str) {
-		return ((ignoreNOTs                    &&  ConnectiveName.isaNOT(str)) ||
-				(treatAND_OR_NOTasRegularNames && (ConnectiveName.isaAND(str)  || ConnectiveName.isaOR(str)|| ConnectiveName.isaNOT(str))));
+		return ((ignoreNOTs && ConnectiveName.isaNOT(str)));
 	}
 
 	private void processInstructionToSystem() throws IOException {
@@ -2012,7 +2006,6 @@ public class FileParser {
 	private List<Sentence> loadThisFile(boolean isaLibraryFile, String newFileNameRaw) throws ParsingException, IOException {
 		String   newFileName = Utils.replaceWildCards(newFileNameRaw);
 		FileParser newParser = new FileParser(stringHandler); // Needs to use the same string handler.
-		newParser.dontPrintUnlessImportant = dontPrintUnlessImportant;
 		if (loadedLibraries != null) { newParser.loadedLibraries.addAll(loadedLibraries); } // Need to know what was already loaded.
         if ( isaLibraryFile ) {
 			if (!Utils.isMessageTypeEnabled(PARSER_VERBOSE_LIBRARY_LOADING)) {
@@ -3044,7 +3037,7 @@ public class FileParser {
 	}
 
 	private boolean atQuotedString(int token) {
-		return token == '"' || (FileParser.allowSingleQuotes && token == '\'');
+		return token == '"' || (token == '\'');
 	}
 
 	/*
@@ -3109,8 +3102,8 @@ public class FileParser {
 			case '^':
 			case '&':
 			case ',':
-			case '~': if (treatAND_OR_NOTasRegularNames) { return null; }
-					  return stringHandler.getConnectiveName(String.valueOf((char)tokenRead));
+			case '~':
+				return stringHandler.getConnectiveName(String.valueOf((char)tokenRead));
 			case '-':
 				tokenRead = getNextToken();
 				if (tokenRead == '>') { return stringHandler.getConnectiveName("->"); }

@@ -1103,7 +1103,7 @@ public final class HandleFOPCstrings {
 		while (true) {
 			lookup++;
 			mapForGetUniqueStringConstant.put(string, lookup);
-			String combo  = ((string.charAt(0) == '"' || (FileParser.allowSingleQuotes && string.charAt(0) == '\'')) 
+			String combo  = ((string.charAt(0) == '"' || (string.charAt(0) == '\''))
 								? string.charAt(0) + string.substring(1, string.length() - 1) + lookup + string.charAt(0) // Put inside any quotes.
 							    :  string + lookup);								
 			String newStr = standardize(combo, true);
@@ -1144,10 +1144,10 @@ public final class HandleFOPCstrings {
 
 		boolean hadQuotesOriginally = false;
 		// Handle quote marks.
-		if (nameRaw != null && nameRaw.length() > 0 && (nameRaw.charAt(0) == '"' || (FileParser.allowSingleQuotes && nameRaw.charAt(0) == '\''))) {
+		if (nameRaw != null && nameRaw.length() > 0 && (nameRaw.charAt(0) == '"' || (nameRaw.charAt(0) == '\''))) {
 			// Treat x, 'x', 'X', "x", and "X" as the same (assuming that lowercaseMeansVariable=false; otherwise the 'bare' x should be X; also ignoreCaseOfStringsOtherThanFirstChar=false means case does matter).
 			char lastChar = nameRaw.charAt(nameRaw.length() - 1);
-			if (lastChar != '"' && (!FileParser.allowSingleQuotes || lastChar != '\'')) { 
+			if (lastChar != '"' && (lastChar != '\'')) {
 				Utils.warning("\nSeems maybe there should be a quote mark at the end of\n  " + nameRaw + "\nbut read '" + lastChar + "'.");
 			} else {
 				nameRaw = nameRaw.substring(1, nameRaw.length() - 1); // Drop the first and last characters (i.e., the quote marks).
