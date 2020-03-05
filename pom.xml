@@ -5,12 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>edu.wisc.cs.will</groupId>
-  <artifactId>boostsrl</artifactId>
+  <artifactId>srlboost</artifactId>
   <packaging>jar</packaging>
-  <version>0.9.0</version>
+  <version>0.1.0</version>
 
-  <name>BoostSRL</name>
-  <url>https://boostsrl.hayesall.com/</url>
+  <name>SRLBoost</name>
+  <description>Learning and inference with boosted statistical relational models.</description>
+  <url>https://srlboost.hayesall.com/</url>
   <inceptionYear>2019</inceptionYear>
 
   <distributionManagement>
@@ -50,6 +51,14 @@
 
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.1.1</version>
+        <configuration>
+          <source>11</source>
+        </configuration>
       </plugin>
 
       <!-- org.jacoco (generating code coverage reports) -->
@@ -150,10 +159,6 @@
           </descriptorRefs>
           <archive>
             <manifest>
-              <!--
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
-              -->
               <mainClass>edu.wisc.cs.will.Boosting.Common.RunBoostedModels</mainClass>
             </manifest>
           </archive>
