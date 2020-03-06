@@ -71,10 +71,16 @@ $ cd .\SRLBoost\
 $ mvn package
 ```
 
-3. Run a basic example (switching the `X.Y.Z`):
+3. Learn with a basic data set (switching the `X.Y.Z`):
 
 ```bash
-$ java -jar .\target\srlboost-X.Y.Z-jar-with-dependencies.jar -l .\data\Toy-Cancer\train\ -target cancer
+$ java -jar .\target\srlboost-X.Y.Z-jar-with-dependencies.jar -l -train .\data\Toy-Cancer\train\ -target cancer
+```
+
+4. Query the model on the test set (again, swtiching the `X.Y.Z`)
+
+```bash
+$ java -jar .\target\srlboost-X.Y.Z-jar-with-dependencies.jar -i -model .\data\Toy-Cancer\train\models\ -test .\data\Toy-Cancer\test\ -target cancer
 ```
 
 ### MacOS / Linux
@@ -97,5 +103,11 @@ $ mvn package
 3. Run a basic example (switching the `X.Y.Z`):
 
 ```bash
-$ java -jar target/srlboost-X.Y.Z-jar-with-dependencies.jar -l data/Toy-Cancer/train/ -target cancer
+$ java -jar target/srlboost-X.Y.Z-jar-with-dependencies.jar -l -train data/Toy-Cancer/train/ -target cancer
+```
+
+4. Query the model on the test set (again, swtiching the `X.Y.Z`)
+
+```bash
+$ java -jar target/srlboost-X.Y.Z-jar-with-dependencies.jar -i -model data/Toy-Cancer/train/models/ -test data/Toy-Cancer/test/ -target cancer
 ```
