@@ -11,8 +11,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.*;
 
-// TODO(@hayesall): The `createThresholds` method needs desperate attention.
-
 /*
  * Note: ALL proofs are found of literals being thresholded, and this could produce a huge list.
  * 

@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.ClauseOptimiser;
 import edu.wisc.cs.will.ResThmProver.VariantClauseAction;
 import edu.wisc.cs.will.Utils.Utils;

@@ -270,9 +270,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         setInlineManager(new InlineManager(   stringHandler, getProver().getClausebase()));
         setThresholder(  new ThresholdManager(this, stringHandler, inlineHandler));
 
-        // TODO(@hayesall): AdviceProcessor reads the current `context` and `this`, but does not appear to do anything with it.
-		// new AdviceProcessor(context, this);
-
 		// Load BK first since it is the place where 'usePrologVariables' etc is typically set.
 		if (backgroundClausesReader != null) { context.assertSentences(readBackgroundTheory(backgroundClausesReader)); }
 
