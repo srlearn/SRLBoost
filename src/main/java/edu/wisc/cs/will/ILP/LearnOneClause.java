@@ -282,36 +282,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		initalizeStateBasedSearchTask(init, null, monitor, strategy, scorer, nodeGen, c);
 		nodeGen.initialize();
 		setGleaner(monitor);
-		
-		// Currently we automatically loading all 'basic' modes unless overridden - this might use a lot of cycles, so use with care.
-		String mStr = stringHandler.getParameterSetting("loadAllBasicModes");
-		// TODO - these should be lower than the features used for the task; currently handled via cost.
-		if (mStr == null || !mStr.equalsIgnoreCase("false")) {
-			
-			List<Sentence> modeSentences = null;
-			try {
-				modeSentences = parser.loadAllBasicModes();
-			} catch (Exception e) {
-				Utils.reportStackTrace(e);
-				Utils.error("Problem loading basic mode files.");
-			}
-
-            context.assertSentences(modeSentences);
-		}
-		
-		// Currently we automatically loading all libraries unless overridden - only a few and if no modes added, these won't impact run time anyway.
-		String vStr = stringHandler.getParameterSetting("loadAllLibraries");
-		if (vStr == null || !vStr.equalsIgnoreCase("false")) {
-			List<Sentence> librarySentences = null;
-			try {
-				librarySentences = parser.loadAllLibraries();
-			} catch (Exception e) {
-				Utils.reportStackTrace(e);
-				Utils.error("Problem loading library files.");
-			}
-
-            context.assertSentences(librarySentences);
-		}
 
 		Utils.println("\n%  Read the facts.");
 
