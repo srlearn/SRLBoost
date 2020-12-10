@@ -18,7 +18,7 @@ public class DefaultHornClauseContext implements HornClauseContext {
 
     private FileParser parser;
 
-    private HornClausebase clausebase;
+    private final HornClausebase clausebase;
 
     private Unifier unifier;
 

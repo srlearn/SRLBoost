@@ -14,6 +14,7 @@ import java.util.logging.Logger;
  */
 public class CondorFile extends File {
 
+    private static final long serialVersionUID = 5662627839170102466L;
     private static ChirpClient chirpClient;
 
     static {

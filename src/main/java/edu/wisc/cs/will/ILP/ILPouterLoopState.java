@@ -15,7 +15,8 @@ import java.util.*;
  */
 public class ILPouterLoopState implements Serializable, Cloneable {
 
-    private int            numberOfCycles;
+    private static final long serialVersionUID = 2524809644370702110L;
+    private int numberOfCycles;
     private int            numberOfLearnedClauses;     // Could easily count this, but keep it around for simplicity.
     private int            numberOfPosExamplesCovered; // Ditto.
     private int            numberOfNegExamplesCovered; // Ditto.

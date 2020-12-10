@@ -7,7 +7,6 @@ import edu.wisc.cs.will.stdAIsearch.SearchMonitor;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,8 +19,12 @@ import java.util.Map;
  * 
  * @author shavlik
  */
-public class Gleaner extends SearchMonitor implements Serializable {
-	private             boolean useStructuredOutput = false; // This flag, if true, causes the output to be structured rather than freeform human-readable text
+public class Gleaner extends SearchMonitor {
+
+	private static final long serialVersionUID = 4948722327097394619L;
+
+	private boolean useStructuredOutput = false; // This flag, if true, causes the output to be structured rather than
+													// freeform human-readable text
     // Structured output is readable by RuleSetVisualizer (edu.wisc.cs.will.rulesetvisualizer pkg in MachineReading) - cth
     
 	SingleClauseNode bestNode  = null;  // Also keep track of the best node.  (Maybe this should be a subclass of MonitorILPsearch?  For now, let these evolve separately.

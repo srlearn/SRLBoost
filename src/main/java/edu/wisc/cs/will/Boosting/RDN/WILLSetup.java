@@ -28,9 +28,8 @@ import java.util.*;
  */
 public final class WILLSetup {
 
-	private static final int debugLevel = 0;
-
-	// TODO(@hayesall): The `WILLSetup.outerLooper` ILPouterLoop is touched by quite a few functions.
+	// TODO(@hayesall): The `WILLSetup.outerLooper` ILPouterLoop is touched by quite
+	// a few functions.
 	private ILPouterLoop outerLooper;
 
 	// These are meant for ease of access and should never be modified.
@@ -424,8 +423,6 @@ public final class WILLSetup {
 								 String predicate, boolean forLearning,
 								 String only_mod_pred) {
 
-		long start = System.currentTimeMillis();
-
 		if (allowRecursion || posEg.keySet().size() > 1 || negEg.keySet().size() > 1) {
 			// JWS added the negEq check since we need to work with only NEG examples (ie, on an unlabeled testset).
 			prepareFactsForJoint(posEg, negEg, predicate, only_mod_pred, forLearning);
@@ -443,10 +440,6 @@ public final class WILLSetup {
 					recomputeFacts(pred);
 				}
 			}
-		}
-		long end = System.currentTimeMillis();
-		if (debugLevel > 1) { 
-			Utils.waitHere("% Time taken for preparing WILL: " + Utils.convertMillisecondsToTimeSpan(end - start, 3) + ".");
 		}
 	}
 	
@@ -539,16 +532,12 @@ public final class WILLSetup {
 										  String predicate,
 										  boolean forLearning) {
 
-		if (debugLevel > 1) { Utils.println("% prepareWILLForPredicate: |newPosEg| = " + Utils.comma(newPosEg) + " |newNegEg| = " + Utils.comma(newNegEg));}
-
 		getOuterLooper().setPosExamples(new ArrayList<>(newPosEg));
 		getOuterLooper().setNegExamples(new ArrayList<>(newNegEg));
 
 		String prefix = null;
 
 		if (forLearning) {
-
-			if (debugLevel > 1) { Utils.println("\n% Morphing task.");}
 
 			if (multiclassHandler.isMultiClassPredicate(predicate)) {
 				Utils.println("Morphing to regression vector");
@@ -571,14 +560,8 @@ public final class WILLSetup {
 
 		}
 		// Set target literal to be just one literal.
-		if (forLearning && cmdArgs.isJointModelDisabled()) {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, true, prefix);
-		} else {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, false, prefix);
-		}
+		getOuterLooper().innerLoopTask.setTargetAs(predicate, forLearning && cmdArgs.isJointModelDisabled(), prefix);
 		handler.getPredicateName(predicate).setCanBeAbsent(-1);
-
-		
 	}
 	/**
 	 * No need for any sampling since only positive examples used.
@@ -712,20 +695,14 @@ public final class WILLSetup {
 					for (Example eg : posEg.get(target)) {
 						// Remove this fact from clausebase.
 						if (predicatesAsFacts.contains(target) && 
-								(disableFactBase || addedToFactBase.contains(eg))) {
-							if (!disableFactBase) {
-								addedToFactBase.remove(eg);
-							}
+								disableFactBase) {
 							removeFact(eg);
 						}
 						// add the recursive fact
 						if (allowRecursion) {
 							Literal lit = getHandler().getLiteral(handler.getPredicateName(recursivePredPrefix + eg.predicateName.name), eg.getArguments());
-							if (disableFactBase || !addedToFactBase.contains(lit)) {
+							if (disableFactBase) {
 								addFact(lit);
-								if (!disableFactBase) {
-									addedToFactBase.add(lit);
-								}
 							}
 						}
 					}
@@ -738,10 +715,7 @@ public final class WILLSetup {
 						// if target predicate is set to null, we add the recursive fact as we want to add all examples as facts
 						// for sampling hidden states
 						if (predicate != null) {
-							if (disableFactBase || addedToFactBase.contains(lit)) {
-								if (!disableFactBase) {
-									addedToFactBase.remove(lit);
-								}
+							if (disableFactBase) {
 								removeFact(lit);
 							}
 						} else {
@@ -754,10 +728,7 @@ public final class WILLSetup {
 
 					if ((onlyModPred == null || eg.predicateName.name.equals(onlyModPred)) &&
 						(!(predicatesAsFacts.contains(eg.predicateName.name) && forLearning)) && 
-						(disableFactBase || !addedToFactBase.contains(eg))) {
-						if (!disableFactBase) {
-							addedToFactBase.add(eg);
-						}
+							disableFactBase) {
 						addFact(eg);
 					}
 				}
@@ -774,19 +745,13 @@ public final class WILLSetup {
 				// Either way remove this fact
 				if (predicatesAsFacts.contains(eg.predicateName.name) &&
 					(onlyModPred == null || eg.predicateName.name.equals(onlyModPred)) &&
-					(disableFactBase || addedToFactBase.contains(eg))) {
+						disableFactBase) {
 					removeFact(eg);
-					if (!disableFactBase) {
-						addedToFactBase.remove(eg);
-					}
 				}
 				if (allowRecursion) {
 					Literal lit = getHandler().getLiteral(handler.getPredicateName(recursivePredPrefix + eg.predicateName.name), eg.getArguments());
-					if (disableFactBase || addedToFactBase.contains(lit)) {
+					if (disableFactBase) {
 						removeFact(lit);
-						if (!disableFactBase) {
-							addedToFactBase.remove(lit);
-						}
 					}
 				}
 			}

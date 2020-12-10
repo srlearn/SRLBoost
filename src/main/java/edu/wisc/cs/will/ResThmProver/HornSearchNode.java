@@ -11,7 +11,8 @@ import java.util.List;
  */
 public class HornSearchNode extends SearchNode {
 
-    Clause      clause;
+    private static final long serialVersionUID = -529194347314639209L;
+    Clause clause;
 	final BindingList bindings;
     final long        parentProofCounter;
     final int         parentExpansionIndex;

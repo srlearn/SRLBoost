@@ -2,7 +2,6 @@ package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.FOPC.*;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,8 +12,10 @@ import java.util.Map;
  *  This class allows for annotated literals.
  *  
  */
-public class AnnotatedLiteral extends Literal implements Serializable {
-	private final Map<Term,Type> newTerms; // Record terms that are NEW in this literal.
+public class AnnotatedLiteral extends Literal {
+
+	private static final long serialVersionUID = -3692970398261002510L;
+	private final Map<Term, Type> newTerms; // Record terms that are NEW in this literal.
 
 	AnnotatedLiteral(HandleFOPCstrings stringHandler, PredicateName predName, List<Term> args, Map<Term, Type> newTerms) {
 		super(stringHandler, predName, args);

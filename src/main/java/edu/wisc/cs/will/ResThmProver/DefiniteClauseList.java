@@ -12,6 +12,7 @@ import java.util.List;
  */
 public class DefiniteClauseList extends ArrayList<DefiniteClause> {
 
+    private static final long serialVersionUID = -1871184376324148010L;
     private boolean containsOnlyFacts = true;
 
     DefiniteClauseList() {

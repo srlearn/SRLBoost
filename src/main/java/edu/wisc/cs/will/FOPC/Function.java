@@ -10,7 +10,8 @@ import java.util.*;
  *
  */
 public class Function extends Term implements LiteralOrFunction {
-	public  FunctionName functionName;
+	private static final long serialVersionUID = 7269089649845325225L;
+	public FunctionName functionName;
 	List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
 	private List<String> argumentNames; // (Optional) names of the arguments.
 	private int        cached_arity      = -1;
@@ -137,10 +138,6 @@ public class Function extends Term implements LiteralOrFunction {
         }
 		return getBareCopy(newArguments);
 	}
-
-    public Function applyTheta(BindingList bindings) {
-        return (Function) super.applyTheta(bindings);
-    }
 
 	Function getBareCopy(List<Term> newArguments) {
 		return stringHandler.getFunction(functionName, newArguments, argumentNames, typeSpec);

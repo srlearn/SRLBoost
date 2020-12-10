@@ -15,7 +15,8 @@ import java.util.*;
  *  All predicates with the same name map to the same instance.
  */
 public class PredicateName extends AllOfFOPC implements Serializable {
-	public final String                   name;
+	private static final long serialVersionUID = -7155497162394602383L;
+	public final String name;
 	private   List<PredicateSpec>      typeSpecList = null; // Information about this Predicate, e.g. legal arguments to it.  A 'type' describes both the kind of arguments it takes (e.g., 'people' are 'books') and whether these arguments are "input" variables, "output" variables, or constants.
 	private   List<PredicateSpec>      typeOnlyList = null; // Similar to above, but the input/output markers are not included.
 	private   Set<Integer>             typeDeSpeced = null; // Modes that have been disabled - currently all modes of a given arity are disabled

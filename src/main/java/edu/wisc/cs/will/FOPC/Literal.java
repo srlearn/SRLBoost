@@ -3,14 +3,13 @@ package edu.wisc.cs.will.FOPC;
 import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.io.Serializable;
 import java.util.*;
 
 /*
  * @author shavlik
  */
-public class Literal extends Sentence implements Serializable, DefiniteClause, LiteralOrFunction {
-	
+public class Literal extends Sentence implements DefiniteClause, LiteralOrFunction {
+    private static final long serialVersionUID = -7292498553320907481L;
     public PredicateName predicateName;
     private List<Term>   arguments;     // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
     private List<String> argumentNames; // (Optional) names of the arguments.
@@ -548,11 +547,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     @Override
     protected Literal distributeDisjunctionOverConjunction() {
-        return this; // Can't go in any further.
-    }
-
-    @Override
-    protected Literal distributeConjunctionOverDisjunction() {
         return this; // Can't go in any further.
     }
 

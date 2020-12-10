@@ -72,17 +72,17 @@ public class Utils {
      */
     public enum Verbosity {
         // Print everything, waitHeres don't wait, severeError cause a throw.
-        Medium(false,false)   // Print everything, waitHeres don't wait, severeError just print error
+        Medium()   // Print everything, waitHeres don't wait, severeError just print error
         ;
 
         final boolean print;
         final boolean waitHere;
         final boolean severeWarningThrowsError;
 
-        Verbosity(boolean waitHere, boolean severeWarningThrowsError) {
+        Verbosity() {
             this.print    = true;
-            this.waitHere = waitHere;
-            this.severeWarningThrowsError = severeWarningThrowsError;
+            this.waitHere = false;
+            this.severeWarningThrowsError = false;
         }
     }
 

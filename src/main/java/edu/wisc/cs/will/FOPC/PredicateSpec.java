@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 public class PredicateSpec extends AllOfFOPC implements Serializable {
-	private List<Term>     signature;
+	private static final long serialVersionUID = -3286520989727441117L;
+	private List<Term> signature;
 	private List<TypeSpec> typeSpecList;
 	private PredicateName  owner;
 	private boolean        isaILPmode; // If true, then can be used to generate children in an ILP search.

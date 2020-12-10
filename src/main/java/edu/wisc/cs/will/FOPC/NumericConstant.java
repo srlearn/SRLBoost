@@ -4,12 +4,12 @@ import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.ObjectStreamException;
-import java.io.Serializable;
 
 /*
  * @author shavlik
  */
-public class NumericConstant extends Constant implements Serializable {
+public class NumericConstant extends Constant {
+    private static final long serialVersionUID = 4713716456715214619L;
 
     public Number value;
 
@@ -123,6 +123,7 @@ public class NumericConstant extends Constant implements Serializable {
         }
         else {
             throw new ObjectStreamException("Unknown NumberConstant type encountered: " + type) {
+                private static final long serialVersionUID = -8760391822119890424L;
             };
         }
     }

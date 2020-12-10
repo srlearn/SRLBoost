@@ -14,6 +14,7 @@ import java.util.*;
  *
  */
 public class ConsCell extends Function implements Iterable<Term> {
+    private static final long serialVersionUID = -1797661172078167720L;
 
     ConsCell(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
         super(stringHandler, functionName, typeSpec); // This will set this.stringHandler.

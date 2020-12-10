@@ -1421,18 +1421,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (factsReader == null && okIfNoFacts) { return null; }
 		List<Sentence> sentences;
 		sentences = getParser().readFOPCreader(factsReader, readerDirectoryName);
-
-		for (Sentence sentence : sentences) {
-			// These should all be facts, but there is really no way to enforce it.
-			// However, if they are literals we will consider them as facts.
-			// We add the fact predicate/arity to a set so we know that they
-			// came in as facts and can be used as so later.
-			if (sentence instanceof Literal) {
-				Literal literal = (Literal) sentence;
-				PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-			}
-		}
-
 		return sentences;
 	}
 
@@ -1464,17 +1452,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	}
 
 	void addFacts(List<Sentence> newFacts) {
-        for (Sentence sentence : newFacts) {
-            // These should all be facts, but there is really no way to enforce it.
-            // However, if they are literals we will consider them as facts.
-            // We add the fact predicate/arity to a set so we know that they
-            // came in as facts and can be used as so later.
-            if (sentence instanceof Literal) {
-                Literal literal = (Literal) sentence;
-                PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-            }
-        }
-
 		context.assertSentences(newFacts);
 	}
 

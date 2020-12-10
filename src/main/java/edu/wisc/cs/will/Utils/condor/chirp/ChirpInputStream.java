@@ -13,8 +13,8 @@ InputStreamReader in = new InputStreamReader(new ChirpInputStream(filename));
 */
 
 public class ChirpInputStream extends java.io.InputStream {
-	private ChirpClient client;
-	private int fd;
+	private final ChirpClient client;
+	private final int fd;
 
 	/*
 	 * Create a new input stream attached to the named file. Use the Chirp server

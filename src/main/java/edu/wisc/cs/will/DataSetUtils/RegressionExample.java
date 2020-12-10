@@ -5,12 +5,11 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.ILP.SingleClauseNode;
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RegressionExample extends Example  implements Serializable {
+public class RegressionExample extends Example {
 
 	private static final long serialVersionUID = 1L;
 	

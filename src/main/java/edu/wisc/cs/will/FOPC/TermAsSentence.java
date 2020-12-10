@@ -152,11 +152,6 @@ public class TermAsSentence extends Sentence {
     }
 
     @Override
-    protected Sentence distributeConjunctionOverDisjunction() {
-        return this;
-    }
-
-    @Override
     public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
         return " >>> " + term.toPrettyString(newLineStarter, precedenceOfCaller, bindingList) + " <<< ";
     }

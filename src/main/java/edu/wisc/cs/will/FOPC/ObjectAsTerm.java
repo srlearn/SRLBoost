@@ -10,6 +10,7 @@ import java.util.Map;
  *
  */
 public class ObjectAsTerm extends Term {
+	private static final long serialVersionUID = -5682146143317465524L;
 	public Object item;
 	
 	/*

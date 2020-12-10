@@ -15,8 +15,9 @@ those values.
 
 class ChirpConfig {
 
-	private String host, cookie;
-	private int port;
+	private final String host;
+    private final String cookie;
+	private final int port;
 
 	/*
 	 * Load configuration data from a file.

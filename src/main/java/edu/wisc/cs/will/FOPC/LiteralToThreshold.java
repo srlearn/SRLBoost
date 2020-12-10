@@ -18,7 +18,9 @@ import java.util.List;
  *
  */
 public class LiteralToThreshold extends Literal {
-	// TODO(@hayesall): This can probably be removed, since the constructor is never used. But several other places will need to be changed.
+	private static final long serialVersionUID = -2379554597565225129L;
+	// TODO(@hayesall): This can probably be removed, since the constructor is never
+	// used. But several other places will need to be changed.
 	public final int     positionToThreshold;
 	public final int     maxCuts;
 	public final boolean createTiles;

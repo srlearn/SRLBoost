@@ -6,7 +6,6 @@ import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 /**
@@ -14,7 +13,7 @@ import java.util.Arrays;
  * @author Tushar Khot
  *
  */
-public class RegressionRDNExample extends RegressionExample  implements Serializable  {
+public class RegressionRDNExample extends RegressionExample {
 	// TODO(?): move to DataSetUtils, maybe?
 
 	private static final long serialVersionUID = 5438994291636517166L;

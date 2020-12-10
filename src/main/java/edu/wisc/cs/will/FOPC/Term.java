@@ -12,7 +12,7 @@ import java.util.Map;
 /*
  * @author shavlik
  */
-public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, Comparable<Term>, SentenceOrTerm {
+public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, Comparable<Term> {
 	TypeSpec          typeSpec;
 	transient HandleFOPCstrings stringHandler; // Add another field to everything so it can access this, and hence access things like lowercaseMeansVariable.
 
@@ -50,12 +50,6 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 		return result;
 	}
 
-    Term applyTheta(BindingList bindings) {
-        if ( bindings == null || bindings.theta == null ) {
-            return this;
-        }
-		return applyTheta(bindings.theta);
-    }
 	public abstract Term           applyTheta(Map<Variable,Term> bindings) ;
 	public abstract Term           copy(boolean recursiveCopy);
     public abstract Term           copy2(boolean recursiveCopy, BindingList bindingList);

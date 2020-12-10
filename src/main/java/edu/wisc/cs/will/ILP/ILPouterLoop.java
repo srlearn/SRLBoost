@@ -84,12 +84,6 @@ public class ILPouterLoop {
 	private final ILPouterLoopState outerLoopState;
 
 	private String workingDirectory;
-   
-    // The weight on covered example functionality was not compatible with the
-    // new example weighting system.  If this functionality is needed we will have
-    // to reimplement using a different approach than previously.  -Trevor
-	//public  double         weightOnCoveredPosExample     =   1.0;  // When an already-covered example is covered by a new clause, this is the weight on it (should be in [0-1] but need only be non-negative) during the next iteration of the ILP inner loop.
-	//public  double         weightOnCoveredNegExample     =   1.0;  // If this or the above is 0, then it means "do not count" this example in precision, etc.  Could also use, say, Boosting to weight the examples.
 
     public  int            maxNumberOfCycles             = 100;   // Call the inner loop at most this many times.
 	public  int            maxNumberOfClauses            = 100;   // Same as above EXCEPT only counts if a clause was learned.

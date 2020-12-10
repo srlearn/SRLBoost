@@ -9,7 +9,8 @@ import java.util.*;
  *
  */
 public class ExistentialSentence extends QuantifiedSentence {
-	
+	private static final long serialVersionUID = -2183308218806549657L;
+
 	ExistentialSentence(HandleFOPCstrings stringHandler, Collection<Variable> variables, Sentence body) {
 		this.stringHandler = stringHandler;
 		this.variables     = variables;

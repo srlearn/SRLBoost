@@ -14,10 +14,6 @@ public abstract class Constant extends Term {
 		return this;
 	}
 
-    public Constant applyTheta(BindingList bindings) {
-        return (Constant) super.applyTheta(bindings);
-    }
-
 	public Constant copy(boolean recursiveCopy) { // No need to dive into constants (even to change their type spec's?).
 		return this;
 	}

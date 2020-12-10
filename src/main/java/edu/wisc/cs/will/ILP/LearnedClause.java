@@ -9,7 +9,8 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
  * This is a clause with some extra information concerning how it was learned.
  */
 public class LearnedClause extends Clause {
-	private final LearnOneClause   task;
+	private static final long serialVersionUID = -5758309988524200251L;
+	private final LearnOneClause task;
 	private final SingleClauseNode node;
 	private final int outerLoopCycle;
 	private final int totalNumberOfPosExamplesCovered;

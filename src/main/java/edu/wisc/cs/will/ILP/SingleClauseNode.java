@@ -15,14 +15,15 @@ import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchNode;
 import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
 
-import java.io.Serializable;
 import java.util.*;
 
 /*
  * @author shavlik
  */
 
-public class SingleClauseNode extends SearchNode implements Serializable{
+public class SingleClauseNode extends SearchNode {
+	private static final long serialVersionUID = -2094365783950475856L;
+
 	private final static boolean renameAllVariablesWheneverPrinting = true;
 	
 	Literal literalAdded    = null;
@@ -908,12 +909,10 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		}
 		
 		if (result < 0) {
-			if (Math.abs(result) < 1e-8 ) {
-				result = 0;
-			} else {
-				Utils.waitHere(result +":"+ stats.toString());
-				result=0;
+			if (!(Math.abs(result) < 1e-8)) {
+				Utils.waitHere(result + ":" + stats.toString());
 			}
+			result = 0;
 		}
 		return result;
 	}

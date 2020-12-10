@@ -12,8 +12,8 @@ import java.util.Map;
  *  All functions with the same name map to the same instance. 
  */
 public class ConnectiveName extends AllOfFOPC implements Serializable { // If items are added here, add them to HandleFOPCstrings as well.
-	
-    private final static String ANDalt0        = "AND";
+	private static final long serialVersionUID = -7505837502673822028L;
+	private final static String ANDalt0 = "AND";
 	private final static String ANDalt1        = "^";
 	private final static String ANDalt2        = "&";
 	private final static String ANDalt3        = ",";
@@ -126,8 +126,9 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
      * This call will then use the readResolve method to fix up the stream.
      */
     static class SerializableConnectiveName implements Serializable {
+		private static final long serialVersionUID = 2049191145579235082L;
 
-        final String name;
+		final String name;
 
         transient HandleFOPCstrings stringHandler;
 

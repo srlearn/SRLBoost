@@ -10,6 +10,7 @@ import java.io.Serializable;
  *  An entry in a Gleaner.
  */
 class SavedClause implements Serializable {
+	private static final long serialVersionUID = -6726298393028248864L;
 	double recall;
 	double F1;
 	double score;

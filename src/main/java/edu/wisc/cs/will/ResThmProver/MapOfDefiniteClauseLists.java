@@ -9,7 +9,7 @@ import java.util.List;
 /*
  * @author twalker
  */
-public class MapOfDefiniteClauseLists extends MapOfLists<PredicateNameAndArity, DefiniteClause> implements Iterable<DefiniteClause> {
+public class MapOfDefiniteClauseLists extends MapOfLists<PredicateNameAndArity, DefiniteClause> {
 
     @Override
     protected List<DefiniteClause> createValueList() {

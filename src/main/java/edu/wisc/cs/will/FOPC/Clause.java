@@ -563,11 +563,6 @@ public class Clause extends Sentence implements DefiniteClause {
 		return this; // Cannot go in any further.
 	}
 
-    @Override
-    protected Sentence distributeConjunctionOverDisjunction() {
-        return this;
-    }
-
 
     @Override
 	public String toPrettyString(String lineStarter, int precedenceOfCaller, BindingList bindingList) { // Allow the 'lineStarter' to be passed in, e.g., the caller might want this to be quoted text.

@@ -39,7 +39,7 @@ public enum VariantClauseAction {
 
     public static VariantClauseAction fromString(String setting) {
         for (VariantClauseAction action : values()) {
-            if ( setting.toLowerCase().equals(action.parameterSetting.toLowerCase()) ) {
+            if ( setting.equalsIgnoreCase(action.parameterSetting) ) {
                 return action;
             }
         }

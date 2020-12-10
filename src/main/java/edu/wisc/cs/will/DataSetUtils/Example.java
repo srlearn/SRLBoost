@@ -7,7 +7,6 @@ import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.Serializable;
 import java.util.*;
 
 
@@ -15,7 +14,7 @@ import java.util.*;
  * @author shavlik
  *
  */
-public class Example extends Literal implements Serializable {
+public class Example extends Literal {
 	/*
 	 * TODO - should also handle NAMED arguments.
 	 */

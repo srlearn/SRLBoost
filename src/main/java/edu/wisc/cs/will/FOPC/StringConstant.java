@@ -26,8 +26,6 @@ public class StringConstant extends Constant implements Serializable {
         }
         this.stringHandler = stringHandler;
         this.setTypeSpec(typeSpec);
-        //	variablesStartWithQuestionMarks_valueAtCreationTime = variablesStartWithQuestionMarks;  TODO - if these are ever turned back on, use the VarIndicator enum
-        //	lowercaseMeansVariable_valueAtCreationTime          = lowercaseMeansVariable;
         if (name != null && name.equalsIgnoreCase("-inf")) {
             Utils.error("Where did this come from? ");
         }

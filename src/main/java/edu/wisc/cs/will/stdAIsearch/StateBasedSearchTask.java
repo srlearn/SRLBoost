@@ -215,9 +215,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
         resetAll(false);
         clearClosedList();
         clearOpenList();
-        
-        //if (open   != null) {open.reportOpenSize();     }
-        //if (closed != null) {closed.reportClosedSize(); }
     }
     
     private void clearOpenList() {
@@ -322,8 +319,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
     private SearchResult search() throws SearchInterrupted {
         boolean done = false;
 
-        boolean useClosedList = (closed != null);
-
         iterationStartTimeInMillisec = System.currentTimeMillis();
         
         if (open.isEmpty() || !continueTheSearch) {
@@ -389,7 +384,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
                 if (verbosity > 3) { Utils.warning("Search ended for '" + taskName + "' by terminator for some reason."); }
             }
             if (!done) {
-                if (useClosedList && !addNodesToClosedListWhenCreated) { closed.addNodeToClosed(lastNodeVisited); } // Need to do this before adding children to prevent self-loops.
                 if (lastNodeVisited.depth < maxSearchDepth) {
                     List<T> children = childrenGenerator.collectChildren(lastNodeVisited);
                     if (verbosity > 1) {Utils.println("%  Add " + Utils.comma(children) + " to OPEN."); }

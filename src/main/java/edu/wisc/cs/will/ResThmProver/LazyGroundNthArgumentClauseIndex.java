@@ -71,8 +71,6 @@ public class LazyGroundNthArgumentClauseIndex {
 
                 if (key2.isGrounded()) {
                     
-                    if ( LazyHornClausebase.DEBUG >= 2 ) Utils.println("% [ LazyGroundNthArgumentClauseIndex ]  Argument " + indexedArgument + ":  Indexing ground argument " + definiteClause + ".");
-
                     DefiniteClauseList definiteClauseList = mapForKey.get(key2);
 
                     if (definiteClauseList == null) {
@@ -83,8 +81,6 @@ public class LazyGroundNthArgumentClauseIndex {
                     definiteClauseList.add(definiteClause);
                 }
                 else {
-                    
-                    if ( LazyHornClausebase.DEBUG >= 2 ) Utils.println("% [ LazyGroundNthArgumentClauseIndex ]  Argument " + indexedArgument + ":  Indexing non-ground argument " + definiteClause + ".");
                     
                     for (DefiniteClauseList list : mapForKey.values()) {
                         list.add(definiteClause);
@@ -270,6 +266,8 @@ public class LazyGroundNthArgumentClauseIndex {
     }
 
     private class MyMap extends LinkedHashMap<PredicateNameAndArity, Map<Term, DefiniteClauseList>> {
+
+        private static final long serialVersionUID = -345307187601453425L;
 
         protected boolean removeEldestEntry(Map.Entry<PredicateNameAndArity, Map<Term, DefiniteClauseList>> eldest) {
             if (size() > maximumIndexSize) {

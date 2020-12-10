@@ -53,12 +53,6 @@ public abstract class QuantifiedSentence extends Sentence {
 	}
 
     @Override
-    protected Sentence distributeConjunctionOverDisjunction() {
-        Utils.error("Should not have any quantified sentences at this point of clause conversion: " + this);
-		return null;
-    }
-
-    @Override
     public <Return,Data> Return accept(SentenceVisitor<Return,Data> visitor, Data data) {
         return visitor.visitQuantifiedSentence(this, data);
     }

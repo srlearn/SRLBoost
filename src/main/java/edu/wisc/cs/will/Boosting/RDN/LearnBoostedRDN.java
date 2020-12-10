@@ -170,7 +170,6 @@ public class LearnBoostedRDN {
 				Utils.println("Time to build dataset: " + Utils.convertMillisecondsToTimeSpan(bbend-bddstart));
 				RegressionTree tree;
 				tree = getWILLTree(newDataSet, i);
-				if (debugLevel > 1) { reportStats(); }
 				double stepLength = 1;
 				if (!disableBoosting) {
 					stepLength = cmdArgs.getDefaultStepLenVal();
@@ -198,7 +197,7 @@ public class LearnBoostedRDN {
 				rdn.saveModel(saveModelName);
 			} // Every now and then save the model so we can see how it is doing.
 		}
-		if (stopIfFewChanges) { 
+		if (stopIfFewChanges) {
 			Utils.println("Stopped after " + Utils.comma(i) + " trees.");
 		}
 		if (i >= maxTrees) {
@@ -340,15 +339,10 @@ public class LearnBoostedRDN {
 
 	private boolean doEarlyStop(List<RegressionRDNExample> old_eg_set, SingleModelSampler sampler) {
 		double minGradientForSame = 0.0002;
-		if (stopIfFewChanges && old_eg_set != null) {
+		if (old_eg_set != null) {
 			int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
-			if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set)); }
-			double minPercentageSameForStop = 0.8;
-			return ((double) numOfEgSame / (double) old_eg_set.size()) > minPercentageSameForStop;
-		} else {
-			if(old_eg_set != null) {
-				int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
-				if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set) + " converged."); }
+			if (debugLevel > 0) {
+				Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set) + " converged.");
 			}
 		}
 		return false;
@@ -484,7 +478,6 @@ public class LearnBoostedRDN {
 	private static final String STEPLEN_PREDICATE_PREFIX = "stepLength";
 
 	private File getWILLsummaryFile() {  // Always recompute in case 'targetPredicate' changes.
-	//	return new CondorFile(getWILLFile(setup.getOuterLooper().getWorkingDirectory() + "/" +  cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
 		return Utils.ensureDirExists(getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
 	}
 	

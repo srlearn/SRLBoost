@@ -9,7 +9,8 @@ import java.io.Serializable;
  */
 public class CoverageScore implements Serializable {
 
-    private double truePositives  = 0;
+    private static final long serialVersionUID = -602218797572752941L;
+    private double truePositives = 0;
     private double falsePositives = 0;
     private double trueNegatives  = 0;
     private double falseNegatives = 0;

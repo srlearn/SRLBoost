@@ -45,10 +45,6 @@ public class Variable extends Term {
         return (lookup == null ? this : lookup.applyTheta(theta)); // If not in the binding list (i.e., theta) then stays the same.
     }
 
-    public Term applyTheta(BindingList bindings) {
-        return super.applyTheta(bindings);
-    }
-
     @Override
     public Variable copy(boolean recursiveCopy) {
         // June 2010: JWS added the null below to skip the check for isaConstantType since we know this is a variable (but possibly some flag changed in between?).

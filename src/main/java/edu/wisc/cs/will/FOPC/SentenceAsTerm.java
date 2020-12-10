@@ -29,9 +29,6 @@ public class SentenceAsTerm extends Term {
 		return sentence.containsFreeVariablesAfterSubstitution(theta);
 	}
 
-    public SentenceAsTerm applyTheta(BindingList bindings) {
-        return (SentenceAsTerm) super.applyTheta(bindings);
-    }
 	public SentenceAsTerm applyTheta(Map<Variable,Term> bindings) {
 		Sentence newSentence = (sentence == null ? null : sentence.applyTheta(bindings));
 		return new SentenceAsTerm(stringHandler, newSentence, wrapperPredicate);

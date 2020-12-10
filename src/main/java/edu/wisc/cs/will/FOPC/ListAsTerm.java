@@ -13,6 +13,7 @@ import java.util.Map;
  *
  */
 public class ListAsTerm extends Term {
+	private static final long serialVersionUID = 3886167890954913337L;
 	final List<Term> objects;
 	private final boolean processItemsInList; // If false, leave the items in 'objects' untouched.
 

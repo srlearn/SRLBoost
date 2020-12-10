@@ -234,7 +234,10 @@ public class LazyGroundClauseIndex {
 
     private class LRUMap extends LinkedHashMap<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> {
 
-    	protected boolean removeEldestEntry(Map.Entry<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> eldest) {     	
+        private static final long serialVersionUID = -2151797847494179763L;
+
+        protected boolean removeEldestEntry(
+                Map.Entry<PredicateNameAndArity, Map<List<Term>, DefiniteClauseList>> eldest) {
         	
             if (size() > maximumIndexSize) {          	
 

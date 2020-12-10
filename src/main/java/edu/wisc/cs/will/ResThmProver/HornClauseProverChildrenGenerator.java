@@ -1091,6 +1091,8 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     private static class StackTraceLiteral extends Literal {
 
+        private static final long serialVersionUID = 7775745656125260261L;
+
         private final Literal traceLiteral;
 
         private final long proofCounter;
@@ -1140,6 +1142,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     protected static class CutMarkerNode extends HornSearchNode {
 
+        private static final long serialVersionUID = 8501369564035800995L;
         private final CutMarkerLiteral cutMarkerLiteral;
 
         CutMarkerNode(HornSearchNode parentNode, Literal literalBeingCut, long proofCounterOfCutClause) {
@@ -1172,7 +1175,10 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     protected static class CutMarkerLiteral extends Literal {
 
-        /* Head of the clause that contained the cut.
+        private static final long serialVersionUID = 454415768460975726L;
+
+        /*
+         * Head of the clause that contained the cut.
          *
          * This is just for debugging purpose, never used in the actual resolution.
          *
@@ -1203,7 +1209,9 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     protected static class CutLiteral extends Literal {
 
-        /** Head of the clause that contained the cut.
+        private static final long serialVersionUID = -7370195316256309385L;
+        /**
+         * Head of the clause that contained the cut.
          *
          */
         private final CutMarkerNode cutMarkerNode;
@@ -1236,6 +1244,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     private static class FailedTraceNode extends HornSearchNode {
 
+        private static final long serialVersionUID = 2628055531715154708L;
         final Literal failedLiteral;
 
         FailedTraceNode(HornClauseProver task, Literal failedLiteral, long parentProofCounter, int parentExpansionIndex) {

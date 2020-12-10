@@ -108,7 +108,6 @@ class LazyHornClausebaseIndexer {
             set = lookupDefiniteClauseByAllArgs(boundClauseHead);
             if (set != null) {
                 groundClauseHitCount++;
-                return set;
             }
             else {
                 DefiniteClauseList aSet;
@@ -128,17 +127,14 @@ class LazyHornClausebaseIndexer {
                     }
                 }
 
-                if (set != null) {
-                    return set;
-                }
-                else {
+                if (set == null) {
                     set = lookupDefiniteClausesByPredicate(pnaa);
                     if (set != null && !set.isEmpty()) {
                         predicateHitCount++;
                     }
-                    return set;
                 }
             }
+            return set;
         }
 
         return null;

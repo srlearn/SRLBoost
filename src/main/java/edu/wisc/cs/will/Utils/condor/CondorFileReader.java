@@ -10,7 +10,7 @@ import java.nio.CharBuffer;
  */
 public class CondorFileReader extends Reader {
 
-    private Reader reader;
+    private final Reader reader;
 
     public CondorFileReader(File file) throws FileNotFoundException  {
         reader = new InputStreamReader( new CondorFileInputStream(file));

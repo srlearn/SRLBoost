@@ -251,7 +251,9 @@ public class ChirpClient {
 }
 
 class ChirpError extends Error {
-	ChirpError( String s ) {
+	private static final long serialVersionUID = -6830713658025753127L;
+
+	ChirpError(String s) {
 		super("Chirp: "+ s);
 	}
 	ChirpError( Exception e ) {

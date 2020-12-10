@@ -28,11 +28,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
             map = createMap();
         }
 
-        Set<Value> result = map.get(key);
-        if ( result == null ) {
-            result = createValueSet();
-            map.put(key, result);
-        }
+        Set<Value> result = map.computeIfAbsent(key, k -> createValueSet());
 
         result.add(value);
     }
