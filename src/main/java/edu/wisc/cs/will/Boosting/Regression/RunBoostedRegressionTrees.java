@@ -67,7 +67,7 @@ public class RunBoostedRegressionTrees extends RunBoostedModels {
 				if (useSingleTheory(setup)) {
 					rdn.setHasSingleTheory(true);
 					rdn.setTargetPredicate(pred);
-					rdn.loadModel(LearnBoostedRDN.getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), pred), setup, cmdArgs.getMaxTreesVal());
+					rdn.loadModel(LearnBoostedRDN.getWILLFile(cmdArgs.getModelDirVal(), null, pred), setup, cmdArgs.getMaxTreesVal());
 				} else {
 					rdn.setTargetPredicate(pred);
 					rdn.loadModel(BoostingUtils.getModelFile(cmdArgs, pred, true), setup, cmdArgs.getMaxTreesVal());

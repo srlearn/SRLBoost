@@ -101,12 +101,6 @@ public final class WILLSetup {
 		file_paths[2] = directory + "/" + prefix + "_bk"                                    + Utils.defaultFileExtensionWithPeriod;
 
 		String appendToPrefix="";
-		if (forTraining && cmdArgs.getModelFileVal() != null) {
-			appendToPrefix = cmdArgs.getModelFileVal();
-		}
-		if (!forTraining && cmdArgs.getModelFileVal() != null) {
-			appendToPrefix = cmdArgs.getModelFileVal();
-		}
 
 		// Try to place dribble files in the directory where RESULTS will go.
 		String resultsDir = cmdArgs.getResultsDirVal();

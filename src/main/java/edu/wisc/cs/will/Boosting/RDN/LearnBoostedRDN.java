@@ -514,7 +514,7 @@ public class LearnBoostedRDN {
 		String stringToPrint = (i < 0 ? "" : "\n%%%%%  WILL-Produced Tree #" + (i + 1) + " @ " + Utils.getDateTime() + ".  [" + Utils.reportSystemInfo() + "]  %%%%%\n\n");
 		if (debugLevel > 0 && i >= 0) { Utils.println(stringToPrint); }
 		File file = getWILLsummaryFile();
-		if (i >= 0) { Utils.appendString(file, stringToPrint + th.toPrettyString(), cmdArgs.useLockFiles); } 
+		if (i >= 0) { Utils.appendString(file, stringToPrint + th.toPrettyString(), true); }
 		else { // Write a file right away in case a run crashes.
 			
 			// First save the old model file
@@ -597,7 +597,7 @@ public class LearnBoostedRDN {
 			stringToPrint.append("\nflattenedLiteralsInThisSetOfTrees(0, []).");
 		}
 
-		Utils.appendString(file, stringToPrint.toString(), cmdArgs.useLockFiles);
+		Utils.appendString(file, stringToPrint.toString(), true);
 		if (debugLevel > 0) { Utils.println(stringToPrint.toString()); }
 	}
 

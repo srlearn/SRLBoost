@@ -132,12 +132,12 @@ class InferOCCModel {
 		// If models are being written somewhere, then also write AUC's there (this allows us to avoid writing in a dir that only contains INPUT files) - hence, multiple runs can simultaneously use the same input dir, yet write to different output dirs.
 		String aucTempDirectory;
 
-		aucTempDirectory = setup.getOuterLooper().getWorkingDirectory() + "/AUC/" + (cmdArgs.getModelFileVal() == null ? "" : cmdArgs.getModelFileVal() +"/");
+		aucTempDirectory = setup.getOuterLooper().getWorkingDirectory() + "/AUC/";
 		if (cmdArgs.getTargetPredVal().size() > 1) {
 			aucTempDirectory += target + "/";
 		}
 		ComputeAUC.deleteAUCfilesAfterParsing = false;
 		double minRecallForAUCPR = 0;
-		return new ComputeAUC(positiveProbs, negativeProbs, aucTempDirectory, cmdArgs.getAucPathVal(), "", minRecallForAUCPR, cmdArgs.useLockFiles);
+		return new ComputeAUC(positiveProbs, negativeProbs, aucTempDirectory, cmdArgs.getAucPathVal(), "", minRecallForAUCPR, true);
 	}
 }

@@ -54,9 +54,6 @@ public class BoostingUtils {
 
 	public static String getModelFile(CommandLineArguments cmdArgs, String target, boolean includeExtension) {
 		String filename = cmdArgs.getModelDirVal() + "bRDNs/" + target;
-		if (cmdArgs.getModelFileVal() != null) {
-			 filename += "_" + cmdArgs.getModelFileVal();
-		}
 		filename += (includeExtension ? ".model" : "");
 		Utils.ensureDirExists(filename);
 		return filename;

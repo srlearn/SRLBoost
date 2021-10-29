@@ -26,9 +26,6 @@ public class CommandLineArguments {
 	private static final String argPrefix = "-";
 	private static final String learn = "l";
 
-	// Need to turn this off when using Condor.
-	public boolean useLockFiles = true;
-	
 	private boolean learnVal = false;
 
 	private static final String useMLN = "mln";
@@ -105,11 +102,6 @@ public class CommandLineArguments {
 			if (argMatches(args[i], "h") || argMatches(args[i], "help")) {
 				System.out.println(getUsageString());
 				System.exit(0);
-			}
-
-			if (argMatches(args[i], "noLockFiles")) {
-				useLockFiles = false;
-				continue;
 			}
 
 			if (argMatches(args[i], useMLN)) {
@@ -352,10 +344,6 @@ public class CommandLineArguments {
 		checked_resultsDirVal = true;
 		if (!(resultsDirVal.endsWith("/") || resultsDirVal.endsWith("\\"))) {  resultsDirVal += "/"; }
 		this.resultsDirVal = resultsDirVal;
-	}
-
-	public String getModelFileVal() {
-		return null;
 	}
 
 	public Set<String> getTargetPredVal() {

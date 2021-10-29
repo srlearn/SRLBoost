@@ -78,7 +78,7 @@ class LearnOCCModel {
 		String saveModelName = BoostingUtils.getModelFile(cmdArgs, pred, true);
 		if(propModel.getNumTrees() == 0) {
 			propModel.setTargetPredicate(pred);
-			propModel.setTreePrefix(pred + (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()));
+			propModel.setTreePrefix(pred);
 		}
 
 		System.currentTimeMillis();
@@ -190,14 +190,11 @@ class LearnOCCModel {
 	 **************/
 
 	private File getWILLsummaryFile() {  // Always recompute in case 'targetPredicate' changes.
-		return Utils.ensureDirExists(getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
+		return Utils.ensureDirExists(getWILLFile(cmdArgs.getModelDirVal(), targetPredicate));
 	}
 	
-	private static String getWILLFile(String dir, String postfix, String predicate) {
+	private static String getWILLFile(String dir, String predicate) {
 		String filename = dir + "/WILLtheories/" + predicate + "_learnedFeatureTrees";
-		if (postfix != null) {
-			filename += "_" + postfix;
-		}
 		filename += Utils.defaultFileExtensionWithPeriod;
 		return filename;
 	}
@@ -205,7 +202,7 @@ class LearnOCCModel {
 	private void dumpTheoryToFiles(Theory th, int i) {
 		String stringToPrint = (i < 0 ? "" : "\n%%%%%  WILL-Produced Tree #" + (i + 1) + " @ " + Utils.getDateTime() + ".  [" + Utils.reportSystemInfo() + "]  %%%%%\n\n");
 		File file = getWILLsummaryFile();
-		if (i >= 0) { Utils.appendString(file, stringToPrint + th.toPrettyString(), cmdArgs.useLockFiles); } 
+		if (i >= 0) { Utils.appendString(file, stringToPrint + th.toPrettyString(), true); }
 		else { // Write a file right away in case a run crashes.
 			
 			// First save the old model file

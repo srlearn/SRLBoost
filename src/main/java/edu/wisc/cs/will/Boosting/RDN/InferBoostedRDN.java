@@ -289,7 +289,7 @@ public class InferBoostedRDN {
 		}
 		String extraMarker = "";
 		ComputeAUC.deleteAUCfilesAfterParsing = false;
-		return new ComputeAUC(positiveProbabilities, negativeProbabilities, aucTempDirectory, cmdArgs.getAucPathVal(), extraMarker, minRecallForAUCPR, cmdArgs.useLockFiles);
+		return new ComputeAUC(positiveProbabilities, negativeProbabilities, aucTempDirectory, cmdArgs.getAucPathVal(), extraMarker, minRecallForAUCPR, true);
 	}
 
 	private void printExamples(List<RegressionRDNExample> examples, String target) {

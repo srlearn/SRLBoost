@@ -52,10 +52,6 @@ class InferRegressionTrees {
 	}
 	
 	private String getResultsFile(String target) {
-		String suff = "";
-		if (cmdArgs.getModelFileVal() != null) {
-			suff = cmdArgs.getModelFileVal() + "_";
-		}
-		return setup.getOuterLooper().getWorkingDirectory() + "/results_" + suff + target + ".db";
+		return setup.getOuterLooper().getWorkingDirectory() + "/results_" + target + ".db";
 	}
 }
