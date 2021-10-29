@@ -50,16 +50,11 @@ public class RunBoostedRDN extends RunBoostedModels {
 			LearnBoostedRDN learner = new LearnBoostedRDN(cmdArgs, setup);
 			learner.setTargetPredicate(pred);
 			learners.put(pred, learner);
-			if (cmdArgs.useCheckPointing()) {
-				learner.loadCheckPointModel(fullModel.get(pred));
-			}
+			learner.loadCheckPointModel(fullModel.get(pred));
 			minTreesInModel = Math.min(fullModel.get(pred).getNumTrees(), minTreesInModel);
 		}
 
 		int iterStepSize = cmdArgs.getMaxTreesVal();
-		if (cmdArgs.getRdnIterationStep() != -1) {
-			iterStepSize  = cmdArgs.getRdnIterationStep();
-		}
 
 		for (int i=0; i < cmdArgs.getMaxTreesVal(); i+=iterStepSize) {
 
@@ -109,7 +104,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 				if (useSingleTheory(setup)) {
 					rdn.setHasSingleTheory(true);
 					rdn.setTargetPredicate(pred);
-					rdn.loadModel(LearnBoostedRDN.getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), pred), setup, cmdArgs.getMaxTreesVal());
+					rdn.loadModel(LearnBoostedRDN.getWILLFile(cmdArgs.getModelDirVal(), null, pred), setup, cmdArgs.getMaxTreesVal());
 				} else {
 					rdn.setTargetPredicate(pred);
 					rdn.loadModel(BoostingUtils.getModelFile(cmdArgs, pred, true), setup, cmdArgs.getMaxTreesVal());

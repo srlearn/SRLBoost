@@ -95,21 +95,17 @@ public final class WILLSetup {
 
 		String[] file_paths = new String[4];
 
-		file_paths[0] = directory + "/" + prefix + "_" + cmdArgs.getStringForTestsetPos()   + Utils.defaultFileExtensionWithPeriod;
-		file_paths[1] = directory + "/" + prefix + "_" + cmdArgs.getStringForTestsetNeg()   + Utils.defaultFileExtensionWithPeriod;
-		file_paths[3] = directory + "/" + prefix + "_" + cmdArgs.getStringForTestsetFacts() + Utils.defaultFileExtensionWithPeriod;
+		file_paths[0] = directory + "/" + prefix + "_pos"   + Utils.defaultFileExtensionWithPeriod;
+		file_paths[1] = directory + "/" + prefix + "_neg"   + Utils.defaultFileExtensionWithPeriod;
+		file_paths[3] = directory + "/" + prefix + "_facts" + Utils.defaultFileExtensionWithPeriod;
 		file_paths[2] = directory + "/" + prefix + "_bk"                                    + Utils.defaultFileExtensionWithPeriod;
 
 		String appendToPrefix="";
 		if (forTraining && cmdArgs.getModelFileVal() != null) {
 			appendToPrefix = cmdArgs.getModelFileVal();
 		}
-		if (!forTraining && cmdArgs.outFileSuffix != null) {
-			appendToPrefix = cmdArgs.outFileSuffix;
-		} else {
-			if (!forTraining && cmdArgs.getModelFileVal() != null) {
-				appendToPrefix = cmdArgs.getModelFileVal();
-			}
+		if (!forTraining && cmdArgs.getModelFileVal() != null) {
+			appendToPrefix = cmdArgs.getModelFileVal();
 		}
 
 		// Try to place dribble files in the directory where RESULTS will go.
@@ -118,7 +114,7 @@ public final class WILLSetup {
 
 		Utils.createDribbleFile(resultsDir + prefix + getRunTypeMarker() + appendToPrefix  + "_dribble" + Utils.defaultFileExtensionWithPeriod);
 		Utils.touchFile(        resultsDir + prefix + getRunTypeMarker() + appendToPrefix  + "_started" + Utils.defaultFileExtensionWithPeriod);
-		createRegressionOuterLooper(file_paths, directory, prefix, cmdArgs.getSampleNegsToPosRatioVal(), cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples());
+		createRegressionOuterLooper(file_paths, directory, prefix, cmdArgs.getSampleNegsToPosRatioVal(), cmdArgs.isLearnRegression());
 
 		Utils.println("\n% Initializing the ILP inner looper.");
 		getOuterLooper().initialize(false);
@@ -130,20 +126,6 @@ public final class WILLSetup {
 		}
 		if (cmdArgs.getResultsDirVal() == null) { // Usually we want MODEL and RESULTS to be the same, but not if we're running on a fresh testset (i.e., one completely separate from the trainset).
 			cmdArgs.setResultsDirVal(cmdArgs.getModelDirVal());
-		}
-		
-		// Following code for non regression examples
-		if (getInnerLooper().createdSomeNegExamples) {
-			Example.writeObjectsToFile(file_paths[1], getInnerLooper().getNegExamples(), ".", "// Negative examples, including created ones.");
-		}
-
-		boolean bagOriginalNegExamples = false;
-
-		// Should the examples be bagged upon reading them in?
-		boolean bagOriginalPosExamples = false;
-		if (cmdArgs.getBagOriginalExamples()) {
-			bagOriginalPosExamples = true;
-			bagOriginalNegExamples = true;
 		}
 
 		List<Literal> targets = getInnerLooper().targets;
@@ -196,21 +178,19 @@ public final class WILLSetup {
 		Utils.println(  "% Have " + Utils.comma(negExamplesRaw) + " 'raw' negative examples and kept " + Utils.comma(negExamples) + ".");
 
 		// These shouldn't be RegressionRDNExamples. They are assumed to be "Example"s. 
-		backupPosExamples = getExamplesByPredicateName(posExamples, forTraining && bagOriginalPosExamples); // Do bagging on the outermost loop.
-		backupNegExamples = getExamplesByPredicateName(negExamples, forTraining && bagOriginalNegExamples);	// But only if TRAINING.
+		backupPosExamples = getExamplesByPredicateName(posExamples, false); // Do bagging on the outermost loop.
+		backupNegExamples = getExamplesByPredicateName(negExamples, false);	// But only if TRAINING.
 		// Needed to get examples from fact files.
 		fillMissingExamples();
 
 		// check if multi class trees are enabled.
 		// We still create the multi class handler object
 		multiclassHandler = new MultiClassExampleHandler();
-		if (!cmdArgs.isDisableMultiClass()) {
-			multiclassHandler.initArgumentLocation(this);
-			for (String pred : backupPosExamples.keySet()) {
-				multiclassHandler.addConstantsFromLiterals(backupPosExamples.get(pred));
-				if (backupNegExamples.containsKey(pred)) {
-					multiclassHandler.addConstantsFromLiterals(backupNegExamples.get(pred));
-				}
+		multiclassHandler.initArgumentLocation(this);
+		for (String pred : backupPosExamples.keySet()) {
+			multiclassHandler.addConstantsFromLiterals(backupPosExamples.get(pred));
+			if (backupNegExamples.containsKey(pred)) {
+				multiclassHandler.addConstantsFromLiterals(backupNegExamples.get(pred));
 			}
 		}
 
@@ -242,29 +222,9 @@ public final class WILLSetup {
 		if (Utils.getSizeSafely(backupPosExamples) < 1) {
 			if (Utils.getSizeSafely(backupNegExamples) < 1) { Utils.println("No pos nor neg examples!"); return false; }
 		}
-		
-		if (cmdArgs.getDoInferenceIfModNequalsThis() >= 0) { // See if we have been requested to select a subset (e.g., because the test set is too large to run at once).
-			int valueToKeep = cmdArgs.getDoInferenceIfModNequalsThis();
-			int modN        = CommandLineArguments.modN;
-			List<Example> new_posExamples = new ArrayList<>(posExamples.size() / Math.max(1, modN));
-			List<Example> new_negExamples = new ArrayList<>(negExamples.size() / Math.max(1, modN));
-			int counter = 0;
-			
-			for (Example ex : posExamples) { if (counter % modN == valueToKeep) { new_posExamples.add(ex); } counter++; }
-			for (Example ex : negExamples) { if (counter % modN == valueToKeep) { new_negExamples.add(ex); } counter++; }
-			
-			Utils.println("% whenModEquals: valueToKeep = " + valueToKeep + ",  modN = " + modN + ",  counter = " + Utils.comma(counter) 
-							+ "\n%  POS: new = " + Utils.comma(new_posExamples) +  " old = " + Utils.comma(posExamples)
-							+ "\n%  NEG: new = " + Utils.comma(new_negExamples) +  " old = " + Utils.comma(negExamples)
-							);
-			
-			posExamples = new_posExamples;
-			negExamples = new_negExamples;
-			getOuterLooper().setPosExamples(posExamples); // Set these in case elsewhere they are again gotten.
-			getOuterLooper().setNegExamples(negExamples);
-		}
+
 		if (Utils.getSizeSafely(backupPosExamples) + Utils.getSizeSafely(backupNegExamples) < 1) {
-			Utils.println("No pos nor neg examples after calling getDoInferenceIfModNequalsThis()!"); 
+			Utils.println("Hayesall: Impossible for 0 > -1: No pos nor neg examples after calling getDoInferenceIfModNequalsThis()!");
 			return false; 
 		}
 		
@@ -276,11 +236,7 @@ public final class WILLSetup {
 			allowRecursion = Boolean.parseBoolean(lookup);
 			Utils.println("Recursion set to:" + allowRecursion);
 		}
-		
-		if (cmdArgs.getBagOriginalExamples()) { // DecisionForest Decision Forest DF DF df50
-			Utils.waitHere("Is this still being used?");
-			getOuterLooper().randomlySelectWithoutReplacementThisManyModes = 0.50; // TODO - allow this to be turned off (or the fraction set) when bagging.
-		}
+
 		return true;
 	}
 
@@ -562,22 +518,17 @@ public final class WILLSetup {
 						1,
 						0,
 						cmdArgs.getSampleNegsToPosRatioVal(),
-						cmdArgs.getSamplePosProbVal(),
+						-1.0,
 						cmdArgs.isLearnMLN() && cmdArgs.isLearningMLNClauses(),
-						cmdArgs.reweighExamples,
-						cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples())
+						false,
+						cmdArgs.isLearnRegression())
 				;
 			}
 
 		}
 		// Set target literal to be just one literal.
-		if (forLearning && cmdArgs.isJointModelDisabled()) {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, true, prefix);
-		} else {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, false, prefix);
-		}
+		getOuterLooper().innerLoopTask.setTargetAs(predicate, false, prefix);
 		handler.getPredicateName(predicate).setCanBeAbsent(-1);
-
 		
 	}
 	/**
@@ -917,7 +868,7 @@ public final class WILLSetup {
 
 		// If a recursive call involves fewer than this number of examples, make a leaf node (ALSO IMPACTS THE INITIAL CALL?)
 		getOuterLooper().setOverallMinPosWeight(10);
-		if (!cmdArgs.isLearnRegression() && !cmdArgs.isLearnProbExamples()) {
+		if (!cmdArgs.isLearnRegression()) {
 			getInnerLooper().setMinPosCoverageAsFraction(minFractionOnBranches);   // For a clause to be acceptable, it needs to cover at least this fraction of the examples (and not more than 1 minus this fraction).
 		}
 
@@ -939,7 +890,7 @@ public final class WILLSetup {
 		getInnerLooper().clausesMustCoverFractPosSeeds = 0.999999 / getOuterLooper().numberPosSeedsToUse;
 		// Need to cover at least 1% of the examples, even if the root.
 		getOuterLooper().setMinPrecisionOfAcceptableClause(0.001);
-		getOuterLooper().setMaxNumberOfLiteralsAtAnInteriorNode(cmdArgs.getMaxLiteralsInAnInteriorNode());
+		getOuterLooper().setMaxNumberOfLiteralsAtAnInteriorNode(1);
 
 		// Counting is from 0 (i.e., this is really "max number of ancestor nodes").  maxNumberOfClauses might 'dominate' this setting.
 		getOuterLooper().setMaxTreeDepth(2);
@@ -952,7 +903,7 @@ public final class WILLSetup {
 		getOuterLooper().setMaxTreeDepthInLiterals(Math.max(3, (getOuterLooper().getMaxTreeDepth() + 1) * (getOuterLooper().innerLoopTask.maxFreeBridgersInBody + getOuterLooper().getMaxNumberOfLiteralsAtAnInteriorNode())));
 
 		// Reminder: "consider" means "expand" (i.e., remove from the OPEN list and generate its children);  "create" is a counter on children.
-		int matLitsAtNode = cmdArgs.getMaxLiteralsInAnInteriorNode() + getOuterLooper().innerLoopTask.maxFreeBridgersInBody;
+		int matLitsAtNode = 1 + getOuterLooper().innerLoopTask.maxFreeBridgersInBody;
 		// For reasons of time, don't want to expand too many nodes (does this setting matter if maxLits=1?).  Eg, expand the root, pick the best child, expand it, then pick the overall best unexpanded child, and repeat a few more times.
 		getInnerLooper().setMaxNodesToConsider(matLitsAtNode > 1 ?     10 :     50);
 		// This can be high since we want the # of expansions to be the limiting factor.

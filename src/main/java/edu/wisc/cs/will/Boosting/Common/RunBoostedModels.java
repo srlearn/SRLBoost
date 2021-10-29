@@ -92,7 +92,7 @@ public abstract class RunBoostedModels {
 	 * Override to call methods after learning.
 	 */
 	protected void afterLearn() {
-		Utils.println("cached groundings hit: " + setup.getInnerLooper().num_hits + "\nMisses: " +setup.getInnerLooper().num_misses);
+		Utils.println("Alexander is removing statements. cached groundings hit:");
 	}
 	
 	protected void clearCheckPointFiles(String saveModelName) {
@@ -107,18 +107,17 @@ public abstract class RunBoostedModels {
 		}
 		
 	}
+
 	private void renameOldModelFiles() {
-		int numbModelsToMake = 1;
-		for (int i = 0; i < numbModelsToMake; i++) {
-			// Rename model files.
-			for (String pred : cmdArgs.getTargetPredVal()) {
-				String filename = BoostingUtils.getModelFile(cmdArgs, pred, true);
-				File f = new CondorFile(filename);
-				if (f.exists()) {
-					renameAsOld(f);
-				}
+		// Rename model files.
+		for (String pred : cmdArgs.getTargetPredVal()) {
+			String filename = BoostingUtils.getModelFile(cmdArgs, pred, true);
+
+			File f = new CondorFile(filename);
+			if (f.exists()) {
+				renameAsOld(f);
 			}
-		}		
+		}
 	}
 
 	
@@ -148,12 +147,8 @@ public abstract class RunBoostedModels {
 		infer();
 	}
 
-
 	private void beforeInfer() {
 		loadModel();
-		if (cmdArgs.outFileSuffix != null) {
-			cmdArgs.setModelFileVal(cmdArgs.outFileSuffix);
-		}
 	}
 
 	private boolean setupWILLForTest() {
@@ -171,12 +166,14 @@ public abstract class RunBoostedModels {
 	}
 
 	public static void main(String[] args) {
-		
+
 		args = Utils.chopCommentFromArgs(args); 
 		CommandLineArguments cmd = RunBoostedModels.parseArgs(args);
-		if (cmd == null) {
-			Utils.error(CommandLineArguments.getUsageString());
-		}
+
+		// TODO(hayesall): Added a null guard, why would parseArgs return null?
+		assert cmd != null;
+		System.out.println(cmd);
+
 		RunBoostedModels runClass;
 		if (cmd.isLearnMLN()) {
 			runClass = new RunBoostedMLN();

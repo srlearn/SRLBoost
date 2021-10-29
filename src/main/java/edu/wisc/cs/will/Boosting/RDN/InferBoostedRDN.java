@@ -62,16 +62,6 @@ public class InferBoostedRDN {
 			
 		int startCount = cmdArgs.getMaxTreesVal();
 		int increment = 1;
-		if (cmdArgs.isPrintLearningCurve()) {
-			startCount = (int)minLCTrees;
-			increment = (int)incrLCTrees;
-			for (String targ : jointExamples.keySet()) {
-				File f = new File(getLearningCurveFile(targ, "pr"));
-				if (f.exists()) { f.delete();}
-				 f = new File(getLearningCurveFile(targ, "cll"));
-				if (f.exists()) { f.delete();}
-			}
-		}
 		for(; startCount <= cmdArgs.getMaxTreesVal();startCount+=increment) {
 			sampler.setMaxTrees(startCount);
 			Utils.println("% Trees = " + startCount);
@@ -194,27 +184,17 @@ public class InferBoostedRDN {
 	}
 
 	private String getResultsFile(String target) {
-		String suff ="";
-		if (cmdArgs.getModelFileVal() != null) {
-			suff = cmdArgs.getModelFileVal() + "_";
-		}
-		return setup.getOuterLooper().getWorkingDirectory() + "/results_" + suff + target + ".db";
+		return setup.getOuterLooper().getWorkingDirectory() + "/results_" + target + ".db";
 	}
 
 	private String getTestsetInfoFile(String target) {
 		String modelDir = cmdArgs.getResultsDirVal();
 		String result   = Utils.replaceWildCards((modelDir != null ? modelDir : setup.getOuterLooper().getWorkingDirectory())
-												+ "bRDNs/" + (target == null || target.isEmpty() ? "" : target + "_") 
-												+ "testsetStats" + cmdArgs.getExtraMarkerForFiles(true)
-												+ (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) + ".txt");
+												+ "bRDNs/" + (target == null || target.isEmpty() ? "" : target + "_")
+												+ "testsetStats" + cmdArgs.getExtraMarkerForFiles()
+												+ ".txt");
 		Utils.ensureDirExists(result);
 		return result;
-	}
-
-	private String getLearningCurveFile(String target, String type) {
-		return setup.getOuterLooper().getWorkingDirectory() + "/curve" +
-				(cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) +
-				(target.isEmpty() ? "" : "_"+target) + "." + type;
 	}
 
 	private void getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
@@ -239,10 +219,6 @@ public class InferBoostedRDN {
 		ComputeAUC auc = computeAUCFromEg(examples, target);
 
 
-		if (cmdArgs.isPrintLearningCurve()) {
-			Utils.appendString(new File(getLearningCurveFile(target, "pr")), trees + " " + auc.getPR() + "\n");
-			Utils.appendString(new File(getLearningCurveFile(target, "cll")), trees + " " + auc.getCLL() + "\n");
-		}
 		{
 			ThresholdSelector selector = new ThresholdSelector();
 			for (RegressionRDNExample regEx : examples) {
@@ -266,10 +242,10 @@ public class InferBoostedRDN {
 		String fileNameForResults = (writeQueryAndResults ? getTestsetInfoFile(target) : null);
 
 		if (threshold != -1) {
-			Utils.println("%   Precision = " + Utils.truncate(score.getPrecision(), 6)       + (threshold != -1 ? " at threshold = " + Utils.truncate(threshold, 3) : " "));
+			Utils.println("%   Precision = " + Utils.truncate(score.getPrecision(), 6) + " at threshold = " + Utils.truncate(threshold, 3));
 			Utils.println("%   Recall    = " + Utils.truncate(score.getRecall(),    6));
 			Utils.println("%   F1        = " + Utils.truncate(score.getF1(),        6));
-			resultsString += "\n//   Precision = " + Utils.truncate(score.getPrecision(), 6) + (threshold != -1 ? " at threshold = " + Utils.truncate(threshold, 3) : " ");
+			resultsString += "\n//   Precision = " + Utils.truncate(score.getPrecision(), 6) + " at threshold = " + Utils.truncate(threshold, 3);
 			resultsString += "\n//   Recall    = " + Utils.truncate(score.getRecall(),    6);
 			resultsString += "\n//   F1        = " + Utils.truncate(score.getF1(),        6);
 			resultsString += "\nprecision(" + target + ", " + Utils.truncate(score.getPrecision(), 6) + ", usingThreshold(" + threshold + ")).";
@@ -307,7 +283,7 @@ public class InferBoostedRDN {
 		// Hence, multiple runs can simultaneously use the same input directory, yet write to different output dirs.
 
 		String aucTempDirectory;
-		aucTempDirectory = setup.getOuterLooper().getWorkingDirectory() + "/AUC/" + (cmdArgs.getModelFileVal() == null ? "" : cmdArgs.getModelFileVal() +"/");
+		aucTempDirectory = setup.getOuterLooper().getWorkingDirectory() + "/AUC/";
 		if (cmdArgs.getTargetPredVal().size() > 1) {
 			aucTempDirectory += target + "/";
 		}
@@ -388,7 +364,7 @@ public class InferBoostedRDN {
 		String result = Utils.replaceWildCards((modelDirectory != null ? modelDirectory : setup.getOuterLooper().getWorkingDirectory())
 				+ "bRDNs/"
 				+ "predictions"
-				+ cmdArgs.getExtraMarkerForFiles(true)
+				+ cmdArgs.getExtraMarkerForFiles()
 				+ ".csv");
 
 		Utils.ensureDirExists(result);

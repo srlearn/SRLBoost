@@ -97,7 +97,7 @@ class LearnOCCModel {
 		
 		// Learn maxTrees models.
 		int i;
-		if (propModel.getNumTrees() == 0 && cmdArgs.useCheckPointing()) {
+		if (propModel.getNumTrees() == 0) {
 			loadCheckPointModel(propModel);
 		}
 
@@ -126,9 +126,7 @@ class LearnOCCModel {
 
 			propModel.addTree(tree);  // This code assume modelNumber=0 is learned first.
 
-			if (cmdArgs.useCheckPointing()) {
-				createCheckPointForModel(propModel, saveModelName);
-			}
+			createCheckPointForModel(propModel, saveModelName);
 			List<FeatureVector> posFeatures = new ArrayList<>();
 			for (RegressionRDNExample rex : newDataSet) {
 				if (rex.getOriginalValue() == 1) {

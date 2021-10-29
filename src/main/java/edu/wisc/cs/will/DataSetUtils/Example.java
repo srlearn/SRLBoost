@@ -105,37 +105,7 @@ public class Example extends Literal implements Serializable {
 			}
 		}		
 	}
-	
 
-	public static void writeObjectsToFile(String fileName, List<? extends Example> examples, String finalEOLchars, String headerStringToPrint) {
-		// TODO(@hayesall): Comment suggests this method was copied from `Utils`?
-
-		// Copied this from Utils.java and added the ability to print the 'provenance' of examples.
-		// If object is a number, need an extra space so the period doesn't look like a decimal point.
-
-        CondorFileOutputStream outStream = null;
-
-        try {
-			outStream = new CondorFileOutputStream(Utils.ensureDirExists(fileName));
-			PrintStream         stream = new PrintStream(outStream);
-			if (headerStringToPrint != null) { stream.println(headerStringToPrint); }
-			for (Example ex : examples) {
-				stream.println(ex.toString() + finalEOLchars + " % Provenance: " + ex.provenance);
-			}
-		}
-		catch (FileNotFoundException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Unable to successfully open this file for writing: " + fileName + ".  Error message: " + e.getMessage());
-		}
-        finally {
-            if (outStream != null) {
-                try {
-                    outStream.close();
-                } catch (IOException ignored) {
-                }
-            }
-        }
-	}
 	public double getWeightOnExample() {
 		return weightOnExample;
 	}

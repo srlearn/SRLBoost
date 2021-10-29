@@ -40,9 +40,7 @@ public class RunBoostedMLN extends RunBoostedModels {
 			LearnBoostedRDN learner = new LearnBoostedRDN(cmdArgs, setup);
 			learner.setTargetPredicate(pred);
 			learners.put(pred, learner);
-			if( cmdArgs.useCheckPointing()) {
-				learner.loadCheckPointModel(fullModel.get(pred));
-			}
+			learner.loadCheckPointModel(fullModel.get(pred));
 			minTreesInModel = Math.min(fullModel.get(pred).getNumTrees(), minTreesInModel);
 		}
 		MLNInference sampler = new MLNInference(setup, fullModel);
@@ -52,9 +50,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 			iterStepSize = cmdArgs.getMaxTreesVal();
 		}
 
-		if (cmdArgs.getRdnIterationStep() != -1) {
-			iterStepSize  = cmdArgs.getRdnIterationStep();
-		}
 		for (int i=0; i < cmdArgs.getMaxTreesVal(); i+=iterStepSize) {
 			for (String pred : cmdArgs.getTargetPredVal()) {
 
@@ -85,8 +80,10 @@ public class RunBoostedMLN extends RunBoostedModels {
 
 	private void saveModelAsMLN() {
 
-		String mlnFile=setup.getOuterLooper().getWorkingDirectory() + "/"+
-		(cmdArgs.getModelFileVal() == null ? "" : cmdArgs.getModelFileVal()) + ".mln";
+		// TODO(hayesall): There was a bug in here which always caused clausal mln to be saved as `train/.mln`,
+		//		the intention was *probably* to append the name of the target.
+
+		String mlnFile= setup.getOuterLooper().getWorkingDirectory() + "/" + ".mln";
 		BufferedWriter writer = null;
 		try {
 			writer = new BufferedWriter(new CondorFileWriter(mlnFile));
@@ -140,10 +137,8 @@ public class RunBoostedMLN extends RunBoostedModels {
 		if (fullModel == null) {
 			fullModel = new JointRDNModel();
 		}
-		Set<String> modelPreds = cmdArgs.getLoadPredModelVal();
-		if (modelPreds == null) {
-			modelPreds = cmdArgs.getTargetPredVal();
-		}
+		Set<String> modelPreds;
+		modelPreds = cmdArgs.getTargetPredVal();
 		for (String pred : modelPreds) {
 			ConditionalModelPerPredicate rdn;
 			if (fullModel.containsKey(pred)) {
@@ -157,7 +152,7 @@ public class RunBoostedMLN extends RunBoostedModels {
 				if (useSingleTheory(setup)) {
 					rdn.setHasSingleTheory(true);
 					rdn.setTargetPredicate(pred);
-					rdn.loadModel(LearnBoostedRDN.getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), pred), setup, cmdArgs.getMaxTreesVal());
+					rdn.loadModel(LearnBoostedRDN.getWILLFile(cmdArgs.getModelDirVal(), null, pred), setup, cmdArgs.getMaxTreesVal());
 				} else {
 					rdn.loadModel(BoostingUtils.getModelFile(cmdArgs, pred, true), setup, cmdArgs.getMaxTreesVal());
 				}

@@ -158,7 +158,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	boolean             allTargetVariablesMustBeInHead                     = false;
 	boolean             dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds = true;  // If have p(x) :- q(x,y) but if over all positive seeds can never get x and y to bind to different constants, then use p(x) :- q(x,x).  Similar (equivalent?) to "variable splitting" = false in Aleph.
 	long                maxResolutionsPerClauseEval    = 10000000;     // When evaluating a clause, do not perform more than this many resolutions.  If this is exceeded, a clause is said to cover 0 pos and 0 neg, regardless of how many have been proven and it won't be expanded.
-	public final boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
 	////////////////////////////////////////////////////////////
 	//  Variables for controlling random-rapid-restart searches (i.e., repeatedly randomly create an initial clause, then do some local search around each).
 	//    The initial clause randomly created will meet the specification on the positive and negative seeds.
@@ -463,9 +462,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       maxNodesToCreateRRR             = Integer.parseInt(vStr); }
 		
 	}
-
-	public final int num_hits = 0;
-	public final int num_misses = 0;
 
 	public void setMEstimateNeg(double mEstimateNeg) {
 		if (mEstimateNeg < 0.0) Utils.error("The 'm' for neg examples covered needs to be a non-negative number.  You provided: " + mEstimateNeg);

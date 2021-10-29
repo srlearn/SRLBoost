@@ -31,17 +31,12 @@ public class RunOneClassModel extends RunBoostedModels {
 			LearnOCCModel learner = new LearnOCCModel(cmdArgs, setup);
 			learner.setTargetPredicate(pred);
 			learners.put(pred, learner);
-			if( cmdArgs.useCheckPointing()) {
-				learner.loadCheckPointModel(fullModel.get(pred));
-			}
+			learner.loadCheckPointModel(fullModel.get(pred));
 			minTreesInModel = Math.min(fullModel.get(pred).getNumTrees(), minTreesInModel);
 		}
 
 		int iterStepSize = cmdArgs.getMaxTreesVal();
 
-		if (cmdArgs.getRdnIterationStep() != -1) {
-			iterStepSize  = cmdArgs.getRdnIterationStep();
-		}
 		for (int i=0; i < cmdArgs.getMaxTreesVal(); i+=iterStepSize) {
 		
 			for (String pred : cmdArgs.getTargetPredVal()) {

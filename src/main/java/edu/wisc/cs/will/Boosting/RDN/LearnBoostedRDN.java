@@ -86,7 +86,7 @@ public class LearnBoostedRDN {
 
 		if(rdn.getNumTrees() == 0) {
 			rdn.setTargetPredicate(pred);
-			rdn.setTreePrefix(pred + (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()));
+			rdn.setTreePrefix(pred);
 			if (learnSingleTheory) {
 				rdn.setHasSingleTheory(true);
 				rdn.setSetup(setup);
@@ -125,7 +125,7 @@ public class LearnBoostedRDN {
 		
 		// Learn maxTrees models.
 		int i;
-		if (rdn.getNumTrees() == 0 && cmdArgs.useCheckPointing()) {
+		if (rdn.getNumTrees() == 0) {
 			loadCheckPointModel(rdn);
 		}
 
@@ -191,10 +191,8 @@ public class LearnBoostedRDN {
 				old_eg_set = newDataSet;
 			}
 			rdn.updateSetOfTrees();
-			if (cmdArgs.useCheckPointing()) {
-				createCheckPointForModel(rdn, saveModelName);
-			}
-			if ((i + 1) % 10 == 0) { 
+			createCheckPointForModel(rdn, saveModelName);
+			if ((i + 1) % 10 == 0) {
 				rdn.saveModel(saveModelName);
 			} // Every now and then save the model so we can see how it is doing.
 		}
@@ -420,7 +418,7 @@ public class LearnBoostedRDN {
 			
 			RegressionRDNExample eg = all_exs.get(i);
 			eg.clearCache();
-			if(cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples()) {
+			if(cmdArgs.isLearnRegression()) {
 				eg.setOutputValue(eg.originalRegressionOrProbValue - eg.getProbOfExample().getProbOfBeingTrue());
 				continue;
 			}
@@ -484,8 +482,7 @@ public class LearnBoostedRDN {
 	private static final String STEPLEN_PREDICATE_PREFIX = "stepLength";
 
 	private File getWILLsummaryFile() {  // Always recompute in case 'targetPredicate' changes.
-	//	return new CondorFile(getWILLFile(setup.getOuterLooper().getWorkingDirectory() + "/" +  cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
-		return Utils.ensureDirExists(getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
+		return Utils.ensureDirExists(getWILLFile(cmdArgs.getModelDirVal(), null, targetPredicate));
 	}
 	
 	public static String getWILLFile(String dir, String postfix, String predicate) {
