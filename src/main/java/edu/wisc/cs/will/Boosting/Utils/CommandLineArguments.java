@@ -23,6 +23,8 @@ public class CommandLineArguments {
 	 * 5. Define a usage string in getUsageString
 	 */
 
+	public static final String srlboost_version = "0.1.1";
+
 	private static final String argPrefix = "-";
 	private static final String learn = "l";
 
@@ -164,6 +166,11 @@ public class CommandLineArguments {
 
 			if (args[i].trim().isEmpty())
 				continue;
+
+			if (argMatches(args[i], "v") || argMatches(args[i], "version")) {
+				System.out.println(srlboost_version);
+				System.exit(0);
+			}
 
 			if (argMatches(args[i], "h") || argMatches(args[i], "help")) {
 				System.out.println(getUsageString());
