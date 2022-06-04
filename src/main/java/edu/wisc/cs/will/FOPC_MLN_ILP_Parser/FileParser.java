@@ -1940,7 +1940,7 @@ public class FileParser {
 		if (loadedLibraries.contains(libName)) { return null; } // Already loaded.
 		List<Sentence> result;
 		loadedLibraries.add(libName);  // TODO - should we store URLs instead?
-		URL libraryURL = getClass().getResource("/edu/wisc/cs/will/FOPC_MLN_ILP_Parser/" + libName + ".fopcLibrary");
+		URL libraryURL = getClass().getResource("/" + libName + ".fopcLibrary");
 		if (libraryURL == null) { throw new ParsingException("Unknown library: " + libName); }
 		InputStream inStream  = new NamedInputStream(new BufferedInputStream(libraryURL.openStream()), libName + ".fopcLibrary");
 		result = newParser.readFOPCstream(null, inStream);
