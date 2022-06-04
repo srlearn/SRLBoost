@@ -14,6 +14,10 @@ precomputed*.txt*
 *.DS_Store
 *.class
 
+# IDE Specific info
+.vscode
+.idea
+
 # Recommended Ignore settings for `https://github.com/github/gitignore`: `Gradle.gitignore`
 .gradle
 **/build/
