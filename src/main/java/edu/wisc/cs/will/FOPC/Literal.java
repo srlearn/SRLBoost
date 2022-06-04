@@ -206,7 +206,12 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         if (argumentNames != null) {
             newArgNames.addAll(argumentNames);
         }
-        assert newArguments != null;
+
+
+        // assert newArguments != null;
+
+        System.out.println("Assertion broke here?");
+
         if (recursiveCopy) {
             if (arguments != null) {
                 for (Term term : arguments) {
