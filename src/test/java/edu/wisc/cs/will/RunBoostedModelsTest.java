@@ -11,7 +11,10 @@ public class RunBoostedModelsTest
     @Test
     public void testFoo()
     {
-        String[] args = {"-l", "-train", "data/Toy-Cancer/train/", "-target", "cancer"};
-        RunBoostedModels.main(args);
+        String[] trainArgs = {"-l", "-train", "data/Toy-Cancer/train/", "-target", "cancer"};
+        RunBoostedModels.main(trainArgs);
+
+        String[] testArgs = {"-i", "-model", "data/Toy-Cancer/train/models/", "-test", "data/Toy-Cancer/test/", "-target", "cancer"};
+        RunBoostedModels.main(testArgs);
     }
 }
