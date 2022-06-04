@@ -19,7 +19,7 @@ dependencies {
 }
 
 group = 'edu.wisc.cs.will'
-version = '0.1.0'
+version = '0.1.1'
 description = 'SRLBoost'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
