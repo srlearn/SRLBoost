@@ -52,62 +52,60 @@ where slower, more effective learning is critical.
 
 SRLBoost project structure still closely mirrors other implementations.
 
-Currently this can be built as a [Maven](https://maven.apache.org/) package targeting Java 8.
+We're using [Gradle](https://gradle.org/) to help with building and testing, targeting Java 8.
 
 ### Windows Quickstart
 
-1. Open Windows Terminal in Administrator mode, and use [Chocolatey](https://chocolatey.org/) to install Maven and a Java Development Kit.
+1. Open Windows Terminal in Administrator mode, and use [Chocolatey](https://chocolatey.org/) (or your preferred package manager) to install a Java Development Kit.
 
 ```bash
-$ choco install openjdk
-$ choco install maven
+choco install openjdk
 ```
 
 2. Clone and build the package.
 
 ```bash
-$ git clone https://github.com/hayesall/SRLBoost.git
-$ cd .\SRLBoost\
-$ mvn package
+git clone https://github.com/srlearn/SRLBoost.git
+cd .\SRLBoost\
+.\gradlew build
 ```
 
 3. Learn with a basic data set (switching the `X.Y.Z`):
 
 ```bash
-$ java -jar .\target\srlboost-X.Y.Z-jar-with-dependencies.jar -l -train .\data\Toy-Cancer\train\ -target cancer
+java -jar .\build\libs\srlboost-X.Y.Z.jar -l -train .\data\Toy-Cancer\train\ -target cancer
 ```
 
 4. Query the model on the test set (again, swtiching the `X.Y.Z`)
 
 ```bash
-$ java -jar .\target\srlboost-X.Y.Z-jar-with-dependencies.jar -i -model .\data\Toy-Cancer\train\models\ -test .\data\Toy-Cancer\test\ -target cancer
+java -jar .\build\libs\srlboost-X.Y.Z.jar -i -model .\data\Toy-Cancer\train\models\ -test .\data\Toy-Cancer\test\ -target cancer
 ```
 
 ### MacOS / Linux
 
-1. Open your terminal (MacOS: <kbd>⌘</kbd> + <kbd>spacebar</kbd> + "Terminal"), and use [Homebrew](https://brew.sh) to install Maven and a Java Development Kit. (On Linux: `apt`, `dnf`, or `yum` depending on your Linux flavor).
+1. Open your terminal (MacOS: <kbd>⌘</kbd> + <kbd>spacebar</kbd> + "Terminal"), and use [Homebrew](https://brew.sh) to install a Java Development Kit. (On Linux: `apt`, `dnf`, or `yum` depending on your Linux flavor).
 
 ```bash
-$ brew install openjdk
-$ brew install maven
+brew install openjdk
 ```
 
 2. Clone and build the package.
 
 ```bash
-$ git clone https://github.com/hayesall/SRLBoost.git
-$ cd SRLBoost/
-$ mvn package
+git clone https://github.com/hayesall/SRLBoost.git
+cd SRLBoost/
+./gradlew build
 ```
 
 3. Run a basic example (switching the `X.Y.Z`):
 
 ```bash
-$ java -jar target/srlboost-X.Y.Z-jar-with-dependencies.jar -l -train data/Toy-Cancer/train/ -target cancer
+java -jar build/libs/srlboost-X.Y.Z.jar -l -train data/Toy-Cancer/train/ -target cancer
 ```
 
 4. Query the model on the test set (again, swtiching the `X.Y.Z`)
 
 ```bash
-$ java -jar target/srlboost-X.Y.Z-jar-with-dependencies.jar -i -model data/Toy-Cancer/train/models/ -test data/Toy-Cancer/test/ -target cancer
+java -jar build/libs/srlboost-X.Y.Z.jar -i -model data/Toy-Cancer/train/models/ -test data/Toy-Cancer/test/ -target cancer
 ```
