@@ -863,15 +863,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
     // and that we care to score examples not covered by the clause the same as those covered
     // (this makes sense when learning a TREE; if just learning rules, can set theILPtask.multiplerOnFailedRegressionExamples = 0 or a small positive number).
 
-	double oneClassScore() throws SearchInterrupted {
-    	LearnOneClause loc = ((LearnOneClause)this.task);
-    	List<Example> failedEgs = posExampleFailedAtNode();
-    	 return loc.occScorer.calculateKernelScore(
-    				PairWiseExampleScore.removeFromCopy(loc.getPosExamples(), failedEgs),
-    				failedEgs, depth);
-    }
-    
-
 	double regressionFitForMLNs() {
 		LearnOneClause  theILPtask = (LearnOneClause) task;
 
