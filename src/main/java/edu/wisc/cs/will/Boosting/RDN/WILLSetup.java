@@ -95,9 +95,9 @@ public final class WILLSetup {
 
 		String[] file_paths = new String[4];
 
-		file_paths[0] = directory + "/" + prefix + "_" + cmdArgs.getStringForTestsetPos()   + Utils.defaultFileExtensionWithPeriod;
-		file_paths[1] = directory + "/" + prefix + "_" + cmdArgs.getStringForTestsetNeg()   + Utils.defaultFileExtensionWithPeriod;
-		file_paths[3] = directory + "/" + prefix + "_" + cmdArgs.getStringForTestsetFacts() + Utils.defaultFileExtensionWithPeriod;
+		file_paths[0] = directory + "/" + prefix + "_pos"   + Utils.defaultFileExtensionWithPeriod;
+		file_paths[1] = directory + "/" + prefix + "_neg"   + Utils.defaultFileExtensionWithPeriod;
+		file_paths[3] = directory + "/" + prefix + "_facts" + Utils.defaultFileExtensionWithPeriod;
 		file_paths[2] = directory + "/" + prefix + "_bk"                                    + Utils.defaultFileExtensionWithPeriod;
 
 		String appendToPrefix="";
