@@ -1,18 +1,18 @@
 # SRLBoost
 
 A package for learning Statistical Relational Models with Gradient Boosting,
-forked for use as [`srlearn's`](https://github.com/hayesall/srlearn) core.
+forked for use as [`srlearn's`](https://github.com/srlearn/srlearn) core.
 
 ## *It's basically [BoostSRL](https://starling.utdallas.edu/software/boostsrl/) but half the size and significantly faster.*
 
-<img style="max-height: 400px;" src="https://raw.githubusercontent.com/hayesall/SRLBoost/master/docs/lines_of_code_graph.png" alt="Graph comparing the number of lines of code in each fork: BoostSRL, BoostSRL-Lite, and SRLBoost. SRLBoost is about half the size of BoostSRL.">
+<img style="max-height: 400px;" src="https://raw.githubusercontent.com/srlearn/SRLBoost/master/docs/lines_of_code_graph.png" alt="Graph comparing the number of lines of code in each fork: BoostSRL, BoostSRL-Lite, and SRLBoost. SRLBoost is about half the size of BoostSRL.">
 
-Graphs at commit [`cb952a4`](https://github.com/hayesall/SRLBoost/tree/cb952a486c57b0fdaee53a10e25a689f7951e6b4), measured
+Graphs at commit [`cb952a4`](https://github.com/srlearn/SRLBoost/tree/cb952a486c57b0fdaee53a10e25a689f7951e6b4), measured
 with [`cloc-1.84`](https://github.com/AlDanial/cloc).
 
 ## *How much faster?*
 
-<img style="max-height: 500px;" src="https://raw.githubusercontent.com/hayesall/SRLBoost/master/docs/speed_test.png" alt="Box plots comparing the RDN learning time with SRLBoost, BoostSRL-Lite, and BoostSRL 1.1.1">
+<img style="max-height: 500px;" src="https://raw.githubusercontent.com/srlearn/SRLBoost/master/docs/speed_test.png" alt="Box plots comparing the RDN learning time with SRLBoost, BoostSRL-Lite, and BoostSRL 1.1.1">
 
 (*Smaller numbers are better.*)
 
@@ -26,7 +26,7 @@ suggest that `SRLBoost` is at least twice as fast as other implementations.
 
 With some parameter tuning we have sped this up even further.
 
-<img style="max-height: 500px;" src="https://raw.githubusercontent.com/hayesall/SRLBoost/master/docs/cora_speed_test.png" alt="Box plots comparing learning time on the cora data set">
+<img style="max-height: 500px;" src="https://raw.githubusercontent.com/srlearn/SRLBoost/master/docs/cora_speed_test.png" alt="Box plots comparing learning time on the cora data set">
 
 The tiny bar on the left shows the average `SRLBoost` time for Cora is around 17 seconds, compared to around 4.5 minutes for 
 `BoostSRL-Lite` and `BoostSRL` (that's more like 15x faster).
@@ -93,7 +93,7 @@ brew install openjdk
 2. Clone and build the package.
 
 ```bash
-git clone https://github.com/hayesall/SRLBoost.git
+git clone https://github.com/srlearn/SRLBoost.git
 cd SRLBoost/
 ./gradlew build
 ```
