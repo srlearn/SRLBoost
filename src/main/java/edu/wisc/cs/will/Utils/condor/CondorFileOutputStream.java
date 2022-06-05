@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.Utils.condor;
 
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.chirp.ChirpOutputStream;
 
 import java.io.*;
 
@@ -13,61 +12,21 @@ public class CondorFileOutputStream extends OutputStream {
     private OutputStream stream;
 
     public CondorFileOutputStream(File file) throws FileNotFoundException {
-        if (CondorUtilities.isChirp()) {
-            try {
-                stream = new ChirpOutputStream(file.toString());
-            } catch (IOException ex) {
-                stream = null;
-                throw new FileNotFoundException(ex.getMessage());
-            }
-        }
-        else {
-            stream = new FileOutputStream(file);
-        }
+        stream = new FileOutputStream(file);
     }
 
     public CondorFileOutputStream(String fileName) throws FileNotFoundException {
 
-        if (CondorUtilities.isChirp()) {
-            try {
-                stream = new ChirpOutputStream(Utils.replaceWildCards(fileName));
-            } catch (IOException ex) {
-                stream = null;
-                throw new FileNotFoundException(ex.getMessage());
-            }
-        }
-        else {
-            stream = new FileOutputStream(Utils.replaceWildCards(fileName));
-        }
+        stream = new FileOutputStream(Utils.replaceWildCards(fileName));
     }
 
     public CondorFileOutputStream(File file, boolean append) throws FileNotFoundException {
-        if (CondorUtilities.isChirp()) {
-            try {
-                stream = new ChirpOutputStream(file.toString(), append);
-            } catch (IOException ex) {
-                stream = null;
-                throw new FileNotFoundException(ex.getMessage());
-            }
-        }
-        else {
-            stream = new FileOutputStream(file, append);
-        }
+        stream = new FileOutputStream(file, append);
     }
 
     public CondorFileOutputStream(String fileName, boolean append) throws FileNotFoundException {
 
-        if (CondorUtilities.isChirp()) {
-            try {
-                stream = new ChirpOutputStream(Utils.replaceWildCards(fileName), append);
-            } catch (IOException ex) {
-                stream = null;
-                throw new FileNotFoundException(ex.getMessage());
-            }
-        }
-        else {
-            stream = new FileOutputStream(Utils.replaceWildCards(fileName), append);
-        }
+        stream = new FileOutputStream(Utils.replaceWildCards(fileName), append);
     }
 
     public void write(byte[] b, int off, int len) throws IOException {

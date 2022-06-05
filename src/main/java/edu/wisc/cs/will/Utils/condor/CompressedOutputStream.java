@@ -10,7 +10,7 @@ import java.util.zip.GZIPOutputStream;
  */
 public class CompressedOutputStream extends OutputStream {
 
-    private OutputStream realStream;
+    private final OutputStream realStream;
 
     public CompressedOutputStream(String fileName, boolean compressOutput) throws IOException {
         this(new File(fileName), compressOutput);
