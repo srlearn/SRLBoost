@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.Boosting.Common;
 
 import edu.wisc.cs.will.Boosting.MLN.RunBoostedMLN;
-import edu.wisc.cs.will.Boosting.OneClass.RunOneClassModel;
 import edu.wisc.cs.will.Boosting.RDN.RunBoostedRDN;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.Regression.RunBoostedRegressionTrees;
