@@ -54,7 +54,6 @@ public class CommandLineArguments {
 	private double beta=0;
 	
 	private static final String useOCC = "occ";
-	private static final boolean learnOCC=false;
 
 	private static final String learnMLNClauses = "mlnClause";
 	private boolean learningMLNClauses=false;
