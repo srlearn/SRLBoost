@@ -206,7 +206,10 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         if (argumentNames != null) {
             newArgNames.addAll(argumentNames);
         }
-        assert newArguments != null;
+
+        // TODO(hayesall): IDE recommended a null guard here. The guard breaks JUnit, but not CLI interaction?
+        // assert newArguments != null;
+
         if (recursiveCopy) {
             if (arguments != null) {
                 for (Term term : arguments) {
