@@ -587,7 +587,7 @@ public class CommandLineArguments {
 	}
 
 	public boolean isLearnOCC() {
-		return learnOCC;
+		return false;
 	}
 
 	public String getAucPathVal() {
