@@ -242,28 +242,9 @@ public final class WILLSetup {
 		if (Utils.getSizeSafely(backupPosExamples) < 1) {
 			if (Utils.getSizeSafely(backupNegExamples) < 1) { Utils.println("No pos nor neg examples!"); return false; }
 		}
-		
-		if (cmdArgs.getDoInferenceIfModNequalsThis() >= 0) { // See if we have been requested to select a subset (e.g., because the test set is too large to run at once).
-			int valueToKeep = cmdArgs.getDoInferenceIfModNequalsThis();
-			int modN        = CommandLineArguments.modN;
-			List<Example> new_posExamples = new ArrayList<>(posExamples.size() / Math.max(1, modN));
-			List<Example> new_negExamples = new ArrayList<>(negExamples.size() / Math.max(1, modN));
-			int counter = 0;
-			
-			for (Example ex : posExamples) { if (counter % modN == valueToKeep) { new_posExamples.add(ex); } counter++; }
-			for (Example ex : negExamples) { if (counter % modN == valueToKeep) { new_negExamples.add(ex); } counter++; }
-			
-			Utils.println("% whenModEquals: valueToKeep = " + valueToKeep + ",  modN = " + modN + ",  counter = " + Utils.comma(counter) 
-							+ "\n%  POS: new = " + Utils.comma(new_posExamples) +  " old = " + Utils.comma(posExamples)
-							+ "\n%  NEG: new = " + Utils.comma(new_negExamples) +  " old = " + Utils.comma(negExamples)
-							);
-			
-			posExamples = new_posExamples;
-			negExamples = new_negExamples;
-			getOuterLooper().setPosExamples(posExamples); // Set these in case elsewhere they are again gotten.
-			getOuterLooper().setNegExamples(negExamples);
-		}
+
 		if (Utils.getSizeSafely(backupPosExamples) + Utils.getSizeSafely(backupNegExamples) < 1) {
+			// TODO(hayesall): Refactored to remove `getDoInferenceIfModNEqualsThis()`, safe to delete?
 			Utils.println("No pos nor neg examples after calling getDoInferenceIfModNequalsThis()!"); 
 			return false; 
 		}

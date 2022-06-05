@@ -31,10 +31,7 @@ public class CommandLineArguments {
 	// Divide inference examples into this many bins.  THIS IS NEEDED WHEN THE SIZE OF A TESTSET IS TOO LARGE.
 	public static int modN = 10;
 
-	// '-1' means do ALL.
-	private int doInferenceIfModNequalsThis = -1;
 	private static final String indicatorOfModN = "useMod";
-	private static final String indicatorOfDoEveryNth = "doWhenMod";
 
 	// Need to turn this off when using Condor.
 	public boolean useLockFiles = true;
@@ -148,15 +145,6 @@ public class CommandLineArguments {
 	private static final String reweighEx = "reweigh";
 	public boolean reweighExamples = false;
 
-	public int getDoInferenceIfModNequalsThis() {
-		return doInferenceIfModNequalsThis;
-	}
-
-	private String getAnyStringForModEquals() {
-		if (doInferenceIfModNequalsThis < 0) { return ""; }
-		return "whenModEquals" + doInferenceIfModNequalsThis + "_";
-	}
-
 	public boolean parseArgs(String[] args) {
 
 		for (int i = 0; i < args.length; i++) {
@@ -181,10 +169,6 @@ public class CommandLineArguments {
 
 			if (argMatches(args[i], indicatorOfModN)) {
 				modN = Integer.parseInt(args[++i]);
-				continue;
-			}
-			if (argMatches(args[i], indicatorOfDoEveryNth)) {
-				doInferenceIfModNequalsThis = Integer.parseInt(args[++i]);
 				continue;
 			}
 			if (argMatches(args[i], useMLN)) {
@@ -596,7 +580,6 @@ public class CommandLineArguments {
 		String result = "_";
 		if (stringForTestsetPos != null)            { result += stringForTestsetPos + "_"; }
 		if (stringForTestsetNeg != null)            { result += stringForTestsetNeg + "_"; }
-		 result += getAnyStringForModEquals();
 		if (maxLiteralsInAnInteriorNodeVal >= 0)    { result += "Lits"  + maxLiteralsInAnInteriorNodeVal; }
 		if (maxTreesVal                    >= 0)    { result += "Trees" + maxTreesVal; }
 		if (sampleNegsToPosRatioVal        >= 0)    { result += "Skew"     + (int) sampleNegsToPosRatioVal; }
