@@ -579,10 +579,6 @@ public class CommandLineArguments {
 		return sampleNegsToPosRatioVal;
 	}
 
-	public boolean isLearnOCC() {
-		return false;
-	}
-
 	public String getAucPathVal() {
 		return aucPathVal;
 	}
