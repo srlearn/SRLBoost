@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.Utils.NumberGroundingsCalculator;
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;

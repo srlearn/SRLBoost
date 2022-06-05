@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
