@@ -558,7 +558,6 @@ public class CommandLineArguments {
 		String result = "_";
 		result += "pos_";
 		result += "neg_";
-		result += getAnyStringForModEquals();
 		if (maxLiteralsInAnInteriorNodeVal >= 0)    { result += "Lits"  + maxLiteralsInAnInteriorNodeVal; }
 		if (maxTreesVal                    >= 0)    { result += "Trees" + maxTreesVal; }
 		if (sampleNegsToPosRatioVal        >= 0)    { result += "Skew"     + (int) sampleNegsToPosRatioVal; }
