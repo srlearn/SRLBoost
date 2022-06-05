@@ -128,12 +128,6 @@ public class CommandLineArguments {
 
 	private static final String testNegsToPosRatio = "testNegPosRatio";
 	private double testNegsToPosRatioVal = -1;
-	private static final String testPosString      = "testPosString"; // Allow overriding of the default.
-	private String stringForTestsetPos = "pos";
-	private static final String testNegString      = "testNegString"; // Allow overriding of the default.
-	private String stringForTestsetNeg  = "neg";
-	private static final String testFactsString    = "testFactsString"; // Allow overriding of the default.
-	private String stringForTestsetFacts = "facts";
 
 	private static final String aucPath = "aucJarPath";
 	private String aucPathVal = null;
@@ -356,18 +350,6 @@ public class CommandLineArguments {
 				testNegsToPosRatioVal=Double.parseDouble(args[++i]);
 				continue;
 			}
-			if (argMatches(args[i], testPosString)) {
-				stringForTestsetPos = args[++i];
-				continue;
-			}
-			if (argMatches(args[i], testNegString)) {
-				stringForTestsetNeg = args[++i];
-				continue;
-			}
-			if (argMatches(args[i], testFactsString)) {
-				stringForTestsetFacts = args[++i];
-				continue;
-			}
 			if (argMatches(args[i], samplePosProb)) {
 				samplePosProbVal=Double.parseDouble(args[++i]);
 				continue;
@@ -587,16 +569,12 @@ public class CommandLineArguments {
 		return testNegsToPosRatioVal;
 	}
 
-	public String getStringForTestsetPos() {
-		return stringForTestsetPos;
-	}
-
 	public String getExtraMarkerForFiles(boolean includeTestSkew) {
 		// TODO(@hayesall): Factor out the need for the file system.
 		String result = "_";
-		if (stringForTestsetPos != null)            { result += stringForTestsetPos + "_"; }
-		if (stringForTestsetNeg != null)            { result += stringForTestsetNeg + "_"; }
-		 result += getAnyStringForModEquals();
+		result += "pos_";
+		result += "neg_";
+		result += getAnyStringForModEquals();
 		if (maxLiteralsInAnInteriorNodeVal >= 0)    { result += "Lits"  + maxLiteralsInAnInteriorNodeVal; }
 		if (maxTreesVal                    >= 0)    { result += "Trees" + maxTreesVal; }
 		if (sampleNegsToPosRatioVal        >= 0)    { result += "Skew"     + (int) sampleNegsToPosRatioVal; }
@@ -607,14 +585,6 @@ public class CommandLineArguments {
 
 	public int getMaxLiteralsInAnInteriorNode() {
 		return maxLiteralsInAnInteriorNodeVal;
-	}
-
-	public String getStringForTestsetNeg() {
-		return stringForTestsetNeg;
-	}
-	
-	public String getStringForTestsetFacts() {
-		return stringForTestsetFacts;
 	}
 
 	public boolean isJointModelDisabled() {
