@@ -52,8 +52,6 @@ public class CommandLineArguments {
 	
 	private static final String betaFlag="beta";
 	private double beta=0;
-	
-	private static final String useOCC = "occ";
 
 	private static final String learnMLNClauses = "mlnClause";
 	private boolean learningMLNClauses=false;
@@ -205,10 +203,6 @@ public class CommandLineArguments {
 	
 			if (argMatches(args[i], betaFlag)) {
 				beta=Double.parseDouble(args[++i]);
-				continue;
-			}
-			
-			if (argMatches(args[i], useOCC)) {
 				continue;
 			}
 
