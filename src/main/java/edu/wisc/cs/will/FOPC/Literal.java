@@ -207,10 +207,8 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
             newArgNames.addAll(argumentNames);
         }
 
-
+        // TODO(hayesall): IDE recommended a null guard here. The guard breaks JUnit, but not CLI interaction?
         // assert newArguments != null;
-
-        System.out.println("Assertion broke here?");
 
         if (recursiveCopy) {
             if (arguments != null) {
