@@ -999,11 +999,6 @@ public class ILPouterLoop {
     	learnMLNTheory = val;
     	innerLoopTask.setMlnRegressionTask(val);
     }
-    
-    public  void setLearnOCCTree(boolean val) {
-    	innerLoopTask.oneClassTask = val;
-    	learnOCCTree = val;
-    }
 
     public void setFlagsForRegressionTask(boolean notLearnTrees) {
     	innerLoopTask.regressionTask           = true;

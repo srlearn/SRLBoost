@@ -530,7 +530,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 							maxPossiblePosCoverage -= posEx.getWeightOnExample(); // Lost out on this.
 						if (posExamplesThatFailedHere == null) { posExamplesThatFailedHere = new HashSet<>(); }
 						posExamplesThatFailedHere.add(posEx);
-						if (theILPtask.regressionTask && !theILPtask.oneClassTask) {
+						if (theILPtask.regressionTask) {
 							if (cachedLocalRegressionInfoHolder == null) {  // Don't create until needed.
 								cachedLocalRegressionInfoHolder = new LocalRegressionInfoHolder();
 							}
@@ -959,12 +959,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		LearnOneClause theILPtask = (LearnOneClause) task;	
 		if (theILPtask.regressionTask) {
 			double variance;
-			if (theILPtask.oneClassTask) {
-				variance = getVarianceFalseBranch();
-			} else {
-				variance = getRegressionInfoHolder().varianceAtFailure() ;
-				Utils.println("Comparing variance: " + variance + " to score=" + minAcceptableScore + " #egs=" + getRegressionInfoHolder().totalExampleWeightAtFailure());
-			}
+			variance = getRegressionInfoHolder().varianceAtFailure() ;
+			Utils.println("Comparing variance: " + variance + " to score=" + minAcceptableScore + " #egs=" + getRegressionInfoHolder().totalExampleWeightAtFailure());
 			return variance <= minAcceptableScore;
 		}
 
@@ -991,9 +987,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	double getVarianceTrueBranch(boolean computeMean) throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
-		if (theILPtask.oneClassTask) {
-			return theILPtask.occScorer.getVariance(PairWiseExampleScore.removeFromCopy(theILPtask.getPosExamples(), posExampleFailedAtNode()));
-		}
 		if (theILPtask.regressionTask) {
 			RegressionInfoHolder holder = getRegressionInfoHolder();
 			if (computeMean && holder.totalExampleWeightAtSuccess() > 0.0) { return  holder.varianceAtSuccess(); }
@@ -1008,10 +1001,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	double getVarianceFalseBranch(boolean computeMean) throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
-		
-		if (theILPtask.oneClassTask) {
-			return theILPtask.occScorer.getVariance(this.posExampleFailedAtNode());
-		}
+
 		if (theILPtask.regressionTask) {
 			RegressionInfoHolder holder = getRegressionInfoHolder();
 			if (computeMean && holder.totalExampleWeightAtFailure() > 0.0) { return  holder.varianceAtFailure(); }
@@ -1024,14 +1014,10 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		LearnOneClause theILPtask = (LearnOneClause) task;
 		if (theILPtask.regressionTask) {
 				double variance;
-				if (theILPtask.oneClassTask) {
-					variance = getVarianceTrueBranch();
-				} else {
-					variance = getRegressionInfoHolder().varianceAtSuccess() ;
-					Utils.println("Comparing variance: " + variance + " to score=" + acceptableScore+ " #egs=" + getRegressionInfoHolder().totalExampleWeightAtSuccess());
-				}	
-				
-				return variance <= acceptableScore;
+			variance = getRegressionInfoHolder().varianceAtSuccess() ;
+			Utils.println("Comparing variance: " + variance + " to score=" + acceptableScore+ " #egs=" + getRegressionInfoHolder().totalExampleWeightAtSuccess());
+
+			return variance <= acceptableScore;
 		}
 		
 		double precision = precision();

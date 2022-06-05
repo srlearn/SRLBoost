@@ -125,8 +125,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	public    boolean			  regressionTask    = false; // Is this a REGRESSION task?
 	boolean			  mlnRegressionTask	= false;
     private boolean             learnMultiValPredicates             = false;
-    boolean			  oneClassTask		= false;
-    public 	  PairWiseExampleScore occScorer			= null;
 	final boolean 			  sampleForScoring  = false;
 	final int				  maxExamplesToSampleForScoring = 300;
 
