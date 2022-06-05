@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
@@ -125,8 +124,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	public    boolean			  regressionTask    = false; // Is this a REGRESSION task?
 	boolean			  mlnRegressionTask	= false;
     private boolean             learnMultiValPredicates             = false;
-    boolean			  oneClassTask		= false;
-    public 	  PairWiseExampleScore occScorer			= null;
 	final boolean 			  sampleForScoring  = false;
 	final int				  maxExamplesToSampleForScoring = 300;
 
