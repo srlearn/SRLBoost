@@ -853,7 +853,7 @@ public final class WILLSetup {
 
 		try {
 			SearchStrategy         strategy = new BestFirstSearch();
-			ScoreSingleClause        scorer = (cmdArgs.isLearnOCC() ? new ScoreOCCNode() :  new ScoreRegressionNode(cmdArgs.isLearnMLN()));
+			ScoreSingleClause        scorer = new ScoreRegressionNode(cmdArgs.isLearnMLN());
 
 			// We're (sometimes) using A SMALL INDEX HERE, since the memory needs are already very large (i.e., trade off time for space).
 			// We need to keep all the literals related to a specific proof (i.e., test of a hypothesis) around, but are willing to redo between proofs.

@@ -185,11 +185,7 @@ public abstract class RunBoostedModels {
 				runClass = new RunBoostedRegressionTrees();
 			}
 			else {
-				if (cmd.isLearnOCC()) {
-					runClass = new RunOneClassModel();
-				} else {
-					runClass = new RunBoostedRDN();
-				}
+				runClass = new RunBoostedRDN();
 			}
 		}
 		runClass.setCmdArgs(cmd);
