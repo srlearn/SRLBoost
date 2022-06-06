@@ -29,7 +29,7 @@ jacocoTestReport {
 }
 
 group = 'edu.wisc.cs.will'
-version = '0.1.1'
+version = '0.2.0'
 description = 'SRLBoost'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
