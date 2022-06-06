@@ -23,7 +23,7 @@ public class CommandLineArguments {
 	 * 5. Define a usage string in getUsageString
 	 */
 
-	public static final String srlboost_version = "0.1.1";
+	public static final String srlboost_version = "0.2.0";
 
 	private static final String argPrefix = "-";
 	private static final String learn = "l";
