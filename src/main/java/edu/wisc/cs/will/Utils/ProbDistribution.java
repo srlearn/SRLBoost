@@ -20,6 +20,17 @@ public class ProbDistribution {
 		setProbOfBeingTrue(prob);
 	}
 
+	public ProbDistribution(double prob, boolean regression) {
+		setProbOfBeingTrue(prob, regression);
+	}
+
+	public void setProbOfBeingTrue(double probOfBeingTrue, boolean regression) {
+		if (regression) {
+			setHasDistribution(false);
+			this.probOfBeingTrue = probOfBeingTrue;
+		}
+	}
+
 	public ProbDistribution(ProbDistribution copy) {
 		this.hasDistribution  = copy.hasDistribution;
 		if (hasDistribution) {

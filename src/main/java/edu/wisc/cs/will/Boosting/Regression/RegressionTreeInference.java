@@ -31,7 +31,7 @@ public class RegressionTreeInference extends SRLInference {
 		if (reg.isHasVector()) {
 			Utils.error("Pure regression tree learning doesn't learn vectors!!");
 		}
-		return new ProbDistribution(reg.getSingleRegressionValue());
+		return new ProbDistribution(reg.getSingleRegressionValue(), true);
 	}
 
 	@Override
