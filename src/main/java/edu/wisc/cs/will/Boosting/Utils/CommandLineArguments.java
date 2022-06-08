@@ -133,9 +133,6 @@ public class CommandLineArguments {
 	private static final String samplePosProb = "samplePositive";
 	private double samplePosProbVal = -1.0;
 
-	private static final String reweighEx = "reweigh";
-	public boolean reweighExamples = false;
-
 	public boolean parseArgs(String[] args) {
 
 		for (int i = 0; i < args.length; i++) {
@@ -206,10 +203,6 @@ public class CommandLineArguments {
 			}
 			if (argMatches(args[i], maxMLNLength)) {
 				maxMLNClauseLength=Integer.parseInt(args[++i]);
-				continue;
-			}
-			if (argMatches(args[i], reweighEx)) {
-				reweighExamples=true;
 				continue;
 			}
 			if (argMatches(args[i], outName)) {
