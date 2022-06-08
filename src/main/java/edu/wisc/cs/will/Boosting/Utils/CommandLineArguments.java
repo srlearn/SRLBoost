@@ -127,7 +127,6 @@ public class CommandLineArguments {
 	private double testNegsToPosRatioVal = -1;
 
 	private static final String aucPath = "aucJarPath";
-	private String aucPathVal = null;
 
 	private static final String modelName = "modelSuffix";
 	private String modelFileVal = null;
@@ -340,7 +339,8 @@ public class CommandLineArguments {
 			}
 				
 			if (argMatches(args[i], aucPath)) {
-				aucPathVal = args[++i];
+				// TODO(hayesall): No longer used, but might be passed in other setups where I've shelled out.
+				String aucPathVal = args[++i];
 				continue;
 			}			
 			if (argMatches(args[i], modelName)) {
@@ -543,10 +543,6 @@ public class CommandLineArguments {
 
 	public double getSampleNegsToPosRatioVal() {
 		return sampleNegsToPosRatioVal;
-	}
-
-	public String getAucPathVal() {
-		return aucPathVal;
 	}
 
 	public double getTestNegsToPosRatioVal() {
