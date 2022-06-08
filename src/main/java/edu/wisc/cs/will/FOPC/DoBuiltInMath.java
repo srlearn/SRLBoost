@@ -145,9 +145,7 @@ public class DoBuiltInMath extends AllOfFOPC {
             double result = simplifyAsDouble(expression);
             FunctionName fName = ((Function) expression).functionName;
             if (       fName == stringHandler.standardPredicateNames.intFunction 
-            		|| fName == stringHandler.standardPredicateNames.signFunction
-                    || fName == stringHandler.standardPredicateNames.intDivFunction
-                    || fName == stringHandler.standardPredicateNames.roundFunction) {
+                    || fName == stringHandler.standardPredicateNames.intDivFunction) {
                 return stringHandler.getNumericConstant((int) result);
             }
             return stringHandler.getNumericConstant(result);
@@ -264,67 +262,6 @@ public class DoBuiltInMath extends AllOfFOPC {
                 }
                 return minValue;
             }
-            else if (name == stringHandler.standardPredicateNames.starStarFunction) {
-                if (args.size() != 2) {
-                    Utils.error("Can only have TWO arguments here: " + expression);
-                }
-                return Math.pow(simplifyAsDouble(args.get(0)), simplifyAsDouble(args.get(1)));
-            }
-            else if (name == stringHandler.standardPredicateNames.randomFunction) {
-                if (!args.isEmpty()) {
-                    Utils.error("Can only have ZERO arguments here: " + expression);
-                }
-                return Utils.random();
-            }
-            else if (name == stringHandler.standardPredicateNames.ceilFunction) {
-                if (args.size() != 1) {
-                    Utils.error("Can only have ONE argument here: " + expression);
-                }
-                return Math.ceil(simplifyAsDouble(args.get(0)));
-            }
-            else if (name == stringHandler.standardPredicateNames.floorFunction) {
-                if (args.size() != 1) {
-                    Utils.error("Can only have ONE argument here: " + expression);
-                }
-                return Math.floor(simplifyAsDouble(args.get(0)));
-            }
-            else if (name == stringHandler.standardPredicateNames.signFunction) {
-                if (args.size() != 1) {
-                    Utils.error("Can only have ONE argument here: " + expression);
-                }
-                double result = simplifyAsDouble(args.get(0));
-                if (result > 0) {
-                    return 1.0;
-                }
-                if (result < 0) {
-                    return -1.0;
-                }
-                return 0.0;
-            }
-            else if (name == stringHandler.standardPredicateNames.roundFunction) {
-                if (args.size() != 1) {
-                    Utils.error("Can only have ONE argument here: " + expression);
-                }
-                return Math.round(simplifyAsDouble(args.get(0)));
-            }
-            else if (name == stringHandler.standardPredicateNames.hypotFunction) {
-                if (args.size() != 1) {
-                    Utils.error("Can only have ONE argument here: " + expression);
-                }
-                return Math.hypot(simplifyAsDouble(args.get(0)), simplifyAsDouble(args.get(1)));
-            }
-            else if (name == stringHandler.standardPredicateNames.toDegreesFunction) {
-                if (args.size() != 1) {
-                    Utils.error("Can only have ONE argument here: " + expression);
-                }
-                return Math.toDegrees(simplifyAsDouble(args.get(0)));
-            }
-            else if (name == stringHandler.standardPredicateNames.toRadiansFunction) {
-                if (args.size() != 1) {
-                    Utils.error("Can only have ONE argument here: " + expression);
-                }
-                return Math.toRadians(simplifyAsDouble(args.get(0)));
-            }
             else if (name == stringHandler.standardPredicateNames.pullOutNthArgFunction) {
                 if (args.size() != 2) {
                     Utils.error("Must have two arguments here: " + expression);
@@ -332,14 +269,6 @@ public class DoBuiltInMath extends AllOfFOPC {
                 NumericConstant index = (NumericConstant) args.get(0);
                 Function arg1 = (Function) args.get(1);
                 return simplifyAsDouble(arg1.getArgument(index.value.intValue()));
-            }
-            else if (name == stringHandler.standardPredicateNames.lengthFunction || name == stringHandler.standardPredicateNames.positionFunction) {
-                Term result = listHandler.simplify(expression);
-
-                if (result instanceof NumericConstant) {
-                    return ((NumericConstant) result).value.doubleValue();
-                }
-                Utils.error("Unknown result of processing " + expression + "\n " + result);
             }
             Utils.error("Unknown math operator: " + name);
         } else if (expression instanceof SentenceAsTerm) {

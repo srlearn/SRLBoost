@@ -44,18 +44,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     final PredicateName setOfCollector;
 
-    public final PredicateName first;
-
-    public final PredicateName rest;
-
-    public final PredicateName push;
-
-    public final PredicateName remove;
-
-    public final PredicateName reverse;
-
-    public final PredicateName position;
-
     public final PredicateName length;
 
     final PredicateName countProofsCollector;
@@ -100,8 +88,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName spy;
 
-    final PredicateName createUniqueStringConstant;
-
     public final PredicateName consCell;
 
     final FunctionName plusFunction;  // TODO build in a hash table of synonyms?
@@ -121,28 +107,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
     final FunctionName minFunction;
 
     final FunctionName maxFunction;
-
-    final FunctionName starStarFunction;
-
-    final FunctionName randomFunction;  // A number uniformly drawn from [0,1).  Uses the 'random' used elsewhere in this code so that runs can be repeated deterministically.
-
-    final FunctionName ceilFunction; // From Java: Returns the smallest (closest to negative infinity) double value that is greater than or equal to the argument and is equal to a mathematical integer.
-
-    final FunctionName floorFunction;
-
-    final FunctionName roundFunction;
-
-    final FunctionName signFunction;
-
-    final FunctionName hypotFunction; // From Java: Returns sqrt(x^2 +y^2) without intermediate overflow or underflow.
-
-    final FunctionName toDegreesFunction; // Since in Java's Math class, might as well include them.
-
-    final FunctionName toRadiansFunction;
-
-    final FunctionName lengthFunction;   // Since this returns a number, do here as well as in DoBuiltInListProcessing.
-
-    final FunctionName positionFunction; // Since this returns a number, do here as well as in DoBuiltInListProcessing.
 
     final FunctionName minus2Function;
 
@@ -168,27 +132,11 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName gt;  // Prefix versions of these comparators haven't been provided.
 
-    final PredicateName gt2;
-
     public final PredicateName lt;
-
-    final PredicateName lt2;
 
     final PredicateName gte;   // gte = greater-than-or-equal
 
-    final PredicateName gte2;
-
     public final PredicateName lte;   // lte = less-than-or-equal
-
-    final PredicateName lte2;
-
-    final PredicateName lte3;
-
-    final PredicateName equalNumbers;  // Equal numbers.
-
-    final PredicateName notEqualNumbers; // Not equal numbers.
-
-    final PredicateName equalDotDot;
 
     public final Set<PredicateName> buildinPredicates;
 
@@ -216,17 +164,9 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         ground = stringHandler.getPredicateName("ground");
         copyTerm = stringHandler.getPredicateName("copy_term");
         gt = stringHandler.getPredicateName(">");  // Prefix versions of these comparators haven't been provided.
-        gt2 = stringHandler.getPredicateName("gt");
         lt = stringHandler.getPredicateName("<");
-        lt2 = stringHandler.getPredicateName("lt");
         gte = stringHandler.getPredicateName(">=");   // gte = greater-than-or-equal
-        gte2 = stringHandler.getPredicateName("gte");
         lte = stringHandler.getPredicateName("=<");   // lte = less-than-or-equal
-        lte2 = stringHandler.getPredicateName("<=");
-        lte3 = stringHandler.getPredicateName("lte");
-        equalNumbers = stringHandler.getPredicateName("=:=");  // Equal numbers.
-        notEqualNumbers = stringHandler.getPredicateName("=\\="); // Not equal numbers.
-        equalDotDot = stringHandler.getPredicateName("=..");
         print = stringHandler.getPredicateName("print");
         write = stringHandler.getPredicateName("write"); // A synonym for 'print.'
         waitHere = stringHandler.getPredicateName("waitHere");
@@ -235,12 +175,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         allCollector = stringHandler.getPredicateName("allCollector");
         bagOfCollector = stringHandler.getPredicateName("bagofCollector");
         setOfCollector = stringHandler.getPredicateName("setofCollector");
-        first = stringHandler.getPredicateName("first");
-        rest = stringHandler.getPredicateName("rest");
-        push = stringHandler.getPredicateName("push");
-        remove = stringHandler.getPredicateName("remove");
-        reverse = stringHandler.getPredicateName("reverse");
-        position = stringHandler.getPredicateName("position");
         length = stringHandler.getPredicateName("length");
         countProofsCollector = stringHandler.getPredicateName("countProofsCollector");
         countUniqueBindingsCollector = stringHandler.getPredicateName("countUniqueBindingsCollector");
@@ -261,7 +195,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         countUniqueBindings = stringHandler.getPredicateName("countUniqueBindings");
         then = stringHandler.getPredicateName("then");
         negationByFailure = stringHandler.getPredicateName("\\+");
-        createUniqueStringConstant = stringHandler.getPredicateName("createUniqueStringConstant");
         sort = stringHandler.getPredicateName("sort");
 
         negationByFailureAsFunction = stringHandler.getFunctionName("\\+");
@@ -271,22 +204,11 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         timesFunction = stringHandler.getFunctionName("*");
         divideFunction = stringHandler.getFunctionName("/");   // Note that in essence 'true' division, rather than integer division, is used.
         intDivFunction = stringHandler.getFunctionName("/@"); // In ISO Prolog, this is '//' but that is a comment indicator to us.
-        starStarFunction = stringHandler.getFunctionName("**");
 
         intFunction = stringHandler.getFunctionName("integer"); // Allow the user to force integer results.
         modFunction = stringHandler.getFunctionName("mod"); // Use Java's definition of mod.  Don't use a single-character symbol due to confusion between Java and Prolog.
         minFunction = stringHandler.getFunctionName("min");
         maxFunction = stringHandler.getFunctionName("max");
-        randomFunction = stringHandler.getFunctionName("random");
-        ceilFunction = stringHandler.getFunctionName("ceiling"); // Also use 'ceil' since that is Java's name.
-        floorFunction = stringHandler.getFunctionName("floor");
-        roundFunction = stringHandler.getFunctionName("round");
-        signFunction = stringHandler.getFunctionName("sign");
-        hypotFunction = stringHandler.getFunctionName("hypot");
-        toDegreesFunction = stringHandler.getFunctionName("toDegrees");
-        toRadiansFunction = stringHandler.getFunctionName("toRadians");
-        lengthFunction = stringHandler.getFunctionName("length"); // Explicitly list those list-processing functions that return numbers.
-        positionFunction = stringHandler.getFunctionName("position");
         FunctionName isFunction = stringHandler.getFunctionName("is");
         FunctionName unifyFunction = stringHandler.getFunctionName("unify");
         FunctionName unify2Function = stringHandler.getFunctionName("=");
@@ -328,10 +250,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         lt.printUsingInFixNotation = true;
         gte.printUsingInFixNotation = true;
         lte.printUsingInFixNotation = true;
-        lte2.printUsingInFixNotation = true;
-        equalNumbers.printUsingInFixNotation = true;
-        notEqualNumbers.printUsingInFixNotation = true;
-        equalDotDot.printUsingInFixNotation = true;
 
         isFunction.printUsingInFixNotation = true;
         plusFunction.printUsingInFixNotation = true;
@@ -339,7 +257,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         timesFunction.printUsingInFixNotation = true;
         divideFunction.printUsingInFixNotation = true;
         intDivFunction.printUsingInFixNotation = true;
-        starStarFunction.printUsingInFixNotation = true;
         unify2Function.printUsingInFixNotation = true;
         ununifiable2Function.printUsingInFixNotation = true;
         equal2Function.printUsingInFixNotation = true;

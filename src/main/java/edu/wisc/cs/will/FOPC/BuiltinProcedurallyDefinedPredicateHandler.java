@@ -3,10 +3,7 @@ package edu.wisc.cs.will.FOPC;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-import edu.wisc.cs.will.stdAIsearch.StateBasedSearchTask;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 
@@ -126,16 +123,8 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.lt,2));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.gte,2));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.lte,2));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.gt2,2));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.lt2,2));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.lte2,2));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.gte2,2));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.lte3,2));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.equalNumbers,2));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.notEqualNumbers,2));
         hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.halt,0));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.halt,1));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.equalDotDot,2));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.findAllCollector,2));
         hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.findAllCollector,3));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.allCollector,2));
@@ -146,14 +135,8 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
         hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.countProofsCollector,3));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.countUniqueBindingsCollector,2));
         hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.countUniqueBindingsCollector,3));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.first,2));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.rest,2));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.push,3));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.remove,3));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.reverse,2));
         hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.sort,2));
         hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.length,2));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.createUniqueStringConstant, 2));
 
 		stringHandler.cleanFunctionAndPredicateNames = hold_cleanFunctionAndPredicateNames;
 	}
@@ -212,47 +195,33 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 		if ((pred == stringHandler.standardPredicateNames.number) && numbArgs == 1) {
 			return (args.get(0) instanceof NumericConstant ? bindingList : null);
 		}
-		if ((pred == stringHandler.standardPredicateNames.gt || pred == stringHandler.standardPredicateNames.gt2) && numbArgs == 2) {
+		if ((pred == stringHandler.standardPredicateNames.gt) && numbArgs == 2) {
 			confirmAllVarsAreBound("gt: ", args, true);
 			if (!(args.get(0) instanceof NumericConstant) || !(args.get(1) instanceof NumericConstant)) { Utils.error("Both args must be numbers: " + literal); }
 			double value1 = ((NumericConstant) args.get(0)).value.doubleValue();
 			double value2 = ((NumericConstant) args.get(1)).value.doubleValue();
 			return (value1 > value2 ? bindingList : null);
 		}
-		if ((pred == stringHandler.standardPredicateNames.lt || pred == stringHandler.standardPredicateNames.lt2)  && numbArgs == 2) {
+		if ((pred == stringHandler.standardPredicateNames.lt)  && numbArgs == 2) {
 			confirmAllVarsAreBound("lt: ", args, true);
 			if (!(args.get(0) instanceof NumericConstant) || !(args.get(1) instanceof NumericConstant)) { Utils.error("Both args must be numbers: " + literal); }
 			double value1 = ((NumericConstant) args.get(0)).value.doubleValue();
 			double value2 = ((NumericConstant) args.get(1)).value.doubleValue();
 			return (value1 < value2 ? bindingList : null);
 		}
-		if ((pred == stringHandler.standardPredicateNames.gte || pred == stringHandler.standardPredicateNames.gte2) && numbArgs == 2) {
+		if ((pred == stringHandler.standardPredicateNames.gte) && numbArgs == 2) {
 			confirmAllVarsAreBound("gte: ", args, true);
 			if (!(args.get(0) instanceof NumericConstant) || !(args.get(1) instanceof NumericConstant)) { Utils.error("Both args must be numbers: " + literal); }
 			double value1 = ((NumericConstant) args.get(0)).value.doubleValue();
 			double value2 = ((NumericConstant) args.get(1)).value.doubleValue();
 			return (value1 >= value2 ? bindingList : null);
 		}
-		if ((pred == stringHandler.standardPredicateNames.lte || pred == stringHandler.standardPredicateNames.lte2 || pred == stringHandler.standardPredicateNames.lte3) && numbArgs == 2) {
+		if ((pred == stringHandler.standardPredicateNames.lte) && numbArgs == 2) {
 			confirmAllVarsAreBound("lte: ", args, true);
 			if (!(args.get(0) instanceof NumericConstant) || !(args.get(1) instanceof NumericConstant)) { Utils.error("Both args must be numbers: " + literal); }
 			double value1 = ((NumericConstant) args.get(0)).value.doubleValue();
 			double value2 = ((NumericConstant) args.get(1)).value.doubleValue();
 			return (value1 <= value2 ? bindingList : null);
-		}
-		if (pred == stringHandler.standardPredicateNames.equalNumbers && numbArgs == 2) {
-			confirmAllVarsAreBound("equalNumbers: ", args, true);
-			if (!(args.get(0) instanceof NumericConstant) || !(args.get(1) instanceof NumericConstant)) { Utils.error("Both args must be numbers: " + literal); }
-			double value1 = ((NumericConstant) args.get(0)).value.doubleValue();
-			double value2 = ((NumericConstant) args.get(1)).value.doubleValue();
-			return (value1 == value2 ? bindingList : null);
-		}
-		if (pred == stringHandler.standardPredicateNames.notEqualNumbers && numbArgs == 2) {
-			confirmAllVarsAreBound("notEqualNumbers: ", args, true);
-			if (!(args.get(0) instanceof NumericConstant) || !(args.get(1) instanceof NumericConstant)) { Utils.error("Both args must be numbers: " + literal); }
-			double value1 = ((NumericConstant) args.get(0)).value.doubleValue();
-			double value2 = ((NumericConstant) args.get(1)).value.doubleValue();
-			return (value1 != value2 ? bindingList : null);
 		}
 		if (pred == stringHandler.standardPredicateNames.print || pred == stringHandler.standardPredicateNames.write) {
 			if (args == null) { Utils.println(""); } else { Utils.println(pred.toString() + ":" + args); }
@@ -261,18 +230,6 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 		if (pred == stringHandler.standardPredicateNames.waitHere || pred == stringHandler.standardPredicateNames.wait) {
 			Utils.waitHere(args.toString()); // Should we FORCE a wait?  Probably not since this would likely be used for debugging.
 			return bindingList;
-		}
-		if (pred == stringHandler.standardPredicateNames.equalDotDot && numbArgs == 2) { // Note: the function name is returned as a StringConstant.
-			if (args.get(0) instanceof Function) {
-				Function       f     = (Function) args.get(0);
-				FunctionName   fName = f.functionName;
-				List<Term>     fArgs = f.getArguments();
-				StringConstant f2    = context.getStringHandler().getStringConstant(fName.name);
-				fArgs.add(0, f2); // Push the function name on the front.
-				ConsCell consCell = ConsCell.convertListToConsCell(context.getStringHandler(), fArgs);
-				return unifier.unify(consCell, args.get(1), bindingList);
-			}
-			Utils.error("In a '=..' the first argument must be a function.  You provided: '" + literal);
 		}
 		if (pred == stringHandler.standardPredicateNames.findAllCollector) {
 			if (numbArgs == 2) { // We're collecting allCollector answers in this phase.
@@ -389,48 +346,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
             return unifier.unify(copy, args.get(1), bindingList);
 
 		}
-		if (pred == stringHandler.standardPredicateNames.first  && numbArgs == 2) {
-			Term arg0 = args.get(0);
-			if (arg0 instanceof Variable) { return null; }
-			ConsCell cc     = ConsCell.ensureIsaConsCell(context.getStringHandler(), args.get(0));
-			return unifier.unify(cc.first(), args.get(1), bindingList);
-		}
-		if (pred == stringHandler.standardPredicateNames.rest  && numbArgs == 2) {
-			Term arg0 = args.get(0);
-			if (arg0 instanceof Variable) { return null; }
-			ConsCell cc     = ConsCell.ensureIsaConsCell(context.getStringHandler(), args.get(0));
-			return unifier.unify(cc.rest(), args.get(1), bindingList);
-		}
-		if (pred == stringHandler.standardPredicateNames.push  && numbArgs == 3) {
-			Term arg1 = args.get(1);
-			if (arg1 instanceof Variable) { Utils.error("Second argument cannot be a variable: " + literal); }
-            if (args.get(1) instanceof ConsCell) {
-                ConsCell cc = (ConsCell) args.get(1);
-                return unifier.unify(cc.push(args.get(0)), args.get(2), bindingList);
-            }
-            else {
-                return null;
-            }
-		}
-		if (pred == stringHandler.standardPredicateNames.remove  && numbArgs == 3) {
-			Term arg1 = args.get(1);
-			if (arg1 instanceof Variable) { Utils.error("Second argument cannot be a variable: " + literal); }
-			ConsCell cc     = ConsCell.ensureIsaConsCell(context.getStringHandler(), args.get(1));
-			return unifier.unify(cc.remove(args.get(0)), args.get(2), bindingList);
-		}
-		if (pred == stringHandler.standardPredicateNames.reverse  && numbArgs == 2) {
-			Term arg0 = args.get(0);
-			Term arg1 = args.get(1);
-			if (arg0 instanceof Variable) { 
-				ConsCell cc     = ConsCell.ensureIsaConsCell(context.getStringHandler(), arg1);
-				return unifier.unify(cc.reverse(), arg0, bindingList);
-			}
-			if (arg1 instanceof Variable) {
-				ConsCell cc     = ConsCell.ensureIsaConsCell(context.getStringHandler(), arg0);
-				return unifier.unify(cc.reverse(), arg1, bindingList);
-			}
-			Utils.error("One argument must be a variable: " + literal);
-		}
+
 		if (pred == stringHandler.standardPredicateNames.sort && numbArgs == 2) {
 			Term arg0 = args.get(0);
 			Term arg1 = args.get(1);
@@ -444,14 +360,6 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 			}
 			Utils.error("One argument must be a variable: " + literal);
 		}
-		if (pred == stringHandler.standardPredicateNames.position  && numbArgs == 3) {
-			Term arg1 = args.get(1);
-			if (arg1 instanceof Variable) { Utils.error("Second argument cannot be a variable: " + literal); }
-			ConsCell cc     = ConsCell.ensureIsaConsCell(context.getStringHandler(), args.get(1));
-			int   result = cc.position(args.get(0));
-			if (result < 0) { return null; }
-			return unifier.unify(context.getStringHandler().getNumericConstant(result), args.get(2), bindingList);
-		}
 		if (pred == stringHandler.standardPredicateNames.length && numbArgs == 2) {
 			Term arg0 = args.get(0);
 			if (arg0 instanceof Variable) { Utils.error("First argument cannot be a variable: " + literal); }
@@ -464,12 +372,6 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 		if (pred == stringHandler.standardPredicateNames.halt   && numbArgs == 1) {
 			throw new SearchInterrupted(args.get(0).toString());
 		}
-        if (pred == stringHandler.standardPredicateNames.createUniqueStringConstant && numbArgs == 2) {
-			Term arg0 = args.get(0);
-			if (!(arg0 instanceof StringConstant)) { Utils.error("First argument must be a StringConstant: " + literal); }
-			StringConstant result = context.getStringHandler().getUniqueStringConstant(arg0.toString());
-			return   unifier.unify(result, args.get(1), bindingList);
-        }
 
 		if (pred == stringHandler.standardPredicateNames.negationByFailure && numbArgs == 1) {
 			Utils.error("Negation-by-failure is handled elsewhere (in HornProofStepGenerator) and should not reach here.");
