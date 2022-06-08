@@ -8,6 +8,7 @@ precomputed*.txt*
 **/*_gleaner.*
 **/AUC/
 **/models/
+.mln
 
 # Backup files
 *~
