@@ -8,7 +8,6 @@ import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings.VarIndicator;
-import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.*;
 import edu.wisc.cs.will.ResThmProver.*;
 import edu.wisc.cs.will.Utils.Utils;
@@ -452,7 +451,7 @@ public final class WILLSetup {
 		// Get the children for this predicate of type COMPUTED
 		Collection<PredicateName> recomputeThese = rdnForPrecompute.getPredicatesComputedFrom(predicate);
 		if(recomputeThese != null && recomputeThese.size() > 0) {
-			ArrayList<PredicateName> orderedPrecomputes = getOrderOfPrecomputes(recomputeThese);
+			ArrayList<PredicateName> orderedPrecomputes = getOrderOfPrecomputes();
 			for (PredicateName pName : orderedPrecomputes) {
 				deleteAllFactsForPredicate(pName);
 				recomputer.recomputeFactsFor(pName);
@@ -460,37 +459,9 @@ public final class WILLSetup {
 		}
 	}
 
-	private ArrayList<PredicateName> getOrderOfPrecomputes(
-			Collection<PredicateName> recomputeThese) {
-		ArrayList<PredicateName> predicateNames=new ArrayList<>();
+	private ArrayList<PredicateName> getOrderOfPrecomputes() {
 		// Creating a copy to make sure, we dont erase from original
-		Set<PredicateName> inputPredicateNames = new HashSet<>(recomputeThese);
-		FileParser parser = getInnerLooper().getParser();
-		for (int i = 0; i < getInnerLooper().getParser().getNumberOfPrecomputeFiles(); i++) {
-			List<Sentence> precomputeThese = parser.getSentencesToPrecompute(i);
-			if (precomputeThese == null) {
-				continue;
-			}
-			for (Sentence sentence : precomputeThese) {
-				List<Clause> clauses = sentence.convertToClausalForm();
-				if (clauses == null) {
-					continue;
-				}
-				// Take each clause
-				for (Clause clause : clauses) {
-					if (!clause.isDefiniteClause()) { 
-						Utils.error("Can only precompute Horn ('definite' actually) clauses.  You provided: '" + sentence + "'."); 
-					}
-
-					PredicateName headPredName = clause.posLiterals.get(0).predicateName;
-					if(inputPredicateNames.contains(headPredName)) {
-						predicateNames.add(headPredName);
-						inputPredicateNames.remove(headPredName);
-					}
-				}
-			}
-		}
-		return predicateNames;
+		return new ArrayList<>();
 	}
 
 	private void deleteAllFactsForPredicate(PredicateName pName) {

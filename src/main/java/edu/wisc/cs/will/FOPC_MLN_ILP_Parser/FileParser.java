@@ -88,17 +88,11 @@ public class FileParser {
 	private                 boolean dontPrintUnlessImportant = true;
     
     public          static final boolean allowSingleQuotes        = true; // If true, can use single quotes to wrap strings.
-	 
-	// Allows user to set it to a higher number but doesn't penalize all runs where there are fewer precomputes
-	// It is mildly risky to make this a static, but acceptable.
-	private    static int numberOfPrecomputeFiles = 125;
 
 	private              int maxWarnings  = 100; // This can be reset via 'setParameter maxWarnings = 10'
 
 	public final HandleFOPCstrings  stringHandler;
 	private StreamTokenizerJWS tokenizer;
-	private List<Sentence>[]   sentencesToPrecompute;
-	private String[]           sentencesToPrecomputeFileNameToUse;
 	private String             directoryName      = null;
 	private String             prefix             = null;
 	private String             fileName           = null;
@@ -108,16 +102,6 @@ public class FileParser {
 
 	public FileParser(HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
-	}
-
-	public List<Sentence> getSentencesToPrecompute(int index) {
-		if (sentencesToPrecompute == null) { return null; }
-		return sentencesToPrecompute[index];
-	}
-
-	public String getFileNameForSentencesToPrecompute(int index) {
-		if (sentencesToPrecomputeFileNameToUse == null) { return null; }
-		return sentencesToPrecomputeFileNameToUse[index];
 	}
 
 	// Return what seems to be the working directory for the current task.
@@ -527,100 +511,6 @@ public class FileParser {
 		return stringHandler.getLiteral(pName, args);
 	}
 
-	private Term processMathExpression(Term initialTerm, boolean argumentsMustBeTyped, boolean insideLeftParen) throws ParsingException, IOException  {
-		// Need to process something like "X is Y + Z / Q." where "X is" has been absorbed already.
-		// When this is called, have encountered an left parenthesis or am starting a new in-fix expression.
-
-		List<AllOfFOPC> accumulator = new ArrayList<>(4);
-		boolean         lookingForTerm = true;
-		if (initialTerm != null) {
-			accumulator.add(initialTerm);
-			lookingForTerm = false;
-		}
-		while (true) {
-			int tokenRead = getNextToken();
-			if (processPossibleConnective(tokenRead) != null) {  // A logical connective (e.g., 'and') ends an "X is Y + Z, p(X), ..."
-				if (insideLeftParen) { throw new ParsingException("Unexpectedly read '" + reportLastItemRead() + " when inside a left parenthesis in a 'X is ...' expressions."); }
-
-				tokenizer.pushBack(); // Return the connective.
-				return convertAccumulatorToTerm(accumulator);
-			}
-			switch (tokenRead) {
-				case '(':
-				case '{':
-				case ')':
-				case '}':
-				case '.':
-				case '+': // These are the only in-fix operators currently known to the system (other than 'is').
-					if (accumulator.isEmpty()) { break; } // Discard any leading + signs.
-				case '*':
-				case '/':
-				case StreamTokenizer.TT_WORD:
-					Term resultWord = processRestOfTerm(tokenRead, argumentsMustBeTyped, true);
-					accumulator.add(resultWord);
-					if (!lookingForTerm) { throw new ParsingException("Encountered two terms in a row (missing comma?): '" + resultWord + "'.  Accumulator=" + accumulator); }
-					lookingForTerm = false;
-					break;
-				default: throw new ParsingException("Read unexpected character when processing an 'X is ...' expression: '" + reportLastItemRead() + "'.");
-			}
-		}
-	}
-
-	/*
-	 * Have a list of the form: "( term operator term ... operator term )"
-	 * and have to use precedence rules to convert to a single term.
-	 * Algorithm: find the lowest precedence operator and combine it and its
-	 * two neighbors (break ties to the left). repeat until one term remains.
-	 * @return A term, the root of the abstract syntax tree created by
-	 *         parsing the given list.
-	 */
-	private Term convertAccumulatorToTerm(List<AllOfFOPC> accumulator) throws ParsingException {
-		if (accumulator == null || accumulator.isEmpty()) { throw new ParsingException("Have an empty mathematical expression following an instance of 'X is ...'"); }
-		while (accumulator.size() > 1) {
-			//  First find the lowest-precedence operator.
-			int lowestPrecedence  = Integer.MAX_VALUE;
-			int countOfLowestItem = -1;
-			int counter           =  0;
-			for (AllOfFOPC item : accumulator) {
-				if (item instanceof FunctionName) {
-					int precedence = stringHandler.getOperatorPrecedence((FunctionName) item);
-
-					if (precedence < lowestPrecedence) {
-						lowestPrecedence  = precedence;
-						countOfLowestItem = counter;
-					}
-				}
-				counter++;
-			}
-			if (countOfLowestItem < 0) { Utils.error("Something went wrong when grouping the items in a mathematical expression: " + accumulator); }
-			// Next combine the lowest-precedence operator and make a term with it and its two neighbors.
-			FunctionName        fName    = (FunctionName) accumulator.get(countOfLowestItem);
-			if (countOfLowestItem == 0 && fName == stringHandler.getFunctionName("-")) { // If '-' is the FIRST operator, need to handle it specially as an in-fix operator.
-				Term            rightArg = (Term)         accumulator.get(countOfLowestItem + 1);
-				List<Term>      args     = new ArrayList<>(1);
-				args.add(rightArg);
-				Function funct = stringHandler.getFunction(fName, args, null);
-				accumulator.add(   countOfLowestItem + 2, funct); // Add after the two items combined.
-				AllOfFOPC removed1 = accumulator.remove(countOfLowestItem + 1); // Do this in the proper order so shifting doesn't mess up counting.
-				AllOfFOPC removed2 = accumulator.remove(countOfLowestItem);
-			}
-			else {
-				if (countOfLowestItem < 1 || countOfLowestItem > accumulator.size() - 2) { Utils.error("Operators cannot be in the first or last positions: " + accumulator); }
-				Term            leftArg  = (Term)         accumulator.get(countOfLowestItem - 1);
-				Term            rightArg = (Term)         accumulator.get(countOfLowestItem + 1);
-				List<Term>      args     = new ArrayList<>(2);
-				args.add(leftArg);
-				args.add(rightArg);
-				Function funct = stringHandler.getFunction(fName, args, null);
-				accumulator.add(   countOfLowestItem + 2, funct); // Add after the three items combined.
-				AllOfFOPC removed1 = accumulator.remove(countOfLowestItem + 1); // Do this in the proper order so shifting doesn't mess up counting.
-				AllOfFOPC removed2 = accumulator.remove(countOfLowestItem);
-				AllOfFOPC removed3 = accumulator.remove(countOfLowestItem - 1);
-			}
-		}
-		return (Term) accumulator.get(0);
-	}
-
 	private Sentence convertAccumulatorToFOPC(List<AllOfFOPC> accumulator) throws ParsingException {
 		if (accumulator == null || accumulator.isEmpty()) {  // OK to have the empty sentence.
 			return null;
@@ -870,8 +760,6 @@ public class FileParser {
 		tokenizer.pushBack(countOfBackupsNeeded); // Return to where the processNumber() started.
 		return Double.NaN;
 	}
-
-	private Set<String> loadedLibraries = null;
 
 	/*
 	 * Parse the file named after this 'import:' directive. For example:
@@ -1406,14 +1294,12 @@ public class FileParser {
             case StreamTokenizer.TT_WORD:
                 Term result = processRestOfTerm(tokenRead, argumentsMustBeTyped);
                 if ( checkForOperator() ) {
-                    result = processMathExpression(result, argumentsMustBeTyped, false);
                 }
                 return result;
             default:
             	if (TypeSpec.isaModeSpec((char) tokenRead)) {
                     result = processRestOfTerm(tokenRead, argumentsMustBeTyped);
                     if ( checkForOperator() ) {
-                        result = processMathExpression(result, argumentsMustBeTyped, false);
                     }
                     return result;            		
             	}
@@ -1501,47 +1387,13 @@ public class FileParser {
 		if (skippedOverPlusSign) { throw new ParsingException("Read an unexpected '+' when parsing a term."); }
 		if (checkAndConsume('(')) { // See if this is a function.
 			FunctionName fName = stringHandler.getFunctionName(wordRead);
-			List<Term>   arguments;
+			List<Term>   arguments = null;
 			List<String> names = null;
 			// ONCE is really more of a connective than a predicate, but since it is the only prefix-based connective, treat it here.
 			if (wordRead.equalsIgnoreCase("findAll") || wordRead.equalsIgnoreCase("all")   ||
 				       wordRead.equalsIgnoreCase("bagOf")   || wordRead.equalsIgnoreCase("setOf")) { // A findAll(), etc. needs to have an SECOND argument that is an FOPC clause.
-				Term termForFindall     = processTerm(argumentsMustBeTyped);
-				if (!checkAndConsume(',')) { throw new ParsingException("Expecting a comma after '" + termForFindall + "' in a " + wordRead + "()."); }
-				Sentence sentenceForFindAll = processFOPC_sentence(0, true);
-				if (!checkAndConsume(',')) { throw new ParsingException("Expecting a comma after '" + termForFindall + "' and '" + sentenceForFindAll + "' in a " + wordRead + "()."); }
-				Term listForFindAll     = processTerm(argumentsMustBeTyped);
-				if (!checkAndConsume(')') && !checkAndConsume('}') && !checkAndConsume(']')) { throw new ParsingException("Expecting a right parenthesis to close this " + wordRead + "()."); }
-				Sentence implicitImplication = stringHandler.getConnectedSentence(sentenceForFindAll, stringHandler.getConnectiveName("->"), stringHandler.getTermAsLiteral(termForFindall)); //stringHandler.getLiteral(stringHandler.getPredicateName("implictHead")));
-				List<Clause> clauses = implicitImplication.convertToClausalForm();
-				if (clauses.size() != 1) { throw new ParsingException("The body of a findAll(), etc. needs to be a simple clause.  You provided: " + sentenceForFindAll); }
-				Clause clause = clauses.get(0);
-				if (clause.posLiterals == null) { Utils.error("Renamed posList = null in " + implicitImplication + " and " + clause); }
-				TermAsLiteral renamedHead =  (TermAsLiteral) clause.posLiterals.get(0);
-				if (renamedHead == null) { Utils.error("Renamed head = null in " + implicitImplication + " and " + clause); }
-
-				Term termForFindall2 = Objects.requireNonNull(renamedHead).term; // Need to get this so variable renaming is consistent.
-				if (!clause.isDefiniteClause()) { throw new ParsingException("The body of a findAll(), etc. needs to be a conjunction ('and') of literals.  You provided: " + sentenceForFindAll); }
-				clause.posLiterals = null; // No need to keep the "implictHeadForFindAll" around.  The resolution theorem prover "knows" it is implicitly there.
-				arguments = new ArrayList<>(  3);
-				arguments.add(termForFindall2);
-				arguments.add(stringHandler.getSentenceAsTerm(clause, wordRead));
-				arguments.add(listForFindAll);
 			}
 			else if (wordRead.equalsIgnoreCase("countProofs") || wordRead.equalsIgnoreCase("countUniqueBindings")) { // A countProofs() needs to have an FIRST argument that is an FOPC clause.
-					Sentence sentenceForCounter = processFOPC_sentence(0, true);
-					if (!checkAndConsume(',')) { throw new ParsingException("Expecting a comma '" + sentenceForCounter + "' in a " + wordRead + "()."); }
-					Term listForCounter     = processTerm(argumentsMustBeTyped);
-					if (!checkAndConsume(')') && !checkAndConsume('}') && !checkAndConsume(']')) { throw new ParsingException("Expecting a right parenthesis to close this " + wordRead + "().  Recall countProofs(clause, N) and countUniqueBindingsclause, N) only have two arguments."); }
-					Sentence implicitImplication = stringHandler.getConnectedSentence(sentenceForCounter, stringHandler.getConnectiveName("->"), stringHandler.getLiteral(stringHandler.getPredicateName("implictHead")));
-					List<Clause> clauses = implicitImplication.convertToClausalForm();
-					if (clauses.size() != 1) { throw new ParsingException("The body of a countProofs() or countUniqueBindings() needs to be a simple clause.  You provided: " + sentenceForCounter); }
-					Clause clause = clauses.get(0);
-					if (!clause.isDefiniteClause()) { throw new ParsingException("The body of a Counter(), etc. needs to be a conjunction ('and') of literals.  You provided: " + sentenceForCounter); }
-					clause.posLiterals = null; // No need to keep the "implictHeadForCounter" around.  The resolution theorem prover "knows" it is implicitly there.
-					arguments = new ArrayList<>(2);
-					arguments.add(stringHandler.getSentenceAsTerm(clause, wordRead));
-					arguments.add(listForCounter);
 			}
 			else {
 				 NamedTermList namedTermList = processListOfTerms('(', argumentsMustBeTyped); // This should suck up the closing parenthesis.
@@ -1552,11 +1404,6 @@ public class FileParser {
 			return stringHandler.getFunction(fName, arguments, names, typeSpec);
 		}
 		else if (!calledFromInsideMathExpression && peekIfAtInfixMathSymbol()) {
-			tokenizer.pushBack();
-			Term initialTerm = stringHandler.getVariableOrConstant(typeSpec, wordRead);
-			Term mathExpression = processMathExpression(initialTerm, argumentsMustBeTyped, false);
-			checkForLimitOnNumberOfTrueSettings(typeSpec);
-			return mathExpression;
 		}
 		checkForLimitOnNumberOfTrueSettings(typeSpec);
 		return stringHandler.getVariableOrConstant(typeSpec, wordRead);  // If the next character isn't an open parenthesis, then have a constant or a variable.
@@ -1572,78 +1419,6 @@ public class FileParser {
 		}
 		tokenizer.pushBack();
 		return false;
-	}
-
-	/*
-	 * 	[]                      = nil
-	 *  [TermA]                 = consCell(TermA, nil);
-	 *  [TermA | TermB]         = consCell(TermA, TermB)
-	 *  [TermA, TermB]          = consCell(TermA, consCell(TermB, nil))
-	 *  [TermA, TermB | Term C] = consCell(TermA, consCell(TermB, TermC))
-	 *
-	 */
-	private ConsCell processList(boolean argumentsMustBeTyped, int leftParensCount, boolean closeWithRightParen) throws ParsingException, IOException {
-		// When called, one or more OPENs of list (i.e., '[') have been encountered.
-		if (leftParensCount < 0) { throw new ParsingException("Have too many closing ]'s in a list."); }
-		int tokenRead = getNextToken();
-		switch (tokenRead) {
-			case '[': // Need to process a new list, then cons it on the front of the rest of the list.
-				ConsCell firstPart = processList(argumentsMustBeTyped, 1, false);
-				Term    secondPart = processInsideConsCell(argumentsMustBeTyped, leftParensCount, false);
-				return stringHandler.getConsCell(firstPart, secondPart, null);
-			case ']': // Can "pop" the stack.
-				if (closeWithRightParen) { throw new ParsingException("Expecting a ')', but read: '" + reportLastItemRead() + "'."); }
-				if (leftParensCount == 1) { return stringHandler.getNil(); }
-				return processList(argumentsMustBeTyped, (leftParensCount - 1), false);
-		    default:
-				try { // Read the first term.
-					Term  first = processRestOfTerm(tokenRead, argumentsMustBeTyped);
-					// Read the rest of this list.
-					Term  rest  = processInsideConsCell(argumentsMustBeTyped, 1, closeWithRightParen);
-					// Make a cons cell.
-					ConsCell firstCons;
-                    if (rest == null) {
-                        firstCons = stringHandler.getConsCell(first, null);
-                    }
-                    else {
-                        firstCons = stringHandler.getConsCell(first, rest, null);
-                    }
-					if (leftParensCount == 1) { return firstCons; } // If only one level deep, done.
-					// If not done, process the rest and cons the first item on the front.
-					Term term = processInsideConsCell(argumentsMustBeTyped, (leftParensCount - 1), closeWithRightParen);
-					return stringHandler.getConsCell(firstCons, term,  null);
-                } catch (ParsingException e) {
-                    throw e;
-				} catch (Exception e) {
-					throw new ParsingException("Expecting a term or a '[' or a ']', but read: '" + reportLastItemRead() + "'\nand received this exception: " + e);
-				}
-		}
-	}
-
-	/*
-	 * p([ [a], [[[b]]], [c | d] ]). Have read the first item in a cons
-	 * cell, e.g., 'a' in '[a, ...]' or in '[a | b]' or in '[a]'
-	 */
-	private Term processInsideConsCell(boolean argumentsMustBeTyped, int leftParensCount, boolean closeWithRightParen) throws ParsingException, IOException {
-		int tokenRead = getNextToken();
-		switch (tokenRead) {
-			case ',':
-				return processList(argumentsMustBeTyped, leftParensCount, closeWithRightParen);
-			case '|':
-				Term term = processTerm(argumentsMustBeTyped);
-				// Need to suck up the closing bracket.  Complain if not found.
-				if (!checkAndConsume(']')) {
-					throw new ParsingException("Expecting a ']' after a '| term' in a list, but read: '" + reportLastItemRead() + "'.");
-				}
-				if (leftParensCount == 1) { return term; }
-				Term rest = processInsideConsCell(argumentsMustBeTyped, (leftParensCount - 1), closeWithRightParen);
-				return stringHandler.getConsCell(term, rest, null);
-			case ']':
-				if (closeWithRightParen) { throw new ParsingException("Expecting a ')', but read: '" + reportLastItemRead() + "'."); }
-				if (leftParensCount == 1) { return stringHandler.getNil(); }
-				return processInsideConsCell(argumentsMustBeTyped, (leftParensCount - 1), false);
-			default: throw new ParsingException("Processing inside a list and expecting a '|', ',' or ']', but read: '" + reportLastItemRead() + "'.");
-		}
 	}
 
 	private boolean atQuotedString(int token) {
@@ -1851,6 +1626,8 @@ public class FileParser {
 	}
 
 	public int getNumberOfPrecomputeFiles() {
-		return numberOfPrecomputeFiles;
+		// Allows user to set it to a higher number but doesn't penalize all runs where there are fewer precomputes
+		// It is mildly risky to make this a static, but acceptable.
+		return 125;
 	}
 }

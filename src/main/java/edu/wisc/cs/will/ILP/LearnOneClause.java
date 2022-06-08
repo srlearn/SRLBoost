@@ -106,13 +106,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
 
-	private boolean             createCacheFiles                  = false;   // Create files that cache computations, to save time, for debugging, etc.
-	private boolean             useCachedFiles                    = false;   // Files cached (if requested):
-	                                                                           //    prune.txt (or whatever Utils.defaultFileExtensionWithPeriod is)
-																			   //    types.txt
-	                                                                           //    gleaner.txt (users can name this whatever they wish)
-																			   //    the generated negative examples (same file name as used for negatives)
-
 	Object              caller     = null;                           // The instance that called this LearnOneClause instance.
 	String              callerName = "unnamed caller";               // Used to annotate printing during runs.
 
@@ -190,9 +183,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	List<List<Term>>    collectedConstantBindings;    // This is used as a temporary variable by a method below.
 	final BindingList         bindings = new BindingList(); // Only recreate theta if needed, in order to save on creating new lists.
 
-	private boolean              allowMultipleTargets       = true;
-
-	private   List<PredicateNameAndArity>  examplePredicates          = null; // These store the positive example predicates that are eventually turned into targets.
+    private   List<PredicateNameAndArity>  examplePredicates          = null; // These store the positive example predicates that are eventually turned into targets.
 	private   List<List<Term>>     examplePredicateSignatures = null; // Something like [constant, function(constant), constant].
 
     public    List<Literal>        targets                    = null; // These are the actual targets determined from the examplePredicates.
@@ -205,9 +196,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	final Unifier              unifier; // Make instances out of some things that could be 'statics' so the code is safer.
 	private   HornClauseProver     prover; // This is initialized by getProver() so please don't use this variable directly.
 	PruneILPsearchTree   pruner = null;  // Used to prune search trees that are unlikely to pan out (called by ChildrenClausesGenerator and its extensions).
-	private final Precompute           precomputer;
-	private   ThresholdManager     thresholdHandler;
-	private   InlineManager        inlineHandler; // Handle the in-lining of literal bodies (should only be applied to literals that are only defined by ONE clause).
+    private   InlineManager        inlineHandler; // Handle the in-lining of literal bodies (should only be applied to literals that are only defined by ONE clause).
 	private final TypeManagement       typeManager;
 
 	//private   HornClauseProverChildrenGenerator ruleAndFactsHolder;
@@ -259,13 +248,11 @@ public class LearnOneClause extends StateBasedSearchTask {
 		this.setPrefix(prefix);
         this.context       = context;
 
-		this.precomputer   = new Precompute();
-		this.typeManager   = new TypeManagement(stringHandler);
+        this.typeManager   = new TypeManagement(stringHandler);
         
 		verbosity = 1;
 
         setInlineManager(new InlineManager(   stringHandler, getProver().getClausebase()));
-        setThresholder(  new ThresholdManager(this, stringHandler, inlineHandler));
 
         // TODO(@hayesall): AdviceProcessor reads the current `context` and `this`, but does not appear to do anything with it.
 		// new AdviceProcessor(context, this);
@@ -335,100 +322,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 
 	private void checkForSetParameters() {
-
-		// TODO(@hayesall): Are any of these parameters mentioned in the public documentation?
-		// 		Anything removed from here will potentially free up other methods for removal.
-
-		String vStr;
-
-		vStr = stringHandler.getParameterSetting("discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar");
-		if (vStr != null) {                       discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("createCacheFiles");
-		if (vStr != null) {                       createCacheFiles                                      = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("requireThatAllRequiredHeadArgsAppearInBody");
-		if (vStr != null) {                       requireThatAllRequiredHeadArgsAppearInBody            = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("allTargetVariablesMustBeInHead");
-		if (vStr != null) {                       allTargetVariablesMustBeInHead                        = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("stopIfPerfectClauseFound");
-		if (vStr != null) {                       stopIfPerfectClauseFound                              = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("useCachedFiles");
-		if (vStr != null) {                       useCachedFiles                                        = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("allowPosSeedsToBeReselected");
-		if (vStr != null) {                       allowPosSeedsToBeReselected                           = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("allowNegSeedsToBeReselected");
-		if (vStr != null) {                       allowNegSeedsToBeReselected                           = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("stopWhenUnacceptableCoverage");
-		if (vStr != null) {                       stopWhenUnacceptableCoverage                          = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("collectTypedConstants");
-		if (vStr != null) {                       collectTypedConstants                                 = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds");
-		if (vStr != null) {                       dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds    = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("performRRRsearch");
-		if (vStr != null) {                       performRRRsearch                                      = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("allowMultipleTargets");
-		if (vStr != null) {                       allowMultipleTargets                                  = Boolean.parseBoolean(vStr); }
-
-		vStr = stringHandler.getParameterSetting("minPosCoverage");
-		if (vStr != null) {
-			double value_minPosCoverage = Double.parseDouble(vStr);  if (value_minPosCoverage < 1) { Utils.waitHere("minPosCoverage expressed as a FRACTION no longer supported.  Use minPosCovFraction instead."); }
-			setMinPosCoverage(              value_minPosCoverage); 
-		}
-		vStr = stringHandler.getParameterSetting("minPosCovFraction");
-		if (vStr != null) {
-			double value_minPosCovFraction = Double.parseDouble(vStr);  if (value_minPosCovFraction > 1) { Utils.waitHere("minPosCovFraction should not be given numbers greater than 1."); }
-			setMinPosCoverageAsFraction    (value_minPosCovFraction);
-		}
-		vStr = stringHandler.getParameterSetting("minPrecision");
-		if (vStr != null) {                    setMinPrecision(  Double.parseDouble(vStr));  }
-		vStr = stringHandler.getParameterSetting("mEstimatePos");
-		if (vStr != null) {                    setMEstimatePos(  Double.parseDouble(vStr));  }
-		vStr = stringHandler.getParameterSetting("mEstimateNeg");
-		if (vStr != null) {                    setMEstimateNeg(  Double.parseDouble(vStr));  }
-		vStr = stringHandler.getParameterSetting("maxNegCoverage");
-		if (vStr != null) {                    setMaxNegCoverage( Double.parseDouble(vStr)); }
-		vStr = stringHandler.getParameterSetting("fractionOfImplicitNegExamplesToKeep");
-		if (vStr != null) {                       fractionOfImplicitNegExamplesToKeep = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("stopExpansionWhenAtThisNegCoverage");
-		if (vStr != null) {                       stopExpansionWhenAtThisNegCoverage  = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("clausesMustCoverFractPosSeeds");
-		if (vStr != null) {                       clausesMustCoverFractPosSeeds       = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("clausesMustNotCoverFractNegSeeds");
-		if (vStr != null) {                       clausesMustNotCoverFractNegSeeds    = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("probOfDroppingChild");
-		if (vStr != null) {                       probOfDroppingChild                 = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("minNumberOfNegExamples");
-		if (vStr != null) {                       minNumberOfNegExamples          = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxBodyLength");
-		if (vStr != null) {                       maxBodyLength                   = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxNumberOfNewVars");
-		if (vStr != null) {                       maxNumberOfNewVars              = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxDepthOfNewVars");
-		if (vStr != null) {                       maxDepthOfNewVars               = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxPredOccurrences");
-		if (vStr != null) {                       maxPredOccurrences              = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxNodesToCreate");
-		if (vStr != null) {                                     setMaxNodesToCreate(Integer.parseInt(vStr)); }
-		vStr = stringHandler.getParameterSetting("maxResolutionsPerClauseEval");
-		if (vStr != null) {                       maxResolutionsPerClauseEval     = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxSizeOfClosed");
-		if (vStr != null) {                       maxSizeOfClosed                 = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("minChildrenBeforeRandomDropping");
-		if (vStr != null) {                       minChildrenBeforeRandomDropping = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxConstantBindingsPerLiteral");
-		if (vStr != null) {                       maxConstantBindingsPerLiteral   = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("beamWidthRRR");
-		if (vStr != null) {                       beamWidthRRR                    = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("minBodyLengthRRR");
-		if (vStr != null) {                       minBodyLengthRRR                = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxBodyLengthRRR");
-		if (vStr != null) {                       maxBodyLengthRRR                = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("restartsRRR");
-		if (vStr != null) {                       restartsRRR                     = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxNodesToConsiderRRR");
-		if (vStr != null) {                       maxNodesToConsiderRRR           = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxNodesToCreateRRR");
-		if (vStr != null) {                       maxNodesToCreateRRR             = Integer.parseInt(vStr); }
-		
 	}
 
 	public final int num_hits = 0;
@@ -511,42 +404,22 @@ public class LearnOneClause extends StateBasedSearchTask {
 			chooseTargetMode();
 		}
 
-		/* for each precompute file to output, precompute all the corresponding rules... */
-		for (int i = 0; i < getParser().getNumberOfPrecomputeFiles(); i++) {
-			// TODO(@hayesall): This appears to be where precomputes are handled.
-			List<Sentence> precomputeThese = getParser().getSentencesToPrecompute(i); // Note that this is the set of ALL precompute's encountered during any file reading.
-			if (Utils.getSizeSafely(precomputeThese) > 0) {
-				String precomputeFileNameToUse = replaceWildCardsForPrecomputes(getParser().getFileNameForSentencesToPrecompute(i));
-				//add working dir to all files
-				Utils.ensureDirExists(precomputeFileNameToUse);
-				// The method below will check if the precompute file already exists, and if so, will simply return.
-				Utils.println("% Processing precompute file: " + precomputeFileNameToUse);
-				File f = new File(precomputeFileNameToUse);
-				Utils.println("Writing to file: " + f.getAbsolutePath());
-				/* Actually do the precomputes, writing precompute facts out to file*/
-				precomputer.processPrecomputeSpecifications(getContext().getClausebase(), precomputeThese, precomputeFileNameToUse);
-				Utils.println("% Loading: " + precomputeFileNameToUse);
-				addToFacts(precomputeFileNameToUse); // Load the precomputed file.
-			}
-		}
-
 		// TODO(@hayesall): What is `prune.txt`?
 		String pruneFileNameToUse = Utils.createFileNameString(getDirectoryName(), "prune.txt");
 
 		// The method below will check if the prune file already exists, and if so, will simply return true.
-		boolean pruneFileAlreadyExists = lookForPruneOpportunities(useCachedFiles, getParser(), pruneFileNameToUse);
+            // Files cached (if requested):
+            boolean useCachedFiles = false;
+            boolean pruneFileAlreadyExists = lookForPruneOpportunities(useCachedFiles, getParser(), pruneFileNameToUse);
 
-		if (pruneFileAlreadyExists && useCachedFiles) {
-			// Load the prune file, if it exists.
-			addToFacts(pruneFileNameToUse);
-		}
-
-		Utils.println("\n% Started collecting constants");
+        Utils.println("\n% Started collecting constants");
 		long start = System.currentTimeMillis();
 		// The following will see if the old types file exists.
 		if (collectTypedConstants) {
 			String  typesFileNameToUse     = Utils.createFileNameString(getDirectoryName(), "types.txt");
-			Boolean typesFileAlreadyExists = typeManager.collectTypedConstants(createCacheFiles, useCachedFiles, typesFileNameToUse, targets, targetArgSpecs, bodyModes, getPosExamples(), getNegExamples(), facts); // Look at all the examples and facts, and collect the typed constants in them wherever possible.
+            // Create files that cache computations, to save time, for debugging, etc.
+            boolean createCacheFiles = false;
+            Boolean typesFileAlreadyExists = typeManager.collectTypedConstants(createCacheFiles, useCachedFiles, typesFileNameToUse, targets, targetArgSpecs, bodyModes, getPosExamples(), getNegExamples(), facts); // Look at all the examples and facts, and collect the typed constants in them wherever possible.
 			if (typesFileAlreadyExists) {
 				addToFacts(typesFileNameToUse); // Load the types file, if it exists.
 			}
@@ -563,8 +436,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		}
 		if (!creatingConjunctiveFeaturesOnly && minNumberOfNegExamples > 0 && getNegExamples() == null) { Utils.severeWarning("Have ZERO negative examples!  Variable 'minNumberOfNegExamples' is currently set to " + minNumberOfNegExamples + "."); }
 			Utils.println("\n% Read " + Utils.comma(getPosExamples()) + " pos examples and " + Utils.comma(getNegExamples()) + " neg examples.");
-
-			processThresholds();
 
         facts = null; // Release the temporarily stored facts so we aren't wasting memory.
         long iend = System.currentTimeMillis();
@@ -730,17 +601,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return Utils.replaceWildCards(result);
 	}
 
-    private void processThresholds() {
-
-		/* Override to disable thresholding.
-		 *
-		 * If set to false, thresholding will be skipped.  This is particularly useful
-		 * when we are only using the LearnOneClause to evaluate a learned theory.
-		 */
-		// Note that this is the set of ALL thresholds's encountered during any file reading.
-	}
-
-	public void addBodyMode(PredicateNameAndArity pName) {
+    public void addBodyMode(PredicateNameAndArity pName) {
         bodyModes.add(pName);
         stringHandler.addKnownMode(pName);
     }
@@ -1217,7 +1078,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 			examplePredicateSignatures = new ArrayList<>(1);
 		}
 
-		if (allowMultipleTargets || examplePredicates.isEmpty()) {
+        boolean allowMultipleTargets = true;
+        if (allowMultipleTargets || examplePredicates.isEmpty()) {
 			if (!matchesExistingTargetSpec(lit)) {
 				examplePredicates.add(pnaa);
 				examplePredicateSignatures.add(stringHandler.getSignature(lit.getArguments()));
@@ -1687,15 +1549,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         return negExamples == null ? 0 : negExamples.size();
     }
 
-	private void setThresholder(ThresholdManager thresholder) {
-		this.thresholdHandler = thresholder;
-	}
-
-	private ThresholdManager getThresholder() {
-		return thresholdHandler;
-	}
-
-	private void setInlineManager(InlineManager inliner) {
+    private void setInlineManager(InlineManager inliner) {
 		this.inlineHandler = inliner;
 	}
 
