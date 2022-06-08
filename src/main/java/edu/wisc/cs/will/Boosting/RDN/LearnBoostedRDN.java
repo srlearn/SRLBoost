@@ -6,7 +6,6 @@ import edu.wisc.cs.will.Boosting.Trees.LearnRegressionTree;
 import edu.wisc.cs.will.Boosting.Trees.RegressionTree;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
-import edu.wisc.cs.will.Boosting.Utils.ExampleSubSampler;
 import edu.wisc.cs.will.Boosting.Utils.LineSearch;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Literal;
@@ -36,7 +35,6 @@ public class LearnBoostedRDN {
 	private final static int debugLevel = 1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
 	private final CommandLineArguments cmdArgs;
-	private final ExampleSubSampler egSubSampler;
 	private final WILLSetup setup;
 
 	private List<RegressionRDNExample> egs    = null;
@@ -58,7 +56,6 @@ public class LearnBoostedRDN {
 		if (cmdArgs.isDisabledBoosting()) {
 			disableBoosting=true;
 		}
-		egSubSampler = new ExampleSubSampler(setup);
 	}
 
 	public void learnNextModel(SRLInference sampler, ConditionalModelPerPredicate rdn, int numMoreTrees) {
@@ -470,7 +467,6 @@ public class LearnBoostedRDN {
 		}
 		// TODO(@hayesall): This `println` was originally conditioned on the result of the removed `isHiddenLiteral` method
 		Utils.println("No hidden examples for : " + targetPredicate);
-		all_exs = egSubSampler.sampleExamples(all_exs);
 		return all_exs;
 	}
 
