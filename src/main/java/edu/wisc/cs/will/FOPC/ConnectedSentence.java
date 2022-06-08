@@ -10,7 +10,7 @@ import java.util.*;
  * @author shavlik
  *
  */
-public class ConnectedSentence extends Sentence implements Serializable, Implication {
+public class ConnectedSentence extends Sentence implements Serializable {
 
 	private Sentence       sentenceA;
 	final Sentence       sentenceB; // If the connective = NOT, this first sentence is ignored (and should be set to null).

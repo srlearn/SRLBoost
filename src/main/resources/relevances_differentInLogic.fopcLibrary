@@ -1,6 +1,0 @@
-
-usePrologVariables: true.
-
-importLibrary: modes_differentInLogic.
-
-relevant: different/2, @relevance. // Assume this is set.  If not, an error will result.

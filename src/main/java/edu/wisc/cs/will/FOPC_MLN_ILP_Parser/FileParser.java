@@ -19,17 +19,12 @@ import static edu.wisc.cs.will.Utils.MessageType.*;
 
 // TODO(?): clean up so that the currentDirectory is always intelligently set (and rest after reading a file).
 
-// Note: WILL currently loads all of its built in libraries.  To prevent this, include:
-//																	setParam: loadAllLibraries  = false.
-// You might also want to so ---->                                  setParam: loadAllBasicModes = false.
-
 // Aside: search for this: Because the silly IL language has a weird way of dealing with lists, 'correct' for that here.
 //        if the parser has problems with named arguments and unbracketed lists.
 
 // Useful when printing things: tokenizer.lineno()
 
 /*
- * IF "FOLDED" IN ECLIPSE, UNFOLD THIS FOR IMPORTANT DOCUMENTATION.
  * Parse a file (or some other text stream) as one containing FOPC sentences as well as "directives" to MLN's, ILP, etc.
  * Directives include the following.   Note that many commands need to be terminated with a '.' or a ';'
  *
@@ -1893,48 +1888,6 @@ public class FileParser {
 	}
 
 	private Set<String> loadedLibraries = new HashSet<>(4);
-	public List<Sentence> loadAllLibraries() throws ParsingException {
-		String[] knownLibraries = { "arithmeticInLogic", "comparisonInLogic", "differentInLogic", "listsInLogic" };
-
-		boolean hold_cleanFunctionAndPredicateNames = stringHandler.cleanFunctionAndPredicateNames;
-		stringHandler.cleanFunctionAndPredicateNames = false;
-		List<Sentence> results = null;
-		for (String library : knownLibraries) if (!loadedLibraries.contains(library)) {
-			if (results == null) { results = new ArrayList<>(4); }
-			try {
-				List<Sentence> allLibrarySentences = loadThisFile(true, library);
-				if (allLibrarySentences != null) { results.addAll(allLibrarySentences); }
-			} catch (Exception e) {
-				Utils.reportStackTrace(e);
-				throw new ParsingException("Problem encountered reading built-in library: '" + library + "'.");
-			}
-		}
-		stringHandler.cleanFunctionAndPredicateNames = hold_cleanFunctionAndPredicateNames;
-		return results;
-	}
-
-	// TODO(@hayesall): move this into `loadAllBasicModes`
-	private final Set<String> loadedBasicModes = new HashSet<>(4);
-
-	public List<Sentence> loadAllBasicModes() throws ParsingException {
-		String[] knownBasicModes = { "modes_arithmeticInLogic", "modes_comparisonInLogic", "modes_differentInLogic", "modes_listsInLogic" };
-
-		boolean hold_cleanFunctionAndPredicateNames = stringHandler.cleanFunctionAndPredicateNames;
-		stringHandler.cleanFunctionAndPredicateNames = false;
-		List<Sentence> results = null;
-		for (String library : knownBasicModes) if (!loadedBasicModes.contains(library)) {
-			if (results == null) { results = new ArrayList<>(4); }
-			try {
-				List<Sentence> allLibrarySentences = loadThisFile(true, library);
-				if (allLibrarySentences != null) { results.addAll(allLibrarySentences); }
-			} catch (Exception e) {
-				Utils.reportStackTrace(e);
-				throw new ParsingException("Problem encountered reading built-in library: '" + library + "'.");
-			}
-		}
-		stringHandler.cleanFunctionAndPredicateNames = hold_cleanFunctionAndPredicateNames;
-		return results;
-	}
 
 	private List<Sentence> loadThisLibrary(FileParser newParser, String libName) throws ParsingException, IOException {
 		if (loadedLibraries.contains(libName)) { return null; } // Already loaded.

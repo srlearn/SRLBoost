@@ -12,7 +12,7 @@ import java.util.Map;
 /*
  * @author shavlik
  */
-public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, Comparable<Term>, SentenceOrTerm {
+public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, Comparable<Term> {
 	TypeSpec          typeSpec;
 	transient HandleFOPCstrings stringHandler; // Add another field to everything so it can access this, and hence access things like lowercaseMeansVariable.
 
