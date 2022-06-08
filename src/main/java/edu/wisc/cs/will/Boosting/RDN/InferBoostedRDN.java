@@ -20,7 +20,6 @@ public class InferBoostedRDN {
 
 	private boolean printExamples = false;
 	private final boolean writeQueryAndResults = true;
-	private double  minRecallForAUCPR = 0;
 	private double minLCTrees = 20;
 	private double incrLCTrees = 2;
 	
@@ -179,7 +178,7 @@ public class InferBoostedRDN {
 			printExamples = Boolean.parseBoolean(lookup);
 		}
 		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("minRecallForAUCPR")) != null) {
-			minRecallForAUCPR = Double.parseDouble(lookup);
+			double minRecallForAUCPR = Double.parseDouble(lookup);
 		}
 		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("minLCTrees")) != null) {
 			minLCTrees = Double.parseDouble(lookup);
@@ -235,9 +234,7 @@ public class InferBoostedRDN {
 			}
 		}
 
-		
-		ComputeAUC auc = computeAUCFromEg(examples, target);
-
+		ComputeAUC auc = computeAUCFromEg(examples);
 
 		if (cmdArgs.isPrintLearningCurve()) {
 			Utils.appendString(new File(getLearningCurveFile(target, "pr")), trees + " " + auc.getPR() + "\n");
@@ -284,7 +281,7 @@ public class InferBoostedRDN {
 
 	}
 
-	private ComputeAUC computeAUCFromEg(List<RegressionRDNExample> examples, String target) {
+	private ComputeAUC computeAUCFromEg(List<RegressionRDNExample> examples) {
 		Utils.println("\n% Computing Area Under Curves.");
 
 		// TODO(?): need to handle WEIGHTED EXAMPLES.  Simple approach: have a eachNegRepresentsThisManyActualNegs and make this many copies.
@@ -302,18 +299,7 @@ public class InferBoostedRDN {
 			}
 		}
 
-		// If models are written somewhere, then also write AUC's there
-		// (This allows us to avoid writing in a dir that only contains INPUT files)
-		// Hence, multiple runs can simultaneously use the same input directory, yet write to different output dirs.
-
-		String aucTempDirectory;
-		aucTempDirectory = setup.getOuterLooper().getWorkingDirectory() + "/AUC/" + (cmdArgs.getModelFileVal() == null ? "" : cmdArgs.getModelFileVal() +"/");
-		if (cmdArgs.getTargetPredVal().size() > 1) {
-			aucTempDirectory += target + "/";
-		}
-		String extraMarker = "";
-		ComputeAUC.deleteAUCfilesAfterParsing = false;
-		return new ComputeAUC(positiveProbabilities, negativeProbabilities, aucTempDirectory, cmdArgs.getAucPathVal(), extraMarker, minRecallForAUCPR, cmdArgs.useLockFiles);
+		return new ComputeAUC(positiveProbabilities, negativeProbabilities);
 	}
 
 	private void printExamples(List<RegressionRDNExample> examples, String target) {
