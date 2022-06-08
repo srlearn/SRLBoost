@@ -58,11 +58,6 @@ public class SentenceAsTerm extends Term {
 	}
 
     @Override
-    public Sentence asSentence() {
-        return sentence;
-    }
-
-    @Override
     public Clause asClause() {
         return sentence.convertToClause();
     }

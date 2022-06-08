@@ -135,8 +135,6 @@ public final class HandleFOPCstrings {
     /* Clausebase handling for facts added to the clausebase. */
     public VariantClauseAction variantRuleHandling = WARN_AND_REMOVE_VARIANTS;
 
-    private final Map<Literal, Literal> literalAliases = new HashMap<>();
-
 	public HandleFOPCstrings() {
 		this(false);
 	}
@@ -334,12 +332,6 @@ public final class HandleFOPCstrings {
 		return usingStdLogicNotation();
 	}
 
-	public void setVariablesStartWithQuestionMarks() {
-		if (!doVariablesStartWithQuestionMarks()) {
-			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to using a leading '?' to denote a variable; previous setting = " + variableIndicator);
-		}
-		setVariableIndicator(VarIndicator.questionMarks);
-	}
 	public boolean doVariablesStartWithQuestionMarks() {
 		if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); }
 		return variableIndicator == VarIndicator.questionMarks;
@@ -1098,28 +1090,6 @@ public final class HandleFOPCstrings {
 		return startsWithLowerCase;
 	}
 
-	private final Map<String,Integer> mapForGetUniqueStringConstant = new HashMap<>(4);
-	StringConstant getUniqueStringConstant(String string) {
-		Integer lookup = mapForGetUniqueStringConstant.get(string);
-		if (lookup == null) {
-			lookup = 0;
-		}
-		while (true) {
-			lookup++;
-			mapForGetUniqueStringConstant.put(string, lookup);
-			String combo  = ((string.charAt(0) == '"' || (FileParser.allowSingleQuotes && string.charAt(0) == '\'')) 
-								? string.charAt(0) + string.substring(1, string.length() - 1) + lookup + string.charAt(0) // Put inside any quotes.
-							    :  string + lookup);								
-			String newStr = standardize(combo, true);
-			if (stringConstantHash.get(newStr) == null) {
-				return getStringConstant(newStr, true); // Assume caller adds an underscore if necessary.  If user calls sufficiently often something like getUniqueStringConstant(str1) and getUniqueStringConstant(str), a name collision can occur.
-			}
-			if (lookup > 123456) { Utils.error("getUniqueStringConstant: string =" + string); }
-		}
-	}
-	StringConstant getUnCleanedStringConstant(String name) { // This means we'll keep quote marks here (and so wont match to unquoted version) - so use carefully!
-		return getStringConstant(null, name, false);
-	}
 	public StringConstant getStringConstant(String name) {
 		return getStringConstant(null, name);
 	}
@@ -1696,20 +1666,7 @@ public final class HandleFOPCstrings {
         }
     }
 
-	public void addLiteralAlias(Literal alias, Literal literal) {
-       literalAliases.put(alias, literal);
-    }
-
-    public Literal lookupLiteralAlias(Literal alias) {
-        Literal literal = literalAliases.get(alias);
-        if ( literal == null ) {
-            throw new IllegalArgumentException("Unable to find Literal for alias of " + alias + ".");
-        }
-        return literal;
-    }
-
-
-    public void setStarMode(int value) {
+	public void setStarMode(int value) {
         starModeMap = value;
     }
 	int     getStarMode()          { return starModeMap; }
@@ -1722,10 +1679,6 @@ public final class HandleFOPCstrings {
 		}
     }
 
-	public void setStringsAreCaseSensitive(boolean matchingShouldBeCaseSensitive) {
-		if (ignoreCaseOfStringsOtherThanFirstChar == matchingShouldBeCaseSensitive) { Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "% Changing setStringsAreCaseSensitive to " + matchingShouldBeCaseSensitive + "."); }
-		ignoreCaseOfStringsOtherThanFirstChar = !matchingShouldBeCaseSensitive;
-	}
 	public boolean getStringsAreCaseSensitive() {
 		return !ignoreCaseOfStringsOtherThanFirstChar;
 	}

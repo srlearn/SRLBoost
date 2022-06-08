@@ -66,21 +66,6 @@ public interface HornClausebase {
     void assertFact(Literal fact);
 
     /*
-     * Retracts the first occurrence of the specified definiteClause.
-     *
-     * The first definite clause in the clausebase which matches definiteClause via
-     * unification will be retracted.
-     *
-     * Use the retractAllClausesWithUnifyingBody or retractAllClauseWithHead method
-     * if you need to retract multiple matches beyond just the first unifying clause.
-     *
-     * @param definiteClause Definite clause to retract.
-     * @param bindingList If bindingList is non-null, it will be populated with any variable bindings from the unification.
-     * @return True if a clause was retracted.
-     */
-    boolean retract(DefiniteClause definiteClause, BindingList bindingList);
-
-    /*
      * Retract all the clauses which unify with definiteClause.
      *
      * Retracts all clauses from the clausebase which unify with definiteClause.
@@ -90,17 +75,6 @@ public interface HornClausebase {
      * @param definiteClause Pattern of definite clauses to retract.
      */
     void retractAllClausesWithUnifyingBody(DefiniteClause definiteClause);
-
-    /*
-     * Retract all the clauses whose head literal unifies with literal.
-     *
-     * Retracts all clauses from the clausebase where the head of the
-     * definite clause unifies with clauseHead.
-     *
-     * @param clauseHead Pattern of definite clauses to retract.
-     * @return True if one or more clauses were retracted.
-     */
-    boolean retractAllClauseWithHead(DefiniteClause clauseHead);
 
     /* Returns a Collection of definite clauses whose head might match the specified clauseHead.
      *
@@ -179,8 +153,6 @@ public interface HornClausebase {
      * @return Collection of Sentences that may match predicateName/arity, possible null.
      */
     Iterable<Literal> getPossibleMatchingFacts(Literal clauseHead, BindingList currentBinding);
-
-    boolean recorded(DefiniteClause definiteClause);
 
     ProcedurallyDefinedPredicateHandler getBuiltinProcedurallyDefinedPredicateHandler();
 

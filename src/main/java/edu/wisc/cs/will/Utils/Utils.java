@@ -459,16 +459,6 @@ public class Utils {
         }
     }
 
-    private static void cleanupAndExit() {
-
-        if (dribbleStream != null) {
-            dribbleStream.close();
-        	compressFile(dribbleFileName);
-        }
-
-        System.exit(0);
-    }
-
     /* Prints a warning header on standard output that includes the given message.
      *
      * @param str A message describing the warning.

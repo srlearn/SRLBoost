@@ -22,19 +22,9 @@ public enum RelevanceStrength {
 		
 	RelevanceStrength() { }
 
-	public static RelevanceStrength getDefaultRelevanceStrength()         { return RELEVANT;            }
 	private static RelevanceStrength getNeutralRelevanceStrength()         { return NEUTRAL;             }
 
 
-	public static RelevanceStrength getRelevanceStrengthFromString(String str) {
-		try {
-			return RelevanceStrength.valueOf(str);
-		} catch (Exception e) {
-			Utils.error("Problem converting '" + str + "' to a RelevanceStrength: " + e);
-			return NEUTRAL;
-		}
-	}
-	
 	public double defaultCost() {
 		switch(this) {
 		case STRONGLY_IRRELEVANT:        return 10.0;
@@ -72,10 +62,6 @@ public enum RelevanceStrength {
 		RelevanceStrength result = getWeaker();
 		if (result == null || result.compareTo(getNeutralRelevanceStrength()) <= 0) { return getNeutralRelevanceStrength(); }
 		return result;
-	}
-
-	public boolean isLessThanNeutral() {
-		return this.compareTo(NEUTRAL) < 0;
 	}
 
 }

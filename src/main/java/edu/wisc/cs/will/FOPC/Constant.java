@@ -32,11 +32,6 @@ public abstract class Constant extends Term {
 	}
 
     @Override
-    public Sentence asSentence() {
-        return null;
-    }
-
-	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		return super.hashCode();
 	}

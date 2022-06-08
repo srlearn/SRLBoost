@@ -53,11 +53,6 @@ public class LiteralAsTerm extends Term {
 	}
 
     @Override
-    public Sentence asSentence() {
-        return itemBeingWrapped;
-    }
-
-	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		final int prime = 31;
 		int result = 1;

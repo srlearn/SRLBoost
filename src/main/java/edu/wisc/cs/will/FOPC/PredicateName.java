@@ -20,19 +20,17 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   List<PredicateSpec>      typeOnlyList = null; // Similar to above, but the input/output markers are not included.
 	private   Set<Integer>             typeDeSpeced = null; // Modes that have been disabled - currently all modes of a given arity are disabled
 	Set<Integer> boundariesAtEnd_1D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
-	private Set<Integer> boundariesAtEnd_2D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
-	private Set<Integer> boundariesAtEnd_3D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
 	private   Set<Integer> isaInterval_1D           = null; // When used in the form "predicateName(lower, value, upper)" this predicate represents an interval (or a "tile"), i.e., it is true if value is in the range [lower, upper).  Used when pruning search trees in ILP.
-	private   Set<Integer> isaInterval_2D           = null; // Similar, but now represents a 2D rectangle and is true if the "x-y" values are in it.  The expected format is predicateName(lowerX, X, upperX, lowerY, Y, upperY). 
-	private   Set<Integer> isaInterval_3D           = null; // Similar, but now represents a 3D hyper-rectangle and is true if the "x-y-z" values are in it.  The expected format is predicateName(lowerX, X, upperX, lowerY, Y, upperY, lowerX, Z, upperZ).
+	private final Set<Integer> isaInterval_2D           = null; // Similar, but now represents a 2D rectangle and is true if the "x-y" values are in it.  The expected format is predicateName(lowerX, X, upperX, lowerY, Y, upperY).
+	private final Set<Integer> isaInterval_3D           = null; // Similar, but now represents a 3D hyper-rectangle and is true if the "x-y-z" values are in it.  The expected format is predicateName(lowerX, X, upperX, lowerY, Y, upperY, lowerX, Z, upperZ).
 	private   Map<Integer,Integer> maxOccurrencesPerArity = null; // During structure (i.e., rule) learning, cannot appear more than this many times in one rule.
 	private   Map<Integer,Map<List<Type>,Integer>> maxOccurrencesPerInputVars = null; // During structure (i.e., rule) learning, cannot appear more than this many times in one rule.
-	transient private   Map<Integer,MapOfLists<PredicateNameAndArity, Pruner>>  pruneHashMap      = null; // The first integer is the arity of this predicate (of 'prunableLiteral').  The second key is the predicate name of 'ifPresentLiteral' (could also index on the arity of this literal, but that doesn't seem necessary).  A Pruner instance contains 'prunableLiteral', 'ifPresentLiteral', and the max number of ways that 'ifPresentLiteral' can be proven from the current set of rules.
+	final transient private   Map<Integer,MapOfLists<PredicateNameAndArity, Pruner>>  pruneHashMap      = null; // The first integer is the arity of this predicate (of 'prunableLiteral').  The second key is the predicate name of 'ifPresentLiteral' (could also index on the arity of this literal, but that doesn't seem necessary).  A Pruner instance contains 'prunableLiteral', 'ifPresentLiteral', and the max number of ways that 'ifPresentLiteral' can be proven from the current set of rules.
 	private   Set<Integer> canBeAbsentThisArity                         = null;  // OK if this predicate name with one of these arities can be absent during theorem proving.
 	private   boolean      canBeAbsentAnyArity                          = false;
 	private   Set<Integer> dontComplainAboutMultipleTypesThisArity      = null;  // OF if this predicate/arity have multiple types for some argument.
 	private   boolean      dontComplainAboutMultipleTypesAnyArity       = false;
-	private   Map<FunctionAsPredType,Map<Integer,Integer>>  functionAsPredSpec  = null;  // See if this predicate/arity holds a value of the type specified by String in this position.
+	private final Map<FunctionAsPredType,Map<Integer,Integer>>  functionAsPredSpec  = null;  // See if this predicate/arity holds a value of the type specified by String in this position.
 	private   Set<Integer>                   bridgerSpec                = null;  // See if this predicate/arity is meant to be a 'bridger' predicate during ILP's search for clauses.  If the arg# is given (defaults to -1 otherwise), then all other arguments should be bound before this is treated as a 'bridger.'
 	private   Set<Integer>                   temporary                  = null;  // See if this predicate/arity is only a temporary predicate and if so, it needs to be renamed to avoid name conflicts across runs.  So slightly different than inline.
 	private   Set<Integer>                   inlineSpec                 = null;  // See if this predicate/arity is meant to be a 'inline' predicate during ILP's search for clauses.  If the arg# is given (defaults to -1 otherwise), then all other arguments should be bound before this is treated as a 'bridger.'
@@ -109,10 +107,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 
 	// See if this literal is a predicate that holds a numeric value.
 	boolean isFunctionAsPredicate(List<Term> arguments) {
-		if (functionAsPredSpec == null) { return false; }
-		Map<Integer,Integer> lookup1 = functionAsPredSpec.get(null);
-		if (lookup1 == null) { return false; }
-		return (lookup1.get(Utils.getSizeSafely(arguments)) != null);
+		return false;
 	}
 
 	public enum FunctionAsPredType {      numeric
@@ -159,33 +154,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         addOperationalExpansion(new PredicateNameAndArity(operationalPredicateName, arity));
     }
 
-	/*
-	 * Can prune 'prunableLiteral' if 'ifPresentLiteral' is present (and both unify consistently with the current literal being considered for adding to the current clause during ILP search).
-	 * However, if 'ifPresentLiteral' has 'warnIfPresentLiteralCount' ways to be proven, warn the user (i.e., prune is based on the assumption that fewer than this number of clauses for this literal/arity exist).
-	 * Note: this code does not check for duplicate entries (which would need to use 'variant' since variables are present).
-	 */
-	public void recordPrune(Literal prunableLiteral, Literal ifPresentLiteral, int warnIfPresentLiteralCount, int truthValue) { // TruthValue: -1 means 'prune because false', 1 means because true, and 0 means unknown.
-		if (prunableLiteral  == null) {
-			Utils.error("Should not pass in null's.");
-		}
-		// Might NOT want to do this filtering, since this requires MODE's to precede PRUNE's in files.  Plus, not a lot of harm in storing these (the "ifPresent's" can waste some cycles).
-		
-		if (pruneHashMap == null) {
-			pruneHashMap = new HashMap<>();
-		}
-
-		int arity = prunableLiteral.getArity();
-		MapOfLists<PredicateNameAndArity, Pruner> prunes = getPruners(arity);
-		if (prunes == null) {
-			prunes = new MapOfLists<>();
-			pruneHashMap.put(arity, prunes);
-		}
-
-        PredicateNameAndArity pnaa = ifPresentLiteral == null ? null : ifPresentLiteral.getPredicateNameAndArity();
-
-		prunes.add(pnaa, new Pruner(prunableLiteral, ifPresentLiteral, warnIfPresentLiteralCount, truthValue));
-	}
-	
 	/*
 	 * Get the list of pruning rules for this literal (whose head should be that of this PredicateName instance, but we also need the specific arity).
 	 * Note that this method does not check for those pruners that unify with prunableLiteral.  That is the job of the caller.
@@ -363,41 +331,12 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		if    (isaInterval_2D == null) { return false; }
 		return isaInterval_2D.contains(arity);
 	}
-	public void setIsaInterval_2D(int arity, boolean boundariesAtEnd) {
-		if (isaInterval_2D     == null) { isaInterval_2D     = new HashSet<>(4); }
-		if (boundariesAtEnd_2D == null) { boundariesAtEnd_2D = new HashSet<>(4); }
-		if (isaInterval_2D(    arity)) { return; }
-		isaInterval_2D.add(    arity);
-		if (boundariesAtEnd) { boundariesAtEnd_2D.add(arity); }
-	}
 
 	public boolean isaInterval_3D(int arity) {
 		if    (isaInterval_3D == null) { return false; }
 		return isaInterval_3D.contains(arity);
 	}
-	public void setIsaInterval_3D(int arity, boolean boundariesAtEnd) {
-		if (isaInterval_3D     == null) { isaInterval_3D     = new HashSet<>(4); }
-		if (boundariesAtEnd_3D == null) { boundariesAtEnd_3D = new HashSet<>(4); }
-		if (isaInterval_3D(    arity)) { return; }
-		isaInterval_3D.add(    arity);
-		if (boundariesAtEnd) { boundariesAtEnd_3D.add(arity); }
-	}
 
-	public void addFunctionAsPred(FunctionAsPredType type, int arity, int position) throws IllegalStateException {
-		if (functionAsPredSpec == null) { 
-			functionAsPredSpec = new HashMap<>();
-		}
-		Map<Integer, Integer> lookup1 = functionAsPredSpec.computeIfAbsent(type, k -> new HashMap<>(4));
-		Integer lookup2 = lookup1.get(arity);
-		if (lookup2 == null) { // Not currently specified for this arity.
-			lookup1.put(arity, position);
-		}
-		else if (lookup2 != position) {
-			throw new IllegalStateException("Cannot set " + type + "FunctionAsPred of '" + name + "/" + arity + "' to position " + position + " because it is currently = " + lookup2 + ".");
-		}
-		if (type != null) { addFunctionAsPred(null, arity, position); } // Also store here to say SOME type is specified in this position.
-	}
-	
 	public void addBridger(int arity) {
 		if (bridgerSpec == null) {
 			bridgerSpec = new HashSet<>(4);
@@ -478,17 +417,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		if (firstLookUp) { return cost.get(arity); }
 		return 1.0; // The default cost.
 	}
-	
-	public void markAsSupportingPredicate(int arity, boolean okIfDup) {
-		if (supportingLiteral == null) {
-			supportingLiteral = new HashSet<>(4);
-		}
-		boolean firstLookUp = supportingLiteral.contains(arity);
-		if (!firstLookUp) { // Not currently specified.
-			supportingLiteral.add(arity);
-		}
-		else if (!okIfDup && stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate 'supporter' of '" + name + "/" + arity + "'.  Will ignore."); }		
-	}
+
 	public boolean isaSupportingPredicate(int arity) {
 		return supportingLiteral != null && supportingLiteral.contains(arity);
 	}
@@ -522,12 +451,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 
 	int returnFunctionAsPredPosition(int arity) {
-		if (functionAsPredSpec == null) { return -1; }
-		Map<Integer,Integer> lookup = functionAsPredSpec.get(null);
-		if (lookup == null) { return -1; }
-		Integer result = lookup.get(arity);
-		if (result == null) { return -1; }
-		return result;
+		return -1;
 	}
 	
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {

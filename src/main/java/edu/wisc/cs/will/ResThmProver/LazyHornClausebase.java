@@ -90,28 +90,6 @@ public class LazyHornClausebase implements HornClausebase {
         }
     }
 
-    @Override
-    public boolean retract(DefiniteClause definiteClause, BindingList bindingList) {
-        Literal clauseHead = definiteClause.getDefiniteClauseHead();
-        Collection<DefiniteClause> matchAssertions = getAssertions(clauseHead.predicateName, clauseHead.numberArgs());
-        boolean result = false;
-        if (matchAssertions != null) {
-            DefiniteClause clauseToRemove = null;
-            for (DefiniteClause aClause : matchAssertions) {
-                if (definiteClause.unifyDefiniteClause(aClause, bindingList) != null) {
-
-                    clauseToRemove = aClause;
-                    result = true;
-                    break;
-                }
-            }
-            if (clauseToRemove != null) {
-                removeClause(clauseToRemove);
-            }
-        }
-        return result;
-    }
-
     private void removeClauses(Collection<DefiniteClause> clausesToRemove) {
         if (clausesToRemove != null) {
             for (DefiniteClause definiteClause : clausesToRemove) {
@@ -147,29 +125,6 @@ public class LazyHornClausebase implements HornClausebase {
                 removeClauses(clausesToRemove);
             }
         }
-    }
-
-    @Override
-    public boolean retractAllClauseWithHead(DefiniteClause definiteClause) {
-        Literal clauseHead = definiteClause.getDefiniteClauseHead();
-        Collection<DefiniteClause> matchAssertions = getAssertions(clauseHead.predicateName, clauseHead.numberArgs());
-        DefiniteClauseList clausesToRemove = null;
-        boolean result = false;
-        if (matchAssertions != null) {
-            for (DefiniteClause aClause : matchAssertions) {
-                if (Unifier.UNIFIER.unify(clauseHead, aClause.getDefiniteClauseHead()) != null) {
-                    if (clausesToRemove == null) {
-                        clausesToRemove = new DefiniteClauseList();
-                    }
-                    clausesToRemove.add(aClause);
-                    result = true;
-                }
-            }
-            if (clausesToRemove != null) {
-                removeClauses(clausesToRemove);
-            }
-        }
-        return result;
     }
 
     /* Checks to fact to make sure we should add it.
@@ -341,24 +296,6 @@ public class LazyHornClausebase implements HornClausebase {
         return "LazyHornClauseFactbase:\n" +
                 "\nAll assertions indexer:\n" +
                 indexerForAllAssertions;
-    }
-
-    @Override
-    public boolean recorded(DefiniteClause definiteClause) {
-        Clause definiteClauseAsClause = definiteClause.getDefiniteClauseAsClause();
-        Literal clauseHead = definiteClause.getDefiniteClauseHead();
-        Collection<DefiniteClause> possibleMatchingClauses = getIndexerForAllAssertions().getPossibleMatchingAssertions(clauseHead, null);
-        if (possibleMatchingClauses != null) {
-            BindingList bl = new BindingList();
-            for (DefiniteClause anotherClause : possibleMatchingClauses) {
-                // Variants will check for duplication without performing unification.
-                bl.theta.clear();
-                if (definiteClauseAsClause.variants(anotherClause.getDefiniteClauseAsClause(), bl) != null) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private boolean isFactAsserted(Literal literal) {

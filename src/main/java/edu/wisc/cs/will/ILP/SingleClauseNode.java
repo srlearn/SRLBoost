@@ -630,27 +630,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (parent == null) { return false; }
 		return parent.posExampleAlreadyExcluded(example);
 	}
-	
-	// Used to get examples on the false branch for a node
-	private List<Example> posExampleFailedAtNode()  throws SearchInterrupted {
-		if (getPosCoverage() < 0.0) { computeCoverage(); }
-		if (this == ((LearnOneClause)task).currentStartingNode) {
-				return new ArrayList<>();
-		}
-		
-		List<Example> failedExamples;
-		if (posExamplesThatFailedHere != null) {
-			failedExamples = new ArrayList<>(posExamplesThatFailedHere);
-		} else {
-			failedExamples = new ArrayList<>();
-		}
-		
-		SingleClauseNode parent = getParentNode();
-		if (parent == null) { return failedExamples; }
-		failedExamples.addAll(parent.posExampleFailedAtNode());
-		return failedExamples;
-	}
-	
+
 	private boolean negExampleAlreadyExcluded(Literal example) throws SearchInterrupted {
 		if (negCoverage < 0.0) { computeCoverage(); }
 		if (negExamplesThatFailedHere != null && negExamplesThatFailedHere.contains(example)) { return true; }

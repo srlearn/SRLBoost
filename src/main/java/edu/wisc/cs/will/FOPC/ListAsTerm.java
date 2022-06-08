@@ -74,11 +74,6 @@ public class ListAsTerm extends Term {
 	}
 
     @Override
-    public Sentence asSentence() {
-        return null;
-    }
-
-	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		final int prime = 31;
 		int result = 1;
