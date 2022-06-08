@@ -1,0 +1,13 @@
+friends(zod,xena).
+friends(xena,watson).
+friends(watson,voldemort).
+friends(voldemort,yoda).
+friends(yoda,zod).
+friends(xena,zod).
+friends(watson,xena).
+friends(voldemort,watson).
+friends(yoda,voldemort).
+friends(zod,yoda).
+smokes(zod).
+smokes(xena).
+smokes(yoda).
