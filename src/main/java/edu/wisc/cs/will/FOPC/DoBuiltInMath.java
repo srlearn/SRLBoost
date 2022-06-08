@@ -139,14 +139,6 @@ public class DoBuiltInMath extends AllOfFOPC {
             FunctionName name = ((Function) expression).functionName;
             List<Term>   args = ((Function) expression).getArguments();
 
-            if (name == stringHandler.standardPredicateNames.pullOutNthArgFunction) {
-                if (args.size() != 2) {
-                    Utils.error("Must have two arguments here: " + expression);
-                }
-                NumericConstant index = (NumericConstant) args.get(0);
-                Function arg1 = (Function) args.get(1);
-                return simplifyAsDouble(arg1.getArgument(index.value.intValue()));
-            }
             Utils.error("Unknown math operator: " + name);
         } else if (expression instanceof SentenceAsTerm) {
         	Sentence s = ((SentenceAsTerm) expression).sentence;

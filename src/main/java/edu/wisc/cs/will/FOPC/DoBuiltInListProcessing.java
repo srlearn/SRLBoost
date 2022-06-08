@@ -11,23 +11,8 @@ public class DoBuiltInListProcessing extends AllOfFOPC {
 
 	private final FunctionName conscell; // Should really have ConsCell instances, but check for this as a function name as well.
 	private final FunctionName first;
-	private final FunctionName rest;
-	private final FunctionName remove;
-	private final FunctionName push;
-	private final FunctionName nth;
-	private final FunctionName nthPlus1;
-	private final FunctionName length; // Do numeric-valued here.
-	private final FunctionName position;
-	private final FunctionName convertListToString;
 
-	// Use 'fast' to indicate that we convert to lists and manipulate the lists; other than the initial call, no unification is done (ie, for union and intersection).
-    // Ie, there are used like this:
-    //                 ?X is append(?A, ?B)
-    // The FOPC library supports Prolog-based versions, eg
-    //                 append(?A, ?B, ?X)
-	private final FunctionName fastAppend;
-	private final FunctionName fastIntersection;
-	private final FunctionName fastUnion;
+	private final FunctionName convertListToString;
 
 	private final HandleFOPCstrings stringHandler;
 	private final Map<FunctionName,Set<Integer>> canHandle = new HashMap<>(16);
@@ -39,18 +24,6 @@ public class DoBuiltInListProcessing extends AllOfFOPC {
 		
 		conscell = addFunctionName("conscell", 1);
 		first    = addFunctionName("first",  1);
-		rest     = addFunctionName("rest",   1);
-		remove   = addFunctionName("remove", 2);
-		push     = addFunctionName("push",   2);
-		nth      = addFunctionName("nth",    2);
-		nthPlus1 = addFunctionName("nthPlus1", 2);
-		length   = addFunctionName("length",   1);
-		position = addFunctionName("position", 2);
-		
-		fastAppend       = addFunctionName("append",       2); // Use names w/o 'Fast' here.
-		fastIntersection = addFunctionName("intersection", 2);
-		fastUnion        = addFunctionName("union",        2);
-		
 		convertListToString  = addFunctionName("convertListToString", 1);
 		
 		stringHandler.cleanFunctionAndPredicateNames = hold;
@@ -93,81 +66,10 @@ public class DoBuiltInListProcessing extends AllOfFOPC {
 				return ConsCell.ensureIsaConsCell(stringHandler, expression);
 			}
 			
-			if (name == fastAppend) {
-				if (args.size() != 2) { Utils.error("Must have TWO arguments here: " + expression); }
-				ConsCell arg1 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(0)));
-				ConsCell arg2 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(1)));
-				return ConsCell.append(arg1, arg2);
-			} else if (name == fastUnion) {
-				if (args.size() != 2) { Utils.error("Must have TWO arguments here: " + expression); }
-				ConsCell arg1 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(0)));
-				ConsCell arg2 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(1)));
-				return ConsCell.union(arg1, arg2);
-			} else if (name == fastIntersection) {
-				if (args.size() != 2) { Utils.error("Must have TWO arguments here: " + expression); }
-				ConsCell arg1 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(0)));
-				ConsCell arg2 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(1)));
-				return ConsCell.intersection(arg1, arg2);
-			} 
-			else if (name == first) { 
+			if (name == first) {
 				if (args.size() != 1) { Utils.error("Must have ONE argument here: " + expression); }
 				ConsCell arg1 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(0)));
 				return arg1.first();
-			}
-			else if (name == rest) { 
-				if (args.size() != 1) { Utils.error("Must have ONE argument here: " + expression); }
-				ConsCell arg1 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(0)));
-				return arg1.rest();
-			}
-			else if (name == push) { 
-				if (args.size() != 2) { Utils.error("Must have TWO arguments here: " + expression); }
-				Term     arg1 = stringHandler.simplify(args.get(0));
-				ConsCell arg2 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(1)));
-				return arg2.push(arg1);
-			}
-			else if (name == remove) { 
-				if (args.size() != 2) { Utils.error("Must have TWO arguments here: " + expression); }
-				Term     arg1 = stringHandler.simplify(args.get(0));
-				ConsCell arg2 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(1)));
-				return arg2.remove(arg1);
-			}
-			else if (name == nth) { 
-				if (args.size() != 2) { Utils.error("Must have TWO arguments here: " + expression); }
-				Term     arg1 = stringHandler.simplify(args.get(0));
-				ConsCell arg2 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(1)));
-				int      n    = ((NumericConstant) arg1).value.intValue();
-				try {
-                    return arg2.nth(n);
-                }
-                catch(Exception e) {
-                    return null;
-                }
-			}
-			else if (name == nthPlus1) { 
-				if (args.size() != 2) { Utils.error("Must have TWO arguments here: " + expression); }
-				Term     arg1 = stringHandler.simplify(args.get(0));
-				ConsCell arg2 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(1)));
-				int      n    = ((NumericConstant) arg1).value.intValue();
-				return arg2.nth(n + 1);
-			}
-			else if (name == length) { 
-				if (args.size() != 1) { Utils.error("Must have ONE argument here: " + expression); }
-
-                Term simplifiedArg0 = simplify(args.get(0));
-
-                if (simplifiedArg0 instanceof ConsCell) {
-                    ConsCell consCell = (ConsCell) simplifiedArg0;
-                    return stringHandler.getNumericConstant(consCell.length());
-                }
-                else {
-                    return null;
-                }
-			}
-			else if (name == position) { 
-				if (args.size() != 2) { Utils.error("Must have TWO arguments here: " + expression); }
-				Term     arg1 = stringHandler.simplify(args.get(0));
-				ConsCell arg2 = ConsCell.ensureIsaConsCell(stringHandler, simplify(args.get(1)));
-				return stringHandler.getNumericConstant(arg2.position(arg1));
 			}
 			else if (name == convertListToString) { 
 				if (args.size() != 1) { Utils.error("Must have ONE argument here: " + expression); }

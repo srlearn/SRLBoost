@@ -18,25 +18,13 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName list;
 
-    final PredicateName compound;
-
     public final PredicateName is;
-
-    final FunctionName pullOutNthArgFunction;
 
     public final PredicateName print;
 
     public final PredicateName write; // A synonym for 'print.'
 
     public final PredicateName waitHere;
-
-    final PredicateName findAllCollector;
-
-    final PredicateName allCollector;
-
-    final PredicateName bagOfCollector;
-
-    final PredicateName setOfCollector;
 
     public final PredicateName length;
 
@@ -80,25 +68,7 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName consCell;
 
-    final PredicateName unify2;
-
-    public final PredicateName unify;
-
-    final PredicateName ununifiable;
-
-    final PredicateName ununifiable2;
-
     public final PredicateName equal;
-
-    final PredicateName equal2;
-
-    final PredicateName diff;
-
-    final PredicateName notEqual;
-
-    public final PredicateName ground;
-
-    final PredicateName copyTerm;
 
     public final PredicateName gt;  // Prefix versions of these comparators haven't been provided.
 
@@ -119,18 +89,8 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         var = stringHandler.getPredicateName("var");
         number = stringHandler.getPredicateName("number");
         list = stringHandler.getPredicateName("list");
-        compound = stringHandler.getPredicateName("compound");
         is = stringHandler.getPredicateName("is");
-        unify = stringHandler.getPredicateName("unify");
-        unify2 = stringHandler.getPredicateName("=");
-        ununifiable = stringHandler.getPredicateName("notUnify");
-        ununifiable2 = stringHandler.getPredicateName("\\=");
         equal = stringHandler.getPredicateName("equal");
-        equal2 = stringHandler.getPredicateName("==");
-        diff = stringHandler.getPredicateName("diff");
-        notEqual = stringHandler.getPredicateName("\\==");
-        ground = stringHandler.getPredicateName("ground");
-        copyTerm = stringHandler.getPredicateName("copy_term");
         gt = stringHandler.getPredicateName(">");  // Prefix versions of these comparators haven't been provided.
         lt = stringHandler.getPredicateName("<");
         gte = stringHandler.getPredicateName(">=");   // gte = greater-than-or-equal
@@ -138,10 +98,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         print = stringHandler.getPredicateName("print");
         write = stringHandler.getPredicateName("write"); // A synonym for 'print.'
         waitHere = stringHandler.getPredicateName("waitHere");
-        findAllCollector = stringHandler.getPredicateName("findAllCollector");
-        allCollector = stringHandler.getPredicateName("allCollector");
-        bagOfCollector = stringHandler.getPredicateName("bagofCollector");
-        setOfCollector = stringHandler.getPredicateName("setofCollector");
         length = stringHandler.getPredicateName("length");
         implicit_call = stringHandler.getPredicateName("implicit_call");
         trueName = stringHandler.getPredicateName("true");
@@ -163,31 +119,23 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
         negationByFailureAsFunction = stringHandler.getFunctionName("\\+");
         FunctionName isFunction = stringHandler.getFunctionName("is");
-        FunctionName unifyFunction = stringHandler.getFunctionName("unify");
         FunctionName unify2Function = stringHandler.getFunctionName("=");
-        FunctionName ununifiableFunction = stringHandler.getFunctionName("notUnify");
         FunctionName ununifiable2Function = stringHandler.getFunctionName("\\=");
-        FunctionName equalFunction = stringHandler.getFunctionName("equal");
         FunctionName equal2Function = stringHandler.getFunctionName("==");
         FunctionName notEqualFunction = stringHandler.getFunctionName("\\==");
         // Prefix versions of these comparators haven't been provided.
         FunctionName gtFunction = stringHandler.getFunctionName(">");  // Prefix versions of these comparators haven't been provided.
-        FunctionName gt2Function = stringHandler.getFunctionName("gt");
         FunctionName ltFunction = stringHandler.getFunctionName("<");
-        FunctionName lt2Function = stringHandler.getFunctionName("lt");
         // gte = greater-than-or-equal
         FunctionName gteFunction = stringHandler.getFunctionName(">=");   // gte = greater-than-or-equal
-        FunctionName gte2Function = stringHandler.getFunctionName("gte");
         // lte = less-than-or-equal
         FunctionName lteFunction = stringHandler.getFunctionName("=<");   // lte = less-than-or-equal
         FunctionName lte2Function = stringHandler.getFunctionName("<=");
-        FunctionName lte3Function = stringHandler.getFunctionName("lte");
         // Equal numbers.
         FunctionName equalNumbersFunction = stringHandler.getFunctionName("=:=");  // Equal numbers.
         // Not equal numbers.
         FunctionName notEqualNumbersFunction = stringHandler.getFunctionName("=\\="); // Not equal numbers.
         FunctionName equalDotDotFunction = stringHandler.getFunctionName("=..");
-        pullOutNthArgFunction = stringHandler.getFunctionName("pullOutNthArg");
 
         spy = stringHandler.getPredicateName("spy");
 
@@ -195,10 +143,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
 
         is.printUsingInFixNotation = true;
-        unify2.printUsingInFixNotation = true;
-        ununifiable2.printUsingInFixNotation = true;
-        equal2.printUsingInFixNotation = true;
-        notEqual.printUsingInFixNotation = true;
         gt.printUsingInFixNotation = true;
         lt.printUsingInFixNotation = true;
         gte.printUsingInFixNotation = true;
