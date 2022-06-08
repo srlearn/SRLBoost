@@ -545,7 +545,7 @@ public final class WILLSetup {
 						cmdArgs.getSampleNegsToPosRatioVal(),
 						cmdArgs.getSamplePosProbVal(),
 						cmdArgs.isLearnMLN() && cmdArgs.isLearningMLNClauses(),
-						cmdArgs.reweighExamples,
+						false,
 						cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples())
 				;
 			}
