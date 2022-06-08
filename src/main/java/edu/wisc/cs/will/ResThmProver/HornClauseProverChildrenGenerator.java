@@ -147,11 +147,11 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 StackTraceLiteral trace = (StackTraceLiteral) literalBeingExpanded;
 
                 Literal traceLiteral = trace.getTraceLiteral();
-                if (getTask().getTraceLevel() >= 2 || isSpyLiteral(traceLiteral)) {
+                if (getTask().getTraceLevel() >= 2) {
                     
                     BindingList localVarBindings = null;
 
-                    if (getTask().getTraceLevel() >= 3 || isSpyLiteral(traceLiteral)) {
+                    if (getTask().getTraceLevel() >= 3) {
                         localVarBindings = getLocalBindings(traceLiteral, hornSearchNode);
                     }
 
@@ -196,7 +196,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             // Do the actual work right here...
             result = collectChildrenActual(hornSearchNode);
 
-            if (result != null && (getTask().getTraceLevel() >= 2 || isSpyLiteral(literalBeingExpanded))) {
+            if (result != null && (getTask().getTraceLevel() >= 2)) {
                 result.add(new FailedTraceNode(getTask(), literalBeingExpanded, hornSearchNode.parentProofCounter, hornSearchNode.parentExpansionIndex));
             }
             
@@ -225,7 +225,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     private BindingList tracePrefix(HornSearchNode hornSearchNode, Literal firstQueryLiteral, PrettyPrinterOptions ppo) {
         try {
-            if (getTask().getTraceLevel() >= 2 || (getTask().getTraceLevel() >= 1 && isSpyLiteral(firstQueryLiteral))) {
+            if (getTask().getTraceLevel() >= 2) {
 
                 getStringHandler().printVariableCounters = true;
 
@@ -265,7 +265,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     private void traceSuffix(HornSearchNode lastExpandedNode, List<HornSearchNode> list, List<Literal> queryLiterals, Literal negatedLiteral, BindingList printBindings, PrettyPrinterOptions ppo) {
         try {
 
-            if (getTask().getTraceLevel() >= 2 || (getTask().getTraceLevel() >= 1 && isSpyLiteral(negatedLiteral))) {
+            if (getTask().getTraceLevel() >= 2) {
                 if (list == null) {
                     HornSearchNode nextOpenNode = task.open.peekFirst();
                     String literalString = PrettyPrinter.print(negatedLiteral, "", "", ppo, printBindings);
@@ -344,7 +344,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                         }
                         Utils.println(String.format("             [%d.%d] %s", searchNode.parentProofCounter, searchNode.parentExpansionIndex, sb.toString()));
 
-                        if (getTask().getTraceLevel() >= 2 || isSpyLiteral(negatedLiteral)) {
+                        if (getTask().getTraceLevel() >= 2) {
 
                             int bindingCount = 0;
 
@@ -394,10 +394,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         } catch (Throwable e) {
             Utils.println("Error occurred while tracing: " + e.toString() + ".");
         }
-    }
-
-    private boolean isSpyLiteral(Literal traceLiteral) {
-        return getStringHandler().spyEntries.includeElement(traceLiteral.predicateName, traceLiteral.getArity());
     }
 
     private List<HornSearchNode> collectChildrenActual(HornSearchNode hornSearchNode) throws SearchInterrupted {
@@ -599,23 +595,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 children = new ArrayList<>(1);
                 children.add(collectNode);
                 children.add(answerNode);
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.spy) {
-
-                for (int i = 0; i < negatedLiteral.numberArgs(); i++) {
-
-                    Term arg = negatedLiteral.getArgument(i);
-                    PredicateNameAndArity predicateNameArity = getPredicateNameAndArity(arg);
-
-                    if (predicateNameArity != null) {
-                        getTask().getSpyEntries().addLiteral(predicateNameArity);
-                    }
-                }
-
-                children = new ArrayList<>(1);
-                children.add(createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null));
                 return children;
             }
         }
@@ -856,54 +835,12 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         return (HornClauseProver) task;
     }
 
-    private PredicateNameAndArity getPredicateNameAndArity(Term arg) {
-
-        HandleFOPCstrings stringHandler = getStringHandler();
-
-        PredicateNameAndArity predicateNameArity = null;
-        PredicateName name = null;
-        int arity = -1;
-        if (arg instanceof StringConstant) {
-            StringConstant stringConstant = (StringConstant) arg;
-            String contents = stringConstant.getName();
-            int index = contents.indexOf("/");
-            if (index == -1) {
-                name = stringHandler.getPredicateName(contents);
-            }
-            else {
-                String namePart = contents.substring(0, index);
-                String arityPart = contents.substring(index + 1);
-                try {
-                    arity = Integer.parseInt(arityPart);
-                    name = stringHandler.getPredicateName(namePart);
-                } catch (NumberFormatException ignored) {
-                }
-            }
-        }
-        else if (arg instanceof Function) {
-            Function function = (Function) arg;
-            if (function.functionName.name.equals("/") && function.numberArgs() == 2) {
-                if (function.getArgument(0) instanceof StringConstant && function.getArgument(1) instanceof NumericConstant) {
-                    name = stringHandler.getPredicateName(((StringConstant) function.getArgument(0)).getBareName());
-                    arity = ((NumericConstant) function.getArgument(1)).value.intValue();
-                }
-            }
-        }
-
-
-        if (name != null) {
-            predicateNameArity = new PredicateNameAndArity(name, arity);
-        }
-
-        return predicateNameArity;
-    }
-
     private List<Literal> getQueryRemainder(List<Literal> queryLiterals, long proofCounter, int expansion, BindingList bindingList) {
         int querySize = queryLiterals.size();
         List<Literal> queryRemainder = new LinkedList<>();
 
         if (querySize > 0) {
-            if (getTask().getTraceLevel() >= 2 || (getTask().getTraceLevel() >= 1 && isSpyLiteral(queryLiterals.get(0)))) {
+            if (getTask().getTraceLevel() >= 2) {
                 queryRemainder.add(new StackTraceLiteral(queryLiterals.get(0), proofCounter, expansion));
             }
 

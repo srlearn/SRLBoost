@@ -84,9 +84,6 @@ public class CommandLineArguments {
 	private static final String maxTrees = "trees";
 	private int maxTreesVal=10;
 
-	private static final String disableJointModel = "noJointModel";
-	private boolean jointModelDisabled =false;
-
 	private static final String disableChkPtFlag = "disableChkPts";
 	private boolean noCheckPointing=false;
 
@@ -95,9 +92,6 @@ public class CommandLineArguments {
 
 	private static final String probFlag = "probEx";
 	private boolean learnProbExamples = false;
-
-	private static final String disableMultiClassFlag = "noMulti";
-	private boolean disableMultiClass = false;
 
 	private static final String maxInteriorNodeLits = "maxNodeLits";
 	private int maxLiteralsInAnInteriorNodeVal = 1;
@@ -203,20 +197,6 @@ public class CommandLineArguments {
 				inferVal = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					inferVal = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], disableJointModel)) {
-				jointModelDisabled = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					jointModelDisabled = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], disableMultiClassFlag)) {
-				disableMultiClass = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					disableMultiClass = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -472,10 +452,6 @@ public class CommandLineArguments {
 		return targetPredVal;
 	}
 
-	public boolean isDisableMultiClass() {
-		return disableMultiClass;
-	}
-
 	public Set<String> getLoadPredModelVal() {
 		return loadPredModelVal;
 	}
@@ -523,10 +499,6 @@ public class CommandLineArguments {
 
 	public int getMaxLiteralsInAnInteriorNode() {
 		return maxLiteralsInAnInteriorNodeVal;
-	}
-
-	public boolean isJointModelDisabled() {
-		return jointModelDisabled;
 	}
 
 	public boolean isLearnMLN() {

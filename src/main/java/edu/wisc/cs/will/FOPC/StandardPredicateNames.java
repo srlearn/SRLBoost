@@ -64,8 +64,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final FunctionName negationByFailureAsFunction;
 
-    public final PredicateName spy;
-
     public final PredicateName consCell;
 
     public final PredicateName equal;
@@ -137,8 +135,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         FunctionName notEqualNumbersFunction = stringHandler.getFunctionName("=\\="); // Not equal numbers.
         FunctionName equalDotDotFunction = stringHandler.getFunctionName("=..");
 
-        spy = stringHandler.getPredicateName("spy");
-
         consCell = stringHandler.getPredicateName("consCell");
 
 
@@ -184,8 +180,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         buildinPredicates.add(countUniqueBindings);
         buildinPredicates.add(then);
         buildinPredicates.add(negationByFailure);
-
-        buildinPredicates.add(spy);
 
         stringHandler.cleanFunctionAndPredicateNames = hold;
     }

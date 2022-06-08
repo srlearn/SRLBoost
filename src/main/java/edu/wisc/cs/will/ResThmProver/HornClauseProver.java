@@ -4,7 +4,6 @@ import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -94,14 +93,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		return performSearch().goalFound();
 	}
 
-	private BindingList proveSimpleQueryAndReturnBindings(Literal negatedFact) throws SearchInterrupted {
-
-		if (proveSimpleQuery(negatedFact)) {
-			return new BindingList(((ProofDone) terminator).collectQueryBindings());
-		}
-		return null;
-	}
-
 	private int countOfWarningsForMaxNodes =   0;
 	public boolean proveConjunctiveQuery(List<Literal> negatedConjunctiveQuery) throws SearchInterrupted {
 		if (negatedConjunctiveQuery == null) { return false; } // No way to make the empty query true.
@@ -122,22 +113,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 			return new BindingList(((ProofDone) terminator).collectQueryBindings());
 		}
 		return null;
-	}
-
-	public List<Term> getAllUniqueGroundings(Literal query) throws SearchInterrupted {
-		Function   queryAsFunction = query.convertToFunction(getStringHandler());
-		Variable   var             = getStringHandler().getNewUnamedVariable();
-		List<Term> findAllArgList  = new ArrayList<>(3);
-		findAllArgList.add(queryAsFunction);
-		Clause clause = getStringHandler().getClause(query, false);
-		findAllArgList.add(getStringHandler().getSentenceAsTerm(clause, "getAllUniqueGroundings"));
-		findAllArgList.add(var);
-		Literal allRaw = getStringHandler().getLiteral(getStringHandler().standardPredicateNames.all, findAllArgList);
-		BindingList  bl = proveSimpleQueryAndReturnBindings(allRaw);
-		if (bl == null) { return null; }
-		ConsCell allResults = (ConsCell) bl.lookup(var);
-		if (allResults == null) { return null; }
-		return allResults.convertConsCellToList();
 	}
 
 	public HornClausebase getClausebase() {

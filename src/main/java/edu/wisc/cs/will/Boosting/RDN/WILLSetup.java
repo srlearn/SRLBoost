@@ -3,7 +3,6 @@ package edu.wisc.cs.will.Boosting.RDN;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
-import edu.wisc.cs.will.DataSetUtils.CreateSyntheticExamples;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.*;
@@ -203,13 +202,11 @@ public final class WILLSetup {
 		// check if multi class trees are enabled.
 		// We still create the multi class handler object
 		multiclassHandler = new MultiClassExampleHandler();
-		if (!cmdArgs.isDisableMultiClass()) {
-			multiclassHandler.initArgumentLocation(this);
-			for (String pred : backupPosExamples.keySet()) {
-				multiclassHandler.addConstantsFromLiterals(backupPosExamples.get(pred));
-				if (backupNegExamples.containsKey(pred)) {
-					multiclassHandler.addConstantsFromLiterals(backupNegExamples.get(pred));
-				}
+		multiclassHandler.initArgumentLocation(this);
+		for (String pred : backupPosExamples.keySet()) {
+			multiclassHandler.addConstantsFromLiterals(backupPosExamples.get(pred));
+			if (backupNegExamples.containsKey(pred)) {
+				multiclassHandler.addConstantsFromLiterals(backupNegExamples.get(pred));
 			}
 		}
 
@@ -290,70 +287,7 @@ public final class WILLSetup {
 			backupNegExamples.computeIfAbsent(pred, k -> new ArrayList<>());
 		}
 
-		if (missingPositiveTargets.isEmpty()) {
-			return;
-		}
-
-		// These predicates are in facts.
-		predicatesAsFacts.addAll(missingPositiveTargets);
-		
-		for (Literal lit : getContext().getClausebase().getFacts()) {
-
-			String litPredicate = lit.predicateName.name;
-			if (missingPositiveTargets.contains(litPredicate)) {
-
-				// Telling WILL that this is an example.
-				getInnerLooper().confirmExample(lit);
-				
-				RegressionRDNExample eg = new RegressionRDNExample(lit, true, "% Obtained from facts.");
-				addExampleToMap(eg, backupPosExamples);
-				if (!disableFactBase) {
-					addedToFactBase.add(eg);
-				}
-			}
-		}
-		
-		if (missingNegativeTargets.size() > 0) {
-			// Update targetArgSpecs so that predicates are available for creating negatives.
-			getInnerLooper().chooseTargetMode(true);
-			
-			for (int i = 0; i < getInnerLooper().getTargets().size(); i++) {
-				String predName = getInnerLooper().getTargets().get(i).predicateName.name;
-				//Utils.println("considering " + predName);
-				if (missingNegativeTargets.contains(predName)) {
-					// Only create negs for predicates completely missing from pos/neg or 
-					// for any predicate missing negs iff createSyntheticexamples is enabled.
-					if (missingPositiveTargets.contains(predName)) {
-						Utils.println("Creating neg ex for: " + predName);
-						List<Example> 
-						negEgs = CreateSyntheticExamples.createAllPossibleExamples("% Negative example created from facts.",
-									getHandler(), getProver(), getInnerLooper().getTargets().get(i),getInnerLooper().getTargetArgSpecs().get(i),
-									getInnerLooper().getExamplePredicateSignatures().get(i), null,
-								new ArrayList<>(backupPosExamples.get(predName)), null, null);
-						assert negEgs != null;
-						for (Example negEx : negEgs) {
-							getInnerLooper().confirmExample(negEx);
-						}
-						backupNegExamples.put(predName, negEgs);
-					}
-				}
-			}
-		}
-		// If no examples found, return
-		for (String predName : cmdArgs.getTargetPredVal()) {
-			if (missingPositiveTargets.contains(predName) && 
-					(!backupPosExamples.containsKey(predName) || backupPosExamples.get(predName).isEmpty()) && 
-				missingNegativeTargets.contains(predName) &&
-					(!backupNegExamples.containsKey(predName) || backupNegExamples.get(predName).isEmpty())) {
-				// Missing all examples of a particular type.
-
-				String mesg = "No examples(positive & negative) found for predicate: " + predName;
-				Utils.warning(mesg);
-				return;
-			}
-		}
-		// Update targetArgSpecs.
-		getInnerLooper().chooseTargetMode(true);
+		return;
 	}
 
 	private void addExampleToMap(Example eg, Map<String,List<Example>> exampleMap) {
@@ -523,11 +457,7 @@ public final class WILLSetup {
 
 		}
 		// Set target literal to be just one literal.
-		if (forLearning && cmdArgs.isJointModelDisabled()) {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, true, prefix);
-		} else {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, false, prefix);
-		}
+		getOuterLooper().innerLoopTask.setTargetAs(predicate, false, prefix);
 		handler.getPredicateName(predicate).setCanBeAbsent(-1);
 
 		
