@@ -1,6 +1,4 @@
 usePrologVariables: true.
-setParam: loadAllLibraries=false.
-setParam: loadAllBasicModes=false.
 setParam: maxTreeDepth=3.
 setParam: nodeSize=2.
 queryPred: father/2.
