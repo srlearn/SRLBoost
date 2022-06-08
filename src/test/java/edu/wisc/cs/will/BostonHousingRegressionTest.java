@@ -1,11 +1,9 @@
 package edu.wisc.cs.will;
 
 import edu.wisc.cs.will.Boosting.Common.RunBoostedModels;
-
 import org.junit.jupiter.api.Test;
 
-public class RunBoostedModelsRegressionTest {
-
+public class BostonHousingRegressionTest {
     @Test
     public void testBostonHousingLearnInfer() {
 
