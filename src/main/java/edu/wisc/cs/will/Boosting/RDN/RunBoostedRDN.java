@@ -57,9 +57,6 @@ public class RunBoostedRDN extends RunBoostedModels {
 		}
 
 		int iterStepSize = cmdArgs.getMaxTreesVal();
-		if (cmdArgs.getRdnIterationStep() != -1) {
-			iterStepSize  = cmdArgs.getRdnIterationStep();
-		}
 
 		for (int i=0; i < cmdArgs.getMaxTreesVal(); i+=iterStepSize) {
 

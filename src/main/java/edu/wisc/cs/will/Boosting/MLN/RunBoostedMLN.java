@@ -52,9 +52,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 			iterStepSize = cmdArgs.getMaxTreesVal();
 		}
 
-		if (cmdArgs.getRdnIterationStep() != -1) {
-			iterStepSize  = cmdArgs.getRdnIterationStep();
-		}
 		for (int i=0; i < cmdArgs.getMaxTreesVal(); i+=iterStepSize) {
 			for (String pred : cmdArgs.getTargetPredVal()) {
 
