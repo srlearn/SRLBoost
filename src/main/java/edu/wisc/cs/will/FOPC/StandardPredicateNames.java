@@ -12,37 +12,9 @@ import java.util.Set;
  */
 public class StandardPredicateNames { // A few FUNCTION names also appear here; for instance, sometimes we need to convert a literal to a function.
 
-    final PredicateName dateToString;
-
-    final PredicateName dateToUTCstring;
-
-    final PredicateName dateToMRstring;
-
-    final PredicateName convertDateToLong;
-
-    final PredicateName isa_variable; // NOTE: the same stringHandler needs to be used throughout so the same strings get mapped to the same PredicateName instances.
-
     public final PredicateName var;
 
-    final PredicateName isa_constant; // Also note: this mapping is case-independent.
-
-    final PredicateName atomic;
-
-    final PredicateName isa_numericConstant;
-
     public final PredicateName number;
-
-    final PredicateName isaInteger;
-
-    final PredicateName isaFloat;
-
-    final PredicateName isaDouble;
-
-    final PredicateName isa_stringConstant;
-
-    final PredicateName atom;
-
-    final PredicateName nonvar;
 
     public final PredicateName list;
 
@@ -63,8 +35,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
     public final PredicateName waitHere;
 
     public final PredicateName wait; // A synonym for 'waitHere.'
-
-    final PredicateName readEvalPrint;
 
     final PredicateName findAllCollector;
 
@@ -88,42 +58,9 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName length;
 
-    final PredicateName nth;
-
-    final PredicateName nthPlus1;
-
-    // These are also defined in a library.  Note can use fast version via functions, eg:  ?X is union(?Y, ?Z).
-    // Libraries override (I [JWS] believe).
-    final PredicateName appendFast;
-    final PredicateName intersectionFast;
-    final PredicateName unionFast;
-
-    final PredicateName listsEquivalent;
-
-    final PredicateName addListOfNumbers;
-
-    final PredicateName multListOfNumbers;
-
     final PredicateName countProofsCollector;
 
     final PredicateName countUniqueBindingsCollector;
-
-    final PredicateName assertName;
-
-    final PredicateName assertifnotName;
-
-    final PredicateName assertifunknownName;
-
-    final PredicateName atomConcat;
-
-    final PredicateName atomLength;
-
-    final PredicateName atomChars;
-
-    final PredicateName setCounter,  setCounterB,  setCounterC,  setCounterD,  setCounterE;
-    final PredicateName incrCounter, incrCounterB, incrCounterC, incrCounterD, incrCounterE;
-
-    final PredicateName tokenizeString;
 
     public final PredicateName implicit_call;
 
@@ -163,18 +100,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName spy;
 
-    public final PredicateName nospy;
-
-    public final PredicateName nospyall;
-
-    public final PredicateName trace;
-
-    public final PredicateName notrace;
-
-    public final PredicateName retract;
-
-    public final PredicateName retractall;
-
     final PredicateName createUniqueStringConstant;
 
     public final PredicateName consCell;
@@ -196,40 +121,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
     final FunctionName minFunction;
 
     final FunctionName maxFunction;
-
-    final FunctionName absFunction;
-
-    final FunctionName sinFunction;
-
-    final FunctionName cosFunction;
-
-    final FunctionName tanFunction;
-
-    final FunctionName sinhFunction;
-
-    final FunctionName coshFunction;
-
-    final FunctionName tanhFunction;
-
-    final FunctionName asinFunction;
-
-    final FunctionName acosFunction;
-
-    final FunctionName atanFunction;
-
-    final FunctionName atan2Function; // From Java: Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta).
-
-    final FunctionName logFunction;
-
-    final FunctionName expFunction;
-
-    final FunctionName sqrtFunction;
-
-    final FunctionName sqrtSafeFunction;
-
-    final FunctionName sqrtAbsFunction;
-
-    final FunctionName powFunction;
 
     final FunctionName starStarFunction;
 
@@ -307,22 +198,8 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         boolean hold = stringHandler.cleanFunctionAndPredicateNames;
         stringHandler.cleanFunctionAndPredicateNames = false;
 
-        dateToString      = stringHandler.getPredicateName("dateToString");
-        dateToUTCstring   = stringHandler.getPredicateName("dateToUTCstring");
-        dateToMRstring    = stringHandler.getPredicateName("dateToMRstring");
-        convertDateToLong = stringHandler.getPredicateName("convertDateToLong");
-        isa_variable = stringHandler.getPredicateName("isa_variable"); // NOTE: the same stringHandler needs to be used throughout so the same strings get mapped to the same PredicateName instances.
         var = stringHandler.getPredicateName("var");
-        isa_constant = stringHandler.getPredicateName("isa_constant"); // Also note: this mapping is case-independent.
-        atomic = stringHandler.getPredicateName("atomic");
-        isa_numericConstant = stringHandler.getPredicateName("isa_numericConstant");
         number = stringHandler.getPredicateName("number");
-        isaInteger = stringHandler.getPredicateName("integer");
-        isaFloat = stringHandler.getPredicateName("float");
-        isaDouble = stringHandler.getPredicateName("double");
-        isa_stringConstant = stringHandler.getPredicateName("isa_stringConstant");
-        atom = stringHandler.getPredicateName("atom");
-        nonvar = stringHandler.getPredicateName("nonvar");
         list = stringHandler.getPredicateName("list");
         compound = stringHandler.getPredicateName("compound");
         is = stringHandler.getPredicateName("is");
@@ -354,7 +231,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         write = stringHandler.getPredicateName("write"); // A synonym for 'print.'
         waitHere = stringHandler.getPredicateName("waitHere");
         wait = stringHandler.getPredicateName("wait"); // A synonym for 'waitHere.'
-        readEvalPrint = stringHandler.getPredicateName("readEvalPrintCollector");
         findAllCollector = stringHandler.getPredicateName("findAllCollector");
         allCollector = stringHandler.getPredicateName("allCollector");
         bagOfCollector = stringHandler.getPredicateName("bagofCollector");
@@ -366,33 +242,8 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         reverse = stringHandler.getPredicateName("reverse");
         position = stringHandler.getPredicateName("position");
         length = stringHandler.getPredicateName("length");
-        nth = stringHandler.getPredicateName("nth");
-        nthPlus1 = stringHandler.getPredicateName("nthPlus1");
-        appendFast       = stringHandler.getPredicateName("append"); // Now defined in a Prolog library.  These versions are 'Fast' and don't do full unification (which especially matters for Union and Intersection).
-        intersectionFast = stringHandler.getPredicateName("intersection");
-        unionFast        = stringHandler.getPredicateName("union");
-        listsEquivalent = stringHandler.getPredicateName("listsEquivalent");
-        addListOfNumbers = stringHandler.getPredicateName("addListOfNumbers");
-        multListOfNumbers = stringHandler.getPredicateName("multiplyListOfNumbers");
         countProofsCollector = stringHandler.getPredicateName("countProofsCollector");
         countUniqueBindingsCollector = stringHandler.getPredicateName("countUniqueBindingsCollector");
-        assertName = stringHandler.getPredicateName("assert");
-        assertifnotName = stringHandler.getPredicateName("assertifnot");
-        assertifunknownName = stringHandler.getPredicateName("assertifunknown");
-        atomConcat = stringHandler.getPredicateName("atom_concat"); // This is a standard name in Prolog, hence the underscore.
-        atomLength = stringHandler.getPredicateName("atom_length"); // This is a standard name in Prolog, hence the underscore.
-        atomChars  = stringHandler.getPredicateName("atom_chars");  // This is a standard name in Prolog, hence the underscore.
-        setCounter   = stringHandler.getPredicateName("setCounter");
-        setCounterB  = stringHandler.getPredicateName("setCounterB");
-        setCounterC  = stringHandler.getPredicateName("setCounterC");
-        setCounterD  = stringHandler.getPredicateName("setCounterD");
-        setCounterE  = stringHandler.getPredicateName("setCounterE");
-        incrCounter  = stringHandler.getPredicateName("incrCounter");
-        incrCounterB = stringHandler.getPredicateName("incrCounterB");
-        incrCounterC = stringHandler.getPredicateName("incrCounterC");
-        incrCounterD = stringHandler.getPredicateName("incrCounterD");
-        incrCounterE = stringHandler.getPredicateName("incrCounterE");
-        tokenizeString  = stringHandler.getPredicateName("tokenizeString"); 
         implicit_call = stringHandler.getPredicateName("implicit_call");
         trueName = stringHandler.getPredicateName("true");
         falseName = stringHandler.getPredicateName("false");
@@ -426,23 +277,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         modFunction = stringHandler.getFunctionName("mod"); // Use Java's definition of mod.  Don't use a single-character symbol due to confusion between Java and Prolog.
         minFunction = stringHandler.getFunctionName("min");
         maxFunction = stringHandler.getFunctionName("max");
-        absFunction = stringHandler.getFunctionName("abs");
-        sinFunction = stringHandler.getFunctionName("sin");
-        cosFunction = stringHandler.getFunctionName("cos");
-        tanFunction = stringHandler.getFunctionName("tan");
-        sinhFunction = stringHandler.getFunctionName("sinh");
-        coshFunction = stringHandler.getFunctionName("cosh");
-        tanhFunction = stringHandler.getFunctionName("tanh");
-        asinFunction = stringHandler.getFunctionName("asin");
-        acosFunction = stringHandler.getFunctionName("acos");
-        atanFunction = stringHandler.getFunctionName("atan");
-        atan2Function = stringHandler.getFunctionName("atan2");
-        logFunction = stringHandler.getFunctionName("log");
-        expFunction = stringHandler.getFunctionName("exp");
-        powFunction = stringHandler.getFunctionName("pow");
-        sqrtFunction = stringHandler.getFunctionName("sqrt");
-        sqrtSafeFunction = stringHandler.getFunctionName("sqrtSafe");
-        sqrtAbsFunction = stringHandler.getFunctionName("sqrtAbs");
         randomFunction = stringHandler.getFunctionName("random");
         ceilFunction = stringHandler.getFunctionName("ceiling"); // Also use 'ceil' since that is Java's name.
         floorFunction = stringHandler.getFunctionName("floor");
@@ -481,13 +315,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         pullOutNthArgFunction = stringHandler.getFunctionName("pullOutNthArg");
 
         spy = stringHandler.getPredicateName("spy");
-        nospy = stringHandler.getPredicateName("nospy");
-        nospyall = stringHandler.getPredicateName("nospyall");
-        trace = stringHandler.getPredicateName("trace");
-        notrace = stringHandler.getPredicateName("notrace");
-
-        retract = stringHandler.getPredicateName("retract");
-        retractall = stringHandler.getPredicateName("retractall");
 
         consCell = stringHandler.getPredicateName("consCell");
 
@@ -550,13 +377,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         buildinPredicates.add(negationByFailure);
 
         buildinPredicates.add(spy);
-        buildinPredicates.add(nospy);
-        buildinPredicates.add(nospyall);
-        buildinPredicates.add(trace);
-        buildinPredicates.add(notrace);
-
-        buildinPredicates.add(retract);
-        buildinPredicates.add(retractall);
 
         stringHandler.cleanFunctionAndPredicateNames = hold;
     }
