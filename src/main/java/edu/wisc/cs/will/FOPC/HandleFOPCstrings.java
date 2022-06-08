@@ -29,13 +29,6 @@ public final class HandleFOPCstrings {
 
 	private         static int countOfStringHandlers = 0;
 
-	// These are special variables accessible by setCounter/1 and incrCounter/2 and incrCounter/3 from Prolog.  Meant for advanced use only.
-	int prologCounter = 0;
-	int prologCounterB = 0;
-	int prologCounterC = 0;
-	int prologCounterD = 0;
-	int prologCounterE = 0;
-
 	private boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
 	public  boolean cleanFunctionAndPredicateNames        = false; // Check for hyphens and spaces.  DO NOT SET UNTIL AFTER LIBRARIES ARE LOADED.
 	public  boolean keepQuoteMarks                        = false; // Set to true if quote marks on string constants should be preserved.  NOTE: if true, then strings with quote marks will NOT be cleaned regardless of any other setting.
