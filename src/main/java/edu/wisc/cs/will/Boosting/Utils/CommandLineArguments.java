@@ -59,9 +59,6 @@ public class CommandLineArguments {
 	private static final String maxMLNLength = "mlnClauseLen";
 	private int maxMLNClauseLength=2;
 
-	private static final String rdnIterFlag = "iter";
-	private int rdnIterationStep = -1;
-
 	private static final String outName = "outSuffix";
 	public String outFileSuffix = null;
 
@@ -188,11 +185,7 @@ public class CommandLineArguments {
 				}
 				continue;
 			}
-			if (argMatches(args[i], rdnIterFlag)) {
-				rdnIterationStep = Integer.parseInt(args[++i]);
-				continue;
-			}
-			
+
 			if (argMatches(args[i], learnMLNClauses)) {
 				learningMLNClauses = true;
 				if (isArgumentNotAFlag(args, i+1)) {
@@ -517,10 +510,6 @@ public class CommandLineArguments {
 
 	public double getDefaultStepLenVal() {
 		return stepLenVal;
-	}
-
-	public int getRdnIterationStep() {
-		return rdnIterationStep;
 	}
 
 	public double getSamplePosProbVal() {
