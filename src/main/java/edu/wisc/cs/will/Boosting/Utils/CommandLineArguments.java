@@ -28,11 +28,6 @@ public class CommandLineArguments {
 	private static final String argPrefix = "-";
 	private static final String learn = "l";
 
-	// Divide inference examples into this many bins.  THIS IS NEEDED WHEN THE SIZE OF A TESTSET IS TOO LARGE.
-	public static int modN = 10;
-
-	private static final String indicatorOfModN = "useMod";
-
 	// Need to turn this off when using Condor.
 	public boolean useLockFiles = true;
 	
@@ -158,10 +153,6 @@ public class CommandLineArguments {
 				continue;
 			}
 
-			if (argMatches(args[i], indicatorOfModN)) {
-				modN = Integer.parseInt(args[++i]);
-				continue;
-			}
 			if (argMatches(args[i], useMLN)) {
 				learnMLN = true;
 				continue;
