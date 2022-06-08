@@ -1,0 +1,10 @@
+usePrologVariables: true.
+setParam: loadAllLibraries=false.
+setParam: loadAllBasicModes=false.
+setParam: maxTreeDepth=3.
+setParam: nodeSize=2.
+queryPred: father/2.
+mode: male(+name).
+mode: childof(+name,+name).
+mode: siblingof(+name,-name).
+mode: father(+name,+name).
