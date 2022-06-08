@@ -539,9 +539,6 @@ public class Utils {
         return newFirstChar + old.substring(1);
     }
 
-    // This is one place that this class maintains state (so if two threads running, their dribble files will interfere).
-    private static String dribbleFileName = null;
-
     /*
      * Creates a dribble file with the given name in the current working
      * directory.
@@ -563,7 +560,6 @@ public class Utils {
         	ensureDirExists(fileName);
             CondorFileOutputStream outStream = new CondorFileOutputStream(fileName);
             dribbleStream = new PrintStream(outStream, false); // No auto-flush (can slow down code).
-            dribbleFileName = fileName;
 
         } catch (FileNotFoundException e) {
         	reportStackTrace(e);
@@ -572,8 +568,7 @@ public class Utils {
     }
 
     private static void closeDribbleFile() {
-    	dribbleFileName = null;
-    	if (dribbleStream == null) { return; }
+        if (dribbleStream == null) { return; }
     	dribbleStream.close();
     	dribbleStream = null;
     }

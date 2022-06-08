@@ -16,7 +16,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     private final HornClauseContext context;
 
-    private BindingList bindingList; // Use this repeatedly to save some "new'ing."
+    private final BindingList bindingList; // Use this repeatedly to save some "new'ing."
 
     private long maxOpen = 0;
 

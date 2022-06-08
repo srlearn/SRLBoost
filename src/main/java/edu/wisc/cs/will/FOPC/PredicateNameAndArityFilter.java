@@ -57,7 +57,7 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
         }
 
         if (arity == -1) {
-            arityFilter.setIncludeAllArities(true);
+            arityFilter.setIncludeAllArities();
         }
         else {
             arityFilter.addArity(arity);

@@ -730,38 +730,15 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return Utils.replaceWildCards(result);
 	}
 
-    private void processThresholds() throws SearchInterrupted {
+    private void processThresholds() {
 
 		/* Override to disable thresholding.
 		 *
 		 * If set to false, thresholding will be skipped.  This is particularly useful
 		 * when we are only using the LearnOneClause to evaluate a learned theory.
 		 */
-		if (getThresholder() != null) {
-            Collection<LiteralToThreshold> thresholdThese = getParser().getLiteralsToThreshold(); // Note that this is the set of ALL thresholds's encountered during any file reading.
-
-            // We have to make sure that we don't try to threshold the actual target predicate
-            if ( targets != null && thresholdThese != null) {
-                for (Iterator<LiteralToThreshold> it = thresholdThese.iterator(); it.hasNext();) {
-                    LiteralToThreshold literalToThreshold = it.next();
-                    PredicateNameAndArity pnaa = literalToThreshold.getPredicateNameAndArity();
-                    for (Literal literal : targets) {
-                        if ( pnaa.equals(literal.getPredicateNameAndArity()) ) {
-                            it.remove();
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (Utils.getSizeSafely(thresholdThese) > 0) {
-            	// NOTE: currently this is all done in memory and the writing to a file is only a debugging aid.
-            	// So no big deal if the file is corrupted due to two runs writing at the same time (though we should still fix this).
-                String thresholdFileNameToUse = (Utils.doNotCreateDribbleFiles ? null : Utils.createFileNameString(getDirectoryName(), getPrefix() + "_thresholdsNEW" + Utils.defaultFileExtensionWithPeriod)); // TODO allow user to name 'thresholded' files (i.e., by a directive command).
-                getThresholder().processThresholdRequests(thresholdFileNameToUse, thresholdThese); 
-            }
-        }
-    }
+		// Note that this is the set of ALL thresholds's encountered during any file reading.
+	}
 
 	public void addBodyMode(PredicateNameAndArity pName) {
         bodyModes.add(pName);

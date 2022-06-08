@@ -292,65 +292,10 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	if (c == null || Utils.getSizeSafely(c.negLiterals) < 1) { return c; }
     	Map<PredicateName,List<Literal>> samePredicates = new HashMap<>(4);
     	// First group literals by predicateName
-    	for (Literal nLit : c.negLiterals) {
-    		PredicateName pName = nLit.predicateName;
-    		if (!pName.isFunctionAsPredicate(nLit.getArguments())) { continue; }
-			List<Literal> lookup = samePredicates.computeIfAbsent(pName, k -> new ArrayList<>(1));
-			if (!nLit.member(lookup, false)) { lookup.add(nLit); } // Set's weren't working (even when using setUseStrictEqualsForLiterals(false)), so handle explicitly.
-    	}
-    	if (samePredicates.size() < 1) { return c; }
-    	BindingList bl = new BindingList();
-    	for (PredicateName pNameInUse : samePredicates.keySet()) {
-    		List<Literal> candidates = samePredicates.get(pNameInUse);
-    		if (candidates.size() < 2) { continue; }
-    		Utils.println("% determinatesToMatch for '" + pNameInUse + "' = " + candidates);
-    		processThisSetOfCandidatesMatchingDeterminates(candidates, bl);
-    	}
-    	if (bl.theta.size() < 1) { return c; }
-    	List<Literal> newPlits = new ArrayList<>(c.posLiterals.size());
-    	List<Literal> newNlits = new ArrayList<>(c.negLiterals.size());
-    	for (Literal pLit : c.posLiterals) { newPlits.add(pLit.applyTheta(bl.theta)); }
-    	for (Literal nLit : c.negLiterals) { newNlits.add(nLit.applyTheta(bl.theta)); }
-    	return stringHandler.getClause(newPlits, newNlits, c.getExtraLabel());
-    }
-    
-    private void processThisSetOfCandidatesMatchingDeterminates(List<Literal> candidates, BindingList bl) {
-    	if (Utils.getSizeSafely(candidates) < 2) { return; }
-    	List<Literal> copyOfSet = new ArrayList<>(candidates.size());
-    	copyOfSet.addAll(candidates);
-    	// There might be some order-dependent aspects of this calculation, but we'll live with order we get.
-    	while (!copyOfSet.isEmpty()) {
-        	Literal litToConsider = copyOfSet.remove(0).applyTheta(bl.theta);
-        	int numbArgs = litToConsider.numberArgs();
-        	int arg      = litToConsider.predicateName.returnFunctionAsPredPosition(numbArgs);
-        	Utils.println("\n%  litToConsider = " + litToConsider + ", arg #" + arg);
-        	if (copyOfSet.size() > 0) for (Literal otherLit : copyOfSet) if (numbArgs == otherLit.numberArgs()) {
-            	int otherArg = litToConsider.predicateName.returnFunctionAsPredPosition(otherLit.numberArgs());
-            	if (otherArg != arg) { continue; }
-            	Literal otherLit2 = otherLit.applyTheta(bl.theta); // This might be necessary, but do it anyway.
-            	Utils.println("%  otherLitToConsider = " + otherLit2 + ", arg #" + otherArg);
-            	boolean mismatched = false;
-            	for (int i = 0; i < numbArgs; i++) if (i != arg - 1) { // Remember that external counting is from 1.
-            		if (litToConsider.getArgument(i) != otherLit2.getArgument(i)) { 
-            			mismatched = true; 
-            			Utils.println("%    mismatch: '" + litToConsider.getArgument(i) + "' and '" + otherLit2.getArgument(i) + "'.");
-            			break; 
-            		}
-            	}
-            	if (!mismatched) { 
-            		Term term1 = litToConsider.getArgument(arg - 1);
-            		Term term2 = otherLit2.getArgument(    arg - 1);
-            		if (term1 != term2) {
-                		Utils.println("%    need to match: '" + term1 + "' and '" + term2 + "'.");
-                		if      (term1 instanceof Variable) { bl.addBindingFailSoftly((Variable) term1, term2); } // At least one needs to be a variable.
-            			else if (term2 instanceof Variable) { bl.addBindingFailSoftly((Variable) term2, term1); }
-            		}
-            	}
-        	}
-    	}
-    }
-    
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		return c;
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	private StringConstant[] constantsToUse = null; // These are used to replace variables when matching for pruning.
     private BindingList      cachedBindingListForPruning; // Used if any pruning is being considered.

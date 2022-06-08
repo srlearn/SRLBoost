@@ -29,7 +29,7 @@ public final class HandleFOPCstrings {
 
 	private         static int countOfStringHandlers = 0;
 
-	private boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
+	private final boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
 	public  boolean cleanFunctionAndPredicateNames        = false; // Check for hyphens and spaces.  DO NOT SET UNTIL AFTER LIBRARIES ARE LOADED.
 	public  boolean keepQuoteMarks                        = false; // Set to true if quote marks on string constants should be preserved.  NOTE: if true, then strings with quote marks will NOT be cleaned regardless of any other setting.
 	final boolean alwaysUseParensForInfixFunctions      = false; // Useful for debugging the parser, and possibly for safely writing out expressions.
@@ -164,7 +164,6 @@ public final class HandleFOPCstrings {
 		isaHandler          = new IsaHetrarchy(this);
 		mathHandler         = new DoBuiltInMath(this);
 		listHandler         = new DoBuiltInListProcessing(this);
-		mathHandler.listHandler = listHandler;
 		trueIndicator       = this.getStringConstant("true");
 		falseIndicator      = this.getStringConstant("false");
 		trueLiteral         = this.getLiteral(standardPredicateNames.trueName);
@@ -1144,32 +1143,6 @@ public final class HandleFOPCstrings {
 		return result;
 	}
 
-	Constant getStringConstantButCheckIfNumber(String name) {
-		Number viewNameAsNumber = isaQuotedNumber(name);
-		if (viewNameAsNumber != null) { 
-			return getNumericConstant(null, viewNameAsNumber.doubleValue()); // Other code (chooseStringForDouble) checks to see if this is really an integer.
-		}
-		return getStringConstant(null, name, false);
-	}
-	
-	private Number isaQuotedNumber(String name) {
-		if (name == null) { return null; }
-		if (name.charAt(0) != '"'  || (name.charAt(name.length() - 1) != '"')) { return null; }
-		
-		if (!Character.isDigit(name.charAt(1))) { return null; }
-		
-		String innerStr = name.substring(1, name.length() - 1);
-		try { 
-			return Integer.parseInt(innerStr);
-		} catch (NumberFormatException e1) {
-			try {
-				return Double.parseDouble(innerStr);
-			} catch (NumberFormatException e2) {
-				return null;
-			}
-		}
-	}
-
 	private int chooseStringForDouble(double value) { // NOTE: need to extend to handle long's.
 		int valueAsInt = (int) value;
 
@@ -1184,9 +1157,7 @@ public final class HandleFOPCstrings {
 	public NumericConstant getNumericConstant(int value) {
 		return getNumericConstant(null, value);
 	}
-	NumericConstant getNumericConstant(long value) {
-		return getNumericConstant(null, value);
-	}
+
 	NumericConstant getNumericConstant(TypeSpec spec, int value) {
 		return getNumericConstant(spec, value, NumericConstant.isaInteger, Integer.toString(value)); // So '1' and '1.0' match, convert everything to a double.
 	}

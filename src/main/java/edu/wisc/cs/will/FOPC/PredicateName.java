@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.Utils.MapOfLists;
-import edu.wisc.cs.will.Utils.MapOfSets;
 import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
 
@@ -30,29 +29,18 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   boolean      canBeAbsentAnyArity                          = false;
 	private   Set<Integer> dontComplainAboutMultipleTypesThisArity      = null;  // OF if this predicate/arity have multiple types for some argument.
 	private   boolean      dontComplainAboutMultipleTypesAnyArity       = false;
-	private final Map<FunctionAsPredType,Map<Integer,Integer>>  functionAsPredSpec  = null;  // See if this predicate/arity holds a value of the type specified by String in this position.
+	// See if this predicate/arity holds a value of the type specified by String in this position.
 	private   Set<Integer>                   bridgerSpec                = null;  // See if this predicate/arity is meant to be a 'bridger' predicate during ILP's search for clauses.  If the arg# is given (defaults to -1 otherwise), then all other arguments should be bound before this is treated as a 'bridger.'
 	private   Set<Integer>                   temporary                  = null;  // See if this predicate/arity is only a temporary predicate and if so, it needs to be renamed to avoid name conflicts across runs.  So slightly different than inline.
 	private   Set<Integer>                   inlineSpec                 = null;  // See if this predicate/arity is meant to be a 'inline' predicate during ILP's search for clauses.  If the arg# is given (defaults to -1 otherwise), then all other arguments should be bound before this is treated as a 'bridger.'
 	private   boolean                        filter                     = false; // Should this predicate (all arities) be filtered from learned rules, presumably because it is a helper function for guiding search.
 	private   Set<Integer>                   queryPredSpec              = null;  // Used with MLNs.
-	private   Set<Integer>                   supportingLiteral          = null;  // Is this a supporting literal that needs to attached to learned theories?
+	private final Set<Integer>                   supportingLiteral          = null;  // Is this a supporting literal that needs to attached to learned theories?
     private   Set<Integer>                   containsCallable           = null;  // One of the terms of the predicate is called during execution of the predicate.
 	private   Map<Integer,Double>            cost                       = null;  // See if this predicate/arity has a cost (default is 1.0).  Costs are used for scoring clauses.
 	private   boolean                        costIsFinal                = false; // Is the cost frozen?
 	private   Map<Integer,RelevanceStrength> relevance                  = null;  // See if this predicate/arity has a relevance (default is NEUTRAL).
 
-	/* Map from non-operation arities to operational predicates.
-     *
-     * Currently, the operational predicates must be the same arity as the
-     * non-operational one.  Additionally, they must take the exact same arguments
-     * in the same order.
-     *
-     * We store the operational names as a PredicateNameAndArity just to
-     * make it explicit what the arity of the operational predicate is.
-     */
-    private   MapOfSets<Integer,PredicateNameAndArity> operationalExpansion = null;
-	
 	public    boolean printUsingInFixNotation = false;
 	transient private HandleFOPCstrings stringHandler;  // The stringHandler needed to de-serialize the Predicate.
 
@@ -105,14 +93,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return results;
 	}
 
-	// See if this literal is a predicate that holds a numeric value.
-	boolean isFunctionAsPredicate(List<Term> arguments) {
-		return false;
-	}
-
-	public enum FunctionAsPredType {      numeric
-	}
-
 	// See if this predicate name is temporary for this run (if so, it might need to be renamed to avoid name conflicts across runs).
 	public boolean isaTemporaryName(int arity) {
 		if (temporary == null)      { return false; }
@@ -130,38 +110,13 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return (inlineSpec != null && inlineSpec.contains(arity));
 	}
 
-	/* Adds an operational expansion of the predicate.
-     *
-     * Operational expansions are keyed on the predicate name and the arity.
-     * A PredicateNameAndArity is used to provide both the name and arity of
-     * the operational expansion.
-     */
-	private void addOperationalExpansion(PredicateNameAndArity operationalPredicateNameAndArity) {
-        if ( operationalExpansion == null ) {
-            operationalExpansion = new MapOfSets<>();
-        }
-
-        operationalExpansion.put(operationalPredicateNameAndArity.getArity(), operationalPredicateNameAndArity);
-    }
-
-    /* Adds an operational expansion of the predicate.
-     *
-     * Operational expansions are keyed on the predicate name and the arity.
-     * A PredicateNameAndArity is used to provide both the name and arity of
-     * the operational expansion.
-     */
-    public void addOperationalExpansion(PredicateName operationalPredicateName, int arity) {
-        addOperationalExpansion(new PredicateNameAndArity(operationalPredicateName, arity));
-    }
-
 	/*
 	 * Get the list of pruning rules for this literal (whose head should be that of this PredicateName instance, but we also need the specific arity).
 	 * Note that this method does not check for those pruners that unify with prunableLiteral.  That is the job of the caller.
 	 */
 	   public MapOfLists<PredicateNameAndArity, Pruner> getPruners(int arityOfPrunableLiteral) {
-		if (pruneHashMap == null) { return null; }
-		return pruneHashMap.get(arityOfPrunableLiteral);
-	}
+		   return null;
+	   }
 
 	void recordMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars, boolean okIfDup) {
         if (Utils.getSizeSafely(signature) != Utils.getSizeSafely(typeSpecs)) {
@@ -450,10 +405,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return null;
 	}
 
-	int returnFunctionAsPredPosition(int arity) {
-		return -1;
-	}
-	
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		return name;
 	}

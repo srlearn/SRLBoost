@@ -6,8 +6,6 @@ package edu.wisc.cs.will.ResThmProver;
 public enum VariantClauseAction {
 
     SILENTLY_KEEP_VARIANTS("noAction", false, false),
-    WARN_AND_KEEP_VARIANTS("warn", true, false),
-    SILENTLY_REMOVE_VARIANTS("silentlyRemove", false, true),
     WARN_AND_REMOVE_VARIANTS("remove", true, true);
 
     private final String parameterSetting;

@@ -36,8 +36,6 @@ import java.util.*;
  */
 public class DoBuiltInMath extends AllOfFOPC {
 
-    DoBuiltInListProcessing listHandler = null;
-
     private final HandleFOPCstrings stringHandler;
 
     private final Map<FunctionName, Set<Integer>> canHandle = new HashMap<>(16);

@@ -47,15 +47,13 @@ class ArityFilter implements Filter<Integer>, Iterable<Integer> {
         return includeAllArities;
     }
 
-    void setIncludeAllArities(boolean includeAllArities) {
+    void setIncludeAllArities() {
 
-        if ( this.includeAllArities != includeAllArities ) {
+        if (!this.includeAllArities) {
 
-            if (includeAllArities) {
-                includedAritySet = null;
-            }
+            includedAritySet = null;
 
-            this.includeAllArities = includeAllArities;
+            this.includeAllArities = true;
         }
     }
 
@@ -68,16 +66,6 @@ class ArityFilter implements Filter<Integer>, Iterable<Integer> {
 
             includedAritySet.add(arity);
         }
-    }
-
-    void removeArity(int arity) {
-        if ( includedAritySet != null ) {
-            includedAritySet.remove(arity);
-        }
-    }
-
-    public boolean isEmpty() {
-        return !includeAllArities && includedAritySet.isEmpty();
     }
 
     /* Returns an iterator over all included arities.

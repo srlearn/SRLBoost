@@ -22,17 +22,17 @@ public class DoBuiltInListProcessing extends AllOfFOPC {
 		boolean hold = stringHandler.cleanFunctionAndPredicateNames;
 		stringHandler.cleanFunctionAndPredicateNames = false;
 		
-		conscell = addFunctionName("conscell", 1);
-		first    = addFunctionName("first",  1);
-		convertListToString  = addFunctionName("convertListToString", 1);
+		conscell = addFunctionName("conscell");
+		first    = addFunctionName("first");
+		convertListToString  = addFunctionName("convertListToString");
 		
 		stringHandler.cleanFunctionAndPredicateNames = hold;
 	}
 	
-	private FunctionName addFunctionName(String fNameString, int arity) {
+	private FunctionName addFunctionName(String fNameString) {
 		FunctionName fName = stringHandler.getFunctionName(fNameString);
 		Set<Integer> lookup = canHandle.computeIfAbsent(fName, k -> new HashSet<>(4));
-		lookup.add(arity);
+		lookup.add(1);
 		return fName;
 	}
 
