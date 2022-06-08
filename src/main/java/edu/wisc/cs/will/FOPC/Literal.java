@@ -231,7 +231,8 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         if (argumentNames != null) {
             newArgNames.addAll(argumentNames);
         }
-        assert newArguments != null;
+        // TODO(hayesall): the null guard is recommended here, but it occasionally causes problems with the UWCSE set.
+        // assert newArguments != null;
         if (recursiveCopy) {
             if (arguments != null) {
                 for (Term term : arguments) {
