@@ -61,16 +61,6 @@ public class InferBoostedRDN {
 			
 		int startCount = cmdArgs.getMaxTreesVal();
 		int increment = 1;
-		if (cmdArgs.isPrintLearningCurve()) {
-			startCount = (int)minLCTrees;
-			increment = (int)incrLCTrees;
-			for (String targ : jointExamples.keySet()) {
-				File f = new File(getLearningCurveFile(targ, "pr"));
-				if (f.exists()) { f.delete();}
-				 f = new File(getLearningCurveFile(targ, "cll"));
-				if (f.exists()) { f.delete();}
-			}
-		}
 		for(; startCount <= cmdArgs.getMaxTreesVal();startCount+=increment) {
 			sampler.setMaxTrees(startCount);
 			Utils.println("% Trees = " + startCount);
@@ -236,10 +226,6 @@ public class InferBoostedRDN {
 
 		ComputeAUC auc = computeAUCFromEg(examples);
 
-		if (cmdArgs.isPrintLearningCurve()) {
-			Utils.appendString(new File(getLearningCurveFile(target, "pr")), trees + " " + auc.getPR() + "\n");
-			Utils.appendString(new File(getLearningCurveFile(target, "cll")), trees + " " + auc.getCLL() + "\n");
-		}
 		{
 			ThresholdSelector selector = new ThresholdSelector();
 			for (RegressionRDNExample regEx : examples) {
