@@ -141,10 +141,9 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
 
         int position = 0;
         boolean found = false;
-        boolean tiesInFront = task.inOpenListPutNewTiesInFront;
         for (SearchNode currentNode : this) {
             double currentTotalScore = currentNode.score + currentNode.bonusScore;
-            if ((tiesInFront && totalScore >= currentTotalScore) || (!tiesInFront && totalScore > currentTotalScore)) {
+            if (totalScore > currentTotalScore) {
                 found = true;
                 super.add(position, node);
                 recordNodeCreation(node);
@@ -168,7 +167,7 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
     }
 
     public void insertByScoreIntoOpenList(T node) throws SearchInterrupted {
-        this.insertByScoreIntoOpenList(node, task.minAcceptableScore, task.allowToTieMinAcceptableScore);
+        this.insertByScoreIntoOpenList(node, Double.NEGATIVE_INFINITY, true);
     }
 
     private void checkBeamWidth() {

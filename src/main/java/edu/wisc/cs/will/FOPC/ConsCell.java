@@ -200,72 +200,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         return getListElement(n);
     }
 
-    double addNumbers() { // Adds all the numbers in this list.  Error if a non-number appears.
-        if (numberArgs() == 0) {
-            return 0;
-        }
-        double result = 0.0;
-        Term first = getArgument(0);
-        Term restRaw = getArgument(1);
-        if (!Function.isaConsCell(restRaw)) {
-            if (first instanceof NumericConstant) {
-                result += ((NumericConstant) first).value.doubleValue();
-            }
-            if (restRaw instanceof NumericConstant) {
-                result += ((NumericConstant) restRaw).value.doubleValue();
-            }
-            return result;
-        }
-        ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1)); // ConsCells should never have one argument.
-
-        while (true) {
-            if (first instanceof NumericConstant) {
-                result += ((NumericConstant) first).value.doubleValue();
-            }
-            else {
-                Utils.error("Expecting a number here: " + first);
-            }
-            if (rest.numberArgs() == 0) {
-                return result;
-            } // At NIL.
-            first = rest.getArgument(0);
-            rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-        }
-    }
-
-    double multiplyNumbers() { // Multiply all the numbers in this list.  Error if a non-number appears.
-        if (numberArgs() == 0) {
-            return 1;
-        }
-        double result = 1.0;
-        Term first = getArgument(0);
-        Term restRaw = getArgument(1);
-        if (!Function.isaConsCell(restRaw)) {
-            if (first instanceof NumericConstant) {
-                result *= ((NumericConstant) first).value.doubleValue();
-            }
-            if (restRaw instanceof NumericConstant) {
-                result *= ((NumericConstant) restRaw).value.doubleValue();
-            }
-            return result;
-        }
-        ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1)); // ConsCells should never have one argument.
-
-        while (true) {
-            if (first instanceof NumericConstant) {
-                result *= ((NumericConstant) first).value.doubleValue();
-            }
-            else {
-                Utils.error("Expecting a number here: " + first);
-            }
-            if (rest.numberArgs() == 0) {
-                return result;
-            } // At NIL.
-            first = rest.getArgument(0);
-            rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-        }
-    }
-
     public Term car() {
         return first();
     }
@@ -640,15 +574,6 @@ public class ConsCell extends Function implements Iterable<Term> {
             first = rest.getArgument(0);
             rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
         }
-    }
-
-    public ConsCell sort() {
-        if (numberArgs() == 0) {
-            return this;
-        }
-        List<Term> sortedList = this.convertConsCellToList();
-        Collections.sort(sortedList);
-        return convertListToConsCell(stringHandler, sortedList);
     }
 
     public static ConsCell append(ConsCell a, ConsCell b) {

@@ -47,41 +47,7 @@ public class MapOfSets<Key, Value> implements Iterable<Value> {
 
     @Override
     public String toString() {
-
-        String result;
-
-        if ( map == null ) {
-            result = "{}";
-        }
-        else {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            for (Entry<Key, Set<Value>> entry : map.entrySet()) {
-                stringBuilder.append(entry.getKey()).append(" => {");
-
-                boolean first = true;
-                for (Value value : entry.getValue()) {
-                    if (!first) {
-                        stringBuilder.append(",");
-
-                    }
-                    stringBuilder.append("\n");
-
-                    String valueString = value.toString();
-
-                    String prefixedValueString = Utils.getStringWithLinePrefix(valueString, "    ");
-                    stringBuilder.append(prefixedValueString);
-
-                    first = false;
-                }
-
-                stringBuilder.append("}. \n");
-
-            }
-            result = stringBuilder.toString();
-        }
-
-        return Utils.getStringWithLinePrefix(result, "");
+        return "MapOfSets()";
     }
 
     @Override

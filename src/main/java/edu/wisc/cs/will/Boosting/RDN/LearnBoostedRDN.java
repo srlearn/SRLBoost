@@ -1,19 +1,13 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
-import edu.wisc.cs.will.Boosting.RDN.Models.PhiFunctionForRDN;
 import edu.wisc.cs.will.Boosting.Trees.LearnRegressionTree;
 import edu.wisc.cs.will.Boosting.Trees.RegressionTree;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
-import edu.wisc.cs.will.Boosting.Utils.ExampleSubSampler;
-import edu.wisc.cs.will.Boosting.Utils.LineSearch;
-import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Theory;
 import edu.wisc.cs.will.FOPC.TreeStructuredTheory;
-import edu.wisc.cs.will.ILP.ILPouterLoop;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.VectorStatistics;
@@ -36,17 +30,12 @@ public class LearnBoostedRDN {
 	private final static int debugLevel = 1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
 	private final CommandLineArguments cmdArgs;
-	private final ExampleSubSampler egSubSampler;
 	private final WILLSetup setup;
 
 	private List<RegressionRDNExample> egs    = null;
 	private String  targetPredicate          = null;
 	private int     maxTrees                 = 10;
-	private boolean resampleExamples        = true;
-	private final boolean stopIfFewChanges        = false;
-	private boolean performLineSearch       = false;
-	private boolean learnSingleTheory 		= false;
-	private boolean disableBoosting			= false;
+	private final boolean resampleExamples        = true;
 
 	private long learningTimeTillNow = 0;
 
@@ -54,11 +43,6 @@ public class LearnBoostedRDN {
 		this.cmdArgs = cmdArgs;
 		this.setup = setup;
 		maxTrees = cmdArgs.getMaxTreesVal();
-		setParamsUsingSetup(setup);
-		if (cmdArgs.isDisabledBoosting()) {
-			disableBoosting=true;
-		}
-		egSubSampler = new ExampleSubSampler(setup);
 	}
 
 	public void learnNextModel(SRLInference sampler, ConditionalModelPerPredicate rdn, int numMoreTrees) {
@@ -87,30 +71,11 @@ public class LearnBoostedRDN {
 		if(rdn.getNumTrees() == 0) {
 			rdn.setTargetPredicate(pred);
 			rdn.setTreePrefix(pred + (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()));
-			if (learnSingleTheory) {
-				rdn.setHasSingleTheory(true);
-				rdn.setSetup(setup);
-				List<Sentence> bkClauses = setup.getInnerLooper().getParser().parse(getComputationPrologRules(maxTrees));
-				rdn.addSentences(bkClauses);
-			}
 		}
 		
 
 		List<RegressionRDNExample> old_eg_set = null;
 		long start = System.currentTimeMillis();
-		if (disableBoosting) {
-			maxTrees=1;
-			rdn.setLog_prior(0);
-			// Increase the depth and number of clauses
-			// TODO : Maybe make this settable ? Or assume caller sets it ?
-			ILPouterLoop outerLoop = setup.getOuterLooper();
-			outerLoop.setMaxTreeDepth(10);
-			outerLoop.setMaxTreeDepthInLiterals(12);
-			outerLoop.maxNumberOfClauses = 20;
-			outerLoop.maxNumberOfCycles = 20;
-			outerLoop.setMaxAcceptableNodeScoreToStop(0.0001);
-		}
-		//TODO(TVK!)
 		if (
 			cmdArgs.isLearnRegression()) {
 			rdn.setLog_prior(0);
@@ -172,21 +137,9 @@ public class LearnBoostedRDN {
 				tree = getWILLTree(newDataSet, i);
 				if (debugLevel > 1) { reportStats(); }
 				double stepLength = 1;
-				if (!disableBoosting) {
-					stepLength = cmdArgs.getDefaultStepLenVal();
-					// Currently can't handle line search and single theory, since we need regression values for a single tree.
-					// TODO add support for single theory too.
-					if (performLineSearch && !learnSingleTheory) {
-						LineSearch    searcher = new LineSearch();
-						PhiFunctionForRDN func = new PhiFunctionForRDN(rdn, tree, newDataSet);
-						double        newAlpha = searcher.getStepLength(func);
-						stepLength = (newAlpha == 0 ? stepLength : newAlpha);
-					} else {
-						if (performLineSearch) {
-							Utils.waitHere("Can't handle both line search and single theory. Disable one.");
-						}
-					}
-				}
+				stepLength = cmdArgs.getDefaultStepLenVal();
+				// Currently can't handle line search and single theory, since we need regression values for a single tree.
+				// TODO add support for single theory too.
 				rdn.addTree(tree, stepLength, modelNumber);  // This code assume modelNumber=0 is learned first.
 				old_eg_set = newDataSet;
 			}
@@ -197,9 +150,6 @@ public class LearnBoostedRDN {
 			if ((i + 1) % 10 == 0) { 
 				rdn.saveModel(saveModelName);
 			} // Every now and then save the model so we can see how it is doing.
-		}
-		if (stopIfFewChanges) { 
-			Utils.println("Stopped after " + Utils.comma(i) + " trees.");
 		}
 		if (i >= maxTrees) {
 			addPrologCodeForUsingAllTrees(rdn, i); 
@@ -290,20 +240,6 @@ public class LearnBoostedRDN {
 		}
 		
 	}
-	
-
-	private void setParamsUsingSetup(WILLSetup willSetup) {
-		String lookup;
-		if ((lookup =  willSetup.getHandler().getParameterSetting("resampleEgs")) != null) {
-			resampleExamples = Boolean.parseBoolean(lookup);
-		}
-		if ((lookup =  willSetup.getHandler().getParameterSetting("singleTheory")) != null) {
-			learnSingleTheory = Boolean.parseBoolean(lookup);
-		}
-		if ((lookup =  willSetup.getHandler().getParameterSetting("lineSearch")) != null) {
-			performLineSearch = Boolean.parseBoolean(lookup);
-		}
-	}
 
 	private final Collection<Literal> theseFlattenedLits = new HashSet<>(4);
 	private RegressionTree getWILLTree(List<RegressionRDNExample> newDataSet, int i) {
@@ -314,12 +250,8 @@ public class LearnBoostedRDN {
 			setup.getOuterLooper().setPosExamples(BoostingUtils.convertToListOfExamples(newDataSet));
 			// Make sure the invented predicates (if any) have unique names.
 			setup.getOuterLooper().setPrefixForExtractedRules("");
-			if (learnSingleTheory) {
-				setup.getOuterLooper().setPostfixForExtractedRules(getTreeSuffix(i + 1));
-			} else {
-				setup.getOuterLooper().setPostfixForExtractedRules("");
-			}
-			
+			setup.getOuterLooper().setPostfixForExtractedRules("");
+
 			thry = setup.getOuterLooper().executeOuterLoop();
 
 			if (thry instanceof TreeStructuredTheory) {
@@ -340,28 +272,20 @@ public class LearnBoostedRDN {
 
 	private boolean doEarlyStop(List<RegressionRDNExample> old_eg_set, SingleModelSampler sampler) {
 		double minGradientForSame = 0.0002;
-		if (stopIfFewChanges && old_eg_set != null) {
+		if(old_eg_set != null) {
 			int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
-			if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set)); }
-			double minPercentageSameForStop = 0.8;
-			return ((double) numOfEgSame / (double) old_eg_set.size()) > minPercentageSameForStop;
-		} else {
-			if(old_eg_set != null) {
-				int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
-				if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set) + " converged."); }
-			}
+			if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set) + " converged."); }
 		}
 		return false;
 	}
 
 	private int getNumUnchangedEx(List<RegressionRDNExample> oldEgSet, double grad, SingleModelSampler sampler) {
 		int counter=0;
-		for (Example ex : oldEgSet) {
-			RegressionRDNExample eg = (RegressionRDNExample)ex;
-			ProbDistribution old_prob = eg.getProbOfExample();
+		for (RegressionRDNExample ex : oldEgSet) {
+			ProbDistribution old_prob = ex.getProbOfExample();
 
-			sampler.getExampleProbability(eg);
-			ProbDistribution new_prob = eg.getProbOfExample();
+			sampler.getExampleProbability(ex);
+			ProbDistribution new_prob = ex.getProbOfExample();
 
 			ProbDistribution diff = new ProbDistribution(old_prob);
 			diff.scaleDistribution(-1);
@@ -405,15 +329,13 @@ public class LearnBoostedRDN {
 
 		getSampledPosNegEx(        all_exs);
 		// No need to get sample probabilities as there is no \psi_0 or gradient.
-		if (!disableBoosting) {
-			Utils.println("Computing probabilities");
-			long start = System.currentTimeMillis();
-			sampler.getProbabilities(all_exs);
-			long end = System.currentTimeMillis();
-			Utils.println("prob time:"+Utils.convertMillisecondsToTimeSpan(end-start));
-		}
-		
-		
+		Utils.println("Computing probabilities");
+		long start = System.currentTimeMillis();
+		sampler.getProbabilities(all_exs);
+		long end = System.currentTimeMillis();
+		Utils.println("prob time:"+Utils.convertMillisecondsToTimeSpan(end-start));
+
+
 		// Update facts based on the sampled states
 
 		for (int i = 0; i < Utils.getSizeSafely(all_exs); i++) {
@@ -425,52 +347,41 @@ public class LearnBoostedRDN {
 				continue;
 			}
 
-			if (disableBoosting) {
-				// TODO What would be the best value ?
-				if (eg.isOriginalTruthValue()) {
-					eg.setOutputValue(4);
-					
-				} else {
-					eg.setOutputValue(-4);
-				}
+			ProbDistribution probDistr = eg.getProbOfExample();
+			if (probDistr.isHasDistribution()) {
+				double[] base_prob;
+				double[] distr = probDistr.getProbDistribution();
+				base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
+
+				double[] grad  = VectorStatistics.subtractVectors(base_prob, distr);
+
+				// Only update for EM
+				eg.setOutputVector(grad);
 			} else {
-				ProbDistribution probDistr = eg.getProbOfExample();
-				if (probDistr.isHasDistribution()) {
-					double[] base_prob;
-					double[] distr = probDistr.getProbDistribution();
-					base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
-
-					double[] grad  = VectorStatistics.subtractVectors(base_prob, distr);
-					
-					// Only update for EM
-					eg.setOutputVector(grad);
-				} else {
-					double prob = probDistr.getProbOfBeingTrue();
-					double stateProb = 1;
-					// Only set for EM
-					if (cmdArgs.isSoftM()){
-						double alpha = cmdArgs.getAlpha();
-						double beta = cmdArgs.getBeta();
-						if (eg.isOriginalTruthValue()) {
-
-							eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(alpha)));
-						} else {
-
-							eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(-beta)));
-						}
-					} else {
+				double prob = probDistr.getProbOfBeingTrue();
+				double stateProb = 1;
+				// Only set for EM
+				if (cmdArgs.isSoftM()){
+					double alpha = cmdArgs.getAlpha();
+					double beta = cmdArgs.getBeta();
 					if (eg.isOriginalTruthValue()) {
-						eg.setOutputValue(stateProb * (1 - prob));
+
+						eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(alpha)));
 					} else {
-						eg.setOutputValue(stateProb * (0 - prob));
+
+						eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(-beta)));
 					}
-					}
+				} else {
+				if (eg.isOriginalTruthValue()) {
+					eg.setOutputValue(stateProb * (1 - prob));
+				} else {
+					eg.setOutputValue(stateProb * (0 - prob));
+				}
 				}
 			}
 		}
 		// TODO(@hayesall): This `println` was originally conditioned on the result of the removed `isHiddenLiteral` method
 		Utils.println("No hidden examples for : " + targetPredicate);
-		all_exs = egSubSampler.sampleExamples(all_exs);
 		return all_exs;
 	}
 

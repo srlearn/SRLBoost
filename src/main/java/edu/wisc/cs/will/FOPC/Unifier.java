@@ -35,10 +35,6 @@ public class Unifier extends AllOfFOPC implements Serializable {
 		}
 	}
 
-	private BindingList unify(Sentence s1, Sentence s2, BindingList bl) {
-        return SentenceUnifier.unify(s1,s2,bl);
-    }
-
 	private BindingList unify(List<Term> args1, List<Term> args2, BindingList bindingList) {
 		// The calling code checks arguments sizes, so no need to do that here.
 		// TAW: I normally wouldn't trust an external check...the check should probably be skipped
@@ -92,23 +88,6 @@ public class Unifier extends AllOfFOPC implements Serializable {
 				return null;
 			}
 		}
-		else if (term1 instanceof LiteralAsTerm && term2 instanceof LiteralAsTerm) {
-			LiteralAsTerm f1 = ((LiteralAsTerm) term1);
-			LiteralAsTerm f2 = ((LiteralAsTerm) term2);
-			
-			if (f1.itemBeingWrapped.predicateName == f2.itemBeingWrapped.predicateName && f1.itemBeingWrapped.numberArgs() == f2.itemBeingWrapped.numberArgs()) {
-				return unify(f1.itemBeingWrapped.getArguments(), f2.itemBeingWrapped.getArguments(), bindingList);
-			}
-			else {
-				return null;
-			}
-		}
-        else if (term1 instanceof SentenceAsTerm && term2 instanceof SentenceAsTerm) {
-            SentenceAsTerm s1 = ((SentenceAsTerm)term1);
-            SentenceAsTerm s2 = ((SentenceAsTerm)term2);
-
-            return unify(s1.sentence, s2.sentence, bindingList);
-        }
 		else {
 			return null;
 		}

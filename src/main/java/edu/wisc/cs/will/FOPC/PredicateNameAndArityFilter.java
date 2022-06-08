@@ -44,14 +44,6 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
         addArityFilterEntry(predicateNameArity.getPredicateName(), predicateNameArity.getArity());
     }
 
-    public void removeLiteral(PredicateNameAndArity predicateNameArity) {
-        removeArityFilterEntry(predicateNameArity.getPredicateName(), predicateNameArity.getArity());
-    }
-
-    public void clear() {
-        nameToArityMap = null;
-    }
-
     private void addArityFilterEntry(PredicateName predicateName, int arity) {
         if (nameToArityMap == null) {
             nameToArityMap = new HashMap<>();
@@ -69,24 +61,6 @@ public class PredicateNameAndArityFilter implements Filter<PredicateNameAndArity
         }
         else {
             arityFilter.addArity(arity);
-        }
-    }
-
-    private void removeArityFilterEntry(PredicateName predicateName, int arity) {
-        if (nameToArityMap != null) {
-            ArityFilter arityFilter = nameToArityMap.get(predicateName);
-            if (arityFilter != null) {
-                if (arity == -1) {
-                    arityFilter.setIncludeAllArities(false);
-                }
-                else {
-                    arityFilter.removeArity(arity);
-                }
-            }
-            assert arityFilter != null;
-            if (arityFilter.isEmpty()) {
-                nameToArityMap.remove(predicateName);
-            }
         }
     }
 

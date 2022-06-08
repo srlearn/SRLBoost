@@ -53,12 +53,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
     public int beamWidth = -1;
 
-    final double minAcceptableScore = Double.NEGATIVE_INFINITY;
-
-    final boolean allowToTieMinAcceptableScore = true;
-
-    final boolean inOpenListPutNewTiesInFront = false;
-
     private final boolean useIterativeDeepeningDepth = false;
 
     public boolean continueTheSearch = true;
@@ -141,22 +135,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
                                                  EndTest terminator, SearchMonitor searchMonitor,
                                                  SearchStrategy strategy, ScoringFunction scorer,
                                                  ChildrenNodeGenerator childrenGenerator, ClosedList closed) {
-        // TODO convert errors to exceptions
-
-        // First create defaults if necessary and where possible.  Otherwise complain if something is mandatory.
-        if (strategy == null) {
-            strategy = new BreadthFirstSearch();
-            Utils.waitHere("Breadth-first search being used since no search strategy was provided.");
-        }
-        if (searchMonitor == null) {
-            searchMonitor = new SearchMonitor(this);
-        }
-        if (initializer == null) {
-            Utils.error("A method that initiates OPEN must be provided to initalizeStateBasedSearchTask().");
-        }
-        if (childrenGenerator == null) {
-            Utils.error("A method that generates child nodes must be provided to initalizeStateBasedSearchTask().");
-        }
 
         this.initializer        = initializer;
         this.terminator        = terminator;
@@ -194,14 +172,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
 
         }
         continueTheSearch = true;
-    }
-
-    /*
-     * Some applications built on top of this general search algorithm might be
-     * extra "markers" of various sorts in OPEN. This method allows them to
-     * cleanup OPEN should they wish to do so. Does nothing.
-     */
-    public void cleanOpen() {
     }
 
 

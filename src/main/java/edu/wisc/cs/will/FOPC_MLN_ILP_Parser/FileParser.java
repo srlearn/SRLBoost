@@ -194,8 +194,6 @@ public class FileParser {
 	// It is made static for each access w/o a parser instance and made final to cannot be changed if multiple WILLs are active.
 	private static final String will_notPred_prefix  = "wiNOT_";
 
-	private              int maxWarnings  = 100; // This can be reset via 'setParameter maxWarnings = 10'
-
 	public final HandleFOPCstrings  stringHandler;
 	private StreamTokenizerJWS tokenizer;
 	private List<Sentence>[]   sentencesToPrecompute;
@@ -471,26 +469,12 @@ public class FileParser {
 						String currentWord = tokenizer.sval();
 						boolean colonNext = checkAndConsume(':'); // If the next character is a colon, it will be "sucked up" and 'true' returned.  Otherwise it will be puhsed back and 'false' returned.
 						if (colonNext && currentWord.equalsIgnoreCase("setParam"))       { processSetParameter(); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("setParameter"))   { processSetParameter(); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("mode"))           { processMode(listOfSentencesReadOrCreated); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("numericFunctionAsPred"))           { processFunctionAsPred();           break; }
 						if (colonNext && currentWord.equalsIgnoreCase("bridger"))        { processBridger();     break; }
-						if (colonNext && currentWord.equalsIgnoreCase("temporary"))      { processTemporary();   break; }
 						if (colonNext && currentWord.equalsIgnoreCase("inline"))         { processInline();      break; }
-						if (colonNext && currentWord.equalsIgnoreCase("relevant"))       { processRelevant(       listOfSentencesReadOrCreated); break; } // Can add a sentence, so pass in the collector.
                         if (colonNext && currentWord.equalsIgnoreCase("nonOperational")) { processNonOperational(); break; }
-                        if (colonNext && currentWord.equalsIgnoreCase("relevantLiteral")) {
-                            processRelevantLiteralNew(listOfSentencesReadOrCreated);
-                            break;
-                        } // Can add a sentence, so pass in the collector.
-                        if ( colonNext && currentWord.equalsIgnoreCase("alias")) {
-                            processLiteralAlias();
-                            break;
-                        }
                         if ( colonNext && currentWord.equalsIgnoreCase("containsCallable"))  { processContainsCallables(); break; }
-                        if (colonNext && currentWord.equalsIgnoreCase("supportLiteral"))      { processSupporter();   break; }
-                        if (colonNext && currentWord.equalsIgnoreCase("supportingPredicate")) { processSupporter();   break;}
-                        if (colonNext && currentWord.equalsIgnoreCase("supportPredicate"))    { processSupporter();   break; }
 						if (colonNext && currentWord.equalsIgnoreCase("cost"))                { processCost();   break; }
 						if (colonNext && currentWord.equalsIgnoreCase("precompute"))          { processPrecompute(0); break; } 
 						if (colonNext && currentWord.startsWith("precompute"))     {
@@ -529,22 +513,6 @@ public class FileParser {
 						}
 						if (colonNext) { tokenizer.pushBack(); } // Need to push the colon back if it wasn't part of a special instruction.  It can also appear in modes of terms.
 
-						// TODO(@hayesall): I dropped "weight" and "wgt" above, maybe they can be dropped here?
-						if (currentWord.equalsIgnoreCase("weight") || currentWord.equalsIgnoreCase("wgt")) {
-							nextSentence = processWeight(getNextToken()); break;
-						}
-						if (!ignoreThisConnective(true, currentWord) && ConnectiveName.isaConnective(currentWord) && !ConnectiveName.isTextualConnective(currentWord)) { // NOT's handled by processFOPC_sentence.
-							//Utils.error("Need to handle a PREFIX connective: '" + currentWord + "'.");
-							// If here, there must be exactly two arguments.
-							ConnectiveName connective = stringHandler.getConnectiveName(currentWord);
-							if (!checkAndConsume('(')) { tokenizer.nextToken(); throw new ParsingException("Expecting a left parenthesis, but read '" + reportLastItemRead() + "'."); }
-							Sentence arg1 = processFOPC_sentence(0, true);
-							if (!checkAndConsume(',')) { tokenizer.nextToken(); throw new ParsingException("Expecting a comma, but read '" + reportLastItemRead() + "'."); }
-							Sentence arg2 = processFOPC_sentence(0, true);
-							if (!checkAndConsume(')')) { tokenizer.nextToken(); throw new ParsingException("Expecting a right parenthesis, but read  '" + reportLastItemRead() + "'."); }
-							nextSentence = stringHandler.getConnectedSentence(arg1, connective, arg2);
-							break;
-						}
 						// The default is to read an FOPC sentence.
 						tokenizer.pushBack();
 						nextSentence =                                                  processFOPC_sentence(0);
@@ -875,7 +843,6 @@ public class FileParser {
 				Sentence leftArg  = (Sentence)accumulator.get(countOfLowestItem - 1);
 				Sentence rightArg = (Sentence)accumulator.get(countOfLowestItem + 1);
 				Sentence cSent    = stringHandler.getConnectedSentence(leftArg, cName, rightArg);
-				if (cName.name.equalsIgnoreCase("then")) { cSent = processTHEN((ConnectedSentence) cSent); }
 				accumulator.add(   countOfLowestItem + 2, cSent); // Add after the three items being combined.
 				accumulator.remove(countOfLowestItem + 1); // Do this in the proper order so shifting doesn't mess up counting.
 				accumulator.remove(countOfLowestItem);
@@ -884,40 +851,6 @@ public class FileParser {
 		}
 
 		return (Sentence) accumulator.get(0);
-	}
-
-	private Literal processTHEN(ConnectedSentence connSent) throws ParsingException {
-		// We need to treat the 'connective' THEN specially.  It is of the form 'P then Q else R' where P, Q, and R need to each convert to one clause.  E.g., (p, q then r, s else x, y, z).
-		Sentence          sentenceLeft  = connSent.getSentenceA();
-		Sentence          sentenceRight = connSent.getSentenceB();
-		Clause            clauseP       = convertSimpleConjunctIntoClause(sentenceLeft, connSent);
-
-		PredicateName pName  = stringHandler.standardPredicateNames.then;
-		if (sentenceRight instanceof ConnectedSentence && ConnectiveName.isaOR(((ConnectedSentence) sentenceRight).getConnective().name)) {
-			ConnectedSentence sentenceRightConnected = (ConnectedSentence) sentenceRight;
-			Clause   clauseQ   = convertSimpleConjunctIntoClause(sentenceRightConnected.getSentenceA(), connSent);
-			Clause   clauseR   = convertSimpleConjunctIntoClause(sentenceRightConnected.getSentenceB(), connSent);
-			// 'P then Q else R' is implemented as 'dummy :- P, !, Q.' and 'dummy :- R' so create these two clause bodies here.
-			clauseP.negLiterals.add(createCutLiteral());
-			clauseP.negLiterals.addAll(clauseQ.negLiterals);
-			clauseP.setBodyContainsCut(true);
-			List<Term> args = new ArrayList<>(2);
-			args.add(stringHandler.getSentenceAsTerm(clauseP, "thenInner"));
-			args.add(stringHandler.getSentenceAsTerm(clauseR, "thenInner"));
-			return   stringHandler.getLiteral(pName, args);
-		}
-		Clause clauseQ = convertSimpleConjunctIntoClause(sentenceRight, connSent);
-		List<Term> args = new ArrayList<>(1);
-		clauseP.negLiterals.add(createCutLiteral()); // No need to combine the posLiterals since there should not be any.
-		clauseP.negLiterals.addAll(clauseQ.negLiterals);
-		clauseP.setBodyContainsCut(true);
-		args.add(stringHandler.getSentenceAsTerm(clauseP, "then"));
-		return stringHandler.getLiteral(pName, args);
-	}
-
-	private Literal createCutLiteral() {
-		PredicateName pName = stringHandler.standardPredicateNames.cut;
-		return stringHandler.getLiteral(pName);
 	}
 
 	private Literal processNegationByFailure(ConnectedSentence connSent) throws ParsingException {
@@ -1056,443 +989,6 @@ public class FileParser {
 		return tokenRead;
 	}
 
-	/*
-	 * Process something like:  relevant: p/2, RELEVANT;
-	 * These automatically create 'cost' statements as well.
-	 * Read documentation above for all the isVariant supported.
-	 */
-	private void processRelevant(List<Sentence> listOfSentences) throws ParsingException, IOException {
-		// Have already read the 'relevant:"
-		Literal headLit = null;
-		int tokenRead = getNextToken();
-		if (tokenRead == '[') {
-			tokenizer.pushBack();
-			processRelevantAND(null, listOfSentences, false);
-			return;
-		}
-		tokenRead = checkForPredicateNamesThatAreCharacters(tokenRead);
-
-		if (tokenRead == StreamTokenizer.TT_WORD) {
-			String currentWord = tokenizer.sval();
-
-			if (currentWord.equalsIgnoreCase("head")) {
-				headLit = readEqualsTypedLiteral();
-				checkAndConsume(',');
-				tokenRead = getNextToken();
-				if (tokenRead == '[') {
-					tokenizer.pushBack();
-					processRelevantAND(headLit, listOfSentences, false);
-					return;
-				}
-				tokenRead = checkForPredicateNamesThatAreCharacters(tokenRead);  // TODO clean up this duplicated code.
-				if (tokenRead == StreamTokenizer.TT_WORD) {
-					currentWord = tokenizer.sval();
-				} else { throw new ParsingException("Expecting a string token but read " + reportLastItemRead() + "."); }
-			}
-
-			if (currentWord.equalsIgnoreCase("AND")) {
-				expectAndConsume('(');
-				processRelevantAND(headLit, listOfSentences, true);
-				return;
-			}
-			if (currentWord.equalsIgnoreCase("OR")) {
-				expectAndConsume('(');
-				processRelevantOR(headLit, listOfSentences);
-				return;
-			}
-			if (currentWord.equalsIgnoreCase("NOT")) {
-				processRelevantNOT(headLit, listOfSentences);
-				return;
-			}
-			if (headLit != null) { throw new ParsingException("A 'head' literal before a plain literal in a 'relevance' will be ignored: " + headLit); } // Could handle this if it seemed necessary.
-
-			if (checkAndConsume('(')) { // Have a literal, rather than something like 'pred/2'
-				tokenizer.pushBack();
-				tokenizer.pushBack();
-				processRelevantLiteral(listOfSentences);
-				return;
-			}
-			if (checkAndConsume('/')) { // Have something like 'pred/2'
-				processRelevantLiteralSpec(currentWord);
-				return;
-			}
-			return;
-		}
-
-		throw new ParsingException("Expecting the name of a predicate in a 'relevant' but read: '" + reportLastItemRead() + "'.");
-	}
-
-	private void processSupporter() throws ParsingException, IOException {
-		// Have already read the 'supportingLiteral:"
-		int tokenRead = checkForPredicateNamesThatAreCharacters(getNextToken());
-		if (tokenRead == StreamTokenizer.TT_WORD) {
-			String currentWord = tokenizer.sval();
-			PredicateName pName = stringHandler.getPredicateName(currentWord);
-			tokenRead = getNextToken();
-			if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in an 'supportingLiteral' specification, but got: '" + reportLastItemRead() + "'."); }
-			int arity = readInteger();
-			pName.markAsSupportingPredicate(arity, false);
-			return;
-		}
-		throw new ParsingException("Expecting the name of a predicate in a 'supportingLiteral' but read: '" + reportLastItemRead() + "'.");
-	}
-
-	private RelevanceStrength readRelevanceStrength() throws ParsingException, IOException {
-		int    tokenRead;
-		String currentWord;
-		if (peekEOL(true)) {
-			return RelevanceStrength.getDefaultRelevanceStrength();
-		}
-		checkAndConsume(','); // OK if there is a commas separating the items.
-		tokenRead = getNextToken();
-
-		if (tokenRead == '@') {  // A leading # indicates the value needs to be looked up in the list of set parameters.
-			getNextToken();
-			String wordRead = tokenizer.sval();
-			String setting  = stringHandler.getParameterSetting(wordRead);
-			if (setting == null) { throw new ParsingException(" Read '@" + wordRead + "', but '" + wordRead + "' has not been set."); }
-			return RelevanceStrength.getRelevanceStrengthFromString(setting);
-		}
-		if (tokenRead == StreamTokenizer.TT_WORD) {
-			currentWord = tokenizer.sval();
-			if (currentWord.equalsIgnoreCase("max") || currentWord.equalsIgnoreCase("maxPerInputVars")) { // No relevance provided.  Use default.
-				tokenizer.pushBack();
-				return RelevanceStrength.getDefaultRelevanceStrength();
-			}
-			return RelevanceStrength.getRelevanceStrengthFromString(currentWord);
-		}
-		throw new ParsingException("Expecting a RelevanceStrength in a 'relevance:' but read: '" + reportLastItemRead() + "'.");
-	}
-
-	private List<Term> getArgumentsToAND(boolean needCloseParen) throws ParsingException, IOException {
-		if ( checkAndConsumeToken("[")) { // Allow an implicit AND represented as a list of terms.
-			if (needCloseParen) { throw new ParsingException("Should not need a closing parenthesis here."); }
-			ConsCell list = processList(false, 1, false); // Should suck up the closing ']'.
-			if (list == null)   { throw new ParsingException("Should not have list=null here."); }
-			return list.convertConsCellToList();
-		}
-        else if(checkAndConsumeToken("(")) { // Allow an implicit AND represented as a list of terms.
-			if (needCloseParen) { throw new ParsingException("Should not need a closing parenthesis here."); }
-			ConsCell list = processList(false, 1, false); // Should suck up the closing ']'.
-			if (list == null)   { throw new ParsingException("Should not have list=null here."); }
-			return list.convertConsCellToList();
-		}
-        else if(needCloseParen) {
-			return processListOfTerms('(', false).getTerms();
-		}
-        else {
-            throw new ParsingException("Expecting a '['");
-        }
-	}
-
-	// TODO - clean up common code in these four processRelevant*'s.
-	private void processRelevantAND(Literal typedHeadLiteral, List<Sentence> listOfSentences, boolean needCloseParen) throws ParsingException, IOException {
-        int        max              = Integer.MAX_VALUE;
-        int        maxPerInputVars  = Integer.MAX_VALUE;
-		boolean    autoNegate       = true;
-        List<Term> bodyTerms        = getArgumentsToAND(needCloseParen);
-		RelevanceStrength  strength = readRelevanceStrength();
-
-		int tokenRead = (atEOL() ? 0 : getNextToken());
-		while (!atEOL()) { // Have some optional arguments since not yet at EOL.
-			String currentWord = tokenizer.reportCurrentToken();
-			if (tokenRead == ',') {  } // OK if there are some commas separating the items.
-			else if (currentWord.equalsIgnoreCase("max")) { // BUG: the user can't use 'max' nor 'maxPerInputVars' as target predicates.  TODO fix
-				if (max < Integer.MAX_VALUE) { throw new ParsingException("Have already read max=" + max + " when processing a 'relevant' and have encountered 'max' again."); }
-				max             = readEqualsInteger();
-			} else if (currentWord.equalsIgnoreCase("maxPerInputVars")) {
-				if (maxPerInputVars < Integer.MAX_VALUE) { throw new ParsingException("Have already read maxPerInputVars=" + max + " when processing a 'relevant' and have encountered 'maxPerInputVars' again."); }
-				maxPerInputVars = readEqualsInteger();
-			} else if (currentWord.equalsIgnoreCase("head")) {
-				if (typedHeadLiteral != null) { throw new ParsingException("Have already read a head =" + typedHeadLiteral + " when processing a 'relevant' and have encountered another."); }
-				typedHeadLiteral = readEqualsTypedLiteral();
-			} else if (currentWord.equalsIgnoreCase("noAutoNegate")) { // Fine if this is read more than once.
-				autoNegate = false;
-			} else if (currentWord.equalsIgnoreCase("autoNegate"))   { // Fine if this is read more than once.
-				autoNegate = true;
-			}
-			tokenRead = getNextToken();
-        }
-		if (strength != null && strength.isLessThanNeutral()) { autoNegate = false; }
-
-		List<TypeSpec> typeSpecs    = new ArrayList<>(4);
-		List<Term>     terms        = (typedHeadLiteral == null ? bodyTerms : typedHeadLiteral.getArguments());
-		PredicateName  newPname     = (typedHeadLiteral == null ? stringHandler.getPredicateNameNumbered("anonymousAND_WI") : typedHeadLiteral.predicateName);
-		if (typedHeadLiteral == null) {
-			List<Variable> freeVars     = new ArrayList<>(4);
-			List<String>   freeVarNames = new ArrayList<>(4);
-
-			stringHandler.getTypedFreeVariablesAndUniquelyName(terms, null, freeVars, freeVarNames, typeSpecs, true);		// These will not maintain the World-State positions since the arguments names are probably not in the file being read.
-			typedHeadLiteral = stringHandler.getLiteral(newPname, convertToListOfTerms(freeVars), freeVarNames).clearArgumentNamesInPlace(); // BUGGY if we want to keep argument names ...
-		} else {
-			typeSpecs = typedHeadLiteral.getTypeSpecs();
-		}
-		int   arity = typedHeadLiteral.numberArgs();
-		Clause newC = stringHandler.getClause(typedHeadLiteral, true);
-
-		newC.negLiterals = new ArrayList<>(1);
-		for (Term term : bodyTerms) {
-			if        (term instanceof Function) {
-				newC.negLiterals.add(( (Function) term).convertToLiteral(stringHandler));
-			} else if (term instanceof StringConstant) { // Convert this to a zero-arity literal.
-				newC.negLiterals.add( stringHandler.getLiteral( stringHandler.getPredicateName(( (StringConstant) term).getName())));
-			} else { throw new Error("Cannot handle this term in processRelevantAND" + term); }
-		}
-
-		newPname.addInliner(arity);
-		stringHandler.setRelevance(newPname, arity, strength);
-		stringHandler.recordModeWithTypes(typedHeadLiteral, stringHandler.getConstantSignatureThisLong(arity), typeSpecs, max, maxPerInputVars);
-		if (listOfSentences == null) { throw new ParsingException("Should not have an empty list!"); } // This holds the read-in clauses.  If reset here, the new list will be lost.
-		listOfSentences.add(newC);
-		stringHandler.resetAllVariables();
-		if (autoNegate) {
-			Literal nottypedHeadLiteral = createNegatedVersion(typedHeadLiteral);
-			processRelevantNOT(listOfSentences, nottypedHeadLiteral, typedHeadLiteral, Objects.requireNonNull(strength).getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); // Prevent infinite loops.
-		}
-	}
-
-	private void processRelevantOR(Literal typedHeadLiteral, List<Sentence> listOfSentences) throws ParsingException, IOException {
-        int        max              = Integer.MAX_VALUE;
-        int        maxPerInputVars  = Integer.MAX_VALUE;
-		boolean    autoNegate       = true;
-        List<Term> bodyTerms        = processListOfTerms('(', false).getTerms();
-		RelevanceStrength  strength = readRelevanceStrength();
-
-		int tokenRead = (atEOL() ? 0 : getNextToken());
-		while (!atEOL()) { // Have some optional arguments since not yet at EOL.
-			String currentWord = tokenizer.reportCurrentToken();
-			if (tokenRead == ',') {  } // OK if there are some commas separating the items.
-			else if (currentWord.equalsIgnoreCase("max")) { // BUG: the user can't use 'max' nor 'maxPerInputVars' as target predicates.  TODO fix
-				if (max < Integer.MAX_VALUE) { throw new ParsingException("Have already read max=" + max + " when processing a 'relevant' and have encountered 'max' again."); }
-				max              = readEqualsInteger();
-			} else if (currentWord.equalsIgnoreCase("maxPerInputVars")) {
-				if (maxPerInputVars < Integer.MAX_VALUE) { throw new ParsingException("Have already read maxPerInputVars=" + max + " when processing a 'relevant' and have encountered 'maxPerInputVars' again."); }
-				maxPerInputVars  = readEqualsInteger();
-			} else if (currentWord.equalsIgnoreCase("head")) {
-				if (typedHeadLiteral != null) { throw new ParsingException("Have already read a head =" + typedHeadLiteral + " when processing a 'relevant' and have encountered another."); }
-				typedHeadLiteral = readEqualsTypedLiteral();
-			} else if (currentWord.equalsIgnoreCase("noAutoNegate")) { // Fine if this is read more than once.
-				autoNegate = false;
-			} else if (currentWord.equalsIgnoreCase("autoNegate"))   { // Fine if this is read more than once.
-				autoNegate = true;
-			}
-			tokenRead = getNextToken();
-        }
-		if (strength != null && strength.isLessThanNeutral()) { autoNegate = false; }
-
-		boolean typedHeadLiteralWasNULL = (typedHeadLiteral == null);
-		List<TypeSpec> typeSpecs    = new ArrayList<>(4);
-        List<Term>     terms        = (typedHeadLiteralWasNULL ? bodyTerms : typedHeadLiteral.getArguments());
-        PredicateName  newPname     = (typedHeadLiteralWasNULL? stringHandler.getPredicateNameNumbered("anonymousOR_WI") : typedHeadLiteral.predicateName);
-
-        if (typedHeadLiteral == null) {
-			List<Variable> freeVars     = new ArrayList<>(4);
-			List<String>   freeVarNames = new ArrayList<>(4);
-
-			stringHandler.getTypedFreeVariablesAndUniquelyName(terms, null, freeVars, freeVarNames, typeSpecs, true);		// These will not maintain the World-State positions since the arguments names are probably not in the file being read.
-			typedHeadLiteral = stringHandler.getLiteral(newPname, convertToListOfTerms(freeVars), freeVarNames).clearArgumentNamesInPlace(); // BUGGY if we want to keep argument names ...
-
-		} else {
-			typeSpecs = typedHeadLiteral.getTypeSpecs();
-		}
-		int arity = typedHeadLiteral.numberArgs();
-
-		// Create a P :- Q for each argument to the OR.  P is *not* an in-liner, due to the combinatorics involved.
-		// If a term is a LIST such as [Q, R, S] then add P :- Q, R, S.
-		// If a term is an AND(P, Q, R), treat the same as it being [Q, R, S].
-		for (Term term : bodyTerms) {
-			Clause newC = stringHandler.getClause(typedHeadLiteral, true);
-			newC.negLiterals = new ArrayList<>(1);
-			if        (Function.isaConsCell(term)) {
-				List<Term> innerTerms = ((ConsCell) term).convertConsCellToList();
-				for (Term inner : innerTerms) {
-					newC.negLiterals.add(( (Function) inner).convertToLiteral(stringHandler));
-				}
-			} else if (term instanceof Function) {
-				Function f = (Function) term;
-				if (f.functionName == stringHandler.getFunctionName("AND")) {
-					if (f.numberArgs() > 0) for (Term inner : f.getArguments()) {
-						newC.negLiterals.add(( (Function) inner).convertToLiteral(stringHandler));
-					}
-				} else {
-				newC.negLiterals.add(( (Function) term).convertToLiteral(stringHandler));
-				}
-			} else if (term instanceof StringConstant) { // Convert this to a zero-arity literal.
-				newC.negLiterals.add( stringHandler.getLiteral( stringHandler.getPredicateName(( (StringConstant) term).getName())));
-			} else { throw new Error("Cannot handle this term in processRelevantOR" + term); }
-			if (listOfSentences == null) { throw new ParsingException("Should not have an empty list!"); }
-			listOfSentences.add(newC); // This holds the read-in clauses.
-		}
-		if (typedHeadLiteralWasNULL) { newPname.markAsSupportingPredicate(arity, false); } // This is NOT inlined, but it is supporting (i.e., it is not a clause-head that is in the BK; instead we generated it).  We need to keep disjuncts around in theories - flattening into clauses could otherwise lead to a combinatorial explosion.
-		stringHandler.setRelevance(newPname, arity, strength);
-		stringHandler.recordModeWithTypes(typedHeadLiteral, stringHandler.getConstantSignatureThisLong(arity), typeSpecs, max, maxPerInputVars);
-		stringHandler.resetAllVariables();
-		if (autoNegate) {
-			Literal notTypedHeadLiteral = createNegatedVersion(typedHeadLiteral);
-			processRelevantNOT(listOfSentences, notTypedHeadLiteral, typedHeadLiteral, Objects.requireNonNull(strength).getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); // Prevent infinite loops.
-		}
-	}
-
-	private void processRelevantNOT(Literal typedHeadLiteral, List<Sentence> listOfSentences) throws ParsingException, IOException {
-        int        max              = Integer.MAX_VALUE;
-        int        maxPerInputVars  = Integer.MAX_VALUE;
-		boolean    autoNegate       = true;
-		expectAndConsume('(');
-		Literal innerLit = processLiteral(false);
-		expectAndConsume(')');
-		RelevanceStrength  strength = readRelevanceStrength();
-
-		int tokenRead = (atEOL() ? 0 : getNextToken());
-		while (!atEOL()) { // Have some optional arguments since not yet at EOL.
-			String currentWord = tokenizer.reportCurrentToken();
-			if (tokenRead == ',') {  } // OK if there are some commas separating the items.
-			else if (currentWord.equalsIgnoreCase("max")) { // BUG: the user can't use 'max' nor 'maxPerInputVars' as target predicates.  TODO fix
-				if (max < Integer.MAX_VALUE) { throw new ParsingException("Have already read max=" + max + " when processing a 'relevant' and have encountered 'max' again."); }
-				max             = readEqualsInteger();
-			} else if (currentWord.equalsIgnoreCase("maxPerInputVars")) {
-				if (maxPerInputVars < Integer.MAX_VALUE) { throw new ParsingException("Have already read maxPerInputVars=" + max + " when processing a 'relevant' and have encountered 'maxPerInputVars' again."); }
-				maxPerInputVars = readEqualsInteger();
-			} else if (currentWord.equalsIgnoreCase("head")) {
-				if (typedHeadLiteral != null) { throw new ParsingException("Have already read a head =" + typedHeadLiteral + " when processing a 'relevant' and have encountered another."); }
-				typedHeadLiteral = readEqualsTypedLiteral();
-			} else if (currentWord.equalsIgnoreCase("noAutoNegate")) { // Fine if this is read more than once.
-				autoNegate = false;
-			} else if (currentWord.equalsIgnoreCase("autoNegate"))   { // Fine if this is read more than once.
-				autoNegate = true;
-			} else { throw new Error("Cannot handle this in processRelevantNOT: " + currentWord); }
-			tokenRead = getNextToken();
-        }
-		if (strength != null && strength.isLessThanNeutral()) { autoNegate = false; }
-		processRelevantNOT(listOfSentences, typedHeadLiteral, innerLit, strength, max, maxPerInputVars, autoNegate);
-	}
-
-	private void processRelevantNOT(List<Sentence> listOfSentences, Literal typedHeadLiteral, Literal innerLit, RelevanceStrength strength, int max, int maxPerInputVars, boolean createNegatedVersion) throws ParsingException, IOException {
-		List<TypeSpec> typeSpecs         = new ArrayList<>(4);
-		List<Term>     terms             = (typedHeadLiteral == null ? innerLit.getArguments() : typedHeadLiteral.getArguments());
-		PredicateName  newPname          = (typedHeadLiteral == null ? stringHandler.getPredicateNameNumbered(will_notPred_prefix + innerLit.predicateName.name) : typedHeadLiteral.predicateName);
-
-		if (typedHeadLiteral == null) {
-			List<Variable> freeVars     = new ArrayList<>(4);
-			List<String>   freeVarNames = new ArrayList<>(4);
-
-			stringHandler.getTypedFreeVariablesAndUniquelyName(terms, null, freeVars, freeVarNames, typeSpecs, true);		// These will not maintain the World-State positions since the arguments names are probably not in the file being read.
-			typedHeadLiteral = stringHandler.getLiteral(newPname, convertToListOfTerms(freeVars), freeVarNames).clearArgumentNamesInPlace(); // BUGGY if we want to keep argument names ...
-		} else {
-			typeSpecs = typedHeadLiteral.getTypeSpecs();
-		}
-		int     arity = typedHeadLiteral.numberArgs();
-		Clause  newC  = stringHandler.getClause(typedHeadLiteral, true);
-		Literal notP  = stringHandler.wrapInNot(innerLit);
-
-		newC.negLiterals = new ArrayList<>(1);
-		newC.negLiterals.add(notP);
-		newPname.addInliner(arity);
-		stringHandler.setRelevance(newPname, arity, strength);
-		stringHandler.recordModeWithTypes(typedHeadLiteral, stringHandler.getConstantSignatureThisLong(arity), typeSpecs, max, maxPerInputVars);
-		if (listOfSentences == null) { throw new ParsingException("Should not have an empty list!"); }
-		listOfSentences.add(newC); // This holds the read-in clauses.
-		stringHandler.resetAllVariables();
-		if (createNegatedVersion) { processRelevantLiteral(listOfSentences, innerLit, strength.getOneLowerStrengthAvoidingNegativeStrengths(), max, maxPerInputVars, false); } // Prevent infinite loops.
-	}
-
-    private void processRelevantLiteral(List<Sentence> listOfSentences) throws ParsingException, IOException {
-        int max = Integer.MAX_VALUE;
-        int maxPerInputVars = Integer.MAX_VALUE;
-        boolean autoNegate = true;
-        Literal innerLit = processLiteral(true);
-
-        int tokenRead = (atEOL() ? 0 : getNextToken());
-		tokenizer.reportCurrentToken();
-		String currentWord;
-
-        RelevanceStrength strength = readRelevanceStrength();
-        while (!atEOL()) { // Have some optional arguments since not yet at EOL.
-            currentWord = tokenizer.reportCurrentToken();
-            if (tokenRead == ',') {
-
-            } // OK if there are some commas separating the items.
-            else if (currentWord.equalsIgnoreCase("max")) { // BUG: the user can't use 'max' nor 'maxPerInputVars' as target predicates.  TODO fix
-                if (max < Integer.MAX_VALUE) {
-                    throw new ParsingException("Have already read max=" + max + " when processing a mode and have encountered 'max' again.");
-                }
-                max = readEqualsInteger();
-            }
-            else if (currentWord.equalsIgnoreCase("maxPerInputVars")) {
-                if (maxPerInputVars < Integer.MAX_VALUE) {
-                    throw new ParsingException("Have already read maxPerInputVars=" + max + " when processing a mode and have encountered 'maxPerInputVars' again.");
-                }
-                maxPerInputVars = readEqualsInteger();
-            }
-            else if (currentWord.equalsIgnoreCase("noAutoNegate")) { // Fine if this is read more than once.
-                autoNegate = false;
-            }
-            else if (currentWord.equalsIgnoreCase("autoNegate")) { // Fine if this is read more than once.
-                autoNegate = true;
-            }
-            else {
-                throw new Error("Cannot handle this in processRelevantLiteral: " + currentWord);
-            }
-            tokenRead = getNextToken();
-        }
-        if (strength != null && strength.isLessThanNeutral()) {
-            autoNegate = false;
-        }
-		processRelevantLiteral(listOfSentences, innerLit, strength, max, maxPerInputVars, autoNegate);
-
-
-	}
-
-	private void processRelevantLiteral(List<Sentence> listOfSentences, Literal innerLit, RelevanceStrength  strength, int max, int maxPerInputVars, boolean createNegatedVersion) throws ParsingException, IOException {
-		int           arity = innerLit.numberArgs();
-		PredicateName pName = innerLit.predicateName;
-
-		stringHandler.setRelevance(pName, arity, strength);
-
-		if (createNegatedVersion) { processRelevantNOT(listOfSentences, null, innerLit, strength, max, maxPerInputVars, false); } // Prevent infinite loops.
-	}
-
-	private void processRelevantLiteralSpec(String predicateNameAsString) throws ParsingException, IOException {
-		int               arity    = readInteger();
-		RelevanceStrength strength = readRelevanceStrength();
-		stringHandler.setRelevance(stringHandler.getPredicateName(predicateNameAsString), arity, strength);
-		peekEOL(true); // These cannot have additional information since we don't have the arguments.
-	}
-
-    private void processLiteralAlias() throws ParsingException, IOException {
-        Literal alias = processLiteral(true);
-
-        expectAndConsumeToken("=>");
-
-        Literal example = processLiteral(true);
-
-        stringHandler.addLiteralAlias(alias, example);
-    }
-
-	private void processRelevantLiteralNew(List<Sentence> listOfSentences) throws ParsingException, IOException {
-
-        Literal exampleLiteral;
-
-        if ( checkAndConsumeToken("@") ) {
-            exampleLiteral = processLiteral(true);
-            exampleLiteral = stringHandler.lookupLiteralAlias(exampleLiteral);
-        }
-        else {
-            exampleLiteral = processLiteral(true);
-        }
-
-        expectAndConsumeToken(":");
-
-        Literal relevantLiteral = processLiteral(true);
-
-        expectAndConsumeToken(",");
-
-        RelevanceStrength strength = readRelevanceStrength();
-
-        Literal relevanceFact = stringHandler.getLiteral("relevant_literal", exampleLiteral.convertToFunction(stringHandler), relevantLiteral.convertToFunction(stringHandler), stringHandler.getStringConstant(strength.name()));
-
-        listOfSentences.add(relevanceFact);
-    }
-
 	private void processNonOperational() throws IOException {
         PredicateNameAndArity pnaa = processPredicateNameAndArity();
 
@@ -1598,16 +1094,6 @@ public class FileParser {
         String predicateName = getPredicateOrFunctionName(tokenizer.nextToken());
         return stringHandler.getPredicateName(predicateName);
     }
-
-	private Literal createNegatedVersion(Literal lit) {
-		Literal result = lit.copy(false); // Do not want new variables here (or will need to match up to rest of clause).
-		String candidateName = will_notPred_prefix + lit.predicateName.name;
-		result.predicateName = stringHandler.getPredicateNameNumbered(candidateName); // Watch for name conflicts.
-		if (!result.predicateName.name.equalsIgnoreCase(candidateName)) {
-			Utils.warning("Needed to use '" + result.predicateName + "' because '" + candidateName + "' already existed.");
-		}
-		return result;
-	}
 
 	/*
 	 * Process something like:  cost: p/2, 1.5;
@@ -1746,47 +1232,6 @@ public class FileParser {
 			stringHandler.needPruner = true;
 			prunableLiteral.predicateName.recordPrune(prunableLiteral, ifPresentLiteral, Integer.MAX_VALUE, truthValue);
 		}
-	}
-
-	private Sentence processWeight(int followingChar) throws ParsingException, IOException {
-		boolean openParens = false;
-		Sentence sentence;
-		switch (followingChar) {
-			case '(':
-			case '{':
-			case '[':
-				openParens = true;
-			case ':':
-			case '=':
-				double   wgt      = readWeight();
-				if (openParens) {
-					int nextToken = getNextToken();
-					if (nextToken != ')' && nextToken != '}' && nextToken != ']') { // If the parenthesis isn't closed, assume of the form: '(wgt FOPC)'
-						checkAndConsume(',');  // A comma after the number is optional.
-						sentence = processFOPC_sentence(1);
-					}
-					else {
-						checkAndConsume(',');
-						sentence = processFOPC_sentence(0);
-					}
-				}
-				else {
-					    checkAndConsume(',');
-					    sentence = processFOPC_sentence(0);
-				}
-				sentence.setWeightOnSentence(wgt);
-				return sentence;
-			default: throw new ParsingException("After 'weight' or 'wgt' expected one of {':', '=', '(', '{'} but read: '" + reportLastItemRead() + "'.");
-		}
-	}
-
-	private double readWeight() throws ParsingException, IOException {
-		int tokenRead = getNextToken();
-		double result = processNumber(tokenRead);
-		if (Utils.isaNumber(result)) { // If here, cannot read as an integer (nor as a double).
-			return result;
-		}
-		throw new ParsingException("Was trying to read a number but failed on: '" + reportLastItemRead() + "'.");
 	}
 
 	private boolean atInfinity() {
@@ -2079,7 +1524,8 @@ public class FileParser {
 			if        (parameterName.equalsIgnoreCase("parsingWithNamedArguments")) {
 				// Indicates parsing IL ("interlingua") for the BL (Bootstrap Learning) project.
 			} else if (parameterName.equalsIgnoreCase("maxWarnings")) {
-				maxWarnings               = Integer.parseInt(parameterValue);
+				// This can be reset via 'setParameter maxWarnings = 10'
+				int maxWarnings = Integer.parseInt(parameterValue);
 			} else if (parameterName.equalsIgnoreCase("variablesStartWithQuestionMarks")) {
 				if (Boolean.parseBoolean(parameterValue)) { stringHandler.setVariablesStartWithQuestionMarks(); }
 				else                                 { stringHandler.usingPrologNotation(); }
@@ -2295,20 +1741,6 @@ public class FileParser {
 		peekEOL(true); // Suck up an optional EOL.
 	}
 
-	private void processTemporary() throws ParsingException, IOException {
-		checkForPredicateNamesThatAreCharacters(getNextToken());
-		int tokenRead;
-		String        currentWord = tokenizer.reportCurrentToken();
-		PredicateName predicate = stringHandler.getPredicateName(currentWord);
-		tokenRead = getNextToken();
-
-		if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in a temporary specification for '" + predicate + "', but got: '" + reportLastItemRead() + "'."); }
-		int arity = readInteger();
-
-		predicate.addTemporary(arity);
-		peekEOL(true); // Suck up an optional EOL.
-	}
-
 	private void processInline() throws ParsingException, IOException {
 		checkForPredicateNamesThatAreCharacters(getNextToken());
 		int           tokenRead;
@@ -2364,12 +1796,6 @@ public class FileParser {
 		return readInteger();
 	}
 
-	private Literal readEqualsTypedLiteral() throws ParsingException, IOException {
-		int tokenRead = getNextToken();
-		if (tokenRead != '=') { throw new ParsingException("Expecting an '=' but got: " + reportLastItemRead() + "."); }
-		return processLiteral(true);
-	}
-
 	private int readInteger() throws ParsingException, IOException {
 		int   tokenRead = getNextToken();
 		boolean negated = false;
@@ -2393,17 +1819,6 @@ public class FileParser {
 		int value = Integer.parseInt(tokenizer.sval());
 		if (negated) { return -value; }
 		return value;
-	}
-
-	/*
-     * See if this character is the next one in the stream. If not, throw an
-     * exception using this provided message (if the message = null,
-     * generate one instead).
-     */
-	private void expectAndConsume(char charValue) throws ParsingException, IOException {
-		int tokenRead = getNextToken();
-		if (tokenRead == (int)charValue) { return; }
-		throw new ParsingException("Expecting the character '" + charValue + "' but read '" + reportLastItemRead() + "'.");
 	}
 
 	/* See if this character is the next one in the stream. If so, "chew it
@@ -3066,36 +2481,6 @@ public class FileParser {
 		return tokenizer.sval();
 	}
 
-	/*
-	 * Read the variables of a quantifier. If only one, it need not be
-	 * wrapped in parentheses.
-	 */
-	private List<Variable> readListOfVariables() throws ParsingException, IOException {
-		int tokenRead = getNextToken();
-		switch (tokenRead) {
-			case '(':
-			case '{':
-			case '[':
-                List<Term>    terms = processListOfTerms((char)tokenRead, false).getTerms();
-                List<Variable> vars = new ArrayList<>(terms.size());
-                for (Term t : terms) {
-                    if (t instanceof Variable) { vars.add((Variable) t); }
-                    else { throw new ParsingException("Expecting a list of VARIABLEs, but read this non-variable: '" + t + "' in " + terms + "."); }
-                }
-                return vars;
-			case StreamTokenizer.TT_WORD: // Allow ONE variable to appear w/o parentheses.
-				Term term = stringHandler.getVariableOrConstant(tokenizer.sval(), true); // These are NEW variables since they are those of a quantifier.
-				if (term instanceof Variable) {
-					List<Variable> result = new ArrayList<>(1);
-					result.add((Variable) term);
-					return result;
-				}
-				throw new ParsingException("Expecting a variable (for a quantifier), but read: '" + term + "'.");
-			default:
-                throw new ParsingException("Expecting a variable or a left parenthesis, but read: '" + reportLastItemRead() + "'.");
-		}
-	}
-
 	// Note that NOT is also handled here.
     private ConnectiveName processPossibleConnective(int tokenRead) throws ParsingException, IOException {
     	switch (tokenRead) {
@@ -3232,67 +2617,41 @@ public class FileParser {
 	}
 
 	private Sentence processFOPC_sentenceFromThisToken(int insideLeftParenCount) throws ParsingException, IOException {
+
+		// TODO(hayesall): Factor out `ForAll`
+		// TODO(hayesall): Factor out `ThereExists`, `Exists`, `Exist`
+
 		String currentWord = getPredicateOrFunctionName(); // This will only be called if reading a string (which might be representing a number).
 		// Quantifiers are scoped to go to the next EOL unless parenthesis limit the scope.
-		if (currentWord.equalsIgnoreCase("ForAll")) {
-			List<Variable> variables = readListOfVariables();
-			Sentence       body; // We'll end this either when parentheses are matched or EOL is hit.
-			if (checkAndConsume('(') || checkAndConsume('{')) {
-				body = processFOPC_sentence(0); // We'll end this when a right parenthesis is encountered.
-				if (!checkAndConsume(')') && !checkAndConsume('}') && !checkAndConsume(']')) { throw new ParsingException("Expecting to find a right parenthesis closing: '" + currentWord + " " + variables + " " + body + "'."); }
-			}
-			else {
-				body = processFOPC_sentence(0);
-			}
-			UniversalSentence uSent = stringHandler.getUniversalSentence(variables, body);
-			stringHandler.unstackTheseVariables(variables);
-			return uSent;
+		// See if this is an in-fix literal.
+		Term possibleTerm = processRestOfTerm(tokenizer.ttype(), false);
+		int tokenRead = getNextToken();
+		String peekAtNextWord = isInfixTokenPredicate(tokenRead);
+		if (peekAtNextWord != null) { // Handle 'is' and { <, >, >=, <=, == }.
+			return processInfixLiteral(possibleTerm, peekAtNextWord);
 		}
-		else if (currentWord.equalsIgnoreCase("ThereExists") || currentWord.equalsIgnoreCase("Exists") || currentWord.equalsIgnoreCase("Exist")) { // Note: 'Exist' allowed since that is what Alchemy uses.
-			List<Variable> variables = readListOfVariables();
-			Sentence       body;
-			if (checkAndConsume('(') || checkAndConsume('{')) {
-				body = processFOPC_sentence(0); // We'll end this when a right parenthesis is encountered.
-				if (!checkAndConsume(')') && !checkAndConsume('}') && !checkAndConsume(']')) { throw new ParsingException("Expecting to find a right parenthesis closing: '" + currentWord + " " + variables + " " + body + "'."); }
-			}
-			else {
-				body = processFOPC_sentence(0);
-			}
-			ExistentialSentence eSent = stringHandler.getExistentialSentence(variables, body);
-			stringHandler.unstackTheseVariables(variables);
-			return eSent;
-		}
-        else {
-            // See if this is an in-fix literal.
-            Term possibleTerm = processRestOfTerm(tokenizer.ttype(), false);
-            int tokenRead = getNextToken();
-            String peekAtNextWord = isInfixTokenPredicate(tokenRead);
-            if (peekAtNextWord != null) { // Handle 'is' and { <, >, >=, <=, == }.
-                return processInfixLiteral(possibleTerm, peekAtNextWord);
-            }
-            tokenizer.pushBack(); // Undo the getNextToken() that checked for an infix predicate.
+		tokenizer.pushBack(); // Undo the getNextToken() that checked for an infix predicate.
 
-            if (possibleTerm instanceof NumericConstant) { // If reading a number and not in an in-fix (e.g., '5 <= 6') then interpret as a weighted sentence.
-                Sentence sent;
-                if (insideLeftParenCount > 0) {
-                    if (insideLeftParenCount > 1) { throw new ParsingException("Possibly too many left parentheses before a weight."); }
-                    if (checkAndConsume(')') || checkAndConsume('}') || checkAndConsume(']')) { // The parentheses wrap the number.
-                        checkAndConsume(','); // Allow an optional comma after the number.
-                        sent = processFOPC_sentence(0);
-                    } else {
-                        checkAndConsume(','); // Allow an optional comma after the number.
-                        sent = processFOPC_sentence(insideLeftParenCount); // The parentheses wrap something like this: '(weight FOPC)'
-                    }
-                } else {
-                       checkAndConsume(','); // Allow an optional comma after the number.
-                       sent = processFOPC_sentence(0); // No parentheses involved.
-                }
-                sent.setWeightOnSentence(((NumericConstant) possibleTerm).value.doubleValue());
-                return sent;
-            } else {
-                return convertTermToLiteral(possibleTerm);
-            }
-        }
+		if (possibleTerm instanceof NumericConstant) { // If reading a number and not in an in-fix (e.g., '5 <= 6') then interpret as a weighted sentence.
+			Sentence sent;
+			if (insideLeftParenCount > 0) {
+				if (insideLeftParenCount > 1) { throw new ParsingException("Possibly too many left parentheses before a weight."); }
+				if (checkAndConsume(')') || checkAndConsume('}') || checkAndConsume(']')) { // The parentheses wrap the number.
+					checkAndConsume(','); // Allow an optional comma after the number.
+					sent = processFOPC_sentence(0);
+				} else {
+					checkAndConsume(','); // Allow an optional comma after the number.
+					sent = processFOPC_sentence(insideLeftParenCount); // The parentheses wrap something like this: '(weight FOPC)'
+				}
+			} else {
+				   checkAndConsume(','); // Allow an optional comma after the number.
+				   sent = processFOPC_sentence(0); // No parentheses involved.
+			}
+			sent.setWeightOnSentence(((NumericConstant) possibleTerm).value.doubleValue());
+			return sent;
+		} else {
+			return convertTermToLiteral(possibleTerm);
+		}
 	}
 
 	private Literal convertTermToLiteral(Term term) throws ParsingException {

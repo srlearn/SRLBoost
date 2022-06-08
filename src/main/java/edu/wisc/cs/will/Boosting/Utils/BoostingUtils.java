@@ -84,6 +84,8 @@ public class BoostingUtils {
 		return 1/ (Math.exp(denoRegExp - numRegExp) + 1);
 	}
 
+	// TODO(hayesall): Refactor to rethink checkpointing.
+
 	public static String getCheckPointFile(String saveModelName) {
 		return saveModelName + ".ckpt";
 	}

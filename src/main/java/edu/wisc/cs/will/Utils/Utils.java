@@ -301,43 +301,6 @@ public class Utils {
         return map.size();
     }
 
-    // TODO(@hayesall): Utils/MapOfSets.java uses this?
-    static String getStringWithLinePrefix(String string, String prefix) {
-        if (prefix != null && !prefix.isEmpty() && !string.isEmpty()) {
-
-            StringBuilder stringBuilder = new StringBuilder();
-
-
-            int index = -1;
-            int lastIndex = 0;
-
-            stringBuilder.append(prefix);
-
-            while ((index = string.indexOf("\n", index + 1)) != -1) {
-                String s = string.substring(lastIndex, index + 1);
-
-                if (!s.isEmpty()) {
-                    if (lastIndex != 0) {
-                        stringBuilder.append(prefix);
-                    }
-                    stringBuilder.append(s);
-                }
-
-                lastIndex = index + 1;
-            }
-
-            if (lastIndex != 0) {
-                stringBuilder.append(prefix);
-            }
-            stringBuilder.append(string.substring(lastIndex));
-
-            return stringBuilder.toString();
-        }
-        else {
-            return string;
-        }
-    }
-
     /*
      * Create a file-name string from this directory and (possibly partial) fileName. 
      * (Could just return a File, but this is what other methods are expecting.)
@@ -459,16 +422,6 @@ public class Utils {
         }
     }
 
-    private static void cleanupAndExit() {
-
-        if (dribbleStream != null) {
-            dribbleStream.close();
-        	compressFile(dribbleFileName);
-        }
-
-        System.exit(0);
-    }
-
     /* Prints a warning header on standard output that includes the given message.
      *
      * @param str A message describing the warning.
@@ -549,9 +502,6 @@ public class Utils {
         return newFirstChar + old.substring(1);
     }
 
-    // This is one place that this class maintains state (so if two threads running, their dribble files will interfere).
-    private static String dribbleFileName = null;
-
     /*
      * Creates a dribble file with the given name in the current working
      * directory.
@@ -573,7 +523,6 @@ public class Utils {
         	ensureDirExists(fileName);
             CondorFileOutputStream outStream = new CondorFileOutputStream(fileName);
             dribbleStream = new PrintStream(outStream, false); // No auto-flush (can slow down code).
-            dribbleFileName = fileName;
 
         } catch (FileNotFoundException e) {
         	reportStackTrace(e);
@@ -582,8 +531,7 @@ public class Utils {
     }
 
     private static void closeDribbleFile() {
-    	dribbleFileName = null;
-    	if (dribbleStream == null) { return; }
+        if (dribbleStream == null) { return; }
     	dribbleStream.close();
     	dribbleStream = null;
     }
@@ -669,48 +617,6 @@ public class Utils {
         }
 		error("Could not find the " + index + "th item in a collection of size " + items.size());
 		return null;
-    }
-
-    /*
-     * Randomly select a number of items from this list.
-     *
-     * @param <E> The element type of the list.
-     * @param numberToChoose How many elements to return.
-     * @param list The list of elements to choose from.
-     * @return A new list containing the specified number of elements from the
-     *         given list, or the original list if it was shorter than
-     *         numberToChoose.
-     */
-    public static <E> List<E> chooseRandomNfromThisList(int numberToChoose, List<E> list) {
-        if (list == null || numberToChoose < 0) { return null; }
-        int length = list.size();
-
-        if (numberToChoose >= length) { return list; }
-
-        List<E> result = new ArrayList<>(numberToChoose);
-        if (numberToChoose == 0) {  return result; }
-
-        if (numberToChoose < length / 4) { // We'll collect items if only a few.
-            int counter = 0;
-            while (counter < numberToChoose) {
-                int itemToKeep = random0toNminus1(length);
-                E selectedItem = list.get(itemToKeep);
-                if (!result.contains(selectedItem)) {
-                    result.add(selectedItem);
-                    counter++;
-                }
-            }
-        } else { // Otherwise we'll copy list then randomly discard items.  Notice there the ORDER of the list is unchanged (which is why the first version can be overridden).
-            result.addAll(list); // Copy the list.
-            int counter = length;
-            while (counter > numberToChoose) { // Could be a FOR loop, but mirror what is done above.
-                int itemToDiscard = random0toNminus1(counter);
-                result.remove(itemToDiscard);
-                counter--;
-            }
-
-        }
-        return result;
     }
 
     /*
@@ -1018,19 +924,6 @@ public class Utils {
 
     public static double getF1(double truePositives, double falsePositives, double falseNegatives) {
         return getFBeta(1, truePositives, falsePositives, falseNegatives);
-    }
-
-    public static double getAccuracy(double truePositives, double falsePositives, double trueNegatives, double falseNegatives) {
-
-        double numerator   = truePositives                  + trueNegatives;
-        double denominator = truePositives + falsePositives + trueNegatives + falseNegatives;
-
-        if ( denominator > 0 ) {
-            return numerator / denominator;
-        }
-        else {
-            return Double.NaN;
-        }
     }
 
     private static final Pattern numberPattern = Pattern.compile("-?[0-9]+(\\.[0-9]+)?([eE]-?[0-9]+)?");
@@ -1383,59 +1276,7 @@ public class Utils {
         }
     }
 
-    /*
-     * Parses a string into a list of strings. Can handle formats:
-     * {1,2, 3,4}
-     * 1,2,3,4
-     * "{","[","("," "
-     * 
-     * Make sure to put { in quotes if it is an input
-     * Make sure that the string is not surrounded by quotes otherwise
-     * we cant tell if """,""" is a list of " and "[ie {","}] or a list of two empty strings[ie {"", ""}] surrounded by quotes.
-     * @param input Input string
-     * @return list of strings from the list
-     */
-    public static List<String> parseListOfStrings(String input) {
-    	String[] items = input.split(",");
-    	    	
-    	List<String> result = new ArrayList<>();
-    	for (String item : items) {
-			result.add(item.trim());
-		}
-    	
-    	String firstItem = result.get(0);     	
-    	String lastItem = result.get(result.size()-1);
-    	// the first item may have {
-    	if (firstItem.startsWith("{")) {
-    		firstItem = firstItem.substring(1).trim();
-    		if (lastItem.endsWith("}")) {
-    			lastItem = lastItem.substring(0, lastItem.length()-1).trim();
-    		} else {
-    			error("String starts with \"{\" but doesnt end with \"}\" :" + input);
-    		}
-    	} else {
-    		if (lastItem.endsWith("}")) {
-    			error("String doesnt start with \"{\" but ends with \"}\" :" + input);
-    		}
-    	}
-    	
-    	result.set(0, firstItem);
-    	result.set(result.size()-1, lastItem);
-
-        // Remove quotes
-        for (int i = 0; i < result.size(); i++) {
-            String item = result.get(i);
-            if (item.startsWith("\"") && item.endsWith("\"")) {
-                item = item.substring(1, item.length()-1);
-                // Dont trim here, as the quotes would be used to prevent removing whitespace
-                result.set(i, item);
-            }
-
-        }
-        return result;
-    }
-
-	public static String removeAnyOuterQuotes(String str) {
+    public static String removeAnyOuterQuotes(String str) {
 		if (str == null || !str.startsWith("\"")) { return str; }
 		return str.substring(1, str.length() - 1);
 	}

@@ -180,8 +180,6 @@ public interface HornClausebase {
      */
     Iterable<Literal> getPossibleMatchingFacts(Literal clauseHead, BindingList currentBinding);
 
-    boolean recorded(DefiniteClause definiteClause);
-
     ProcedurallyDefinedPredicateHandler getBuiltinProcedurallyDefinedPredicateHandler();
 
     ProcedurallyDefinedPredicateHandler getUserProcedurallyDefinedPredicateHandler();

@@ -104,19 +104,8 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
     private Object writeReplace() {
         return new SerializableConnectiveName(name);
     }
-    
-    public static boolean isTextualConnective(String str) {
-    	return  "v".equalsIgnoreCase(str) ||
-    		   "if".equalsIgnoreCase(str) ||
-    		   "or".equalsIgnoreCase(str) ||
-    		  "and".equalsIgnoreCase(str) ||
-   		     "else".equalsIgnoreCase(str) ||
-   		     "then".equalsIgnoreCase(str) ||
-   		  "implies".equalsIgnoreCase(str) ||
-   	   "equivalent".equalsIgnoreCase(str);
-    }
 
-    /* This is a little hack to allow the Type to be canonicalized by the string handler.
+	/* This is a little hack to allow the Type to be canonicalized by the string handler.
      *
      * We want to use readResolve to canonicalize the Type object.  However, when we
      * run readResolve, we don't have the InputStream.  No inputStream, no string handler.

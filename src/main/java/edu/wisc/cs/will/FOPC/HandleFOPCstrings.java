@@ -29,13 +29,6 @@ public final class HandleFOPCstrings {
 
 	private         static int countOfStringHandlers = 0;
 
-	// These are special variables accessible by setCounter/1 and incrCounter/2 and incrCounter/3 from Prolog.  Meant for advanced use only.
-	int prologCounter = 0;
-	int prologCounterB = 0;
-	int prologCounterC = 0;
-	int prologCounterD = 0;
-	int prologCounterE = 0;
-
 	private boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
 	public  boolean cleanFunctionAndPredicateNames        = false; // Check for hyphens and spaces.  DO NOT SET UNTIL AFTER LIBRARIES ARE LOADED.
 	public  boolean keepQuoteMarks                        = false; // Set to true if quote marks on string constants should be preserved.  NOTE: if true, then strings with quote marks will NOT be cleaned regardless of any other setting.
@@ -141,8 +134,6 @@ public final class HandleFOPCstrings {
 
     /* Clausebase handling for facts added to the clausebase. */
     public VariantClauseAction variantRuleHandling = WARN_AND_REMOVE_VARIANTS;
-
-    private final Map<Literal, Literal> literalAliases = new HashMap<>();
 
 	public HandleFOPCstrings() {
 		this(false);
@@ -1105,28 +1096,6 @@ public final class HandleFOPCstrings {
 		return startsWithLowerCase;
 	}
 
-	private final Map<String,Integer> mapForGetUniqueStringConstant = new HashMap<>(4);
-	StringConstant getUniqueStringConstant(String string) {
-		Integer lookup = mapForGetUniqueStringConstant.get(string);
-		if (lookup == null) {
-			lookup = 0;
-		}
-		while (true) {
-			lookup++;
-			mapForGetUniqueStringConstant.put(string, lookup);
-			String combo  = ((string.charAt(0) == '"' || (FileParser.allowSingleQuotes && string.charAt(0) == '\'')) 
-								? string.charAt(0) + string.substring(1, string.length() - 1) + lookup + string.charAt(0) // Put inside any quotes.
-							    :  string + lookup);								
-			String newStr = standardize(combo, true);
-			if (stringConstantHash.get(newStr) == null) {
-				return getStringConstant(newStr, true); // Assume caller adds an underscore if necessary.  If user calls sufficiently often something like getUniqueStringConstant(str1) and getUniqueStringConstant(str), a name collision can occur.
-			}
-			if (lookup > 123456) { Utils.error("getUniqueStringConstant: string =" + string); }
-		}
-	}
-	StringConstant getUnCleanedStringConstant(String name) { // This means we'll keep quote marks here (and so wont match to unquoted version) - so use carefully!
-		return getStringConstant(null, name, false);
-	}
 	public StringConstant getStringConstant(String name) {
 		return getStringConstant(null, name);
 	}
@@ -1181,32 +1150,6 @@ public final class HandleFOPCstrings {
 		return result;
 	}
 
-	Constant getStringConstantButCheckIfNumber(String name) {
-		Number viewNameAsNumber = isaQuotedNumber(name);
-		if (viewNameAsNumber != null) { 
-			return getNumericConstant(null, viewNameAsNumber.doubleValue()); // Other code (chooseStringForDouble) checks to see if this is really an integer.
-		}
-		return getStringConstant(null, name, false);
-	}
-	
-	private Number isaQuotedNumber(String name) {
-		if (name == null) { return null; }
-		if (name.charAt(0) != '"'  || (name.charAt(name.length() - 1) != '"')) { return null; }
-		
-		if (!Character.isDigit(name.charAt(1))) { return null; }
-		
-		String innerStr = name.substring(1, name.length() - 1);
-		try { 
-			return Integer.parseInt(innerStr);
-		} catch (NumberFormatException e1) {
-			try {
-				return Double.parseDouble(innerStr);
-			} catch (NumberFormatException e2) {
-				return null;
-			}
-		}
-	}
-
 	private int chooseStringForDouble(double value) { // NOTE: need to extend to handle long's.
 		int valueAsInt = (int) value;
 
@@ -1221,9 +1164,7 @@ public final class HandleFOPCstrings {
 	public NumericConstant getNumericConstant(int value) {
 		return getNumericConstant(null, value);
 	}
-	NumericConstant getNumericConstant(long value) {
-		return getNumericConstant(null, value);
-	}
+
 	NumericConstant getNumericConstant(TypeSpec spec, int value) {
 		return getNumericConstant(spec, value, NumericConstant.isaInteger, Integer.toString(value)); // So '1' and '1.0' match, convert everything to a double.
 	}
@@ -1703,20 +1644,7 @@ public final class HandleFOPCstrings {
         }
     }
 
-	public void addLiteralAlias(Literal alias, Literal literal) {
-       literalAliases.put(alias, literal);
-    }
-
-    public Literal lookupLiteralAlias(Literal alias) {
-        Literal literal = literalAliases.get(alias);
-        if ( literal == null ) {
-            throw new IllegalArgumentException("Unable to find Literal for alias of " + alias + ".");
-        }
-        return literal;
-    }
-
-
-    public void setStarMode(int value) {
+	public void setStarMode(int value) {
         starModeMap = value;
     }
 	int     getStarMode()          { return starModeMap; }

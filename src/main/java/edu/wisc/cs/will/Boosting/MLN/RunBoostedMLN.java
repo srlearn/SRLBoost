@@ -169,7 +169,7 @@ public class RunBoostedMLN extends RunBoostedModels {
 	
 	public void infer() {
 		InferBoostedRDN infer = new InferBoostedRDN(cmdArgs, setup);
-		infer.runInference(fullModel, 0.5);
+		infer.runInference(fullModel);
 	}
 	
 	private boolean useSingleTheory(WILLSetup setup2) {

@@ -478,17 +478,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		if (firstLookUp) { return cost.get(arity); }
 		return 1.0; // The default cost.
 	}
-	
-	public void markAsSupportingPredicate(int arity, boolean okIfDup) {
-		if (supportingLiteral == null) {
-			supportingLiteral = new HashSet<>(4);
-		}
-		boolean firstLookUp = supportingLiteral.contains(arity);
-		if (!firstLookUp) { // Not currently specified.
-			supportingLiteral.add(arity);
-		}
-		else if (!okIfDup && stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate 'supporter' of '" + name + "/" + arity + "'.  Will ignore."); }		
-	}
+
 	public boolean isaSupportingPredicate(int arity) {
 		return supportingLiteral != null && supportingLiteral.contains(arity);
 	}

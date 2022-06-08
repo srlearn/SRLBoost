@@ -416,7 +416,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (theILPtask.totalWeightOnNegSeeds > 0 && theILPtask.seedNegExamples != null) {
 			negSeedWgtedCount = wgtedCountOfNegExamplesCovered(theILPtask.seedNegExamples);
 
-			return !(negSeedWgtedCount >= theILPtask.clausesMustNotCoverFractNegSeeds * theILPtask.totalWeightOnNegSeeds);
+			return !(negSeedWgtedCount >= 0.501 * theILPtask.totalWeightOnNegSeeds);
 		}
 		return true;
 	}
@@ -562,11 +562,11 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				if (theILPtask.regressionTask &&
 						theILPtask.mlnRegressionTask &&
 						posExamplesThatFailedHere != null) {
-					int fraction = (posExamplesThatFailedHere.size()/(theILPtask.maxExamplesToSampleForScoring*2)) + 1;
-					double prob = 1.0/(double)fraction;
-					if (!theILPtask.sampleForScoring) {fraction =1;prob=1;}
+
 					for (Example posEx : posExamplesThatFailedHere) {
-						if (Utils.random() < prob) {
+						if (Utils.random() < 1) {
+							// TODO(hayesall): I'm pretty sure Utils.random() always returns values less than 1.
+
 							long num = 1;
 							if (parent != null && parent != getRootNode()) { 
 								num = parent.getNumberOfGroundingsForRegressionEx(posEx);
@@ -575,7 +575,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 								Utils.waitHere("Number of groundings = 0 for " + posEx + " with " + parent.getClause());
 							}
 							((RegressionExample) posEx).getOutputValue();
-							cachedLocalRegressionInfoHolder.getFalseStats().addFailureExample(posEx, num, fraction*posEx.getWeightOnExample());
+							cachedLocalRegressionInfoHolder.getFalseStats().addFailureExample(posEx, num, posEx.getWeightOnExample());
 						}
 					} 
 				}
@@ -630,27 +630,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (parent == null) { return false; }
 		return parent.posExampleAlreadyExcluded(example);
 	}
-	
-	// Used to get examples on the false branch for a node
-	private List<Example> posExampleFailedAtNode()  throws SearchInterrupted {
-		if (getPosCoverage() < 0.0) { computeCoverage(); }
-		if (this == ((LearnOneClause)task).currentStartingNode) {
-				return new ArrayList<>();
-		}
-		
-		List<Example> failedExamples;
-		if (posExamplesThatFailedHere != null) {
-			failedExamples = new ArrayList<>(posExamplesThatFailedHere);
-		} else {
-			failedExamples = new ArrayList<>();
-		}
-		
-		SingleClauseNode parent = getParentNode();
-		if (parent == null) { return failedExamples; }
-		failedExamples.addAll(parent.posExampleFailedAtNode());
-		return failedExamples;
-	}
-	
+
 	private boolean negExampleAlreadyExcluded(Literal example) throws SearchInterrupted {
 		if (negCoverage < 0.0) { computeCoverage(); }
 		if (negExamplesThatFailedHere != null && negExamplesThatFailedHere.contains(example)) { return true; }
@@ -714,7 +694,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 			return false;
 		}
 		if (!acceptableClauseExtraFilter(thisTask)) { return true; } // If a clause doesn't meet the 'acceptability' test, it can presumably be improved (e.g., might need to extend it, even if precision is 100%).
-		return !(negCoverage <= theILPtask.stopExpansionWhenAtThisNegCoverage);  // If no negs covered, adding literals wont help.
+		return !(negCoverage <= 0.0);  // If no negs covered, adding literals wont help.
 		// Still some neg's that could be eliminated.
 	}
 	

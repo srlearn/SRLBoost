@@ -18,22 +18,21 @@ import java.util.*;
 
 public class InferBoostedRDN {
 
-	private boolean printExamples = false;
 	private final boolean writeQueryAndResults = true;
-	private double  minRecallForAUCPR = 0;
-	private double minLCTrees = 20;
-	private double incrLCTrees = 2;
-	
+
 	private final CommandLineArguments cmdArgs;
 	private final WILLSetup setup;
 
 	public InferBoostedRDN(CommandLineArguments args, WILLSetup setup) {
 		this.cmdArgs = args;
 		this.setup = setup;
-		setParamsUsingSetup(setup);
 	}
 	
-	public void runInference(JointRDNModel rdns, double thresh) {
+	public void runInference(JointRDNModel rdns) {
+
+		// TODO(hayesall): threshold was constant, so I'm inlining the 0.5 value.
+		double thresh = 0.5;
+
 		Map<String,List<RegressionRDNExample>> targetExamples = setup.getJointExamples(cmdArgs.getTargetPredVal());
 		Map<String,List<RegressionRDNExample>> jointExamples;
 		jointExamples = new HashMap<>(targetExamples);
@@ -62,16 +61,6 @@ public class InferBoostedRDN {
 			
 		int startCount = cmdArgs.getMaxTreesVal();
 		int increment = 1;
-		if (cmdArgs.isPrintLearningCurve()) {
-			startCount = (int)minLCTrees;
-			increment = (int)incrLCTrees;
-			for (String targ : jointExamples.keySet()) {
-				File f = new File(getLearningCurveFile(targ, "pr"));
-				if (f.exists()) { f.delete();}
-				 f = new File(getLearningCurveFile(targ, "cll"));
-				if (f.exists()) { f.delete();}
-			}
-		}
 		for(; startCount <= cmdArgs.getMaxTreesVal();startCount+=increment) {
 			sampler.setMaxTrees(startCount);
 			Utils.println("% Trees = " + startCount);
@@ -173,22 +162,6 @@ public class InferBoostedRDN {
 		}
 	}
 
-	private void setParamsUsingSetup(WILLSetup willSetup) {
-		String lookup;
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("printEg")) != null) {
-			printExamples = Boolean.parseBoolean(lookup);
-		}
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("minRecallForAUCPR")) != null) {
-			minRecallForAUCPR = Double.parseDouble(lookup);
-		}
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("minLCTrees")) != null) {
-			minLCTrees = Double.parseDouble(lookup);
-		}
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("incrLCTrees")) != null) {
-			incrLCTrees = Double.parseDouble(lookup);
-		}
-	}
-
 	private String getQueryFile(String target) {
 		return setup.getOuterLooper().getWorkingDirectory() + "/query_" + target + ".db";
 	}
@@ -211,12 +184,6 @@ public class InferBoostedRDN {
 		return result;
 	}
 
-	private String getLearningCurveFile(String target, String type) {
-		return setup.getOuterLooper().getWorkingDirectory() + "/curve" +
-				(cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) +
-				(target.isEmpty() ? "" : "_"+target) + "." + type;
-	}
-
 	private void getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
 							 String target, int trees) {
 		// TODO(@hayesall): Why does this return a double when the double is never used?
@@ -235,24 +202,16 @@ public class InferBoostedRDN {
 			}
 		}
 
-		
 		ComputeAUC auc = computeAUCFromEg(examples, target);
 
-
-		if (cmdArgs.isPrintLearningCurve()) {
-			Utils.appendString(new File(getLearningCurveFile(target, "pr")), trees + " " + auc.getPR() + "\n");
-			Utils.appendString(new File(getLearningCurveFile(target, "cll")), trees + " " + auc.getCLL() + "\n");
+		ThresholdSelector selector = new ThresholdSelector();
+		for (RegressionRDNExample regEx : examples) {
+			// This code should only be called for single-class examples
+			selector.addProbResult(regEx.getProbOfExample().getProbOfBeingTrue(), regEx.isOriginalTruthValue());
 		}
-		{
-			ThresholdSelector selector = new ThresholdSelector();
-			for (RegressionRDNExample regEx : examples) {
-				// This code should only be called for single-class examples
-				selector.addProbResult(regEx.getProbOfExample().getProbOfBeingTrue(), regEx.isOriginalTruthValue());
-			}
-			double thresh = selector.selectBestThreshold();
-			Utils.println("% F1 = " + selector.lastComputedF1);
-			Utils.println("% Threshold = " + thresh);
-		}
+		double thresh = selector.selectBestThreshold();
+		Utils.println("% F1 = " + selector.lastComputedF1);
+		Utils.println("% Threshold = " + thresh);
 
 		Utils.println("\n%   AUC ROC   = " + Utils.truncate(auc.getROC(), 6));
 		Utils.println("%   AUC PR    = " + Utils.truncate(auc.getPR(),  6));
@@ -266,10 +225,10 @@ public class InferBoostedRDN {
 		String fileNameForResults = (writeQueryAndResults ? getTestsetInfoFile(target) : null);
 
 		if (threshold != -1) {
-			Utils.println("%   Precision = " + Utils.truncate(score.getPrecision(), 6)       + (threshold != -1 ? " at threshold = " + Utils.truncate(threshold, 3) : " "));
+			Utils.println("%   Precision = " + Utils.truncate(score.getPrecision(), 6) + " at threshold = " + Utils.truncate(threshold, 3));
 			Utils.println("%   Recall    = " + Utils.truncate(score.getRecall(),    6));
 			Utils.println("%   F1        = " + Utils.truncate(score.getF1(),        6));
-			resultsString += "\n//   Precision = " + Utils.truncate(score.getPrecision(), 6) + (threshold != -1 ? " at threshold = " + Utils.truncate(threshold, 3) : " ");
+			resultsString += "\n//   Precision = " + Utils.truncate(score.getPrecision(), 6) + " at threshold = " + Utils.truncate(threshold, 3);
 			resultsString += "\n//   Recall    = " + Utils.truncate(score.getRecall(),    6);
 			resultsString += "\n//   F1        = " + Utils.truncate(score.getF1(),        6);
 			resultsString += "\nprecision(" + target + ", " + Utils.truncate(score.getPrecision(), 6) + ", usingThreshold(" + threshold + ")).";
@@ -313,18 +272,19 @@ public class InferBoostedRDN {
 		}
 		String extraMarker = "";
 		ComputeAUC.deleteAUCfilesAfterParsing = false;
+		double minRecallForAUCPR = 0;
 		return new ComputeAUC(positiveProbabilities, negativeProbabilities, aucTempDirectory, cmdArgs.getAucPathVal(), extraMarker, minRecallForAUCPR, cmdArgs.useLockFiles);
 	}
 
 	private void printExamples(List<RegressionRDNExample> examples, String target) {
 
+		// TODO(hayesall): `printExamples` is a misnomer. This creates the `query_*.db` and `results_*.db` files.
+		// 		The intention is for use in other software, this should probably be carefully evaluated then removed.
+
 		// Will collect the 'context' around a fact.  Turn off until we think this is needed.  It is a slow calculation.
 
 		// PredicateModes pmodes = new PredicateModes(setup.getInnerLooper());
 		setup.getListOfPredicateAritiesForNeighboringFacts();
-
-		// Should be set somewhere else
-		setup.getBitMaskForNeighboringFactArguments(target);
 
 		// Write all examples to a query.db file
 		// Results/Probs to results.db
@@ -399,18 +359,11 @@ public class InferBoostedRDN {
 	 * Should be called with only single-value examples.
 	 */
 	private String updateScore(List<RegressionRDNExample> examples, CoverageScore score, double threshold) {
-		// TODO(@hayesall): maxToPrintOnAve should be removed.
 
 		double sum = 0;
 		double count = 0;
 		double countOfPos = 0;
 		double countOfNeg = 0;
-		int numberToPrint = Utils.getSizeSafely(examples);
-		double maxToPrintOnAverage = 250.0;
-
-		if (printExamples && numberToPrint > maxToPrintOnAverage) {
-			Utils.println("% Note: since more than " + Utils.truncate(maxToPrintOnAverage, 0) + " examples, will randomly report.");
-		}
 
 		StringBuilder sb = new StringBuilder();
 
@@ -424,10 +377,6 @@ public class InferBoostedRDN {
 
 			if (regressionExample.isOriginalTruthValue()) {
 				// Positive Example
-
-				if (printExamples && Utils.random() < maxToPrintOnAverage / numberToPrint) {
-					Utils.println("% Pos #" + Utils.truncate(score.getTruePositives() + score.getFalseNegatives(), 0) + ": '" + regressionExample + "' prob = " + Utils.truncate(probability, 6));
-				}
 
 				sb.append("pos,")
 						.append(probability)
@@ -446,9 +395,6 @@ public class InferBoostedRDN {
 				}
 			} else {
 				// Negative Example
-				if (printExamples && Utils.random() < maxToPrintOnAverage / numberToPrint) {
-					Utils.println("% Neg #" + Utils.truncate(score.getTrueNegatives() + score.getFalsePositives(), 0) + ": '" + regressionExample + "' prob = " + Utils.truncate(probability, 6));
-				}
 
 				sb.append("neg, ")
 						.append(probability)

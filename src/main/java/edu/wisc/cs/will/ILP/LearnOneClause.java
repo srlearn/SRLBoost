@@ -106,13 +106,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
 
-	private boolean             createCacheFiles                  = false;   // Create files that cache computations, to save time, for debugging, etc.
-	private boolean             useCachedFiles                    = false;   // Files cached (if requested):
-	                                                                           //    prune.txt (or whatever Utils.defaultFileExtensionWithPeriod is)
-																			   //    types.txt
-	                                                                           //    gleaner.txt (users can name this whatever they wish)
-																			   //    the generated negative examples (same file name as used for negatives)
-
 	Object              caller     = null;                           // The instance that called this LearnOneClause instance.
 	String              callerName = "unnamed caller";               // Used to annotate printing during runs.
 
@@ -124,10 +117,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	public    boolean			  regressionTask    = false; // Is this a REGRESSION task?
 	boolean			  mlnRegressionTask	= false;
     private boolean             learnMultiValPredicates             = false;
-	final boolean 			  sampleForScoring  = false;
-	final int				  maxExamplesToSampleForScoring = 300;
 
-	final int                 maxCrossProductSize               =1000;     // When generating candidate groundings of a literal in the child-generator, randomly seleect if more than this many.
 	int                 maxBodyLength                     =   9;     // Max length for the bodies of clauses.
 	public    int                 maxFreeBridgersInBody             = maxBodyLength; // Bridgers can run amok so limit them (only has an impact when countBridgersInLength=true).  This is implemented as follows: the first  maxBridgersInBody don't count in the length, but any excess does.
 	public    int                 maxNumberOfNewVars                =  10;     // Limit on the number of "output" variables used in a rule body.
@@ -138,14 +128,11 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private   double              maxNegCoverage                    =  -1.0;   // [If in (0,1), treat as a FRACTION of totalNegWeight].  Acceptable clauses must cover no  more this many negative examples.  NOTE: this number is compared to SUMS of weighted examples, not simply counts (which is why this is a 'double').  IGNORE IF A NEGATIVE NUMBER.
 	double              minPrecision                      =   0.501; // Acceptable clauses must have at least this precision.
 	double              maxRecall                         =   1.01;  // When learning trees, don't want to accept nodes with TOO much recall, since want some examples on the 'false' branch.
-	double              stopExpansionWhenAtThisNegCoverage =  0.0;   // Once a clause reaches this negative coverage, don't bother expanding it further.
 	boolean             stopIfPerfectClauseFound          =   true;  // Might want to continue searching if a good SET of rules (eg, for Gleaner) is sought.
 	public    double              clausesMustCoverFractPosSeeds     =   0.499; // ALL candidate clauses must cover at least this fraction of the pos seeds.  If performing RRR, these sets are used when creating the starting points.
-	double              clausesMustNotCoverFractNegSeeds  =   0.501; // And all must NOT cover at least this fraction of the negative seeds (if any).
 	boolean             allowPosSeedsToBeReselected       =  false;  // Can a positive seed be used more than once (in the ILP outer loop)?
 	boolean             allowNegSeedsToBeReselected       =  false;  // Ditto for negatives?
 	boolean             stopWhenUnacceptableCoverage      =   true;  // If set to  true, don't continue to prove examples when impossible to meet the minPosCoverage and minPrecision specifications.
-	private boolean	          collectTypedConstants             =   true;  // Checks for errors in the data.
 	int                 minChildrenBeforeRandomDropping   =  10;     // Before randomly discarding children, there must be this many.
 	double              probOfDroppingChild               =  -1.0;   // If not negative, probability of dropping a child.
 	private int                 maxSizeOfClosed                   =  100000;     // Limit the closed list to 100K items.  Note that items aren't placed here until EXPANDED, but items wont be placed in OPEN if already in CLOSED.
@@ -156,22 +143,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	boolean             dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds = true;  // If have p(x) :- q(x,y) but if over all positive seeds can never get x and y to bind to different constants, then use p(x) :- q(x,x).  Similar (equivalent?) to "variable splitting" = false in Aleph.
 	long                maxResolutionsPerClauseEval    = 10000000;     // When evaluating a clause, do not perform more than this many resolutions.  If this is exceeded, a clause is said to cover 0 pos and 0 neg, regardless of how many have been proven and it won't be expanded.
 	public final boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
-	////////////////////////////////////////////////////////////
-	//  Variables for controlling random-rapid-restart searches (i.e., repeatedly randomly create an initial clause, then do some local search around each).
-	//    The initial clause randomly created will meet the specification on the positive and negative seeds.
-	////////////////////////////////////////////////////////////
-	boolean             performRRRsearch      = false;
-	int                 beamWidthRRR          =     1; // When doing RRR, use this beam width (if set too low, might not find a starting point for local search of the requested length).
-	private int                 minBodyLengthRRR      =     1; // Uniformly choose body lengths from minBodyLengthRRR to maxBodyLengthRRR (inclusive).
-	private int                 maxBodyLengthRRR      =    10;
-	public    int                 restartsRRR           =   100; // Do this many RRR restarts per "ILP inner loop" call.
-	private int                 maxNodesToConsiderRRR =   100; // These are per each RRR iteration.
-	private int                 maxNodesToCreateRRR   =  1000;
 
-	////////////////////////////////////////////////////////////
-	boolean             stillInRRRphase1      =  true; // In the first phase of RRR, build a random clause that covers the required fraction of POS seeds.
-	int                 savedBeamWidth;                // Save the old beam width so it can be restored when in phase 2 of RRR.
-	int                 thisBodyLengthRRR;             // The chosen body length for this RRR iteration.
 	private List<Example>         posExamples;
     private List<Example>         negExamples;
 	double              totalPosWeight = -1.0;   // Sum of the weights on the positive examples.
@@ -189,8 +161,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	PredicateName       procDefinedNeedForNewVariables = null;  // See if these new variables ever bind in the positive seeds to some thing new in the clause (otherwise they aren't needed).  Only used if dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds=true.
 	List<List<Term>>    collectedConstantBindings;    // This is used as a temporary variable by a method below.
 	final BindingList         bindings = new BindingList(); // Only recreate theta if needed, in order to save on creating new lists.
-
-	private boolean              allowMultipleTargets       = true;
 
 	private   List<PredicateNameAndArity>  examplePredicates          = null; // These store the positive example predicates that are eventually turned into targets.
 	private   List<List<Term>>     examplePredicateSignatures = null; // Something like [constant, function(constant), constant].
@@ -371,63 +341,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 		String vStr;
 
-		vStr = stringHandler.getParameterSetting("discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar");
-		if (vStr != null) {                       discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("createCacheFiles");
-		if (vStr != null) {                       createCacheFiles                                      = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("requireThatAllRequiredHeadArgsAppearInBody");
-		if (vStr != null) {                       requireThatAllRequiredHeadArgsAppearInBody            = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("allTargetVariablesMustBeInHead");
-		if (vStr != null) {                       allTargetVariablesMustBeInHead                        = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("stopIfPerfectClauseFound");
-		if (vStr != null) {                       stopIfPerfectClauseFound                              = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("useCachedFiles");
-		if (vStr != null) {                       useCachedFiles                                        = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("allowPosSeedsToBeReselected");
-		if (vStr != null) {                       allowPosSeedsToBeReselected                           = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("allowNegSeedsToBeReselected");
-		if (vStr != null) {                       allowNegSeedsToBeReselected                           = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("stopWhenUnacceptableCoverage");
-		if (vStr != null) {                       stopWhenUnacceptableCoverage                          = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("collectTypedConstants");
-		if (vStr != null) {                       collectTypedConstants                                 = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds");
-		if (vStr != null) {                       dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds    = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("performRRRsearch");
-		if (vStr != null) {                       performRRRsearch                                      = Boolean.parseBoolean(vStr); }
-		vStr = stringHandler.getParameterSetting("allowMultipleTargets");
-		if (vStr != null) {                       allowMultipleTargets                                  = Boolean.parseBoolean(vStr); }
-
-		vStr = stringHandler.getParameterSetting("minPosCoverage");
-		if (vStr != null) {
-			double value_minPosCoverage = Double.parseDouble(vStr);  if (value_minPosCoverage < 1) { Utils.waitHere("minPosCoverage expressed as a FRACTION no longer supported.  Use minPosCovFraction instead."); }
-			setMinPosCoverage(              value_minPosCoverage); 
-		}
-		vStr = stringHandler.getParameterSetting("minPosCovFraction");
-		if (vStr != null) {
-			double value_minPosCovFraction = Double.parseDouble(vStr);  if (value_minPosCovFraction > 1) { Utils.waitHere("minPosCovFraction should not be given numbers greater than 1."); }
-			setMinPosCoverageAsFraction    (value_minPosCovFraction);
-		}
-		vStr = stringHandler.getParameterSetting("minPrecision");
-		if (vStr != null) {                    setMinPrecision(  Double.parseDouble(vStr));  }
-		vStr = stringHandler.getParameterSetting("mEstimatePos");
-		if (vStr != null) {                    setMEstimatePos(  Double.parseDouble(vStr));  }
-		vStr = stringHandler.getParameterSetting("mEstimateNeg");
-		if (vStr != null) {                    setMEstimateNeg(  Double.parseDouble(vStr));  }
-		vStr = stringHandler.getParameterSetting("maxNegCoverage");
-		if (vStr != null) {                    setMaxNegCoverage( Double.parseDouble(vStr)); }
-		vStr = stringHandler.getParameterSetting("fractionOfImplicitNegExamplesToKeep");
-		if (vStr != null) {                       fractionOfImplicitNegExamplesToKeep = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("stopExpansionWhenAtThisNegCoverage");
-		if (vStr != null) {                       stopExpansionWhenAtThisNegCoverage  = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("clausesMustCoverFractPosSeeds");
-		if (vStr != null) {                       clausesMustCoverFractPosSeeds       = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("clausesMustNotCoverFractNegSeeds");
-		if (vStr != null) {                       clausesMustNotCoverFractNegSeeds    = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("probOfDroppingChild");
-		if (vStr != null) {                       probOfDroppingChild                 = Double.parseDouble(vStr); }
-		vStr = stringHandler.getParameterSetting("minNumberOfNegExamples");
-		if (vStr != null) {                       minNumberOfNegExamples          = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("maxBodyLength");
 		if (vStr != null) {                       maxBodyLength                   = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("maxNumberOfNewVars");
@@ -442,22 +355,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		if (vStr != null) {                       maxResolutionsPerClauseEval     = Integer.parseInt(vStr); }
 		vStr = stringHandler.getParameterSetting("maxSizeOfClosed");
 		if (vStr != null) {                       maxSizeOfClosed                 = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("minChildrenBeforeRandomDropping");
-		if (vStr != null) {                       minChildrenBeforeRandomDropping = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxConstantBindingsPerLiteral");
-		if (vStr != null) {                       maxConstantBindingsPerLiteral   = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("beamWidthRRR");
-		if (vStr != null) {                       beamWidthRRR                    = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("minBodyLengthRRR");
-		if (vStr != null) {                       minBodyLengthRRR                = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxBodyLengthRRR");
-		if (vStr != null) {                       maxBodyLengthRRR                = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("restartsRRR");
-		if (vStr != null) {                       restartsRRR                     = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxNodesToConsiderRRR");
-		if (vStr != null) {                       maxNodesToConsiderRRR           = Integer.parseInt(vStr); }
-		vStr = stringHandler.getParameterSetting("maxNodesToCreateRRR");
-		if (vStr != null) {                       maxNodesToCreateRRR             = Integer.parseInt(vStr); }
 		
 	}
 
@@ -519,7 +416,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 			if (negExamplesReader       != null) closeWithoutException(negExamplesReader);
             checkForSetParameters();
 			// Will be set to true when using this code to create features.
-			savedBeamWidth = beamWidth;  // To be safe, grab this even if not doing RRR search.
 
             targetModes = new ArrayList<>(1);
             bodyModes   = new LinkedHashSet<>(Utils.getSizeSafely(stringHandler.getKnownModes()) - 1);
@@ -564,24 +460,22 @@ public class LearnOneClause extends StateBasedSearchTask {
 		String pruneFileNameToUse = Utils.createFileNameString(getDirectoryName(), "prune.txt");
 
 		// The method below will check if the prune file already exists, and if so, will simply return true.
-		boolean pruneFileAlreadyExists = lookForPruneOpportunities(useCachedFiles, getParser(), pruneFileNameToUse);
+			// Files cached (if requested):
+			boolean pruneFileAlreadyExists = lookForPruneOpportunities(false, getParser(), pruneFileNameToUse);
 
-		if (pruneFileAlreadyExists && useCachedFiles) {
-			// Load the prune file, if it exists.
-			addToFacts(pruneFileNameToUse);
-		}
-
-		Utils.println("\n% Started collecting constants");
+			Utils.println("\n% Started collecting constants");
 		long start = System.currentTimeMillis();
 		// The following will see if the old types file exists.
-		if (collectTypedConstants) {
+			// Checks for errors in the data.
+			boolean collectTypedConstants = true;
 			String  typesFileNameToUse     = Utils.createFileNameString(getDirectoryName(), "types.txt");
-			Boolean typesFileAlreadyExists = typeManager.collectTypedConstants(createCacheFiles, useCachedFiles, typesFileNameToUse, targets, targetArgSpecs, bodyModes, getPosExamples(), getNegExamples(), facts); // Look at all the examples and facts, and collect the typed constants in them wherever possible.
+			// Create files that cache computations, to save time, for debugging, etc.
+			boolean createCacheFiles = false;
+			Boolean typesFileAlreadyExists = typeManager.collectTypedConstants(createCacheFiles, false, typesFileNameToUse, targets, targetArgSpecs, bodyModes, getPosExamples(), getNegExamples(), facts); // Look at all the examples and facts, and collect the typed constants in them wherever possible.
 			if (typesFileAlreadyExists) {
 				addToFacts(typesFileNameToUse); // Load the types file, if it exists.
 			}
-		}
-		long end = System.currentTimeMillis();
+			long end = System.currentTimeMillis();
 		Utils.println("% Time to collect constants: " + Utils.convertMillisecondsToTimeSpan(end - start));
 
 		if (stringHandler.needPruner) {
@@ -1057,37 +951,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return totalPosWeight / (totalPosWeight +  getMEstimateNeg());
 	}
 
-	void performRRRsearch(SingleClauseNode bestNodeFromPreviousSearch) throws SearchInterrupted { //TODO: add some early-stopping criteria
-
-		int hold_maxNodesToExpand = getMaxNodesToConsider(); // Save these so they can be restored.
-		int hold_maxNodesToCreate = getMaxNodesToCreate();
-		int hold_nodesExpanded    = 0;
-		int hold_nodesCreated     = 0;
-
-		performRRRsearch   = true;
-		setMaxNodesToConsider(maxNodesToConsiderRRR); // Switch to the RRR-specific settings.
-		setMaxNodesToCreate(maxNodesToCreateRRR);
-		for (int i = 1; i <= restartsRRR; i++) {
-			if (hold_nodesExpanded >= hold_maxNodesToExpand) {
-				searchMonitor.searchEndedByMaxNodesConsidered(hold_nodesExpanded);
-				break;
-			}
-			if (hold_nodesCreated    >= hold_maxNodesToCreate) {
-				searchMonitor.searchReachedMaxNodesCreated(   hold_nodesCreated);
-				break;
-			}
-			stillInRRRphase1  = true;
-			thisBodyLengthRRR = minBodyLengthRRR + Utils.random1toN(maxBodyLengthRRR - minBodyLengthRRR);
-			performSearch(bestNodeFromPreviousSearch);  // No need to do a open.clear() since performSearch() does that.
-			hold_nodesExpanded += nodesConsidered;
-			hold_nodesCreated  += nodesCreated;
-		}
-		nodesConsidered    = hold_nodesExpanded; // Set the search totals to count ALL the RRR iterations.
-		nodesCreated       = hold_nodesCreated;
-		setMaxNodesToConsider(hold_maxNodesToExpand); // Revert to the old settings for these.
-		setMaxNodesToCreate(hold_maxNodesToCreate);
-	}
-
 	List<Example> collectPosExamplesCovered(SingleClauseNode node) throws SearchInterrupted {
 		return collectExamplesCovered(getPosExamples(),node);
 	}
@@ -1252,8 +1115,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return getProver().proveConjunctiveQuery(negatedConjunctiveQuery);
 	}
 
-	private int warningCountAboutExamples = 0;
-
 	public boolean confirmExample(Literal lit) {
 		// TODO(@hayesall): This method always returns `true`, but also prints warnings.
 		//		The `VARIABLEs in examples` warning could be good to have, but might be better treated as an error.
@@ -1270,14 +1131,10 @@ public class LearnOneClause extends StateBasedSearchTask {
 			examplePredicateSignatures = new ArrayList<>(1);
 		}
 
-		if (allowMultipleTargets || examplePredicates.isEmpty()) {
-			if (!matchesExistingTargetSpec(lit)) {
-				examplePredicates.add(pnaa);
-				examplePredicateSignatures.add(stringHandler.getSignature(lit.getArguments()));
-			}
-		}
-		else if (!examplePredicates.contains(pnaa) && warningCountAboutExamples++ < 10) {
-			Utils.severeWarning("AllowMultipleTargets = false and example '" + lit + "' does not have the predicate name of the other examples: " + examplePredicates +".");
+		boolean allowMultipleTargets = true;
+		if (!matchesExistingTargetSpec(lit)) {
+			examplePredicates.add(pnaa);
+			examplePredicateSignatures.add(stringHandler.getSignature(lit.getArguments()));
 		}
 		return true;
 	}

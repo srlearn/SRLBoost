@@ -120,6 +120,9 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     @Override
     public List<HornSearchNode> collectChildren(HornSearchNode hornSearchNode) throws SearchInterrupted {
 
+        // TODO(hayesall): The 'Please do not delete me' is interesting.
+        //  It looks like this is the main place that `spy` is still used.
+
         List<HornSearchNode> result = null;
 
 
@@ -616,67 +619,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
                 children = new ArrayList<>(1);
                 children.add(createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null));
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.nospy) {
-
-                for (int i = 0; i < negatedLiteral.numberArgs(); i++) {
-
-                    Term arg = negatedLiteral.getArgument(i);
-                    PredicateNameAndArity predicateNameArity = getPredicateNameAndArity(arg);
-
-                    if (predicateNameArity != null) {
-                        getTask().getSpyEntries().removeLiteral(predicateNameArity);
-                    }
-                }
-
-                children = new ArrayList<>(1);
-                children.add(createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null));
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.nospyall) {
-
-                getTask().getSpyEntries().clear();
-
-                children = new ArrayList<>(1);
-                children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.trace) {
-
-                if (negatedLiteral.numberArgs() != 1) {
-                    Utils.error("trace must have 1 argument.  You have: '" + negatedLiteral + "'");
-                }
-
-                Term arg1 = negatedLiteral.getArgument(0);
-                if (!(arg1 instanceof NumericConstant)) {
-                    Utils.error("trace/1 argument must be a number.");
-                }
-
-                assert arg1 instanceof NumericConstant;
-                NumericConstant numericConstant = (NumericConstant) arg1;
-                int traceLevel = numericConstant.value.intValue();
-
-                getTask().setTraceLevel(traceLevel);
-
-                children = new ArrayList<>(1);
-                children.add(createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null));
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.notrace) {
-
-                if (negatedLiteral.numberArgs() != 0) {
-                    Utils.error("notrace must have 0 arguments.  You have: '" + negatedLiteral + "'");
-                }
-
-                getTask().setTraceLevel(0);
-
-                children = new ArrayList<>(1);
-                children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
                 return children;
             }
 

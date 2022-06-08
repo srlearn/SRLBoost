@@ -343,24 +343,6 @@ public class LazyHornClausebase implements HornClausebase {
                 indexerForAllAssertions;
     }
 
-    @Override
-    public boolean recorded(DefiniteClause definiteClause) {
-        Clause definiteClauseAsClause = definiteClause.getDefiniteClauseAsClause();
-        Literal clauseHead = definiteClause.getDefiniteClauseHead();
-        Collection<DefiniteClause> possibleMatchingClauses = getIndexerForAllAssertions().getPossibleMatchingAssertions(clauseHead, null);
-        if (possibleMatchingClauses != null) {
-            BindingList bl = new BindingList();
-            for (DefiniteClause anotherClause : possibleMatchingClauses) {
-                // Variants will check for duplication without performing unification.
-                bl.theta.clear();
-                if (definiteClauseAsClause.variants(anotherClause.getDefiniteClauseAsClause(), bl) != null) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     private boolean isFactAsserted(Literal literal) {
         Iterable<Literal> possibleMatchingFacts = getPossibleMatchingFacts(literal, null);
         if (possibleMatchingFacts != null) {

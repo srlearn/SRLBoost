@@ -161,9 +161,7 @@ public class ILPouterLoop {
         else if (monitor != null) {
             Utils.waitHere("The Search Monitor is not an instance of Gleaner: " + monitor);
         } 
-
-        setRRR(useRRR);
-	}
+    }
 	
 	private String getFoldInfoString() {
 		if (getCurrentFold() == -1) { return ""; }
@@ -454,11 +452,7 @@ public class ILPouterLoop {
                     }
 
                     // If we are learning a tree-structured theory, then we continue where we left off.
-                    if (isRRR()) {
-                        innerLoopTask.performRRRsearch(learningTreeStructuredTheory ? savedBestNode : null);
-                    } else {
-                        innerLoopTask.performSearch(learningTreeStructuredTheory ? savedBestNode : null);
-					}
+                    innerLoopTask.performSearch(learningTreeStructuredTheory ? savedBestNode : null);
 
                     // Want limits on (and statistics about) the full ILP search as well.
                     setTotal_nodesConsidered(getTotal_nodesConsidered() + innerLoopTask.getNodesConsidered());
@@ -967,14 +961,6 @@ public class ILPouterLoop {
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfCycles")) != null) {
 			maxNumberOfCycles = Integer.parseInt(lookup);
 		}
-        if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxScoreToStop")) != null) {
-			setMaxAcceptableNodeScoreToStop(Double.parseDouble(lookup));
-		}
-		
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("minPosCoverage")) != null) {
-			innerLoopTask.setMinPosCoverage(Double.parseDouble(lookup));
-		}
-
 	}		
 
     // TODO - put all this RDN stuff in a subclass of ILPouterLoop.
@@ -1291,14 +1277,6 @@ public class ILPouterLoop {
 
     private void setWorkingDirectory(String workingDirectory) {
         this.workingDirectory = workingDirectory;
-    }
-
-    private void setRRR(boolean useRRR) {
-        outerLoopState.setRRR(useRRR);
-    }
-
-    private boolean isRRR() {
-        return outerLoopState.isRRR();
     }
 
     /* Sets the PosExamples to use for the search.

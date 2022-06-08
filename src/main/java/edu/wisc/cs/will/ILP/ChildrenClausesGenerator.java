@@ -102,15 +102,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 			return null;
        }
 
-        if (thisTask.performRRRsearch && thisTask.stillInRRRphase1) {
-            // See if have completed the first phase of RRR.
-            if (parentBodyLen >= thisTask.thisBodyLengthRRR) {
-                thisTask.stillInRRRphase1 = false;
-				// When done with RRR's first phase, reset to the standard beam width.
-                thisTask.beamWidth = thisTask.savedBeamWidth;
-            }
-        }
-
 		putParentClauseInFormForPruning(parent);
 
 		Set<PredicateNameAndArity> eligibleBodyModes = applyModeContraints(bodyModes, parent);
@@ -398,7 +389,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				// Now need to create the cross product of allowed terms.  I.e., if arg1 of predicate p can be any of {x1, x2} and argument any of {y1, y2, y3} than can create p(x1,y1), p(x1,y2), p(x1,y3), p(x2,y1), p(x2,y2), and p(x2,y3).  				
 				if (allNeededPredsFound) {
 
-					List<List<Term>> allArgPossibilities = Utils.computeCrossProduct(usableTerms, thisTask.maxCrossProductSize); // This is the set of cross products.
+					List<List<Term>> allArgPossibilities = Utils.computeCrossProduct(usableTerms, 1000); // This is the set of cross products.
 
 					List<List<Term>> allArgPossibilities2 = allArgPossibilities;
 
@@ -668,12 +659,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 					}
 				}
 			}
-		}
-
-		// Need to keep a random beamWidthRRR of these (note: elsewhere the beam width of the full OPEN will be used, but also limit here so that all children aren't scored since they can be time-consuming and this phase of RRR is intended to be fast).
-		if (thisTask.performRRRsearch && thisTask.stillInRRRphase1 && children.size() > thisTask.beamWidthRRR) {
-			// Randomly discard until small enough.
-			children = Utils.reduceToThisSizeByRandomlyDiscardingItemsInPlace(children, thisTask.beamWidthRRR);
 		}
 
 		if (thisTask.probOfDroppingChild > 0 && children.size() >= thisTask.minChildrenBeforeRandomDropping) {

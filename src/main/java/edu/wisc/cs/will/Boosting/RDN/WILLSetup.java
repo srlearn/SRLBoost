@@ -269,6 +269,9 @@ public final class WILLSetup {
 	 * This method moves facts to Examples if they are part of the joint inference task.
 	 */
 	private void fillMissingExamples() {
+
+		// TODO(hayesall): It doesn't look like `fillMissingExamples` ever runs. Bad logic?
+
 		Set<String> missingPositiveTargets = new HashSet<>();
 		Set<String> missingNegativeTargets = new HashSet<>();
 		for (String pred : cmdArgs.getTargetPredVal()) {
@@ -552,11 +555,7 @@ public final class WILLSetup {
 
 		}
 		// Set target literal to be just one literal.
-		if (forLearning && cmdArgs.isJointModelDisabled()) {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, true, prefix);
-		} else {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, false, prefix);
-		}
+		getOuterLooper().innerLoopTask.setTargetAs(predicate, forLearning && cmdArgs.isJointModelDisabled(), prefix);
 		handler.getPredicateName(predicate).setCanBeAbsent(-1);
 
 		
@@ -870,7 +869,6 @@ public final class WILLSetup {
 		getInnerLooper().maxNumberOfNewVars =      7;
 		getInnerLooper().maxDepthOfNewVars  =      7;
 		getInnerLooper().maxPredOccurrences =      5;
-		getInnerLooper().restartsRRR        =     25;
 		getOuterLooper().max_total_nodesExpanded = 10000000;
 		getOuterLooper().max_total_nodesCreated  = 10 * getOuterLooper().max_total_nodesExpanded;
 		getHandler().setStarMode(TypeSpec.minusMode);
@@ -963,63 +961,8 @@ public final class WILLSetup {
 	void getListOfPredicateAritiesForNeighboringFacts() {
 		if (neighboringFactFilterList == null) {
 			Set<PredicateNameAndArity> pars = new HashSet<>();
-			String lookup;
-			boolean addAllModes = true;
-			if ((lookup =  getHandler().getParameterSetting("useAllBodyModesForNeighboringFacts")) != null) {
-				addAllModes = Utils.parseBoolean(lookup);
-			}
-			if (addAllModes) {
-				pars.addAll(BoostingUtils.convertBodyModesToPNameAndArity(getInnerLooper().getBodyModes()));
-			}
-			if ((lookup =  getHandler().getParameterSetting("includePredicatesForNeighboringFacts")) != null) {
-				lookup = lookup.replaceAll("\"", "");
-				List<String> preds = Utils.parseListOfStrings(lookup);
-				for (String pred : preds) {
-					pars.addAll(convertStringToPnameArity(pred));
-				}
-			}
-			if ((lookup =  getHandler().getParameterSetting("excludePredicatesForNeighboringFacts")) != null) {
-				lookup = lookup.replaceAll("\"", "");
-				List<String> preds = Utils.parseListOfStrings(lookup);
-				for (String pred : preds) {
-					pars.removeAll(convertStringToPnameArity(pred));
-				}
-			}
+			pars.addAll(BoostingUtils.convertBodyModesToPNameAndArity(getInnerLooper().getBodyModes()));
 			neighboringFactFilterList = new ArrayList<>(pars);
-		}
-	}
-	
-	private List<PredicateNameAndArity> convertStringToPnameArity(String pname) {
-		String[] parts = pname.split("/");
-		List<PredicateNameAndArity> pars = new ArrayList<>();
-		// Arity given
-		if (parts.length > 1) {
-			String pred = parts[0];
-			int arity = Integer.parseInt(parts[1]);
-			pars.add(new PredicateNameAndArity(getHandler().getPredicateName(pred), arity));
-		} else {
-
-			PredicateName predicate = getHandler().getPredicateName(parts[0]);
-			// For each spec for the predicate
-			for (PredicateSpec spec : predicate.getTypeList()) {
-				if (spec.getTypeSpecList() != null) {
-					int arity = spec.getTypeSpecList().size();
-					PredicateNameAndArity par = new PredicateNameAndArity(predicate, arity);
-					if (!pars.contains(par)) {
-						pars.add(par);
-					}
-				}
-			}
-		}
-		return pars;
-	}
-
-	void getBitMaskForNeighboringFactArguments(String target) {
-		// TODO(@hayesall): This is only used by `InferBoostedRDN`.
-		String lookup;
-		if ((lookup =  getHandler().getParameterSetting("bitMaskForNeighboringFactArgsFor" + target)) != null) {
-			lookup = lookup.replaceAll("\"", "");
-			Utils.parseListOfStrings(lookup);
 		}
 	}
 

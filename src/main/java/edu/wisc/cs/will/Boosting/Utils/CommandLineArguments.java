@@ -62,17 +62,11 @@ public class CommandLineArguments {
 	private static final String rdnIterFlag = "iter";
 	private int rdnIterationStep = -1;
 
-	private static final String learnCurve = "lc";
-	private boolean printLearningCurve = false;
-
 	private static final String outName = "outSuffix";
 	public String outFileSuffix = null;
 
 	private static final String infer = "i";
 	private boolean inferVal=false;
-
-	private static final String noBoosting = "noBoost";
-	private boolean disabledBoosting=false;
 
 	private static final String trainDir = "train";
 	private String trainDirVal;
@@ -184,13 +178,6 @@ public class CommandLineArguments {
 				continue;
 			}
 
-			if (argMatches(args[i], learnCurve)) {
-				printLearningCurve = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					printLearningCurve = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
 			if (argMatches(args[i], disableChkPtFlag)) {
 				noCheckPointing = true;
 				if (isArgumentNotAFlag(args, i+1)) {
@@ -263,13 +250,6 @@ public class CommandLineArguments {
 			}		
 			if (argMatches(args[i], noBagOriginalExamplesKey)) {
 				bagOriginalExamples = false;
-				continue;
-			}
-			if (argMatches(args[i], noBoosting)) {
-				disabledBoosting = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					disabledBoosting = Utils.parseBoolean(args[++i]);
-				}
 				continue;
 			}
 			if (argMatches(args[i], trainDir)) {
@@ -376,8 +356,6 @@ public class CommandLineArguments {
 		
 		result += argPrefix + infer + " : Use this flag, if you want to enable inference.\n";
 
-		result += argPrefix + noBoosting + " : Use this flag, if you dont want to use boosting.\n";
-		
 		result += argPrefix + trainDir + " <Training directory> : Path to the training directory in WILL format.\n";
 		
 		result += argPrefix + testDir + " <Testing directory> : Path to the testing directory in WILL format.\n";
@@ -410,10 +388,6 @@ public class CommandLineArguments {
 	}
 
 	private boolean checked_trainDirVal = false;
-
-	public boolean isDisabledBoosting() {
-		return disabledBoosting;
-	}
 
 	public String getTrainDirVal() {
 		if (!checked_trainDirVal && trainDirVal != null) {
@@ -453,10 +427,6 @@ public class CommandLineArguments {
 
 	public int getMaxMLNClauseLength() {
 		return maxMLNClauseLength;
-	}
-
-	public boolean isPrintLearningCurve() {
-		return printLearningCurve;
 	}
 
 	public boolean getBagOriginalExamples() {

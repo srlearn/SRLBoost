@@ -231,7 +231,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         if (argumentNames != null) {
             newArgNames.addAll(argumentNames);
         }
-        assert newArguments != null;
+        // TODO(hayesall): A not null assertion appears to cause issues when running with JUnit, but not CLI.
         if (recursiveCopy) {
             if (arguments != null) {
                 for (Term term : arguments) {
