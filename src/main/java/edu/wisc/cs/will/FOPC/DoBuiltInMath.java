@@ -92,29 +92,6 @@ public class DoBuiltInMath extends AllOfFOPC {
 
     private boolean canHandle(FunctionName fName, int arity) {
 
-        // Handle the odd ones...
-        if (fName == stringHandler.standardPredicateNames.minFunction) {
-            return true; // These are for all arities...
-        }
-        if (fName == stringHandler.standardPredicateNames.maxFunction) {
-            return true;
-        }
-        if (fName == stringHandler.standardPredicateNames.plusFunction) {
-            return true;
-        }
-        if (fName == stringHandler.standardPredicateNames.minusFunction) {
-            return true;
-        }
-        if (fName == stringHandler.standardPredicateNames.timesFunction) {
-            return true;
-        }
-        if (fName == stringHandler.standardPredicateNames.divideFunction) {
-            return true;
-        }
-        if (fName == stringHandler.standardPredicateNames.intDivFunction) {
-            return true;
-        }
-
         Set<Integer> lookup = canHandle.get(fName);
         if (lookup == null) {
             return false;
@@ -143,11 +120,6 @@ public class DoBuiltInMath extends AllOfFOPC {
         }
         if (expression instanceof Function) {
             double result = simplifyAsDouble(expression);
-            FunctionName fName = ((Function) expression).functionName;
-            if (       fName == stringHandler.standardPredicateNames.intFunction 
-                    || fName == stringHandler.standardPredicateNames.intDivFunction) {
-                return stringHandler.getNumericConstant((int) result);
-            }
             return stringHandler.getNumericConstant(result);
         }
 		Utils.error("Cannot simplify: " + expression);
@@ -167,102 +139,7 @@ public class DoBuiltInMath extends AllOfFOPC {
             FunctionName name = ((Function) expression).functionName;
             List<Term>   args = ((Function) expression).getArguments();
 
-            if (name == stringHandler.standardPredicateNames.intFunction) { // Can this be a big switch?
-                if (args.size() > 1) {
-                    Utils.error("Can only have ONE argument here: " + expression);
-                }
-                return ((int) simplifyAsDouble(args.get(0)));
-            }
-            else if (name == stringHandler.standardPredicateNames.plusFunction) {
-                double total = 0.0;
-                for (Term arg : args) {
-                    total += simplifyAsDouble(arg);
-                }
-                return total;
-            }
-            else if ((name == stringHandler.standardPredicateNames.minusFunction || name == stringHandler.standardPredicateNames.minus2Function) && args.size() == 1) { // If only one argument, interpret as negation.
-                return -simplify(args.get(0)).value.doubleValue();
-            }
-            else if (name == stringHandler.standardPredicateNames.minusFunction || name == stringHandler.standardPredicateNames.minus2Function) { // If a list of arguments, SUBTRACT all but the first from the first.	I.e. -(16, 4, 2) = (16 - 4) - 2 = 10.
-                double  total    = 0.0;
-                boolean firstArg = true;
-                //Utils.println("%  MINUS args: " + args);
-                for (Term arg : args) {
-                    if (firstArg) {
-                        firstArg = false;
-                        total = simplifyAsDouble(arg);
-                    }
-                    else {
-                        total -= simplifyAsDouble(arg);
-                    }
-                }
-                return total;
-            }
-            else if (name == stringHandler.standardPredicateNames.timesFunction) {
-                double total = 1.0;
-                for (Term arg : args) {
-                    total *= simplifyAsDouble(arg);
-                }
-                return total;
-            }
-            else if (name == stringHandler.standardPredicateNames.divideFunction) {	 // If a list of arguments, DIVIDE the first by all the rest.  I.e. /(16, 4, 2) = (16 / 4) / 2 = 2.
-                double  total    = 1.0;
-                boolean firstArg = true;
-                for (Term arg : args) {
-                    if (firstArg) {
-                        firstArg = false;
-                        total = simplifyAsDouble(arg);
-                    }
-                    else {
-                        total /= simplifyAsDouble(arg);
-                    }
-                }
-                return total;
-            }
-            else if (name == stringHandler.standardPredicateNames.intDivFunction) {	 // Integer division, though converted to double at end.
-                int total = 1;
-                boolean firstArg = true;
-                for (Term arg : args) {
-                    if (firstArg) {
-                        firstArg = false;
-                        total = (int) simplifyAsDouble(arg);
-                    }
-                    else {
-                        total /= (int) simplifyAsDouble(arg);
-                    }
-                }
-                return total;
-            }
-            else if (name == stringHandler.standardPredicateNames.modFunction) {
-                if (args.size() > 2) {
-                    Utils.error("Can only have TWO arguments here: " + expression);
-                }
-                double arg0 = simplifyAsDouble(args.get(0));
-                double arg1 = simplifyAsDouble(args.get(1));
-
-                return arg0 % arg1; // Java's mod.
-            }
-            else if (name == stringHandler.standardPredicateNames.maxFunction) { // Handle ANY number of arguments.
-                double maxValue = Double.NEGATIVE_INFINITY;
-                for (Term arg : args) {
-                    double temp = simplifyAsDouble(arg);
-                    if (temp > maxValue) {
-                        maxValue = temp;
-                    }
-                }
-                return maxValue;
-            }
-            else if (name == stringHandler.standardPredicateNames.minFunction) {
-                double minValue = Double.POSITIVE_INFINITY;
-                for (Term arg : args) { // Handle ANY number of arguments.
-                    double temp = simplifyAsDouble(arg);
-                    if (temp < minValue) {
-                        minValue = temp;
-                    }
-                }
-                return minValue;
-            }
-            else if (name == stringHandler.standardPredicateNames.pullOutNthArgFunction) {
+            if (name == stringHandler.standardPredicateNames.pullOutNthArgFunction) {
                 if (args.size() != 2) {
                     Utils.error("Must have two arguments here: " + expression);
                 }

@@ -22,10 +22,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName is;
 
-    final PredicateName halt;
-
-    public final PredicateName sort;
-
     final FunctionName pullOutNthArgFunction;
 
     public final PredicateName print;
@@ -33,8 +29,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
     public final PredicateName write; // A synonym for 'print.'
 
     public final PredicateName waitHere;
-
-    public final PredicateName wait; // A synonym for 'waitHere.'
 
     final PredicateName findAllCollector;
 
@@ -45,10 +39,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
     final PredicateName setOfCollector;
 
     public final PredicateName length;
-
-    final PredicateName countProofsCollector;
-
-    final PredicateName countUniqueBindingsCollector;
 
     public final PredicateName implicit_call;
 
@@ -89,26 +79,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
     public final PredicateName spy;
 
     public final PredicateName consCell;
-
-    final FunctionName plusFunction;  // TODO build in a hash table of synonyms?
-
-    final FunctionName minusFunction;
-
-    final FunctionName timesFunction;
-
-    final FunctionName divideFunction;
-
-    final FunctionName intDivFunction;
-
-    final FunctionName intFunction;
-
-    final FunctionName modFunction;
-
-    final FunctionName minFunction;
-
-    final FunctionName maxFunction;
-
-    final FunctionName minus2Function;
 
     final PredicateName unify2;
 
@@ -151,7 +121,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         list = stringHandler.getPredicateName("list");
         compound = stringHandler.getPredicateName("compound");
         is = stringHandler.getPredicateName("is");
-        halt = stringHandler.getPredicateName("halt");
         unify = stringHandler.getPredicateName("unify");
         unify2 = stringHandler.getPredicateName("=");
         ununifiable = stringHandler.getPredicateName("notUnify");
@@ -160,7 +129,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         equal2 = stringHandler.getPredicateName("==");
         diff = stringHandler.getPredicateName("diff");
         notEqual = stringHandler.getPredicateName("\\==");
-        // not                 = stringHandler.getPredicateName("\\+");  // Note that there is also negationByFailure
         ground = stringHandler.getPredicateName("ground");
         copyTerm = stringHandler.getPredicateName("copy_term");
         gt = stringHandler.getPredicateName(">");  // Prefix versions of these comparators haven't been provided.
@@ -170,14 +138,11 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         print = stringHandler.getPredicateName("print");
         write = stringHandler.getPredicateName("write"); // A synonym for 'print.'
         waitHere = stringHandler.getPredicateName("waitHere");
-        wait = stringHandler.getPredicateName("wait"); // A synonym for 'waitHere.'
         findAllCollector = stringHandler.getPredicateName("findAllCollector");
         allCollector = stringHandler.getPredicateName("allCollector");
         bagOfCollector = stringHandler.getPredicateName("bagofCollector");
         setOfCollector = stringHandler.getPredicateName("setofCollector");
         length = stringHandler.getPredicateName("length");
-        countProofsCollector = stringHandler.getPredicateName("countProofsCollector");
-        countUniqueBindingsCollector = stringHandler.getPredicateName("countUniqueBindingsCollector");
         implicit_call = stringHandler.getPredicateName("implicit_call");
         trueName = stringHandler.getPredicateName("true");
         falseName = stringHandler.getPredicateName("false");
@@ -195,20 +160,8 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         countUniqueBindings = stringHandler.getPredicateName("countUniqueBindings");
         then = stringHandler.getPredicateName("then");
         negationByFailure = stringHandler.getPredicateName("\\+");
-        sort = stringHandler.getPredicateName("sort");
 
         negationByFailureAsFunction = stringHandler.getFunctionName("\\+");
-        plusFunction = stringHandler.getFunctionName("+"); // If another 'in-fix' operator is added to this list, need to edit FileParser.java.
-        minusFunction = stringHandler.getFunctionName("-");
-        minus2Function = stringHandler.getFunctionName("minus");
-        timesFunction = stringHandler.getFunctionName("*");
-        divideFunction = stringHandler.getFunctionName("/");   // Note that in essence 'true' division, rather than integer division, is used.
-        intDivFunction = stringHandler.getFunctionName("/@"); // In ISO Prolog, this is '//' but that is a comment indicator to us.
-
-        intFunction = stringHandler.getFunctionName("integer"); // Allow the user to force integer results.
-        modFunction = stringHandler.getFunctionName("mod"); // Use Java's definition of mod.  Don't use a single-character symbol due to confusion between Java and Prolog.
-        minFunction = stringHandler.getFunctionName("min");
-        maxFunction = stringHandler.getFunctionName("max");
         FunctionName isFunction = stringHandler.getFunctionName("is");
         FunctionName unifyFunction = stringHandler.getFunctionName("unify");
         FunctionName unify2Function = stringHandler.getFunctionName("=");
@@ -252,11 +205,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         lte.printUsingInFixNotation = true;
 
         isFunction.printUsingInFixNotation = true;
-        plusFunction.printUsingInFixNotation = true;
-        minusFunction.printUsingInFixNotation = true;
-        timesFunction.printUsingInFixNotation = true;
-        divideFunction.printUsingInFixNotation = true;
-        intDivFunction.printUsingInFixNotation = true;
         unify2Function.printUsingInFixNotation = true;
         ununifiable2Function.printUsingInFixNotation = true;
         equal2Function.printUsingInFixNotation = true;

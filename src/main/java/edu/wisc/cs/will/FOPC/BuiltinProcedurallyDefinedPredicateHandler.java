@@ -123,19 +123,12 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.lt,2));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.gte,2));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.lte,2));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.halt,0));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.halt,1));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.findAllCollector,2));
         hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.findAllCollector,3));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.allCollector,2));
         hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.allCollector,3));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.bagOfCollector,3));
 		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.setOfCollector,3));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.countProofsCollector,2));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.countProofsCollector,3));
-		hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.countUniqueBindingsCollector,2));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.countUniqueBindingsCollector,3));
-        hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.sort,2));
         hashOfSupportedPredicates.add(new PredicateNameAndArity(stringHandler.standardPredicateNames.length,2));
 
 		stringHandler.cleanFunctionAndPredicateNames = hold_cleanFunctionAndPredicateNames;
@@ -227,7 +220,7 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 			if (args == null) { Utils.println(""); } else { Utils.println(pred.toString() + ":" + args); }
 			return bindingList;
 		}
-		if (pred == stringHandler.standardPredicateNames.waitHere || pred == stringHandler.standardPredicateNames.wait) {
+		if (pred == stringHandler.standardPredicateNames.waitHere) {
 			Utils.waitHere(args.toString()); // Should we FORCE a wait?  Probably not since this would likely be used for debugging.
 			return bindingList;
 		}
@@ -279,51 +272,6 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 		if (pred == stringHandler.standardPredicateNames.setOfCollector   && numbArgs == 3) {
 			Utils.error("'setof' is not yet implemented");
 		}
-		if (pred == stringHandler.standardPredicateNames.countProofsCollector) {
-			if (numbArgs == 2) { // We're collecting allCollector answers in this phase.
-				ObjectAsTerm collector      = (ObjectAsTerm) args.get(1);
-				ConsCell     termsCollected = (ConsCell)     collector.item; 
-				// COUNT ALL proofs of goal, which must be a literal or a conjunct - actually, a clause with only negative literals.
-				// Only need to store a NUMBER here.  (For countUniqueBindingCollector we need to save allCollector the bindings, since we need to look for duplicates.)
-				if (termsCollected.length() < 1) { collector.item = context.getStringHandler().getConsCell(context.getStringHandler().getNumericConstant(1), null); }
-				else {
-					int oldCount = ((NumericConstant) termsCollected.getArgument(0)).value.intValue();
-					collector.item = context.getStringHandler().getConsCell(context.getStringHandler().getNumericConstant(oldCount + 1), null);
-				}
-				return null;
-			}
-			else if (numbArgs == 3) { // We're processing the collection of answers in this phase.
-				Term         list      =                args.get(0);
-				ObjectAsTerm collector = (ObjectAsTerm) args.get(1);
-				ConsCell     answers   = (ConsCell)     collector.item;
-				Term         counter   = (answers.length() < 1 ? context.getStringHandler().getNumericConstant(0) : answers.getArgument(0)); // Pull the number out of the cons cell.
-				return unifier.unify(list, counter, bindingList);
-			}
-			Utils.error("Wrong number of arguments (expecting 2 or 3): '" + literal + "'.");
-		}
-		if (pred == stringHandler.standardPredicateNames.countUniqueBindingsCollector) {
-			if (numbArgs == 2) { // We're collecting allCollector answers in this phase.
-				Term         queryAsTerm    =                args.get(0);
-				ObjectAsTerm collector      = (ObjectAsTerm) args.get(1);
-				ConsCell     termsCollected = (ConsCell)     collector.item;  
-				// Collect ALL proofs of goal, which must be a literal or a conjunct - actually, a clause with only negative literals.
-				// Unify this list with 'list' as the final step.
-				// Check for duplicates.
-				if (termsCollected.memberViaEquals(queryAsTerm)) { // Need to do a equivalent match since term could be complex (e.g., a Function).
-					return null;
-				}
-				collector.item = context.getStringHandler().getConsCell(queryAsTerm, termsCollected, null);
-				return null;
-			}
-			else if (numbArgs == 3) { // We're processing the collection of answers in this phase.
-				Term         list      =                args.get(0);
-				ObjectAsTerm collector = (ObjectAsTerm) args.get(1);
-				ConsCell     answers   = (ConsCell)     collector.item;
-				// Instead of returning the LIST of bindings, return the LENGTH of the list.
-				return unifier.unify(list, context.getStringHandler().getNumericConstant(answers.length()), bindingList);
-			}
-			Utils.error("Wrong number of arguments (expecting 2 or 3): '" + literal + "'.");
-		}
 		if (pred == stringHandler.standardPredicateNames.ground  && numbArgs == 1) {
 			return (args.get(0).isGrounded() ? bindingList : null);
 		}
@@ -347,30 +295,11 @@ public class BuiltinProcedurallyDefinedPredicateHandler extends ProcedurallyDefi
 
 		}
 
-		if (pred == stringHandler.standardPredicateNames.sort && numbArgs == 2) {
-			Term arg0 = args.get(0);
-			Term arg1 = args.get(1);
-			if (arg0 instanceof Variable) { 
-				ConsCell cc     = ConsCell.ensureIsaConsCell(context.getStringHandler(), arg1);
-				return unifier.unify(cc.sort(), arg0, bindingList);
-			}
-			if (arg1 instanceof Variable) {
-				ConsCell cc     = ConsCell.ensureIsaConsCell(context.getStringHandler(), arg0);
-				return unifier.unify(cc.sort(), arg1, bindingList);
-			}
-			Utils.error("One argument must be a variable: " + literal);
-		}
 		if (pred == stringHandler.standardPredicateNames.length && numbArgs == 2) {
 			Term arg0 = args.get(0);
 			if (arg0 instanceof Variable) { Utils.error("First argument cannot be a variable: " + literal); }
 			ConsCell cc     = ConsCell.ensureIsaConsCell(context.getStringHandler(), args.get(0));
 			return unifier.unify(context.getStringHandler().getNumericConstant(cc.length()), args.get(1), bindingList);
-		}
-		if (pred == stringHandler.standardPredicateNames.halt   && numbArgs == 0) {
-			throw new SearchInterrupted("halted");
-		}
-		if (pred == stringHandler.standardPredicateNames.halt   && numbArgs == 1) {
-			throw new SearchInterrupted(args.get(0).toString());
 		}
 
 		if (pred == stringHandler.standardPredicateNames.negationByFailure && numbArgs == 1) {
