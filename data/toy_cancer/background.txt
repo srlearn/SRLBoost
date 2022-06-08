@@ -1,0 +1,12 @@
+usePrologVariables: true.
+setParam: loadAllLibraries=false.
+setParam: loadAllBasicModes=false.
+setParam: maxTreeDepth=4.
+setParam: nodeSize=2.
+setParam: numOfClauses=8.
+queryPred: cancer/1.
+mode: friends(+person,-person).
+mode: friends(-person,+person).
+mode: smokes(+person).
+mode: cancer(+person).
+bridger: friends/2.

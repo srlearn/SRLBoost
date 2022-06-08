@@ -251,16 +251,7 @@ public class Utils {
 	 * Save some typing when throwing generic errors.
      */
 	public static void error(String msg) {
-		if ( CondorUtilities.isCondor() ) {
-			System.err.println("\nERROR:   " + msg);
-	        // Nice to print the calling stack so one can see what caused the error ...
-			// Doing it this way puts the stack in the ERROR file.
-			(new Exception()).printStackTrace();
-            println("\n" + msg);
-	        println("\nSince this is a condor job, will exit.");
-	        cleanupAndExit();
-		}
-		throw new WILLthrownError("\n " + msg);
+        throw new WILLthrownError("\n " + msg);
 	}
 	public static void error() {
 		throw new WILLthrownError("\n Should not happen ...");
@@ -450,9 +441,6 @@ public class Utils {
         print("\n% WaitHere: " + msg + "\n%  ...  Hit ENTER to continue or 'e' to interrupt. ", false);
         doNotPrintToSystemDotOut = hold;
 
-		if ( CondorUtilities.isCondor() ) {
-			error("\nSince this is a condor job, will exit.");
-		}
         try {
         	if (inBufferedReader == null) { inBufferedReader = new BufferedReader(new InputStreamReader(System.in)); }
         	String readThis = inBufferedReader.readLine();

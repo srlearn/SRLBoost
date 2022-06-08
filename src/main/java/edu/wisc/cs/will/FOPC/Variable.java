@@ -4,10 +4,7 @@ import edu.wisc.cs.will.FOPC.visitors.TermVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Variable extends Term {
 
@@ -371,5 +368,9 @@ public class Variable extends Term {
     }
 
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, counter);
+    }
 }
 

@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
@@ -125,8 +124,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	public    boolean			  regressionTask    = false; // Is this a REGRESSION task?
 	boolean			  mlnRegressionTask	= false;
     private boolean             learnMultiValPredicates             = false;
-    boolean			  oneClassTask		= false;
-    public 	  PairWiseExampleScore occScorer			= null;
 	final boolean 			  sampleForScoring  = false;
 	final int				  maxExamplesToSampleForScoring = 300;
 
@@ -1407,19 +1404,12 @@ public class LearnOneClause extends StateBasedSearchTask {
 	}
 
 	private void addToFacts(String factsFileName) {
-		// TODO(@hayesall): Drop support for `.gz` files.
 		try {
-			boolean isCompressed = false;
 			if (!Utils.fileExists(factsFileName)) {
-				if (Utils.fileExists(factsFileName + ".gz")) {
-					factsFileName += ".gz";
-					isCompressed = true;
-				} else {
-					Utils.error("Cannot find this file (nor its GZIPPED version):\n  " + factsFileName);
-				}
+				Utils.error("Cannot find this file:\n  " + factsFileName);
 			}
 			File factsFile = Utils.ensureDirExists(factsFileName);
-			addToFacts(isCompressed ? new CondorFileReader(factsFileName) : new CondorFileReader(factsFile), factsFile.getParent()); // Need the String in CondorFileReader since that will check if compressed.
+			addToFacts(new CondorFileReader(factsFile), factsFile.getParent()); // Need the String in CondorFileReader since that will check if compressed.
 		} catch (IOException e) {
 			Utils.reportStackTrace(e);
 			Utils.error("Cannot find this file: " + factsFileName);

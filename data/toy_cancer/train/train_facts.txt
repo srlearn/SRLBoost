@@ -1,0 +1,15 @@
+friends(alice,bob).
+friends(alice,fred).
+friends(chuck,bob).
+friends(chuck,fred).
+friends(dan,bob).
+friends(earl,bob).
+friends(bob,alice).
+friends(fred,alice).
+friends(bob,chuck).
+friends(fred,chuck).
+friends(bob,dan).
+friends(bob,earl).
+smokes(alice).
+smokes(chuck).
+smokes(bob).

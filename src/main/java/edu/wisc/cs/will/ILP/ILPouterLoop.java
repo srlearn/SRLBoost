@@ -108,7 +108,6 @@ public class ILPouterLoop {
     private String         postfixForExtractedRules            = "";
     private boolean		   learnMLNTheory					   = false;
     private boolean        learnMultiValPredicates             = false;
-    private boolean 	   learnOCCTree						   = false;
     ///////////////////////////////////////////////////////////////////
 
     // All of the fields below are now in the ILPouterLoopState object.
@@ -593,15 +592,7 @@ public class ILPouterLoop {
                             if (learnMLNTheory) {
                             	meanTrue = bestNode.mlnRegressionForTrue();
                             } else {
-                            	if (!learnOCCTree) {
-                            		meanTrue = bestNode.meanIfTrue();
-                            	} else {
-                            		meanTrue = 1;
-                            		for (Boolean b : interiorNode.returnBoolPath()) {
-										meanTrue = 10*meanTrue + (b?1:0);
-									}
-                            		meanTrue = 10*meanTrue + 1;
-                            	}
+                                meanTrue = bestNode.meanIfTrue();
                             }
                             
                             if (learnMultiValPredicates) {
@@ -655,15 +646,7 @@ public class ILPouterLoop {
                             if (learnMLNTheory) {
                             	meanFalse = bestNode.mlnRegressionForFalse();
                             } else {
-                            	if (!learnOCCTree) {
-                            		meanFalse = bestNode.meanIfFalse();
-                            	} else {
-                            		meanFalse = 1;
-                            		for (Boolean b : interiorNode.returnBoolPath()) {
-										meanFalse = 10*meanFalse + (b?1:0);
-									}
-                            		meanFalse = 10*meanFalse + 0;
-                            	}
+                                meanFalse = bestNode.meanIfFalse();
                             }
 
                             // No need to check max clause length (maxTreeDepthInLiterals) since that should have been checked at parent's call (since no literals added for FALSE branch).
@@ -998,11 +981,6 @@ public class ILPouterLoop {
     public  void setLearnMLNTheory(boolean val) {
     	learnMLNTheory = val;
     	innerLoopTask.setMlnRegressionTask(val);
-    }
-    
-    public  void setLearnOCCTree(boolean val) {
-    	innerLoopTask.oneClassTask = val;
-    	learnOCCTree = val;
     }
 
     public void setFlagsForRegressionTask(boolean notLearnTrees) {

@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.ILP;
 
-import edu.wisc.cs.will.Boosting.OneClass.PairWiseExampleScore;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.Utils.NumberGroundingsCalculator;
 import edu.wisc.cs.will.DataSetUtils.ArgSpec;
@@ -530,7 +529,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 							maxPossiblePosCoverage -= posEx.getWeightOnExample(); // Lost out on this.
 						if (posExamplesThatFailedHere == null) { posExamplesThatFailedHere = new HashSet<>(); }
 						posExamplesThatFailedHere.add(posEx);
-						if (theILPtask.regressionTask && !theILPtask.oneClassTask) {
+						if (theILPtask.regressionTask) {
 							if (cachedLocalRegressionInfoHolder == null) {  // Don't create until needed.
 								cachedLocalRegressionInfoHolder = new LocalRegressionInfoHolder();
 							}
@@ -863,15 +862,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
     // and that we care to score examples not covered by the clause the same as those covered
     // (this makes sense when learning a TREE; if just learning rules, can set theILPtask.multiplerOnFailedRegressionExamples = 0 or a small positive number).
 
-	double oneClassScore() throws SearchInterrupted {
-    	LearnOneClause loc = ((LearnOneClause)this.task);
-    	List<Example> failedEgs = posExampleFailedAtNode();
-    	 return loc.occScorer.calculateKernelScore(
-    				PairWiseExampleScore.removeFromCopy(loc.getPosExamples(), failedEgs),
-    				failedEgs, depth);
-    }
-    
-
 	double regressionFitForMLNs() {
 		LearnOneClause  theILPtask = (LearnOneClause) task;
 
@@ -968,12 +958,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		LearnOneClause theILPtask = (LearnOneClause) task;	
 		if (theILPtask.regressionTask) {
 			double variance;
-			if (theILPtask.oneClassTask) {
-				variance = getVarianceFalseBranch();
-			} else {
-				variance = getRegressionInfoHolder().varianceAtFailure() ;
-				Utils.println("Comparing variance: " + variance + " to score=" + minAcceptableScore + " #egs=" + getRegressionInfoHolder().totalExampleWeightAtFailure());
-			}
+			variance = getRegressionInfoHolder().varianceAtFailure() ;
+			Utils.println("Comparing variance: " + variance + " to score=" + minAcceptableScore + " #egs=" + getRegressionInfoHolder().totalExampleWeightAtFailure());
 			return variance <= minAcceptableScore;
 		}
 
@@ -1000,9 +986,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	double getVarianceTrueBranch(boolean computeMean) throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
-		if (theILPtask.oneClassTask) {
-			return theILPtask.occScorer.getVariance(PairWiseExampleScore.removeFromCopy(theILPtask.getPosExamples(), posExampleFailedAtNode()));
-		}
 		if (theILPtask.regressionTask) {
 			RegressionInfoHolder holder = getRegressionInfoHolder();
 			if (computeMean && holder.totalExampleWeightAtSuccess() > 0.0) { return  holder.varianceAtSuccess(); }
@@ -1017,10 +1000,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	double getVarianceFalseBranch(boolean computeMean) throws SearchInterrupted {
 		LearnOneClause theILPtask = (LearnOneClause) task;
-		
-		if (theILPtask.oneClassTask) {
-			return theILPtask.occScorer.getVariance(this.posExampleFailedAtNode());
-		}
+
 		if (theILPtask.regressionTask) {
 			RegressionInfoHolder holder = getRegressionInfoHolder();
 			if (computeMean && holder.totalExampleWeightAtFailure() > 0.0) { return  holder.varianceAtFailure(); }
@@ -1033,14 +1013,10 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		LearnOneClause theILPtask = (LearnOneClause) task;
 		if (theILPtask.regressionTask) {
 				double variance;
-				if (theILPtask.oneClassTask) {
-					variance = getVarianceTrueBranch();
-				} else {
-					variance = getRegressionInfoHolder().varianceAtSuccess() ;
-					Utils.println("Comparing variance: " + variance + " to score=" + acceptableScore+ " #egs=" + getRegressionInfoHolder().totalExampleWeightAtSuccess());
-				}	
-				
-				return variance <= acceptableScore;
+			variance = getRegressionInfoHolder().varianceAtSuccess() ;
+			Utils.println("Comparing variance: " + variance + " to score=" + acceptableScore+ " #egs=" + getRegressionInfoHolder().totalExampleWeightAtSuccess());
+
+			return variance <= acceptableScore;
 		}
 		
 		double precision = precision();

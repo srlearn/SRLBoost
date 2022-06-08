@@ -10,7 +10,7 @@ import java.io.Writer;
  */
 public class CondorFileWriter extends Writer {
 
-    private Writer writer;
+    private final Writer writer;
 
     public CondorFileWriter(File file, boolean append) throws IOException {
         writer = new OutputStreamWriter( new CondorFileOutputStream(file, append));

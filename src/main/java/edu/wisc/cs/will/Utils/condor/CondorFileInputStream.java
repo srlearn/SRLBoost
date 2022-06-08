@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.Utils.condor;
 
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.chirp.ChirpInputStream;
 
 import java.io.*;
 
@@ -10,35 +9,15 @@ import java.io.*;
  */
 public class CondorFileInputStream extends InputStream {
 
-    private InputStream stream;
+    private final InputStream stream;
 
     public CondorFileInputStream(File file) throws FileNotFoundException {
-        if (CondorUtilities.isChirp()) {
-            try {
-                stream = new ChirpInputStream(file.toString());
-            } catch (IOException ex) {
-                Utils.waitHere("Error opening Condor chirp stream for " + file + ".");
-                stream = null;
-            }
-        }
-        else {
-            stream = new FileInputStream(file);
-        }
+        stream = new FileInputStream(file);
     }
 
     public CondorFileInputStream(String fileName) throws FileNotFoundException  {
 
-        if (CondorUtilities.isChirp()) {
-            try {
-                stream = new ChirpInputStream(Utils.replaceWildCards(fileName));
-            } catch (IOException ex) {
-                Utils.waitHere("Error opening Condor chirp stream for " + Utils.replaceWildCards(fileName) + ".");
-                stream = null;
-            }
-        }
-        else {
-            stream = new FileInputStream(Utils.replaceWildCards(fileName));
-        }
+        stream = new FileInputStream(Utils.replaceWildCards(fileName));
     }
 
     public long skip(long n) throws IOException {
