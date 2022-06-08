@@ -62,9 +62,6 @@ public class CommandLineArguments {
 	private static final String rdnIterFlag = "iter";
 	private int rdnIterationStep = -1;
 
-	private static final String learnCurve = "lc";
-	private boolean printLearningCurve = false;
-
 	private static final String outName = "outSuffix";
 	public String outFileSuffix = null;
 
@@ -184,13 +181,6 @@ public class CommandLineArguments {
 				continue;
 			}
 
-			if (argMatches(args[i], learnCurve)) {
-				printLearningCurve = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					printLearningCurve = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
 			if (argMatches(args[i], disableChkPtFlag)) {
 				noCheckPointing = true;
 				if (isArgumentNotAFlag(args, i+1)) {
@@ -453,10 +443,6 @@ public class CommandLineArguments {
 
 	public int getMaxMLNClauseLength() {
 		return maxMLNClauseLength;
-	}
-
-	public boolean isPrintLearningCurve() {
-		return printLearningCurve;
 	}
 
 	public boolean getBagOriginalExamples() {
