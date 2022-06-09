@@ -98,9 +98,6 @@ public class FileParser {
 
 	public final HandleFOPCstrings  stringHandler;
 	private StreamTokenizerJWS tokenizer;
-	private List<Sentence>[]   sentencesToPrecompute;
-	private String[]           sentencesToPrecomputeFileNameToUse;
-	private Set<LiteralToThreshold> literalsToThreshold;
 	private String             directoryName      = null;
 	private String             prefix             = null;
 	private String             fileName           = null;
@@ -112,18 +109,8 @@ public class FileParser {
 		this.stringHandler = stringHandler;
 	}
 
-	public List<Sentence> getSentencesToPrecompute(int index) {
-		if (sentencesToPrecompute == null) { return null; }
-		return sentencesToPrecompute[index];
-	}
-
-	public String getFileNameForSentencesToPrecompute(int index) {
-		if (sentencesToPrecomputeFileNameToUse == null) { return null; }
-		return sentencesToPrecomputeFileNameToUse[index];
-	}
-
 	public Collection<LiteralToThreshold> getLiteralsToThreshold() {
-		return literalsToThreshold == null ? Collections.EMPTY_SET : literalsToThreshold;
+		return Collections.EMPTY_SET;
 	}
 
 	// Return what seems to be the working directory for the current task.
@@ -2233,10 +2220,4 @@ public class FileParser {
 		throw new ParsingException("Encountered '" + term + "' (" + term.getClass() + "), but was expecting a LITERAL");
 	}
 
-	public int getNumberOfPrecomputeFiles() {
-		// Allows user to set it to a higher number but doesn't penalize all runs where there are fewer precomputes
-		// It is mildly risky to make this a static, but acceptable.
-		int numberOfPrecomputeFiles = 125;
-		return numberOfPrecomputeFiles;
-	}
 }

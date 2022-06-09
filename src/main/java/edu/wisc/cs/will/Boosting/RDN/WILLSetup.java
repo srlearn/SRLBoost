@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
-import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.DataSetUtils.CreateSyntheticExamples;
@@ -8,7 +7,6 @@ import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings.VarIndicator;
-import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.*;
 import edu.wisc.cs.will.ResThmProver.*;
 import edu.wisc.cs.will.Utils.Utils;
@@ -412,103 +410,10 @@ public final class WILLSetup {
 			prepareFactsForJoint(posEg, negEg, predicate, only_mod_pred, forLearning);
 		}
 		prepareExamplesForTarget(posEg.get(predicate), negEg.get(predicate), predicate, forLearning);
-		if (allowRecursion || posEg.keySet().size() > 1) {
-			if (only_mod_pred != null) {
-				recomputeFacts(predicate);
-				recomputeFacts(recursivePredPrefix + predicate);
-				recomputeFacts(only_mod_pred);
-			} else {
-				// Need to recompute all facts.
-				for (String pred : cmdArgs.getTargetPredVal()) {
-					recomputeFacts(recursivePredPrefix + predicate);
-					recomputeFacts(pred);
-				}
-			}
-		}
 		long end = System.currentTimeMillis();
 		if (debugLevel > 1) { 
 			Utils.waitHere("% Time taken for preparing WILL: " + Utils.convertMillisecondsToTimeSpan(end - start, 3) + ".");
 		}
-	}
-	
-	private RelationalDependencyNetwork rdnForPrecompute = null;
-	private BoostingPrecomputeManager recomputer = null;
-	// While doing joint inference, we may only precompute facts that influence some targets.
-	private Set<String> onlyPrecomputeThese = null;
-	
-	void setOnlyPrecomputeThese(Set<String> precompute) {
-		onlyPrecomputeThese = precompute;
-	}
-
-	private void recomputeFacts(String predicate) {
-		if (onlyPrecomputeThese != null &&
-			!onlyPrecomputeThese.contains(predicate)) {
-			return;
-		}
-		if (rdnForPrecompute == null) {
-			rdnForPrecompute = new RelationalDependencyNetwork(null, this);
-			recomputer = new BoostingPrecomputeManager(this);
-		}
-		// Get the children for this predicate of type COMPUTED
-		Collection<PredicateName> recomputeThese = rdnForPrecompute.getPredicatesComputedFrom(predicate);
-		if(recomputeThese != null && recomputeThese.size() > 0) {
-			ArrayList<PredicateName> orderedPrecomputes = getOrderOfPrecomputes(recomputeThese);
-			for (PredicateName pName : orderedPrecomputes) {
-				deleteAllFactsForPredicate(pName);
-				recomputer.recomputeFactsFor(pName);
-			}
-		}
-	}
-
-	private ArrayList<PredicateName> getOrderOfPrecomputes(
-			Collection<PredicateName> recomputeThese) {
-		ArrayList<PredicateName> predicateNames=new ArrayList<>();
-		// Creating a copy to make sure, we dont erase from original
-		Set<PredicateName> inputPredicateNames = new HashSet<>(recomputeThese);
-		FileParser parser = getInnerLooper().getParser();
-		for (int i = 0; i < getInnerLooper().getParser().getNumberOfPrecomputeFiles(); i++) {
-			List<Sentence> precomputeThese = parser.getSentencesToPrecompute(i);
-			if (precomputeThese == null) {
-				continue;
-			}
-			for (Sentence sentence : precomputeThese) {
-				List<Clause> clauses = sentence.convertToClausalForm();
-				if (clauses == null) {
-					continue;
-				}
-				// Take each clause
-				for (Clause clause : clauses) {
-					if (!clause.isDefiniteClause()) { 
-						Utils.error("Can only precompute Horn ('definite' actually) clauses.  You provided: '" + sentence + "'."); 
-					}
-
-					PredicateName headPredName = clause.posLiterals.get(0).predicateName;
-					if(inputPredicateNames.contains(headPredName)) {
-						predicateNames.add(headPredName);
-						inputPredicateNames.remove(headPredName);
-					}
-				}
-			}
-		}
-		return predicateNames;
-	}
-
-	private void deleteAllFactsForPredicate(PredicateName pName) {
-		List<PredicateSpec> specs = pName.getTypeList();
-		if (specs == null) {
-			Utils.error("No specs for " + pName);
-		}
-		// Just take the first spec to get the number of arguments.
-		int numArgs = specs.get(0).getArity();
-		List<Term> args = new ArrayList<>();
-		for (int i = 0; i < numArgs; i++) {
-			String var = getHandler().convertToVarString("arg" + i);
-			args.add(getHandler().getVariableOrConstant(var));
-		}
-		Literal pLit = getHandler().getLiteral(pName, args);
-		Clause cl = getHandler().getClause(pLit, true);
-		getContext().getClausebase().retractAllClausesWithUnifyingBody(cl);
-		
 	}
 
 	public void prepareExamplesForTarget(String predicate) {
@@ -552,11 +457,7 @@ public final class WILLSetup {
 
 		}
 		// Set target literal to be just one literal.
-		if (forLearning && cmdArgs.isJointModelDisabled()) {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, true, prefix);
-		} else {
-			getOuterLooper().innerLoopTask.setTargetAs(predicate, false, prefix);
-		}
+		getOuterLooper().innerLoopTask.setTargetAs(predicate, forLearning && cmdArgs.isJointModelDisabled(), prefix);
 		handler.getPredicateName(predicate).setCanBeAbsent(-1);
 
 		

@@ -122,7 +122,6 @@ public class JointModelSampler extends SRLInference {
 
 		// First init the pos and neg examples. The posEgs and negEgs are updated with
 		// each sample and become facts for the next round and hence need to be collected.
-		Set<String> onlyPrecomp = new HashSet<>();
 		Map<String, List<double[]>> counters = new HashMap<>();
 
 		for (String target : jointExamples.keySet()) {
@@ -139,14 +138,7 @@ public class JointModelSampler extends SRLInference {
 			counters.put(target, new ArrayList<>());
 			// Find out what predicates are precomputed and are needed for predicting target predicates.
 			Collection<PredicateName> pnames = rdn.getAncestorsOfType(target, PredicateType.COMPUTED);
-			for (PredicateName pName : pnames) {
-				onlyPrecomp.add(pName.name);
-			}
 		}
-		
-		// Only these predicates should be precomputed during every iteration, as they are the 
-		// only predicates that are used in predicting a query predicate (i.e. are ancestors of the query predicate).
-		setup.setOnlyPrecomputeThese(onlyPrecomp);
 
 		String last_target = null;
 		for (String target : orderedPredicates) {
