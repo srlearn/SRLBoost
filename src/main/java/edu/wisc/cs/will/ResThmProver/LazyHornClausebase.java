@@ -51,7 +51,6 @@ public class LazyHornClausebase implements HornClausebase {
         this.stringHandler = stringHandler;
         this.userProcedurallyDefinedPredicateHandler = null;
         this.builtinProcedurallyDefinedPredicateHandler = new BuiltinProcedurallyDefinedPredicateHandler(stringHandler);
-        addAssertRetractListener(new SpyAssertRetractListener(), stringHandler.getPredicate(stringHandler.standardPredicateNames.spy, 1));
         setupDataStructures();
     }
 
@@ -384,16 +383,6 @@ public class LazyHornClausebase implements HornClausebase {
         return indexerForAllAssertions;
     }
 
-    private void addAssertRetractListener(AssertRetractListener assertRetractListener, PredicateNameAndArity predicate) {
-        if (listenerMap == null) {
-            listenerMap = new HashMap<>();
-        }
-        List<AssertRetractListener> list = listenerMap.computeIfAbsent(predicate, k -> new ArrayList<>());
-        if (!list.contains(assertRetractListener)) {
-            list.add(assertRetractListener);
-        }
-    }
-
     private void fireAssertion(DefiniteClause clause) {
         if (listenerMap != null) {
             PredicateNameAndArity pnaa = new PredicateNameAndArity(clause);
@@ -418,28 +407,4 @@ public class LazyHornClausebase implements HornClausebase {
         }
     }
 
-    public class SpyAssertRetractListener implements AssertRetractListener {
-
-        public void clauseAsserted(HornClausebase context, DefiniteClause clause) {
-            if (clause.isDefiniteClauseFact()) {
-                Literal fact = clause.getDefiniteClauseFactAsLiteral();
-                if (fact.predicateName == context.getStringHandler().standardPredicateNames.spy && fact.getArity() == 1) {
-                    try {
-                        Term term = fact.getArgument(0);
-                        Function function = (Function) term;
-                        String predName = ((StringConstant) function.getArgument(0)).getBareName();
-                        int predArity = ((NumericConstant) function.getArgument(1)).value.intValue();
-
-                        getStringHandler().spyEntries.addLiteral(predName, predArity);
-                    } catch (Exception e) {
-                        Utils.warning("Encountered spy/1 statement.  Expected argument 1 to be function of form pred/arity.  Found: " + fact + ".");
-                    }
-                }
-            }
-        }
-
-        public void clauseRetracted() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-    }
 }

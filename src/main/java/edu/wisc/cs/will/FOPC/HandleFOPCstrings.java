@@ -108,9 +108,7 @@ public final class HandleFOPCstrings {
 
     public boolean underscoredAnonymousVariables = false;
 
-    public final PredicateNameAndArityFilter spyEntries = new PredicateNameAndArityFilter(this);
-
-    /* Clausebase handling for facts added to the clausebase. */
+	/* Clausebase handling for facts added to the clausebase. */
     public VariantClauseAction variantFactHandling = WARN_AND_REMOVE_VARIANTS;
 
     /* Clausebase handling for facts added to the clausebase. */
@@ -1457,11 +1455,6 @@ public final class HandleFOPCstrings {
     private String cleanString(String str, boolean hadQuotesOriginally) {
     	return Utils.cleanString(str, this, hadQuotesOriginally);
     }
-
-    public PredicateNameAndArityFilter getSpyEntries() {
-        return spyEntries;
-    }
-
 
 	StringConstant getAlphabeticalVariableName(int variableIndex) {
         StringBuilder stringBuilder = new StringBuilder();

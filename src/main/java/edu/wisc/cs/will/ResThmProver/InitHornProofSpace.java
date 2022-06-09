@@ -45,14 +45,7 @@ public class InitHornProofSpace extends Initializer {
         
         if ( openList != null ) initializeOpen(openList, nodes);
 
-        if ( getHornClauseProver().getTraceLevel() > 0 ) {
-            Utils.println(String.format("[%6d] Initial proof nodes:", proofCount));
-
-            for (HornSearchNode node : nodes) {
-                System.out.println(String.format("             [%d] %s", node.parentExpansionIndex, node.clause));
-            }
-        }
-	}
+    }
 
     private HornSearchNode[] createNonCutNodes(List<Literal> negatedQueryLiterals, long proofCount) {
         Clause negatedQuery = getStringHandler().getClause(negatedQueryLiterals, false); // These are all negated (i.e., checked above), so tell Clause() that.
