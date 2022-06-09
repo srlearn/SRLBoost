@@ -54,14 +54,10 @@ public class CommandLineArguments {
 	private static final String maxMLNLength = "mlnClauseLen";
 	private int maxMLNClauseLength=2;
 
-	private static final String outName = "outSuffix";
 	public String outFileSuffix = null;
 
 	private static final String infer = "i";
 	private boolean inferVal=false;
-
-	private static final String noBoosting = "noBoost";
-	private boolean disabledBoosting=false;
 
 	private static final String trainDir = "train";
 	private String trainDirVal;
@@ -71,40 +67,21 @@ public class CommandLineArguments {
 
 	private static final String modelDir = "model";
 	private String modelDirVal = null;
-	
-	private static final String resultsDir = "results";
+
 	private String resultsDirVal = null;
 
 	private static final String targetPred = "target";
 	private Set<String> targetPredVal = null;
 
-	private static final String loadModelPredFlag = "loadPredModel";
-	private Set<String> loadPredModelVal = null;
+	private final Set<String> loadPredModelVal = null;
 
 	private static final String maxTrees = "trees";
 	private int maxTreesVal=10;
 
-	private static final String disableJointModel = "noJointModel";
-	private boolean jointModelDisabled =false;
-
-	private static final String disableChkPtFlag = "disableChkPts";
-	private boolean noCheckPointing=false;
-
 	private static final String regressionFlag = "reg";
 	private boolean learnRegression = false;
 
-	private static final String probFlag = "probEx";
-	private boolean learnProbExamples = false;
-
-	private static final String disableMultiClassFlag = "noMulti";
-	private boolean disableMultiClass = false;
-
-	private static final String maxInteriorNodeLits = "maxNodeLits";
-	private int maxLiteralsInAnInteriorNodeVal = 1;
-
-	private static final String bagOriginalExamplesKey   = "bag";
-	private static final String noBagOriginalExamplesKey = "noBag";
-	private boolean bagOriginalExamples = false;
+	private final int maxLiteralsInAnInteriorNodeVal = 1;
 
 	private static final String stepLen = "step";
 	private double stepLenVal =1;
@@ -117,12 +94,7 @@ public class CommandLineArguments {
 
 	private static final String aucPath = "aucJarPath";
 
-	private static final String modelName = "modelSuffix";
 	private String modelFileVal = null;
-
-
-	private static final String samplePosProb = "samplePositive";
-	private double samplePosProbVal = -1.0;
 
 	public boolean parseArgs(String[] args) {
 
@@ -139,11 +111,6 @@ public class CommandLineArguments {
 			if (argMatches(args[i], "h") || argMatches(args[i], "help")) {
 				System.out.println(getUsageString());
 				System.exit(0);
-			}
-
-			if (argMatches(args[i], "noLockFiles")) {
-				useLockFiles = false;
-				continue;
 			}
 
 			if (argMatches(args[i], useMLN)) {
@@ -165,14 +132,6 @@ public class CommandLineArguments {
 				continue;
 			}
 
-			if (argMatches(args[i], disableChkPtFlag)) {
-				noCheckPointing = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					noCheckPointing = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-
 			if (argMatches(args[i], learnMLNClauses)) {
 				learningMLNClauses = true;
 				if (isArgumentNotAFlag(args, i+1)) {
@@ -188,10 +147,6 @@ public class CommandLineArguments {
 				maxMLNClauseLength=Integer.parseInt(args[++i]);
 				continue;
 			}
-			if (argMatches(args[i], outName)) {
-				outFileSuffix = args[++i];
-				continue; 
-			}
 			if (argMatches(args[i], learn)) {
 				learnVal = true;
 				if (isArgumentNotAFlag(args, i+1)) {
@@ -203,38 +158,6 @@ public class CommandLineArguments {
 				inferVal = true;
 				if (isArgumentNotAFlag(args, i+1)) {
 					inferVal = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], disableJointModel)) {
-				jointModelDisabled = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					jointModelDisabled = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], disableMultiClassFlag)) {
-				disableMultiClass = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					disableMultiClass = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], bagOriginalExamplesKey)) {
-				bagOriginalExamples = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					bagOriginalExamples = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}		
-			if (argMatches(args[i], noBagOriginalExamplesKey)) {
-				bagOriginalExamples = false;
-				continue;
-			}
-			if (argMatches(args[i], noBoosting)) {
-				disabledBoosting = true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					disabledBoosting = Utils.parseBoolean(args[++i]);
 				}
 				continue;
 			}
@@ -250,20 +173,10 @@ public class CommandLineArguments {
 				setModelDirVal(args[++i]);
 				continue; 
 			}
-			if (argMatches(args[i], resultsDir)) {
-				setResultsDirVal(args[++i]);
-				continue; 
-			}
 			if (argMatches(args[i], targetPred)) {
 				String targetStr = args[++i];
 				targetPredVal = new HashSet<>();
 				targetPredVal.addAll(Arrays.asList(targetStr.split(",")));
-				continue;
-			}
-			if (argMatches(args[i], loadModelPredFlag)) {
-				String targetStr = args[++i];
-				loadPredModelVal = new HashSet<>();
-				loadPredModelVal.addAll(Arrays.asList(targetStr.split(",")));
 				continue;
 			}
 			if (argMatches(args[i], regressionFlag)) {
@@ -271,17 +184,6 @@ public class CommandLineArguments {
 				if (isArgumentNotAFlag(args, i+1)) {
 					learnRegression = Utils.parseBoolean(args[++i]);
 				}
-				continue;
-			}
-			if (argMatches(args[i], probFlag)) {
-				learnProbExamples=true;
-				if (isArgumentNotAFlag(args, i+1)) {
-					learnProbExamples = Utils.parseBoolean(args[++i]);
-				}
-				continue;
-			}
-			if (argMatches(args[i], maxInteriorNodeLits)) {
-				maxLiteralsInAnInteriorNodeVal=Integer.parseInt(args[++i]);
 				continue;
 			}
 			if (argMatches(args[i], maxTrees)) {
@@ -300,18 +202,9 @@ public class CommandLineArguments {
 				testNegsToPosRatioVal=Double.parseDouble(args[++i]);
 				continue;
 			}
-			if (argMatches(args[i], samplePosProb)) {
-				samplePosProbVal=Double.parseDouble(args[++i]);
-				continue;
-			}
-				
 			if (argMatches(args[i], aucPath)) {
 				// TODO(hayesall): No longer used, but might be passed in other setups where I've shelled out.
 				String aucPathVal = args[++i];
-				continue;
-			}			
-			if (argMatches(args[i], modelName)) {
-				modelFileVal = args[++i];
 				continue;
 			}
 
@@ -343,8 +236,6 @@ public class CommandLineArguments {
 		
 		result += argPrefix + infer + " : Use this flag, if you want to enable inference.\n";
 
-		result += argPrefix + noBoosting + " : Use this flag, if you dont want to use boosting.\n";
-		
 		result += argPrefix + trainDir + " <Training directory> : Path to the training directory in WILL format.\n";
 		
 		result += argPrefix + testDir + " <Testing directory> : Path to the testing directory in WILL format.\n";
@@ -354,11 +245,9 @@ public class CommandLineArguments {
 		result += argPrefix + targetPred + " <target predicates> : Comma separated list of predicates that need to be learned/inferred.\n";
 
 		result += argPrefix + maxTrees + " <Number of trees>: Number of boosting trees.\n";
-		
-		result += argPrefix + maxInteriorNodeLits +  " <Max number of literals at an interior node>: Max number of literals in an interior node.\n";
-		
+
 		result += argPrefix + stepLen + " <Step Length>: Default step length for functional gradient.\n";
-		
+
 		result += argPrefix + testNegsToPosRatio + " <Negative/Positive ratio>: Ratio of negatives to positive for testing.\n";
 		
 		return result;
@@ -379,7 +268,7 @@ public class CommandLineArguments {
 	private boolean checked_trainDirVal = false;
 
 	public boolean isDisabledBoosting() {
-		return disabledBoosting;
+		return false;
 	}
 
 	public String getTrainDirVal() {
@@ -423,10 +312,11 @@ public class CommandLineArguments {
 	}
 
 	public boolean getBagOriginalExamples() {
-		return bagOriginalExamples;
+		return false;
 	}
 
 	public boolean useCheckPointing() {
+		boolean noCheckPointing = false;
 		return !noCheckPointing;
 	}
 
@@ -473,7 +363,7 @@ public class CommandLineArguments {
 	}
 
 	public boolean isDisableMultiClass() {
-		return disableMultiClass;
+		return false;
 	}
 
 	public Set<String> getLoadPredModelVal() {
@@ -497,7 +387,7 @@ public class CommandLineArguments {
 	}
 
 	public double getSamplePosProbVal() {
-		return samplePosProbVal;
+		return -1.0;
 	}
 
 	public double getSampleNegsToPosRatioVal() {
@@ -513,7 +403,7 @@ public class CommandLineArguments {
 		String result = "_";
 		result += "pos_";
 		result += "neg_";
-		if (maxLiteralsInAnInteriorNodeVal >= 0)    { result += "Lits"  + maxLiteralsInAnInteriorNodeVal; }
+		result += "Lits"  + maxLiteralsInAnInteriorNodeVal;
 		if (maxTreesVal                    >= 0)    { result += "Trees" + maxTreesVal; }
 		if (sampleNegsToPosRatioVal        >= 0)    { result += "Skew"     + (int) sampleNegsToPosRatioVal; }
 		if (includeTestSkew &&
@@ -526,7 +416,7 @@ public class CommandLineArguments {
 	}
 
 	public boolean isJointModelDisabled() {
-		return jointModelDisabled;
+		return false;
 	}
 
 	public boolean isLearnMLN() {
@@ -554,7 +444,7 @@ public class CommandLineArguments {
 	}
 
 	public boolean isLearnProbExamples() {
-		return learnProbExamples;
+		return false;
 	}
 
 }
