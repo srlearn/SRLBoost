@@ -99,13 +99,7 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
 		return name;
 	}
 
-    /* Substitutes the ConnectiveName with a SerializableConnectiveName while Serializing.
-     */
-    private Object writeReplace() {
-        return new SerializableConnectiveName(name);
-    }
-    
-    public static boolean isTextualConnective(String str) {
+	public static boolean isTextualConnective(String str) {
     	return  "v".equalsIgnoreCase(str) ||
     		   "if".equalsIgnoreCase(str) ||
     		   "or".equalsIgnoreCase(str) ||
@@ -114,45 +108,6 @@ public class ConnectiveName extends AllOfFOPC implements Serializable { // If it
    		     "then".equalsIgnoreCase(str) ||
    		  "implies".equalsIgnoreCase(str) ||
    	   "equivalent".equalsIgnoreCase(str);
-    }
-
-    /* This is a little hack to allow the Type to be canonicalized by the string handler.
-     *
-     * We want to use readResolve to canonicalize the Type object.  However, when we
-     * run readResolve, we don't have the InputStream.  No inputStream, no string handler.
-     * So, we serialize this little stub class which has a variable to temporarily hold
-     * the string handler.
-     *
-     * This call will then use the readResolve method to fix up the stream.
-     */
-    static class SerializableConnectiveName implements Serializable {
-
-        final String name;
-
-        transient HandleFOPCstrings stringHandler;
-
-        SerializableConnectiveName(String name) {
-            this.name = name;
-        }
-
-        /* Methods for reading a Object cached to disk.
-         */
-        private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-            if (!(in instanceof FOPCInputStream)) {
-                throw new IllegalArgumentException(ConnectiveName.class.getName() + ".readObject input stream must support FOPCObjectInputStream interface");
-            }
-
-            in.defaultReadObject();
-
-            FOPCInputStream fOPCInputStream = (FOPCInputStream) in;
-
-            this.stringHandler = fOPCInputStream.getStringHandler();
-        }
-
-        public Object readResolve() {
-            // Canonicalize the object via the string handler...
-            return stringHandler.getConnectiveName(name);
-        }
     }
 
 	@Override
