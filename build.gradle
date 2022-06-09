@@ -42,6 +42,9 @@ jar {
   }
 }
 
+javadoc {
+    source = sourceSets.main.allJava
+}
 
 publishing {
     publications {
