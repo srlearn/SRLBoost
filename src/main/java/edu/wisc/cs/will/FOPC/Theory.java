@@ -2,7 +2,6 @@ package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.ILP.ChildrenClausesGenerator;
 import edu.wisc.cs.will.ILP.InlineManager;
-import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
@@ -121,8 +120,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     private void collectAnyRemainingInliners() {
     	if (haveCollectedRemainingInLiners) { return; }
     	collectedSupporters.clear();
-    	help_collectAnyRemainingInliners(clauses,        1);
-    	help_collectAnyRemainingInliners(supportClauses, 1);
+    	help_collectAnyRemainingInliners(clauses);
+    	help_collectAnyRemainingInliners(supportClauses);
     	if (!collectedSupporters.isEmpty()) {
     		supportClauses.addAll(collectedSupporters);
     	   	collectedSupporters.clear();
@@ -130,11 +129,10 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	haveCollectedRemainingInLiners = true;    	
     }
     
-    private void help_collectAnyRemainingInliners(List<Clause> theseClauses, int depth) {
+    private void help_collectAnyRemainingInliners(List<Clause> theseClauses) {
     	if (theseClauses == null) { return; }
-    	if (depth > 20) { for (Clause cRaw : theseClauses) { Utils.println("help_collectAnyRemainingInliners: " + cRaw); } Utils.error("depth = " + depth); }
-    	for (Clause cRaw : theseClauses) {
-			if (cRaw.negLiterals != null) for (Literal lit : cRaw.negLiterals) { help_collectAnyRemainingInliners(lit, depth + 1); }
+		for (Clause cRaw : theseClauses) {
+			if (cRaw.negLiterals != null) for (Literal lit : cRaw.negLiterals) { help_collectAnyRemainingInliners(lit, 1 + 1); }
     	}
     }
     
@@ -145,28 +143,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     }
     	
     private void help_collectAnyRemainingInliners(Literal lit, int depth) {
-		PredicateName pName = lit.predicateName;
 		if (depth > 20) {  Utils.error("help_collectAnyRemainingInliners: lit = '" + lit + "' depth = " + depth); }
 
-		if (pName.isaInlined(lit.getArity()) && inlineHandler == null)  { 
-			Utils.warning("An in-line handler should have been associated with this theory ...  Needed for: " + lit);
-		}  
-		
-		if (pName.isaInlined(lit.getArity()) && inlineHandler != null) {
-			  				
-			Iterable<Clause> definingClauses = inlineHandler.getHornClauseKnowledgeBase().getPossibleMatchingBackgroundKnowledge(lit, new BindingList());
-			
-			// ACTUALLY I THINK IT IS OK TO HAVE ANY NUMBER, SINCE WE'RE KEEPING THEM ALL:
-			if (definingClauses != null) for (Clause inlinedDefn : definingClauses) { 
-			
-				List<Clause> inlinedDefnInList = new ArrayList<>(1);
-				inlinedDefnInList.add(inlinedDefn);
-				// TODO(?): this recursive step needs to be cleaned up.  Eg, here might not need to make a support clause but could inline the body.
-				help_collectAnyRemainingInliners(inlinedDefnInList, depth + 1); // Need to make sure the inliner's body contains nothing that needs to be in-lined.
-				Utils.println("%  Theory.help_collectAnyRemainingInliners(lit): add this clause" + inlinedDefn); 
-				collectedSupporters.add(inlinedDefn);
-			}
-		}
 		if (lit.getArity() > 0) for (Term term : lit.getArguments()) { help_collectAnyRemainingInliners(term, depth + 1); }
     }
     
@@ -235,7 +213,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 				}
 			}
 			
-			if (canPrune(nLit, newNegLits)) {
+			if (canPrune(nLit)) {
 				continue;
 			}
 			
@@ -289,74 +267,15 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     }
     
     private Clause useDeterminateLiteralsToUnifyVariables(Clause c) {
-    	if (c == null || Utils.getSizeSafely(c.negLiterals) < 1) { return c; }
-    	Map<PredicateName,List<Literal>> samePredicates = new HashMap<>(4);
-    	// First group literals by predicateName
-    	for (Literal nLit : c.negLiterals) {
-    		PredicateName pName = nLit.predicateName;
-    		if (!pName.isFunctionAsPredicate(nLit.getArguments())) { continue; }
-			List<Literal> lookup = samePredicates.computeIfAbsent(pName, k -> new ArrayList<>(1));
-			if (!nLit.member(lookup, false)) { lookup.add(nLit); } // Set's weren't working (even when using setUseStrictEqualsForLiterals(false)), so handle explicitly.
-    	}
-    	if (samePredicates.size() < 1) { return c; }
-    	BindingList bl = new BindingList();
-    	for (PredicateName pNameInUse : samePredicates.keySet()) {
-    		List<Literal> candidates = samePredicates.get(pNameInUse);
-    		if (candidates.size() < 2) { continue; }
-    		Utils.println("% determinatesToMatch for '" + pNameInUse + "' = " + candidates);
-    		processThisSetOfCandidatesMatchingDeterminates(candidates, bl);
-    	}
-    	if (bl.theta.size() < 1) { return c; }
-    	List<Literal> newPlits = new ArrayList<>(c.posLiterals.size());
-    	List<Literal> newNlits = new ArrayList<>(c.negLiterals.size());
-    	for (Literal pLit : c.posLiterals) { newPlits.add(pLit.applyTheta(bl.theta)); }
-    	for (Literal nLit : c.negLiterals) { newNlits.add(nLit.applyTheta(bl.theta)); }
-    	return stringHandler.getClause(newPlits, newNlits, c.getExtraLabel());
-    }
-    
-    private void processThisSetOfCandidatesMatchingDeterminates(List<Literal> candidates, BindingList bl) {
-    	if (Utils.getSizeSafely(candidates) < 2) { return; }
-    	List<Literal> copyOfSet = new ArrayList<>(candidates.size());
-    	copyOfSet.addAll(candidates);
-    	// There might be some order-dependent aspects of this calculation, but we'll live with order we get.
-    	while (!copyOfSet.isEmpty()) {
-        	Literal litToConsider = copyOfSet.remove(0).applyTheta(bl.theta);
-        	int numbArgs = litToConsider.numberArgs();
-        	int arg      = litToConsider.predicateName.returnFunctionAsPredPosition(numbArgs);
-        	Utils.println("\n%  litToConsider = " + litToConsider + ", arg #" + arg);
-        	if (copyOfSet.size() > 0) for (Literal otherLit : copyOfSet) if (numbArgs == otherLit.numberArgs()) {
-            	int otherArg = litToConsider.predicateName.returnFunctionAsPredPosition(otherLit.numberArgs());
-            	if (otherArg != arg) { continue; }
-            	Literal otherLit2 = otherLit.applyTheta(bl.theta); // This might be necessary, but do it anyway.
-            	Utils.println("%  otherLitToConsider = " + otherLit2 + ", arg #" + otherArg);
-            	boolean mismatched = false;
-            	for (int i = 0; i < numbArgs; i++) if (i != arg - 1) { // Remember that external counting is from 1.
-            		if (litToConsider.getArgument(i) != otherLit2.getArgument(i)) { 
-            			mismatched = true; 
-            			Utils.println("%    mismatch: '" + litToConsider.getArgument(i) + "' and '" + otherLit2.getArgument(i) + "'.");
-            			break; 
-            		}
-            	}
-            	if (!mismatched) { 
-            		Term term1 = litToConsider.getArgument(arg - 1);
-            		Term term2 = otherLit2.getArgument(    arg - 1);
-            		if (term1 != term2) {
-                		Utils.println("%    need to match: '" + term1 + "' and '" + term2 + "'.");
-                		if      (term1 instanceof Variable) { bl.addBindingFailSoftly((Variable) term1, term2); } // At least one needs to be a variable.
-            			else if (term2 instanceof Variable) { bl.addBindingFailSoftly((Variable) term2, term1); }
-            		}
-            	}
-        	}
-    	}
-    }
-    
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// First group literals by predicateName
+		return c;
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	private StringConstant[] constantsToUse = null; // These are used to replace variables when matching for pruning.
-    private BindingList      cachedBindingListForPruning; // Used if any pruning is being considered.
-    private Clause           numberedBodyForPruning;      // Also used when pruning.
-    
-    private boolean canPrune(Literal lit, List<Literal> body) {
+
+	private boolean canPrune(Literal lit) {
     	
     	PredicateName pName = lit.predicateName;
     	if (pName == stringHandler.standardPredicateNames.lt || pName == stringHandler.standardPredicateNames.lte) {
@@ -393,64 +312,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     		}
     		
     	}
-		MapOfLists<PredicateNameAndArity,Pruner> allPruners = lit.predicateName.getPruners(lit.getArity());
-    	if (allPruners == null) { return false; }
-    	
-    	putPartialBodyInFormForPruning(lit, body);
-    	Literal     initNumberedLit = (cachedBindingListForPruning == null ? lit             : lit.applyTheta(cachedBindingListForPruning.theta));
-		BindingList newBL           = bindVarsToUniqueConstants(initNumberedLit);
-		Literal     fixedLit        = initNumberedLit.applyTheta(newBL.theta);
+		return false;
 
-		// See if NULL is one of the pruners (NULL means nothing in the body needs to match).
-		List<Pruner>  prunersMatchingNULL = allPruners.getValues(null);
-		if (prunersMatchingNULL != null) for (Pruner p : prunersMatchingNULL) {
-			if (p.truthValue != 0 && p.isaMatch(fixedLit, null)) {
-				if (p.truthValue < 0) { 
-					Utils.warning("% Have a literal that is said to evaluate to FALSE!\n lit = " + lit + "'\n% pruner: " + p); 
-					return false; // Don't prune these since then they'd be treated as TRUE.  Could add 'false' but seems good to see the offending literal.
-				}
-				Utils.println("% CAN PRUNE '" + lit + "' [" + fixedLit + "] because of pruner: " + p);
-				return true; 
-			}
-		}
-
-		if (body == null) { return false; }
-
-		List<Literal> numberedClauseBody = numberedBodyForPruning.negLiterals;	
-		int parentBodyLength = numberedClauseBody.size();
-		for (int bodyCounter = 0; bodyCounter < parentBodyLength; bodyCounter++) {
-			Literal       numberedBodyLit = numberedClauseBody.get(bodyCounter);
-			List<Pruner>  matchingPruners = allPruners.getValues(numberedBodyLit.getPredicateNameAndArity());
-			if (matchingPruners != null) for (Pruner p : matchingPruners) {
-				if (p.truthValue != 0 && p.isaMatch(fixedLit, numberedBodyLit)) { 
-					if (p.truthValue < 0) { Utils.warning("% Have a literal in clause that is said to evaluate to FALSE!\n lit = " + lit + "\n%   pruner: " + p + "\n%   clause body: " + body); continue; }
-					Utils.println("% Can prune '" + lit + "' because of exiting literal '" + body.get(bodyCounter) + "' [" + numberedBodyLit + "] and pruner: " + p);
-					return true; 
-				}
-    		}
-    	}
-    	return false;
-    }
-
-    private void putPartialBodyInFormForPruning(Literal lit, List<Literal> body) {
-		List<Literal>  pos = new ArrayList<>(1); pos.add(lit);
-		Clause      clause = stringHandler.getClause(pos, body);
-		clause.collectFreeVariables(null);
-		BindingList     bl = clause.copyAndReplaceVariablesWithNumbers(constantsToUse);
-		cachedBindingListForPruning = bl;
-		numberedBodyForPruning      = (bl == null ? clause : clause.applyTheta(bl.theta));
-	}
-
-	private BindingList bindVarsToUniqueConstants(Literal lit) {
-		BindingList          result      = new BindingList();
-		Collection<Variable> newVars     = lit.collectFreeVariables(null);		
-		if (newVars != null) {
-			int currentPositionInConstants = (cachedBindingListForPruning == null ? 0 : cachedBindingListForPruning.theta.size());
-			for (Variable newVar : newVars) { 
-				result.addBinding(newVar, constantsToUse[currentPositionInConstants++]); // If we get an error here, look at Clause.copyAndReplaceVariablesWithNumbers (seems unlikely we'll ever have more than 100 unique variables in a clause ...).
-			}
-		}
-		return result;
 	}
 
 	private void addTheseSentences(Collection<? extends Sentence> standardSentences, InlineManager checkForInlinersAndSupportingClauses) {
@@ -459,7 +322,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		if (sentences == null) { sentences = new ArrayList<>(standardSentences);      }
 		else                   { sentences.addAll(standardSentences); }
 		for (Sentence s : standardSentences) {
-			Boolean hold = stringHandler.prettyPrintClauses;
+			boolean hold = stringHandler.prettyPrintClauses;
 			stringHandler.prettyPrintClauses = false;
 			List<Clause> theseClauses = s.convertToClausalForm();
 			stringHandler.prettyPrintClauses = hold;
