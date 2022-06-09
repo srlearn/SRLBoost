@@ -37,18 +37,6 @@ public final class HandleFOPCstrings {
 	final boolean printTypedStrings     = false; // If set to true, then Terms will have their types printed.
 	public boolean printVariableCounters = false; // If set to true, then variables will have their counters printed.
 
-	public String  precompute_file_prefix = ""; // Allow overriding of these.
-	public String  precompute_file_postfix = ".txt";
-	public String  precompute_assignmentToTempVar1 = "UNASSIGNED_precompute_assignmentToTempVar1";
-	public String  precompute_assignmentToTempVar2 = "UNASSIGNED_precompute_assignmentToTempVar2";
-	public String  precompute_assignmentToTempVar3 = "UNASSIGNED_precompute_assignmentToTempVar3";
-
-	public String  import_assignmentToTempVar1 = "UNASSIGNED_import_assignmentToTempVar1";
-	public String  import_assignmentToTempVar2 = "UNASSIGNED_import_assignmentToTempVar2";
-	public String  import_assignmentToTempVar3 = "UNASSIGNED_import_assignmentToTempVar3";
-	public final String  PRECOMP = "PRECOMP_UNASSIGNED";
-	public final String  TASK    = "TASK_UNASSIGNED";
-
 	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
 	int     numberOfTermsPerRowInPrintouts            = 4; // Actually only if this is 1 does it matter (used for debugging).
 	int     numberOfTermsPerRowInPrintoutsForLiterals = 4; // The Literal class will use the MIN of this and the above.

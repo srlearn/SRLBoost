@@ -57,13 +57,10 @@ import java.util.*;
 
  *        no hits to these (not even 2x)
  *          between_args_frequencies.b:mode: phrase_contains_several_between_10x_word(+phrase, #arg, #pos,        +fold). %  +fold was #fold
-            between_args_frequencies.b:precompute1: phrase_contains_several_between_10x_word(Phrase, Arg, POS,        Fold) :-
  *
  *        need to figure out to deal with CLAUSES during parsing (for now, 'canPrune(Literal lit)' does not allow pruning with such cases).
  *
  *        infer modes through deduction and not just from basic facts?  or too cpu-complicated?
- *
- *        in 'precompute:' allow a file name to be provided?  leave for later, since complicated bookkeeping
  *
  *
  *        allow other specs about predicates:
@@ -81,8 +78,6 @@ import java.util.*;
  *        make use of 'target' in modes - can put on hold
  * *
  *        accept Aleph's spec for modes?  and for determinations?  - can put on hold
- *   *
- *  	  have an argument that means: clear all cached files (gleaner, precomputed, etc)
  *
  *  	  have a "checkpoint" facility
  *  	  need gleaner to also do this (write and read)
@@ -205,7 +200,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	final Unifier              unifier; // Make instances out of some things that could be 'statics' so the code is safer.
 	private   HornClauseProver     prover; // This is initialized by getProver() so please don't use this variable directly.
 	PruneILPsearchTree   pruner = null;  // Used to prune search trees that are unlikely to pan out (called by ChildrenClausesGenerator and its extensions).
-	private final Precompute           precomputer;
 	private   ThresholdManager     thresholdHandler;
 	private   InlineManager        inlineHandler; // Handle the in-lining of literal bodies (should only be applied to literals that are only defined by ONE clause).
 	private final TypeManagement       typeManager;
@@ -225,12 +219,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	private final EventListenerList searchListenerList = new EventListenerList();
 
     private List<Sentence> facts = null; // This temporarily stores the facts between construction and initialization.  After initialization it will be null.
-
-	// Precompute filename : precompute_file_prefix + PRECOMPUTED_FILENAME  + number +  precompute_file_postfix
-    // The following values can be set using
-    // setParam: precomputePostfix = ".txt".
-    // setParam: precomputePrefix = "../../".
-    // setParam: numberOfPrecomputes = 100.
 
     private boolean initialized = false;
 
@@ -259,7 +247,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		this.setPrefix(prefix);
         this.context       = context;
 
-		this.precomputer   = new Precompute();
 		this.typeManager   = new TypeManagement(stringHandler);
         
 		verbosity = 1;
@@ -507,27 +494,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 		procDefinedNeedForNewVariables = stringHandler.getPredicateName("newTermBoundByThisVariable");
         context.getClausebase().setUserProcedurallyDefinedPredicateHandler(procHandler);
 
-		if (Utils.getSizeSafely(posExamples) + Utils.getSizeSafely(negExamples) > 0) { // Sometimes we just want to use the precompute facility.
+		if (Utils.getSizeSafely(posExamples) + Utils.getSizeSafely(negExamples) > 0) {
 			chooseTargetMode();
-		}
-
-		/* for each precompute file to output, precompute all the corresponding rules... */
-		for (int i = 0; i < getParser().getNumberOfPrecomputeFiles(); i++) {
-			// TODO(@hayesall): This appears to be where precomputes are handled.
-			List<Sentence> precomputeThese = getParser().getSentencesToPrecompute(i); // Note that this is the set of ALL precompute's encountered during any file reading.
-			if (Utils.getSizeSafely(precomputeThese) > 0) {
-				String precomputeFileNameToUse = replaceWildCardsForPrecomputes(getParser().getFileNameForSentencesToPrecompute(i));
-				//add working dir to all files
-				Utils.ensureDirExists(precomputeFileNameToUse);
-				// The method below will check if the precompute file already exists, and if so, will simply return.
-				Utils.println("% Processing precompute file: " + precomputeFileNameToUse);
-				File f = new File(precomputeFileNameToUse);
-				Utils.println("Writing to file: " + f.getAbsolutePath());
-				/* Actually do the precomputes, writing precompute facts out to file*/
-				precomputer.processPrecomputeSpecifications(getContext().getClausebase(), precomputeThese, precomputeFileNameToUse);
-				Utils.println("% Loading: " + precomputeFileNameToUse);
-				addToFacts(precomputeFileNameToUse); // Load the precomputed file.
-			}
 		}
 
 		// TODO(@hayesall): What is `prune.txt`?
@@ -572,7 +540,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         }
 	}
 
-    private boolean lookForPruneOpportunities(Boolean useCachedFiles, FileParser parser, String fileName) { // Be sure to do this AFTER any precomputing is done.
+    private boolean lookForPruneOpportunities(Boolean useCachedFiles, FileParser parser, String fileName) {
         // See if any 'prune' rules can be generated from this rule set.
         // For example, if 'p :- q, r' is the ONLY way to derive 'p,' then if 'p' in a clause body, no need to consider adding 'q' nor 'r.'
 
@@ -609,7 +577,7 @@ public class LearnOneClause extends StateBasedSearchTask {
                         canPrune = (matchingClauseHeadExists(getContext().getClausebase(), clauseHead, clause) == null);
                     }
 
-                    // Can only prune predicates that are DETERMINED by the arguments in the clauseHead.  ALSO SEE Precompute.java
+                    // Can only prune predicates that are DETERMINED by the arguments in the clauseHead.
                     // Note: this code is 'safe' but it misses some opportunities.  E.g., if one has 'p(x) :- q(x,y)' AND THERE IS ONLY ONE POSSIBLE y FOR EACH x, then pruning is valid.  (Called "determinate literals" in ILP - TODO handle such cases.)
                     if (canPrune) {
                         for (Literal prunableLiteral : clause.negLiterals) {
@@ -619,7 +587,6 @@ public class LearnOneClause extends StateBasedSearchTask {
                                     printStream = new PrintStream(outStream, false); // (Don't) Request auto-flush (can slow down code).
                                     printStream.println("////  This file contains inferred pruning that can be done during ILP (i.e., 'structure') search.");
                                     printStream.println("////  It can be hand edited by the knowledgeable user, but the file name should not be changed.");
-                                    printStream.println("////  Note that the file 'precomputed.txt' - if it exists - might also contain some 'prune:' commands.");
                                     printStream.println("////  'Prune:' commands can also appear in BK and facts files, though including them in facts files isn't recommended.");
                                 }
                                 String newStringLine = "prune: " + prunableLiteral + ", " + clauseHead + ", warnIf(2)."; // Use '2' here, since if more than one rule, the inference is incorrect.
@@ -717,20 +684,8 @@ public class LearnOneClause extends StateBasedSearchTask {
         }
         return null;
     }
-	
-	private String replaceWildCardsForPrecomputes(String precomputeFileNameString) {
-		if (precomputeFileNameString.charAt(0) == '@') { precomputeFileNameString = stringHandler.getParameterSetting(precomputeFileNameString.substring(1)); }
 
-		assert precomputeFileNameString != null;
-		String result = precomputeFileNameString.replace("PRECOMPUTE_VAR1", Utils.removeAnyOuterQuotes(stringHandler.precompute_assignmentToTempVar1));
-		result        =                   result.replace("PRECOMPUTE_VAR2", Utils.removeAnyOuterQuotes(stringHandler.precompute_assignmentToTempVar2));
-		result        =                   result.replace("PRECOMPUTE_VAR3", Utils.removeAnyOuterQuotes(stringHandler.precompute_assignmentToTempVar3));
-		result         =                  result.replace("PRECOMP",         Utils.removeAnyOuterQuotes(stringHandler.PRECOMP)); // Note: this matches "PRECOMPUTE_VAR3"
-		result         =                  result.replace("TASK",            Utils.removeAnyOuterQuotes(stringHandler.TASK));
-		return Utils.replaceWildCards(result);
-	}
-
-    private void processThresholds() throws SearchInterrupted {
+	private void processThresholds() throws SearchInterrupted {
 
 		/* Override to disable thresholding.
 		 *

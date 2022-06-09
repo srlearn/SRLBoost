@@ -8,7 +8,6 @@ import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.FOPC.Clause;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.PredicateName;
-import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.*;
@@ -95,38 +94,10 @@ public class RelationalDependencyNetwork extends DependencyNetwork {
 
 	private void initializeRDNUsingPrecompute(WILLSetup setup) {
 
+		// TODO(hayesall): Precomputes are deprecated.
+
 		HashMap<PredicateName, Set<PredicateName>> predicateToParents = new HashMap<>();
 
-		for (int i = 0; i < setup.getInnerLooper().getParser().getNumberOfPrecomputeFiles(); i++) {
-			List<Sentence> sentences = setup.getInnerLooper().getParser().getSentencesToPrecompute(i);
-			if (sentences == null)
-				continue;
-			for (Sentence sentence : sentences) {
-				List<Clause> clauses = sentence.convertToClausalForm();
-				if (clauses == null) {
-					continue;
-				}
-				// Take each clause
-				for (Clause clause : clauses) {
-					if (!clause.isDefiniteClause()) { 
-						Utils.error("Can only precompute Horn ('definite' actually) clauses.  You provided: '" + sentence + "'."); 
-					}
-
-					PredicateName pName = clause.posLiterals.get(0).predicateName;
-
-					if (!predicateToParents.containsKey(pName)) {
-						predicateToParents.put(pName, new HashSet<>());
-					}
-					Set<PredicateName> parents = predicateToParents.get(pName);
-
-					// Take parents from the body of the clause
-					for (Literal lit : clause.negLiterals) {
-						parents.add(lit.predicateName);
-					}
-
-				}
-			}
-		}
 		for (Clause clause : setup.getContext().getClausebase().getBackgroundKnowledge()) {
 			if (!clause.isDefiniteClause()) { 
 				Utils.error("Ignoring clause: '" + clause + "'.");
