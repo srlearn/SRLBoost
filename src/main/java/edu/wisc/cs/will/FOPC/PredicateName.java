@@ -2,7 +2,6 @@ package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.Utils.MapOfLists;
 import edu.wisc.cs.will.Utils.MapOfSets;
-import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
@@ -40,9 +39,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Set<Integer>                   queryPredSpec              = null;  // Used with MLNs.
 	private   Set<Integer>                   supportingLiteral          = null;  // Is this a supporting literal that needs to attached to learned theories?
     private   Set<Integer>                   containsCallable           = null;  // One of the terms of the predicate is called during execution of the predicate.
-	private   Map<Integer,Double>            cost                       = null;  // See if this predicate/arity has a cost (default is 1.0).  Costs are used for scoring clauses.
-	private   boolean                        costIsFinal                = false; // Is the cost frozen?
-	private   Map<Integer,RelevanceStrength> relevance                  = null;  // See if this predicate/arity has a relevance (default is NEUTRAL).
+	private final Map<Integer,Double>            cost                       = null;  // See if this predicate/arity has a cost (default is 1.0).  Costs are used for scoring clauses.
 
 	/* Map from non-operation arities to operational predicates.
      *
@@ -451,27 +448,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		}		
 	}
 
-	public void setCost(int arity, double predicateCost, boolean isFinal) {
-		if (costIsFinal) { 
-			return; // Just return silently
-		}
-		if (cost == null) {
-			cost = new HashMap<>(4);
-		}
-		boolean firstLookUp = cost.containsKey(arity);
-		if (firstLookUp) { 
-			if (isFinal) {
-				cost.put(arity, predicateCost);
-			}
-			else if (stringHandler.duplicateCostWarningEnabled && stringHandler.warningCount < HandleFOPCstrings.maxWarnings && cost.get(arity) != predicateCost) {
-				Utils.println(MessageType.STRING_HANDLER_PREDICATE_COSTS, "% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate cost of '" + name + "/" + arity + "'.  Had previously said cost = " + cost.get(arity) + " and now saying cost = " + predicateCost + ".\n% Will use this latest setting.\n");
-			}
-		}
-		cost.put(arity, predicateCost);
-		stringHandler.setPredicatesHaveCosts();
-		if (isFinal) { costIsFinal = true; }
-	}
-
 	public double getCost(int arity) {
 		if (cost == null) { return 1.0; }  // The default cost.
 		boolean firstLookUp = cost.containsKey(arity);
@@ -491,34 +467,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 	public boolean isaSupportingPredicate(int arity) {
 		return supportingLiteral != null && supportingLiteral.contains(arity);
-	}
-	
-	// On these, the later override the earlier (allows code to change these).
-	void setRelevance(int arity, RelevanceStrength strength) {
-		if (relevance == null) {
-			relevance = new HashMap<>(4);
-		}
-		boolean firstLookUp = relevance.containsKey(arity);
-		if (firstLookUp) { 
-			if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings && relevance.get(arity) != strength) {
-				if (strength.compareTo(relevance.get(arity)) < 0) { // Turn off these warnings and just print for now.
-					Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate relevance of '" + name + "/" + arity + "'.\n% Had previously said relevance = " + relevance.get(arity) + " and now saying relevance = " + strength + ".\n% Will keep the stronger.  To lower a relevance use: toBeWritten.\n");
-				} else {
-					Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate relevance of '" + name + "/" + arity + "'.\n% Had previously said relevance = " + relevance.get(arity) + " and now saying relevance = " + strength + ".\n% Will keep the stronger.\n");
-				}
-			}
-			if (strength.compareTo(relevance.get(arity)) < 0) { return; }
-		} 
-		relevance.put(arity, strength);
-		double aCost = stringHandler.convertRelevanceStrengthToCost(strength);
-		setCost(arity, aCost, false);
-	}
-
-	public RelevanceStrength getRelevance(int arity) {
-		if (relevance == null) { return null; }
-		boolean firstLookUp = relevance.containsKey(arity);
-		if (firstLookUp) { return relevance.get(arity); }
-		return null;
 	}
 
 	int returnFunctionAsPredPosition(int arity) {
