@@ -51,12 +51,8 @@ public final class HandleFOPCstrings {
     public final int locationOfStateArg         = -1;
 
 	public final IsaHetrarchy                isaHandler;
-	private final DoBuiltInMath               mathHandler;
-	private final DoBuiltInListProcessing     listHandler;
 	private   List<PredicateNameAndArity> knownModes; // Hold all the predicates with known modes.
 	private final List<PredicateNameAndArity> disallowedModes;
-	public    boolean                     needPruner = false;
-
 
 
 	public    enum VarIndicator { questionMarks, lowercase, uppercase }
@@ -88,7 +84,6 @@ public final class HandleFOPCstrings {
 	private   int  countOfSkolemFunctions = 0;
 
 	private boolean              predicatesHaveCosts = false; // Set if ANY predicate has a cost.  If so, the SUM of costs is used instead of length() to score a clause.
-	private Set<RelevantLiteral> relevantLiterals    = null;  // Collect statements about which predicateName/arity's have an associated relevance statement.
 
 	final Constant  trueIndicator;
 	final Constant falseIndicator;
@@ -107,9 +102,7 @@ public final class HandleFOPCstrings {
         "L","M","N","P","Q","R","S","T","U","W","X","Y","Z" }; // I DROPPED "V" since it means "OR"
     private static final int alphabet2Size = alphabet2.length;
 
-	private final Set<String> filesLoaded = new HashSet<>(8);
-
-    // This group records information used by the MLN code.
+	// This group records information used by the MLN code.
     private ClauseOptimiser   clauseOptimizer;
 
 
@@ -122,8 +115,6 @@ public final class HandleFOPCstrings {
 
     /* Clausebase handling for facts added to the clausebase. */
     public VariantClauseAction variantRuleHandling = WARN_AND_REMOVE_VARIANTS;
-
-    private final Map<Literal, Literal> literalAliases = new HashMap<>();
 
 	public HandleFOPCstrings() {
 		this(false);
@@ -152,9 +143,6 @@ public final class HandleFOPCstrings {
         standardPredicateNames = new StandardPredicateNames(this);
 
 		isaHandler          = new IsaHetrarchy(this);
-		mathHandler         = new DoBuiltInMath(this);
-		listHandler         = new DoBuiltInListProcessing(this);
-		mathHandler.listHandler = listHandler;
 		trueIndicator       = this.getStringConstant("true");
 		falseIndicator      = this.getStringConstant("false");
 		trueLiteral         = this.getLiteral(standardPredicateNames.trueName);
@@ -170,6 +158,7 @@ public final class HandleFOPCstrings {
 		}
 
 		// Initialize some parameters used in libraries.
+		// TODO(hayesall): I've deleted the libraries, is it even possible for these to be used?
 		recordSetParameter("relevance0", "POSSIBLE_ANSWER"); // Probably a bad choice to number with LOWER being better ...
 		recordSetParameter("relevance1", "STRONGLY_RELEVANT");
 		recordSetParameter("relevance2", "WEAKLY_RELEVANT");
@@ -322,12 +311,6 @@ public final class HandleFOPCstrings {
 		return usingStdLogicNotation();
 	}
 
-	public void setVariablesStartWithQuestionMarks() {
-		if (!doVariablesStartWithQuestionMarks()) {
-			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to using a leading '?' to denote a variable; previous setting = " + variableIndicator);
-		}
-		setVariableIndicator(VarIndicator.questionMarks);
-	}
 	public boolean doVariablesStartWithQuestionMarks() {
 		if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); }
 		return variableIndicator == VarIndicator.questionMarks;
@@ -354,12 +337,6 @@ public final class HandleFOPCstrings {
 		if (doVariablesStartWithQuestionMarks()) { return "useLeadingQuestionMarkVariables: true.\n";  }
 		else if (usingStdLogicNotation())        { return "useStdLogicNotation: true.\n";  }
 		else                                     { return "usePrologVariables: true.\n";   }
-	}
-
-	public String getShortStringToIndicateCurrentVariableNotation() {
-		if (doVariablesStartWithQuestionMarks()) { return "useLeadingQuestionMarkVariables";  }
-		else if (usingStdLogicNotation())        { return "useStdLogicNotation:";  }
-		else                                     { return "usePrologVariables";   }
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -541,19 +518,7 @@ public final class HandleFOPCstrings {
 		return new UniversalSentence(this, variables, body);
 	}
 
-	public Literal wrapInNot(Literal innerLit) {
-		PredicateName notPname = standardPredicateNames.negationByFailure;
-
-		// Process into the required structure for negation-by-failure.
-		List<Literal>  innerLitInList = new ArrayList<>(1);
-		innerLitInList.add(innerLit);
-		Clause clauseInsideNot = getClause(null, innerLitInList) ;
-		List<Term> notArgs = new ArrayList<>(2);
-		notArgs.add(getSentenceAsTerm(clauseInsideNot, "not"));
-		return getLiteral(notPname, notArgs);
-	}
-
-    /* Returns the NegationByFailure of clauseInsideNot.
+	/* Returns the NegationByFailure of clauseInsideNot.
      *
      * Note: For proper logical sense, the clause within
      * the negation should have positive literals, not negated
@@ -699,12 +664,7 @@ public final class HandleFOPCstrings {
 	 * @return The numeric result of computing the given expression.
 	 */
 	public Term simplify(Term expression) {
-		if (listHandler.canHandle(expression)) {
-			return listHandler.simplify(expression);
-		}
-		if (mathHandler.canHandle(expression)) {
-			return mathHandler.simplify(expression);
-		}
+		// TODO(hayesall): Nothing is simplified.
 		return expression;  // Sometimes plain-old items will appear (e.g., an integer) that don't need simplification.
 	}
 
@@ -715,9 +675,6 @@ public final class HandleFOPCstrings {
 		resetAllVariables();
 	}
 
-	public void recordMode(Literal typedLiteral) {
-		recordMode(typedLiteral, Integer.MAX_VALUE, Integer.MAX_VALUE, false);
-	}
 	public void recordMode(Literal typedLiteral, int maxOccurrences, int maxPerInputVars, boolean thisIsaNoMode) {
 		List<TypeSpec> types = new ArrayList<>(Utils.getSizeSafely(typedLiteral.getArguments()));
 		getTypeList(typedLiteral.getArguments(), types);
@@ -728,9 +685,7 @@ public final class HandleFOPCstrings {
 			recordModeWithTypes(typedLiteral, signature, types, maxOccurrences, maxPerInputVars, true);
 		}
 	}
-	public void recordModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars) {
-		recordModeWithTypes(typedLiteral, signature, types, maxOccurrences, maxPerInputVars, false);
-	}
+
 	private void recordModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
         if (typedLiteral != null ) recordModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
 	}
@@ -763,55 +718,6 @@ public final class HandleFOPCstrings {
 		}
 	}
 
-	private void getTypedFreeVariables(Variable keepThisVarIfPresent, List<Term> arguments, List<String> argNames, List<Variable> freeVars, List<String> freeVarNames, List<TypeSpec> typeSpecs, boolean onlyKeepPlusOrMinusVariables) {
-		if (arguments != null) for (int i = 0; i < arguments.size(); i++) {
-			Term spec = arguments.get(i);
-			if (spec instanceof Constant) {
-			} else if (spec == null) {
-				Utils.warning("getTypedFreeVariables: have spec = null for argument " + (i + 1) + " in: " + arguments);
-			} else if (spec.typeSpec != null) {
-				if (spec instanceof Variable && freeVars.contains(spec)) { // It can be OK to have a repeat since sometimes this is called successively on the same literal or function.
-				}
-				else if (spec == keepThisVarIfPresent || !onlyKeepPlusOrMinusVariables || spec.typeSpec.isPlusOrMinus() || spec.typeSpec.isNotYetSet()) { // If requested, only want the '+' and '-' (and their isVariant) variables.
-					Variable specAsVar = (Variable) spec;
-					if (!freeVars.contains(specAsVar)) {
-						typeSpecs.add(spec.typeSpec);
-						freeVars.add(specAsVar);
-						freeVarNames.add(argNames == null ? "unnamed" : argNames.get(i));
-					}
-				}
-			} else if (spec instanceof Variable && freeVars.contains(spec)) {
-			} else if (spec instanceof Function) {
-				getTypedFreeVariables(keepThisVarIfPresent, ((Function) spec).getArguments(), ((Function) spec).getArgumentNames(), freeVars, freeVarNames, typeSpecs, onlyKeepPlusOrMinusVariables);
-			} else { Utils.error("Need all these arguments to be typed: " + spec + "  all info: " + arguments + "  freeVars = " + freeVars + "  typeSpecs = " + typeSpecs); }
-		}
-	}
-
-	public void getTypedFreeVariablesAndUniquelyName(List<Term> arguments, List<String> argNames, List<Variable> freeVars, List<String> freeVarNames, List<TypeSpec> typeSpecs, boolean onlyKeepPlusOrMinusVariables) {
-		getTypedFreeVariables(null, arguments, argNames, freeVars, freeVarNames, typeSpecs, onlyKeepPlusOrMinusVariables);
-		if (freeVarNames == null) { return; }
-		// Since these names are going to be the field names for a new literal, need unique names for them.
-		List<String> freeVarNamesNew = numberTheseArguments(freeVarNames);
-		freeVarNames.clear();
-		freeVarNames.addAll(freeVarNamesNew);
-	}
-
-	private List<String> numberTheseArguments(List<String> argNames) {
-		if (argNames == null) { return null; }
-		List<String> results = new ArrayList<>(argNames.size());
-		for (int i = 1; i <= argNames.size(); i++) {
-			String oldName = argNames.get(i - 1);
-			if (oldName.equals(NamedTerm.worldNameField)     ||
-			    oldName.equals(NamedTerm.returnedValueField) ||
-			    oldName.equals(NamedTerm.stateNameField)) {
-				results.add(oldName);
-			} else {
-				results.add("arg" + i);
-			}
-		}
-		return results;
-	}
-
 	////////////////////////////////////////////////////////////////////////
 
 	private StringConstant  stringConstantMarker  = null;
@@ -840,21 +746,6 @@ public final class HandleFOPCstrings {
 			}
 		}
 		return result;
-	}
-
-	// TODO - this was added as a patch.  The signature stuff needs to be cleaned up.
-	public List<Term> getConstantSignatureThisLong(int i) {
-		if (i < 1) { return null; }
-		if (stringConstantMarker == null) {
-			stringConstantMarker  = getStringConstant("Const");
-			numericConstantMarker = getNumericConstant(0);
-			variableMarker        = getExternalVariable("Var");
-		}
-		List<Term> results = new ArrayList<>(i);
-		for (int j = 0; j < i; j++) {
-			results.add(stringConstantMarker);
-		}
-		return results;
 	}
 
 	// Keep track of the predicates for which modes are known.  For simplicity, use a list since later will want to walk through it and speed is not crucial here.
@@ -1086,28 +977,6 @@ public final class HandleFOPCstrings {
 		return startsWithLowerCase;
 	}
 
-	private final Map<String,Integer> mapForGetUniqueStringConstant = new HashMap<>(4);
-	StringConstant getUniqueStringConstant(String string) {
-		Integer lookup = mapForGetUniqueStringConstant.get(string);
-		if (lookup == null) {
-			lookup = 0;
-		}
-		while (true) {
-			lookup++;
-			mapForGetUniqueStringConstant.put(string, lookup);
-			String combo  = ((string.charAt(0) == '"' || (FileParser.allowSingleQuotes && string.charAt(0) == '\'')) 
-								? string.charAt(0) + string.substring(1, string.length() - 1) + lookup + string.charAt(0) // Put inside any quotes.
-							    :  string + lookup);								
-			String newStr = standardize(combo, true);
-			if (stringConstantHash.get(newStr) == null) {
-				return getStringConstant(newStr, true); // Assume caller adds an underscore if necessary.  If user calls sufficiently often something like getUniqueStringConstant(str1) and getUniqueStringConstant(str), a name collision can occur.
-			}
-			if (lookup > 123456) { Utils.error("getUniqueStringConstant: string =" + string); }
-		}
-	}
-	StringConstant getUnCleanedStringConstant(String name) { // This means we'll keep quote marks here (and so wont match to unquoted version) - so use carefully!
-		return getStringConstant(null, name, false);
-	}
 	public StringConstant getStringConstant(String name) {
 		return getStringConstant(null, name);
 	}
@@ -1162,32 +1031,6 @@ public final class HandleFOPCstrings {
 		return result;
 	}
 
-	Constant getStringConstantButCheckIfNumber(String name) {
-		Number viewNameAsNumber = isaQuotedNumber(name);
-		if (viewNameAsNumber != null) { 
-			return getNumericConstant(null, viewNameAsNumber.doubleValue()); // Other code (chooseStringForDouble) checks to see if this is really an integer.
-		}
-		return getStringConstant(null, name, false);
-	}
-	
-	private Number isaQuotedNumber(String name) {
-		if (name == null) { return null; }
-		if (name.charAt(0) != '"'  || (name.charAt(name.length() - 1) != '"')) { return null; }
-		
-		if (!Character.isDigit(name.charAt(1))) { return null; }
-		
-		String innerStr = name.substring(1, name.length() - 1);
-		try { 
-			return Integer.parseInt(innerStr);
-		} catch (NumberFormatException e1) {
-			try {
-				return Double.parseDouble(innerStr);
-			} catch (NumberFormatException e2) {
-				return null;
-			}
-		}
-	}
-
 	private int chooseStringForDouble(double value) { // NOTE: need to extend to handle long's.
 		int valueAsInt = (int) value;
 
@@ -1202,9 +1045,7 @@ public final class HandleFOPCstrings {
 	public NumericConstant getNumericConstant(int value) {
 		return getNumericConstant(null, value);
 	}
-	NumericConstant getNumericConstant(long value) {
-		return getNumericConstant(null, value);
-	}
+
 	NumericConstant getNumericConstant(TypeSpec spec, int value) {
 		return getNumericConstant(spec, value, NumericConstant.isaInteger, Integer.toString(value)); // So '1' and '1.0' match, convert everything to a double.
 	}
@@ -1408,11 +1249,6 @@ public final class HandleFOPCstrings {
 		return fopc.countVarOccurrencesInFOPC(v);
 	}
 
-	public String getVariablePrefix() {
-		if (doVariablesStartWithQuestionMarks()) { return "?"; }
-		return "";
-	}
-
 	public String convertToVarString(String name) {
 		if (doVariablesStartWithQuestionMarks()) {
 			if (name != null && name.charAt(0) == '?') { return name; }
@@ -1569,14 +1405,6 @@ public final class HandleFOPCstrings {
 		return predicatesHaveCosts;
 	}
 
-	public void setRelevance(PredicateName name, int arity, RelevanceStrength strength) {
-		RelevantLiteral newStatement = new RelevantLiteral(name, arity, strength);
-
-		if (relevantLiterals == null) { relevantLiterals = new HashSet<>(4); }
-		relevantLiterals.add(newStatement);
-
-		name.setRelevance(arity, strength);
-	}
 	double convertRelevanceStrengthToCost(RelevanceStrength strength) {
 		String hasBeenSet = getParameterSetting(strength.toString()); // See if overridden.
 		if (hasBeenSet != null) {
@@ -1602,12 +1430,6 @@ public final class HandleFOPCstrings {
 		SetParamInfo lookup = hashOfSetParameters.get(paramName);
 		if (lookup == null) { return null; }
 		return lookup.parameterValue;
-	}
-
-	public boolean haveLoadedThisFile(String fileName, boolean recordLoaded) {
-		if (filesLoaded.contains(fileName)) { return true; }
-		if (recordLoaded) { filesLoaded.add(fileName); }
-		return false;
 	}
 
 	String createSafeStringConstantForWILL(String string) {
@@ -1684,20 +1506,8 @@ public final class HandleFOPCstrings {
         }
     }
 
-	public void addLiteralAlias(Literal alias, Literal literal) {
-       literalAliases.put(alias, literal);
-    }
 
-    public Literal lookupLiteralAlias(Literal alias) {
-        Literal literal = literalAliases.get(alias);
-        if ( literal == null ) {
-            throw new IllegalArgumentException("Unable to find Literal for alias of " + alias + ".");
-        }
-        return literal;
-    }
-
-
-    public void setStarMode(int value) {
+	public void setStarMode(int value) {
         starModeMap = value;
     }
 	int     getStarMode()          { return starModeMap; }
