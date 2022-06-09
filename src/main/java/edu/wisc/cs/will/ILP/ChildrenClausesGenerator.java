@@ -560,9 +560,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 							}
 
 							SingleClauseNode newNodePrime = newNode; // This might get changed below.
-							if (thisTask.pruner != null && thisTask.pruner.prune(newNode))  {
-								continue; 	 // Advance to the next set of arguments.
-							}
+
 							// TODO(@hayesall): Originally this was the line: `List<Literal>    matchables   = (discardDuplicateLiterals ? parent.collectAllVariants(pred) : null);`
 							List<Literal> matchables = (parent.collectAllVariants(pred));
 							
