@@ -104,13 +104,8 @@ public class FileParser {
 
 	private final boolean treatAND_OR_NOTasRegularNames = false; // If true, treat AND and OR as function or predicate names.  (Used for IL parsing, for example.)
 
-
 	public FileParser(HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
-	}
-
-	public Collection<LiteralToThreshold> getLiteralsToThreshold() {
-		return Collections.EMPTY_SET;
 	}
 
 	// Return what seems to be the working directory for the current task.
