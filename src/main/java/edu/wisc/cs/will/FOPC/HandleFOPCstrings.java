@@ -157,10 +157,7 @@ public final class HandleFOPCstrings {
 
 		// Initialize some parameters used in libraries.
 		// TODO(hayesall): I've deleted the libraries, is it even possible for these to be used?
-		recordSetParameter("relevance0", "POSSIBLE_ANSWER"); // Probably a bad choice to number with LOWER being better ...
-		recordSetParameter("relevance1", "STRONGLY_RELEVANT");
-		recordSetParameter("relevance2", "WEAKLY_RELEVANT");
-		recordSetParameter("relevance3", "NEUTRAL");
+		// 		Some of these appear to be related to "relevance," which I've already deprecated.
 		recordSetParameter("mixAndMatchAdviceLiterals", "WEAKLY_RELEVANT");
 		recordSetParameter("atOrAboveTargetArguments", "IRRELEVANT");
 		recordSetParameter("belowTargetArguments",     "WEAKLY_RELEVANT");
@@ -1396,20 +1393,8 @@ public final class HandleFOPCstrings {
 		return result;
 	}
 
-	void setPredicatesHaveCosts() {
-		predicatesHaveCosts = true;
-	}
 	public boolean getPredicatesHaveCosts() {
 		return predicatesHaveCosts;
-	}
-
-	double convertRelevanceStrengthToCost(RelevanceStrength strength) {
-		String hasBeenSet = getParameterSetting(strength.toString()); // See if overridden.
-		if (hasBeenSet != null) {
-			Double.parseDouble(hasBeenSet);
-		}
-		// TODO(@hayesall): This looks like an error, this was probably supposed to `return Double.parseDouble(hasBeenSet);`
-		return strength.defaultCost();
 	}
 
 	private final Map<String,SetParamInfo> hashOfSetParameters = new HashMap<>(4);

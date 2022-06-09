@@ -1,5 +1,7 @@
 package edu.wisc.cs.will.FOPC;
 
+import edu.wisc.cs.will.Utils.MapOfLists;
+import edu.wisc.cs.will.Utils.MapOfSets;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
@@ -26,7 +28,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Set<Integer>                   bridgerSpec                = null;  // See if this predicate/arity is meant to be a 'bridger' predicate during ILP's search for clauses.  If the arg# is given (defaults to -1 otherwise), then all other arguments should be bound before this is treated as a 'bridger.'
 	private   Set<Integer>                   temporary                  = null;  // See if this predicate/arity is only a temporary predicate and if so, it needs to be renamed to avoid name conflicts across runs.  So slightly different than inline.
 	private   Set<Integer>                   queryPredSpec              = null;  // Used with MLNs.
-	// Is this a supporting literal that needs to attached to learned theories?
 	private   Set<Integer>                   containsCallable           = null;  // One of the terms of the predicate is called during execution of the predicate.
 
 	public    boolean printUsingInFixNotation = false;
