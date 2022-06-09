@@ -109,10 +109,6 @@ public class FileParser {
 		this.stringHandler = stringHandler;
 	}
 
-	public Collection<LiteralToThreshold> getLiteralsToThreshold() {
-		return Collections.EMPTY_SET;
-	}
-
 	// Return what seems to be the working directory for the current task.
 	public void setDirectoryName(String name) {
 		checkDirectoryName(name);
@@ -391,12 +387,6 @@ public class FileParser {
 						nextSentence =                                                  processFOPC_sentence(0);
 						break;
 					case StreamTokenizer.TT_NUMBER:  throw new ParsingException("Should not happen in the parser:  Read this NUMBER: " + tokenizer.nval());  // See comment above as to why this won't be reached.
-					case ':':
-						if (checkAndConsume('-')) { // At a Prolog-like "instruction to the system" (as opposed to a fact/rule being stated).
-							processInstructionToSystem();
-							break;
-						}
-						throw new ParsingException("Lines should not start with ':' unless followed by '-' (i.e., ':-').");
 					case '\\':  // Could be starting '\+'
 					case '~':
 					case '(':
@@ -490,31 +480,6 @@ public class FileParser {
 				(treatAND_OR_NOTasRegularNames && (ConnectiveName.isaAND(str)  || ConnectiveName.isaOR(str)|| ConnectiveName.isaNOT(str))));
 	}
 
-	private void processInstructionToSystem() throws IOException {
-		tokenizer.nextToken();
-		String nextTokenAsString = tokenizer.reportCurrentToken();
-
-		if       (nextTokenAsString.equalsIgnoreCase("discontiguous")) {
-		}
-		else if (nextTokenAsString.equalsIgnoreCase("dynamic")) {
-		}
-		else if (nextTokenAsString.equalsIgnoreCase("multifile")) {
-		}
-		else {
-			Utils.warning("% Unknown ':- " + nextTokenAsString + "' command.");
-		}
-		skipToEOL();
-	}
-
-	private void skipToEOL() throws IOException {  // Should this stop at StreamTokenizer.TT_EOL?  Probably not.
-		if (atEOL()) { return; }
-		tokenizer.nextToken();
-		while (!atEOL()) {
-			int tokenRead = tokenizer.nextToken();
-			if (tokenRead == StreamTokenizer.TT_EOF) { throw new IOException("Unexpected EOF: " + fileName); }
-		}
-	}
-
 	/*
 	 * Allow specification of notation for logical variables.  See comments about "useStdLogicVariables" and "usePrologVariables" above.
 	 */
@@ -550,129 +515,6 @@ public class FileParser {
         args.add(firstTerm);
         args.add(secondTerm);
 		return stringHandler.getLiteral(pName, args);
-	}
-
-	// This version is used if peeking ahead sees a '/' etc, e.g., 'p(x/y/z, 5)' or 'p(f(x)+f(y))'.
-	private Term processMathExpression(boolean argumentsMustBeTyped) throws ParsingException, IOException {
-		return processMathExpression(null, argumentsMustBeTyped, true);
-	}
-
-	private Term processMathExpression(Term initialTerm, boolean argumentsMustBeTyped, boolean insideLeftParen) throws ParsingException, IOException  {
-		// Need to process something like "X is Y + Z / Q." where "X is" has been absorbed already.
-		// When this is called, have encountered an left parenthesis or am starting a new in-fix expression.
-
-		List<AllOfFOPC> accumulator = new ArrayList<>(4);
-		boolean         lookingForTerm = true;
-		if (initialTerm != null) {
-			accumulator.add(initialTerm);
-			lookingForTerm = false;
-		}
-		while (true) {
-			int tokenRead = getNextToken();
-			if (processPossibleConnective(tokenRead) != null) {  // A logical connective (e.g., 'and') ends an "X is Y + Z, p(X), ..."
-				if (insideLeftParen) { throw new ParsingException("Unexpectedly read '" + reportLastItemRead() + " when inside a left parenthesis in a 'X is ...' expressions."); }
-
-				tokenizer.pushBack(); // Return the connective.
-				return convertAccumulatorToTerm(accumulator);
-			}
-			switch (tokenRead) {
-				case '(':
-				case '{':
-				case '[':
-					Term resultLeftParens = processMathExpression(argumentsMustBeTyped); // Parse up the closing right parenthesis.
-					accumulator.add(resultLeftParens);
-					if (!lookingForTerm) { throw new ParsingException("Encountered two terms in a row: '" + resultLeftParens + "'."); } // Could let this be implicit multiplication?
-					lookingForTerm = false;
-					break;
-				case ')':
-				case '}':
-				case ']':
-					// These are ok since we now allow p(x/y).    if (!insideLeftParen) { throw new ParsingException("Read a right parenthesis unexpectedly."); }
-					if (!insideLeftParen) { tokenizer.pushBack(); }
-					return convertAccumulatorToTerm(accumulator);
-				case '.':
-				case ';':
-					if (insideLeftParen) { throw new ParsingException("Read an EOL ('" + tokenRead + "') unexpectedly."); }
-					tokenizer.pushBack();
-					return convertAccumulatorToTerm(accumulator);
-				case '+': // These are the only in-fix operators currently known to the system (other than 'is').
-					if (accumulator.isEmpty()) { break; } // Discard any leading + signs.
-				case '*':
-				case '/':
-				case '-':
-					FunctionName fName = null;
-					if (checkAndConsume('*')) { fName = stringHandler.getFunctionName("**"); } // Exponentiation. (Check 'fName == null' here in case another IF is later added.)
-					if (fName == null && checkAndConsume('@')) { fName = stringHandler.getFunctionName("/*"); } // Integer division (since '//' can't be used).
-					if (fName == null) { fName = stringHandler.getFunctionName(String.valueOf((char) tokenRead)); }
-					// OK if '-' is the first item.
-					if (lookingForTerm && accumulator.size() > 0) { throw new ParsingException("Encountered two operators in a row: '" + reportLastItemRead() + "'."); }
-					accumulator.add(fName);
-					lookingForTerm = true;
-					break;
-				case StreamTokenizer.TT_WORD:
-					Term resultWord = processRestOfTerm(tokenRead, argumentsMustBeTyped, true);
-					accumulator.add(resultWord);
-					if (!lookingForTerm) { throw new ParsingException("Encountered two terms in a row (missing comma?): '" + resultWord + "'.  Accumulator=" + accumulator); }
-					lookingForTerm = false;
-					break;
-				default: throw new ParsingException("Read unexpected character when processing an 'X is ...' expression: '" + reportLastItemRead() + "'.");
-			}
-		}
-	}
-
-	/*
-	 * Have a list of the form: "( term operator term ... operator term )"
-	 * and have to use precedence rules to convert to a single term.
-	 * Algorithm: find the lowest precedence operator and combine it and its
-	 * two neighbors (break ties to the left). repeat until one term remains.
-	 * @return A term, the root of the abstract syntax tree created by
-	 *         parsing the given list.
-	 */
-	private Term convertAccumulatorToTerm(List<AllOfFOPC> accumulator) throws ParsingException {
-		if (accumulator == null || accumulator.isEmpty()) { throw new ParsingException("Have an empty mathematical expression following an instance of 'X is ...'"); }
-		while (accumulator.size() > 1) {
-			//  First find the lowest-precedence operator.
-			int lowestPrecedence  = Integer.MAX_VALUE;
-			int countOfLowestItem = -1;
-			int counter           =  0;
-			for (AllOfFOPC item : accumulator) {
-				if (item instanceof FunctionName) {
-					int precedence = stringHandler.getOperatorPrecedence((FunctionName) item);
-
-					if (precedence < lowestPrecedence) {
-						lowestPrecedence  = precedence;
-						countOfLowestItem = counter;
-					}
-				}
-				counter++;
-			}
-			if (countOfLowestItem < 0) { Utils.error("Something went wrong when grouping the items in a mathematical expression: " + accumulator); }
-			// Next combine the lowest-precedence operator and make a term with it and its two neighbors.
-			FunctionName        fName    = (FunctionName) accumulator.get(countOfLowestItem);
-			if (countOfLowestItem == 0 && fName == stringHandler.getFunctionName("-")) { // If '-' is the FIRST operator, need to handle it specially as an in-fix operator.
-				Term            rightArg = (Term)         accumulator.get(countOfLowestItem + 1);
-				List<Term>      args     = new ArrayList<>(1);
-				args.add(rightArg);
-				Function funct = stringHandler.getFunction(fName, args, null);
-				accumulator.add(   countOfLowestItem + 2, funct); // Add after the two items combined.
-				AllOfFOPC removed1 = accumulator.remove(countOfLowestItem + 1); // Do this in the proper order so shifting doesn't mess up counting.
-				AllOfFOPC removed2 = accumulator.remove(countOfLowestItem);
-			}
-			else {
-				if (countOfLowestItem < 1 || countOfLowestItem > accumulator.size() - 2) { Utils.error("Operators cannot be in the first or last positions: " + accumulator); }
-				Term            leftArg  = (Term)         accumulator.get(countOfLowestItem - 1);
-				Term            rightArg = (Term)         accumulator.get(countOfLowestItem + 1);
-				List<Term>      args     = new ArrayList<>(2);
-				args.add(leftArg);
-				args.add(rightArg);
-				Function funct = stringHandler.getFunction(fName, args, null);
-				accumulator.add(   countOfLowestItem + 2, funct); // Add after the three items combined.
-				AllOfFOPC removed1 = accumulator.remove(countOfLowestItem + 1); // Do this in the proper order so shifting doesn't mess up counting.
-				AllOfFOPC removed2 = accumulator.remove(countOfLowestItem);
-				AllOfFOPC removed3 = accumulator.remove(countOfLowestItem - 1);
-			}
-		}
-		return (Term) accumulator.get(0);
 	}
 
 	private Sentence convertAccumulatorToFOPC(List<AllOfFOPC> accumulator) throws ParsingException {
@@ -1091,13 +933,17 @@ public class FileParser {
 	 * a decimal point.
 	 */
 	private void processTypeRange() throws ParsingException, IOException {  // TODO handle doubles here but only if in braces.
+
+		// TODO(hayesall): Enforce range syntax to include '{}'
+
 		int typeNameCode = getNextToken();
 		if (typeNameCode != StreamTokenizer.TT_WORD) { Utils.error("Expecting the name of a type, but got: " + reportLastItemRead() + "."); }
 		String typeName = tokenizer.sval();
 		int tokenRead = getNextToken();
 		if (tokenRead != '=') { Utils.error("Expecting '=' but got: " + reportLastItemRead() + "."); }
+
 		boolean needClosingBrace  = false;
-		boolean containsDotDotDot = false;
+
 		List<Constant> constants = new ArrayList<>(4);
 		tokenRead = getNextToken();
 		if (tokenRead == '{') { needClosingBrace = true; tokenRead = getNextToken(); }
@@ -1114,13 +960,7 @@ public class FileParser {
 			tokenRead = getNextToken();
 			if (tokenRead == '.') { // See if this is '...'
 				if (checkAndConsume('.') && checkAndConsume('.')) {
-					if (constants.isEmpty() || !(constants.get(constants.size() - 1) instanceof NumericConstant)) {
-						throw new ParsingException("The '...' shorthand needs to follow an integer.  You provided: '" + constants.get(constants.size() - 1) + "'.");
-					}
-					constants.add(stringHandler.getStringConstant("...")); // Note: multiple '...'s are possible, and they can go "uphill" (e.g., "1, ..., 10") or "down hill" (e.g., "10, ..., 1") - however this code doesn't check for overall sequences that are monotonic, so "1, ..., 10, 90, ..., 11" is valid (thouhg maybe it shoudl not be?).
-					containsDotDotDot = true;
-					if (!checkAndConsume(',')) { throw new ParsingException("Expecting a comma after '...' in the specification of a range."); }
-					tokenRead = getNextToken();
+					throw new ParsingException("Using '...' is deprecated in ranges.");
 				}
 			}
 		}
@@ -1129,41 +969,7 @@ public class FileParser {
 			peekEOL(true); // Suck up an optional EOL.
 		}
 
-		if (containsDotDotDot) {
-			List<Constant> expandedConstants = new ArrayList<>(2 * constants.size());
-			int previous = Integer.MIN_VALUE;
-			int size     = constants.size();
-			for (int i = 0; i < size; i++) {
-				Constant c = constants.get(i);
-				if (c instanceof NumericConstant) {
-					previous = ((NumericConstant) c).value.intValue();
-					expandedConstants.add(c); // Duplicates are checked elsewhere - don't want to drop them here since that might mess up the use of '...' - e.g., "1, 2, 10, 15, ... 10".
-				}
-				else if (c instanceof StringConstant && c.equals(stringHandler.getStringConstant("..."))) { // getName().equalsIgnoreCase("...")) {
-					if (i == size - 1) { throw new ParsingException("The '...' in a range must be followed by a number."); }
-					Constant nextConstant = constants.get(i + 1);
-					if (!(nextConstant instanceof NumericConstant))  { throw new ParsingException("The '...' in a range must be followed by an integer.  You provided: '" + nextConstant + "'."); }
-					int next = ((NumericConstant) nextConstant).value.intValue();
-
-					if (Math.abs(next - previous) > 2000) { throw new ParsingException("Do you really want to expand from " + previous + " to " + next + "?  If so, you'll need to edit and recompile processTypeRange()."); }
-					if (next >= previous) {
-						for (int k = previous + 1; k < next; k++) {
-							expandedConstants.add(stringHandler.getNumericConstant(k));
-						}
-					}
-					else {
-						for (int k = previous - 1; k > next; k--) {
-							expandedConstants.add(stringHandler.getNumericConstant(k));
-						}
-					}
-				}
-				else { throw new ParsingException("When '...' is present, all types must be number.  You provided: '" + c + "'."); }
-			}
-			stringHandler.recordPossibleTypes(typeName, expandedConstants);
-		}
-		else {
-			stringHandler.recordPossibleTypes(typeName, constants);
-		}
+		stringHandler.recordPossibleTypes(typeName, constants);
 	}
 
 	/* Process a mode specification.  There needs to be an EOL at the end ('.' or ';') due to the optional arguments.
@@ -1648,14 +1454,14 @@ public class FileParser {
             case StreamTokenizer.TT_WORD:
                 Term result = processRestOfTerm(tokenRead, argumentsMustBeTyped);
                 if ( checkForOperator() ) {
-                    result = processMathExpression(result, argumentsMustBeTyped, false);
+					throw new ParsingException("MathExpression is deprecated.");
                 }
                 return result;
             default:
             	if (TypeSpec.isaModeSpec((char) tokenRead)) {
                     result = processRestOfTerm(tokenRead, argumentsMustBeTyped);
                     if ( checkForOperator() ) {
-                        result = processMathExpression(result, argumentsMustBeTyped, false);
+						throw new ParsingException("MathExpression is deprecated.");
                     }
                     return result;            		
             	}
@@ -1840,9 +1646,7 @@ public class FileParser {
 		else if (!calledFromInsideMathExpression && peekIfAtInfixMathSymbol()) {
 			tokenizer.pushBack();
 			Term initialTerm = stringHandler.getVariableOrConstant(typeSpec, wordRead);
-			Term mathExpression = processMathExpression(initialTerm, argumentsMustBeTyped, false);
-			checkForLimitOnNumberOfTrueSettings(typeSpec);
-			return mathExpression;
+			throw new ParsingException("MathExpressions are deprecated");
 		}
 		checkForLimitOnNumberOfTrueSettings(typeSpec);
 		return stringHandler.getVariableOrConstant(typeSpec, wordRead);  // If the next character isn't an open parenthesis, then have a constant or a variable.
@@ -1873,78 +1677,6 @@ public class FileParser {
         }
         clause.posLiterals = null; // No need to keep the "implictHead" around.  The resolution theorem prover "knows" it is implicitly there.
 		return clause;
-	}
-
-	/*
-	 * 	[]                      = nil
-	 *  [TermA]                 = consCell(TermA, nil);
-	 *  [TermA | TermB]         = consCell(TermA, TermB)
-	 *  [TermA, TermB]          = consCell(TermA, consCell(TermB, nil))
-	 *  [TermA, TermB | Term C] = consCell(TermA, consCell(TermB, TermC))
-	 *
-	 */
-	private ConsCell processList(boolean argumentsMustBeTyped, int leftParensCount, boolean closeWithRightParen) throws ParsingException, IOException {
-		// When called, one or more OPENs of list (i.e., '[') have been encountered.
-		if (leftParensCount < 0) { throw new ParsingException("Have too many closing ]'s in a list."); }
-		int tokenRead = getNextToken();
-		switch (tokenRead) {
-			case '[': // Need to process a new list, then cons it on the front of the rest of the list.
-				ConsCell firstPart = processList(argumentsMustBeTyped, 1, false);
-				Term    secondPart = processInsideConsCell(argumentsMustBeTyped, leftParensCount, false);
-				return stringHandler.getConsCell(firstPart, secondPart, null);
-			case ']': // Can "pop" the stack.
-				if (closeWithRightParen) { throw new ParsingException("Expecting a ')', but read: '" + reportLastItemRead() + "'."); }
-				if (leftParensCount == 1) { return stringHandler.getNil(); }
-				return processList(argumentsMustBeTyped, (leftParensCount - 1), false);
-		    default:
-				try { // Read the first term.
-					Term  first = processRestOfTerm(tokenRead, argumentsMustBeTyped);
-					// Read the rest of this list.
-					Term  rest  = processInsideConsCell(argumentsMustBeTyped, 1, closeWithRightParen);
-					// Make a cons cell.
-					ConsCell firstCons;
-                    if (rest == null) {
-                        firstCons = stringHandler.getConsCell(first, null);
-                    }
-                    else {
-                        firstCons = stringHandler.getConsCell(first, rest, null);
-                    }
-					if (leftParensCount == 1) { return firstCons; } // If only one level deep, done.
-					// If not done, process the rest and cons the first item on the front.
-					Term term = processInsideConsCell(argumentsMustBeTyped, (leftParensCount - 1), closeWithRightParen);
-					return stringHandler.getConsCell(firstCons, term,  null);
-                } catch (ParsingException e) {
-                    throw e;
-				} catch (Exception e) {
-					throw new ParsingException("Expecting a term or a '[' or a ']', but read: '" + reportLastItemRead() + "'\nand received this exception: " + e);
-				}
-		}
-	}
-
-	/*
-	 * p([ [a], [[[b]]], [c | d] ]). Have read the first item in a cons
-	 * cell, e.g., 'a' in '[a, ...]' or in '[a | b]' or in '[a]'
-	 */
-	private Term processInsideConsCell(boolean argumentsMustBeTyped, int leftParensCount, boolean closeWithRightParen) throws ParsingException, IOException {
-		int tokenRead = getNextToken();
-		switch (tokenRead) {
-			case ',':
-				return processList(argumentsMustBeTyped, leftParensCount, closeWithRightParen);
-			case '|':
-				Term term = processTerm(argumentsMustBeTyped);
-				// Need to suck up the closing bracket.  Complain if not found.
-				if (!checkAndConsume(']')) {
-					throw new ParsingException("Expecting a ']' after a '| term' in a list, but read: '" + reportLastItemRead() + "'.");
-				}
-				if (leftParensCount == 1) { return term; }
-				Term rest = processInsideConsCell(argumentsMustBeTyped, (leftParensCount - 1), closeWithRightParen);
-				return stringHandler.getConsCell(term, rest, null);
-			case ']':
-				if (closeWithRightParen) { throw new ParsingException("Expecting a ')', but read: '" + reportLastItemRead() + "'."); }
-				if (leftParensCount == 1) { return stringHandler.getNil(); }
-				return processInsideConsCell(argumentsMustBeTyped, (leftParensCount - 1), false);
-			default: throw new ParsingException("Processing inside a list and expecting a '|', ',' or ']', but read: '" + reportLastItemRead() + "'.");
-		}
 	}
 
 	private boolean atQuotedString(int token) {
