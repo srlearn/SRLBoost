@@ -466,43 +466,26 @@ public class FileParser {
 						String currentWord = tokenizer.sval();
 						boolean colonNext = checkAndConsume(':'); // If the next character is a colon, it will be "sucked up" and 'true' returned.  Otherwise it will be puhsed back and 'false' returned.
 						if (colonNext && currentWord.equalsIgnoreCase("setParam"))       { processSetParameter(); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("setParameter"))   { processSetParameter(); break; }
+						if (colonNext && currentWord.equalsIgnoreCase("setParameter"))   { throw new ParsingException("setParameter no longer supported"); }
 						if (colonNext && currentWord.equalsIgnoreCase("mode"))           { processMode(listOfSentencesReadOrCreated); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("numericFunctionAsPred"))           { processFunctionAsPred();           break; }
+						if (colonNext && currentWord.equalsIgnoreCase("numericFunctionAsPred"))           { throw new ParsingException("numericFunctionAsPred no longer supported"); }
 						if (colonNext && currentWord.equalsIgnoreCase("bridger"))        { processBridger();     break; }
-						if (colonNext && currentWord.equalsIgnoreCase("temporary"))      { processTemporary();   break; }
-						if (colonNext && currentWord.equalsIgnoreCase("inline"))         { processInline();      break; }
-						if (colonNext && currentWord.equalsIgnoreCase("relevant"))       { processRelevant(       listOfSentencesReadOrCreated); break; } // Can add a sentence, so pass in the collector.
-                        if (colonNext && currentWord.equalsIgnoreCase("nonOperational")) { processNonOperational(); break; }
-                        if (colonNext && currentWord.equalsIgnoreCase("relevantLiteral")) {
-                            processRelevantLiteralNew(listOfSentencesReadOrCreated);
-                            break;
-                        } // Can add a sentence, so pass in the collector.
-                        if ( colonNext && currentWord.equalsIgnoreCase("alias")) {
-                            processLiteralAlias();
-                            break;
-                        }
-                        if ( colonNext && currentWord.equalsIgnoreCase("containsCallable"))  { processContainsCallables(); break; }
-                        if (colonNext && currentWord.equalsIgnoreCase("supportLiteral"))      { processSupporter();   break; }
-                        if (colonNext && currentWord.equalsIgnoreCase("supportingPredicate")) { processSupporter();   break;}
-                        if (colonNext && currentWord.equalsIgnoreCase("supportPredicate"))    { processSupporter();   break; }
-						if (colonNext && currentWord.equalsIgnoreCase("cost"))                { processCost();   break; }
-						if (colonNext && currentWord.equalsIgnoreCase("precompute"))          { processPrecompute(0); break; } 
-						if (colonNext && currentWord.startsWith("precompute"))     {
-							// Do the regex matching now.
-							Matcher m = precomputePattern.matcher(currentWord);
-							if (m.matches()) {
-								String pMat = m.group(1);
-								int numPrecompute = Integer.parseInt(pMat);
-								processPrecompute(numPrecompute);
-								break;
-							}
-							Utils.waitHere("Word starts with 'precompute' but doesn't match: " + precomputePattern);
-						}
-						if (colonNext && currentWord.equalsIgnoreCase("prune"))          { processPrune(0); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("pruneTrue"))      { processPrune(1); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("pruneFalse"))     { processPrune(-1); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("isaInterval"))    { processISAInterval(); break; }
+						if (colonNext && currentWord.equalsIgnoreCase("temporary"))      { throw new ParsingException("temporary no longer supported"); }
+						if (colonNext && currentWord.equalsIgnoreCase("inline"))         { throw new ParsingException("inline no longer supported"); }
+						if (colonNext && currentWord.equalsIgnoreCase("relevant"))       { throw new ParsingException("relevant no longer supported"); }
+                        if (colonNext && currentWord.equalsIgnoreCase("nonOperational")) { throw new ParsingException("nonOperational no longer supported"); }
+                        if (colonNext && currentWord.equalsIgnoreCase("relevantLiteral")) { throw new ParsingException("relevantLiteral no longer supported"); }
+                        if ( colonNext && currentWord.equalsIgnoreCase("alias")) { throw new ParsingException("alias no longer supported"); }
+                        if ( colonNext && currentWord.equalsIgnoreCase("containsCallable"))  { throw new ParsingException("containsCallable no longer supported"); }
+                        if (colonNext && currentWord.equalsIgnoreCase("supportLiteral"))      { throw new ParsingException("supportLiteral no longer supported"); }
+                        if (colonNext && currentWord.equalsIgnoreCase("supportingPredicate")) { throw new ParsingException("supportingPredicate no longer supported");}
+                        if (colonNext && currentWord.equalsIgnoreCase("supportPredicate"))    { throw new ParsingException("supportPredicate no longer supported"); }
+						if (colonNext && currentWord.equalsIgnoreCase("cost"))                { throw new ParsingException("cost no longer supported"); }
+						if (colonNext && currentWord.equalsIgnoreCase("precompute"))          { throw new ParsingException("precompute no longer supported"); }
+						if (colonNext && currentWord.equalsIgnoreCase("prune"))          { throw new ParsingException("prune no longer supported"); }
+						if (colonNext && currentWord.equalsIgnoreCase("pruneTrue"))      { throw new ParsingException("pruneTrue no longer supported"); }
+						if (colonNext && currentWord.equalsIgnoreCase("pruneFalse"))     { throw new ParsingException("pruneFalse no longer supported"); }
+						if (colonNext && currentWord.equalsIgnoreCase("isaInterval"))    { throw new ParsingException("isaInterval no longer supported"); }
 						if (colonNext && currentWord.equalsIgnoreCase("range"))          { processTypeRange(  ); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("queryPred"))      { processQueryPred(  ); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("okIfUnknown"))                    { processDirective(currentWord);  break; }
@@ -510,23 +493,13 @@ public class FileParser {
 						if (colonNext && currentWord.equalsIgnoreCase("useStdLogicNotation"))            { processCaseForVariables(true);  break; }
 						if (colonNext && currentWord.equalsIgnoreCase("usePrologVariables"))             { processCaseForVariables(false); break; }
 						if (colonNext && currentWord.equalsIgnoreCase("usePrologNotation"))              { processCaseForVariables(false); break; }
-						if (colonNext && currentWord.equalsIgnoreCase("import"))      {
-							List<Sentence>  sentencesInOtherFile =                         processAnotherFile(false);
-							if (sentencesInOtherFile         == null) { break; }
-							listOfSentencesReadOrCreated.addAll(sentencesInOtherFile);
-							break;
-						}
-						if (colonNext && currentWord.equalsIgnoreCase("importLibrary"))      {
-							List<Sentence>  sentencesInOtherFile =                         processAnotherFile(true);
-							if (sentencesInOtherFile         == null) { break; }
-							listOfSentencesReadOrCreated.addAll(sentencesInOtherFile);
-							break;
-						}
+						if (colonNext && currentWord.equalsIgnoreCase("import"))      { throw new ParsingException("import no longer supported"); }
+						if (colonNext && currentWord.equalsIgnoreCase("importLibrary"))      { throw new ParsingException("importLibrary no longer supported"); }
+
 						if (colonNext) { tokenizer.pushBack(); } // Need to push the colon back if it wasn't part of a special instruction.  It can also appear in modes of terms.
 
-						// TODO(@hayesall): I dropped "weight" and "wgt" above, maybe they can be dropped here?
 						if (currentWord.equalsIgnoreCase("weight") || currentWord.equalsIgnoreCase("wgt")) {
-							nextSentence = processWeight(getNextToken()); break;
+							throw new ParsingException("weight no longer supported");
 						}
 						if (!ignoreThisConnective(true, currentWord) && ConnectiveName.isaConnective(currentWord) && !ConnectiveName.isTextualConnective(currentWord)) { // NOT's handled by processFOPC_sentence.
 							//Utils.error("Need to handle a PREFIX connective: '" + currentWord + "'.");
