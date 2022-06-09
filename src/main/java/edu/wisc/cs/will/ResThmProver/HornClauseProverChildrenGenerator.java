@@ -16,7 +16,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
     private final HornClauseContext context;
 
-    private BindingList bindingList; // Use this repeatedly to save some "new'ing."
+    private final BindingList bindingList; // Use this repeatedly to save some "new'ing."
 
     private long maxOpen = 0;
 
@@ -94,8 +94,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      */
     static long proofCounter = 0;
 
-    private final PrettyPrinterOptions prettyPrintOptions;
-
     HornClauseProverChildrenGenerator(HornClauseProver task, HornClauseContext context) {
         super(task);
 
@@ -109,7 +107,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         failLiteral = stringHandler.getLiteral(stringHandler.standardPredicateNames.fail);
 
-        prettyPrintOptions = new PrettyPrinterOptions();
+        PrettyPrinterOptions prettyPrintOptions = new PrettyPrinterOptions();
         prettyPrintOptions.setMaximumConsCells(5);
         prettyPrintOptions.setMultilineOutputEnabled(false);
         prettyPrintOptions.setSentenceTerminator("");
@@ -118,286 +116,21 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     }
 
     @Override
-    public List<HornSearchNode> collectChildren(HornSearchNode hornSearchNode) throws SearchInterrupted {
+    public List<HornSearchNode> collectChildren(HornSearchNode hornSearchNode) throws SearchInterrupted, RuntimeException {
 
-        List<HornSearchNode> result = null;
+        // TODO(hayesall): I pulled a bunch of spy and trace calls out of here. I don't think `printVariableCounters` does anything now.
 
+        boolean oldPrintVars = getStringHandler().printVariableCounters;
 
-        if (hornSearchNode instanceof FailedTraceNode) {
-            FailedTraceNode failedTraceNode = (FailedTraceNode) hornSearchNode;
+        // Do the actual work right here...
+        List<HornSearchNode> result = collectChildrenActual(hornSearchNode);
 
-            BindingList localVarBindings = getLocalBindings(failedTraceNode.failedLiteral, failedTraceNode);
+        maxOpen = Math.max(getTask().open.size(), maxOpen);
 
-            String litString = PrettyPrinter.print(failedTraceNode.failedLiteral, "", "", prettyPrintOptions, localVarBindings);
+        getStringHandler().printVariableCounters = oldPrintVars;
 
-            Utils.println(String.format("          [%d.%d] failed: %s", failedTraceNode.parentProofCounter, failedTraceNode.parentExpansionIndex, litString));
-            Utils.println("\n--------------------------------------------------------------------------------\n");
-        }
-
-        else {
-
-            // This is some debugging code.  Please do not delete me.
-            boolean oldPrintVars = getStringHandler().printVariableCounters;
-
-            List<Literal> queryLiterals = hornSearchNode.clause.negLiterals;
-
-            Literal literalBeingExpanded = queryLiterals.get(0);
-
-            while (literalBeingExpanded instanceof StackTraceLiteral) {
-                StackTraceLiteral trace = (StackTraceLiteral) literalBeingExpanded;
-
-                Literal traceLiteral = trace.getTraceLiteral();
-                if (getTask().getTraceLevel() >= 2 || isSpyLiteral(traceLiteral)) {
-                    
-                    BindingList localVarBindings = null;
-
-                    if (getTask().getTraceLevel() >= 3 || isSpyLiteral(traceLiteral)) {
-                        localVarBindings = getLocalBindings(traceLiteral, hornSearchNode);
-                    }
-
-                    String litString = PrettyPrinter.print(traceLiteral, "", "", prettyPrintOptions, localVarBindings);
-
-                    Utils.println(String.format("          [%d.%d] returned: %s", trace.getProofCounter(), trace.getExpansion(), litString));
-
-                    Utils.println("\n--------------------------------------------------------------------------------\n");
-                    
-                }
-
-                queryLiterals.remove(0);
-
-                // If we got rid of the last literal, then this was a successful proof.
-                // Return an empty child.
-                if (queryLiterals.isEmpty()) {
-                    return Collections.singletonList(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
-                }
-                else {
-                    literalBeingExpanded = queryLiterals.get(0);
-                }
-            }
-
-            // Enable spy points...
-            if (getTask().getTraceLevel() == 0 && getTask().getSpyEntries().includeElement(literalBeingExpanded.predicateName, literalBeingExpanded.numberArgs())) {
-                /* Indicates the default spy level that should be set when a spy point is hit.
-                 *
-                 * 1: Tracing enabled.  Minimum to get anything.
-                 * 2: Tracing of subliterals.
-                 * 3: Detail tracing of subliterals including bindings.
-                 * 4: Everything plus a printout of the openlist (don't do this).
-                 */
-                int defaultSpyLevel = 1;
-                if (getTask().getTraceLevel() < defaultSpyLevel) {
-                    Utils.println("Spy point encountered on " + literalBeingExpanded.predicateName + "/" + literalBeingExpanded.numberArgs() + ".  Enabling tracing.");
-                    getTask().setTraceLevel(defaultSpyLevel);
-                }
-            }
-
-            BindingList printBindings = tracePrefix(hornSearchNode, literalBeingExpanded, prettyPrintOptions);
-
-            // Do the actual work right here...
-            result = collectChildrenActual(hornSearchNode);
-
-            if (result != null && (getTask().getTraceLevel() >= 2 || isSpyLiteral(literalBeingExpanded))) {
-                result.add(new FailedTraceNode(getTask(), literalBeingExpanded, hornSearchNode.parentProofCounter, hornSearchNode.parentExpansionIndex));
-            }
-            
-            maxOpen = Math.max(getTask().open.size(), maxOpen);
-
-            traceSuffix(hornSearchNode, result, queryLiterals, literalBeingExpanded, printBindings, prettyPrintOptions);
-
-            getStringHandler().printVariableCounters = oldPrintVars;
-
-            proofCounter++;
-        }
+        proofCounter++;
         return result;
-    }
-
-    private BindingList getLocalBindings(Literal traceLiteral, HornSearchNode hornSearchNode) {
-        BindingList localVarBindings = new BindingList();
-        Collection<Variable> freeVars = traceLiteral.collectFreeVariables(null);
-        for (Variable freeVar : freeVars) {
-            Term freeBinding = hornSearchNode.getBinding(freeVar);
-            if (freeBinding != null) {
-                localVarBindings.addBinding(freeVar, freeBinding);
-            }
-        }
-        return localVarBindings;
-    }
-
-    private BindingList tracePrefix(HornSearchNode hornSearchNode, Literal firstQueryLiteral, PrettyPrinterOptions ppo) {
-        try {
-            if (getTask().getTraceLevel() >= 2 || (getTask().getTraceLevel() >= 1 && isSpyLiteral(firstQueryLiteral))) {
-
-                getStringHandler().printVariableCounters = true;
-
-                BindingList printBindings = getLocalBindings(firstQueryLiteral, hornSearchNode);
-
-
-                String headerString = String.format("[%6d] Collecting expansions of [%d.%d]: ", proofCounter, hornSearchNode.parentProofCounter, hornSearchNode.parentExpansionIndex);
-                String litString = PrettyPrinter.print(firstQueryLiteral, "", PrettyPrinter.spaces(headerString.length() + 2), ppo, printBindings);
-
-                Utils.println(headerString + litString);
-
-                if (getTask().getTraceLevel() >= 3) {
-                    List<Binding> bindings = hornSearchNode.collectBindingsToRoot();
-                    if (bindings != null) {
-                        bindings.sort(Comparator.comparingLong(o -> o.var.counter));
-                    }
-
-                    Utils.println("  Initial bindings: " + bindings);
-                }
-
-                if (getTask().getTraceLevel() >= 4) {
-                    Utils.println("  OpenList: ");
-                    for (int i = 0; i < getTask().open.size(); i++) {
-                        Utils.println("    " + getTask().open.get(i));
-                    }
-                }
-
-                return printBindings;
-            }
-        } catch (Throwable e) {
-            Utils.println("Error occurred while tracing: " + e.toString() + ".");
-        }
-
-        return null;
-    }
-
-    private void traceSuffix(HornSearchNode lastExpandedNode, List<HornSearchNode> list, List<Literal> queryLiterals, Literal negatedLiteral, BindingList printBindings, PrettyPrinterOptions ppo) {
-        try {
-
-            if (getTask().getTraceLevel() >= 2 || (getTask().getTraceLevel() >= 1 && isSpyLiteral(negatedLiteral))) {
-                if (list == null) {
-                    HornSearchNode nextOpenNode = task.open.peekFirst();
-                    String literalString = PrettyPrinter.print(negatedLiteral, "", "", ppo, printBindings);
-                    if (nextOpenNode == null) {
-                        Utils.println("          [" + lastExpandedNode.parentProofCounter + "." + lastExpandedNode.parentExpansionIndex + "] failed: " + literalString + ".  No remaining open.  Failing proof.");
-                    }
-                    else {
-                        Utils.println("          [" + lastExpandedNode.parentProofCounter + "." + lastExpandedNode.parentExpansionIndex + "] failed: " + literalString + ".  Backtracking to expansion [" + nextOpenNode.parentProofCounter + "." + nextOpenNode.parentExpansionIndex + "].");
-                    }
-                }
-                else {
-                    Literal nextLiteral = queryLiterals.size() > 1 ? queryLiterals.get(1) : null;
-
-                    int expansionCount = list.size();
-                    if (list.get(expansionCount - 1) instanceof FailedTraceNode) {
-                        expansionCount--;
-                    }
-
-                    String headerString = "           Found " + expansionCount + " expansions:";
-                    Utils.println(headerString);
-                    for (int expansion = 0; expansion < expansionCount; expansion++) {
-                        HornSearchNode searchNode = list.get(expansion);
-
-                        StringBuilder sb = new StringBuilder();
-                        Clause c = searchNode.clause;
-
-                        if (searchNode.bindings != null) {
-                            Set<Variable> printVars = new HashSet<>(printBindings.getVariables());
-                            for (Variable variable : printVars) {
-                                Term reverseBinding = searchNode.bindings.lookup(variable);
-                                if (reverseBinding instanceof Variable) {
-                                    printBindings.addBinding((Variable) reverseBinding, variable);
-                                }
-                            }
-                        }
-
-                        if (negatedLiteral.predicateName == getStringHandler().standardPredicateNames.negationByFailure && searchNode.parentExpansionIndex == 0) {
-                            String clauseString = PrettyPrinter.print(c, "", "", ppo, printBindings);
-                            sb.append(clauseString);
-                        }
-                        else if (searchNode.parentExpansionIndex == -1) {
-                            sb.append("cutMarker");
-                        }
-                        else {
-                            int maxNewCount = c.getNegLiteralCount() - (queryLiterals.size() - 1);
-
-                            int realLiteralCount = 0;  // count ignoring StackTraceLiterals
-                            for (int i = 0; i < c.getNegLiteralCount(); i++) {
-                                Literal lit = c.getNegLiteral(i);
-                                if (!(lit instanceof StackTraceLiteral)) {
-
-                                    if (realLiteralCount > 0) {
-                                        sb.append(" ^ ");
-                                    }
-                                    if (realLiteralCount < maxNewCount && c.negLiterals.get(i) != nextLiteral) {
-
-                                        String clauseString = PrettyPrinter.print(c.negLiterals.get(i), "", "", ppo, printBindings);
-                                        sb.append(clauseString);
-                                    }
-                                    else {
-                                        if (realLiteralCount == 0) {
-                                            sb.append("true ^ ");
-                                        }
-                                        sb.append("REST");
-                                        realLiteralCount++;
-                                        break;
-                                    }
-
-                                    realLiteralCount++;
-                                }
-                            }
-
-                            if (realLiteralCount == 0) {
-                                sb.append("true (proof successful)");
-                            }
-                        }
-                        Utils.println(String.format("             [%d.%d] %s", searchNode.parentProofCounter, searchNode.parentExpansionIndex, sb.toString()));
-
-                        if (getTask().getTraceLevel() >= 2 || isSpyLiteral(negatedLiteral)) {
-
-                            int bindingCount = 0;
-
-                            StringBuilder stringBuilder = new StringBuilder();
-
-                            stringBuilder.append("{");
-
-                            Collection<Variable> freeVars = lastExpandedNode.clause.collectFreeVariables(null);
-                            boolean first = true;
-                            for (Variable freeVar : freeVars) {
-
-
-
-                                Term to = searchNode.getBinding(freeVar);
-
-                                if (to != null && !(to instanceof Variable)) {
-                                    String from = PrettyPrinter.print(freeVar, "", "", ppo, null);
-                                    Term printBinding = printBindings.getMapping(freeVar);
-                                    if (printBinding != null) {
-                                        from = ((StringConstant) printBinding).getBareName();
-                                    }
-
-                                    if (!first) {
-                                        stringBuilder.append(", ");
-                                    }
-
-                                    stringBuilder.append(from).append(" => ").append(PrettyPrinter.print(to, "", "", ppo, printBindings));
-                                    first = false;
-                                    bindingCount++;
-                                }
-                            }
-
-                            stringBuilder.append("}");
-                            if (bindingCount > 0) {
-                                Utils.println(String.format("                     with: %s.", stringBuilder.toString()));
-                            }
-                        }
-
-                    }
-                }
-
-                
-                Utils.println("           OpenList size =  "+ getTask().open.size() + ".  Max Open = " + maxOpen + ".");
-                
-                Utils.println("\n--------------------------------------------------------------------------------\n");
-            }
-        } catch (Throwable e) {
-            Utils.println("Error occurred while tracing: " + e.toString() + ".");
-        }
-    }
-
-    private boolean isSpyLiteral(Literal traceLiteral) {
-        return getStringHandler().spyEntries.includeElement(traceLiteral.predicateName, traceLiteral.getArity());
     }
 
     private List<HornSearchNode> collectChildrenActual(HornSearchNode hornSearchNode) throws SearchInterrupted {
@@ -599,23 +332,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 children = new ArrayList<>(1);
                 children.add(collectNode);
                 children.add(answerNode);
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.spy) {
-
-                for (int i = 0; i < negatedLiteral.numberArgs(); i++) {
-
-                    Term arg = negatedLiteral.getArgument(i);
-                    PredicateNameAndArity predicateNameArity = getPredicateNameAndArity(arg);
-
-                    if (predicateNameArity != null) {
-                        getTask().getSpyEntries().addLiteral(predicateNameArity);
-                    }
-                }
-
-                children = new ArrayList<>(1);
-                children.add(createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null));
                 return children;
             }
         }
@@ -856,56 +572,11 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         return (HornClauseProver) task;
     }
 
-    private PredicateNameAndArity getPredicateNameAndArity(Term arg) {
-
-        HandleFOPCstrings stringHandler = getStringHandler();
-
-        PredicateNameAndArity predicateNameArity = null;
-        PredicateName name = null;
-        int arity = -1;
-        if (arg instanceof StringConstant) {
-            StringConstant stringConstant = (StringConstant) arg;
-            String contents = stringConstant.getName();
-            int index = contents.indexOf("/");
-            if (index == -1) {
-                name = stringHandler.getPredicateName(contents);
-            }
-            else {
-                String namePart = contents.substring(0, index);
-                String arityPart = contents.substring(index + 1);
-                try {
-                    arity = Integer.parseInt(arityPart);
-                    name = stringHandler.getPredicateName(namePart);
-                } catch (NumberFormatException ignored) {
-                }
-            }
-        }
-        else if (arg instanceof Function) {
-            Function function = (Function) arg;
-            if (function.functionName.name.equals("/") && function.numberArgs() == 2) {
-                if (function.getArgument(0) instanceof StringConstant && function.getArgument(1) instanceof NumericConstant) {
-                    name = stringHandler.getPredicateName(((StringConstant) function.getArgument(0)).getBareName());
-                    arity = ((NumericConstant) function.getArgument(1)).value.intValue();
-                }
-            }
-        }
-
-
-        if (name != null) {
-            predicateNameArity = new PredicateNameAndArity(name, arity);
-        }
-
-        return predicateNameArity;
-    }
-
-    private List<Literal> getQueryRemainder(List<Literal> queryLiterals, long proofCounter, int expansion, BindingList bindingList) {
+    private List<Literal> getQueryRemainder(List<Literal> queryLiterals, BindingList bindingList) {
         int querySize = queryLiterals.size();
         List<Literal> queryRemainder = new LinkedList<>();
 
         if (querySize > 0) {
-            if (getTask().getTraceLevel() >= 2 || (getTask().getTraceLevel() >= 1 && isSpyLiteral(queryLiterals.get(0)))) {
-                queryRemainder.add(new StackTraceLiteral(queryLiterals.get(0), proofCounter, expansion));
-            }
 
             for (int i = 1; i < querySize; i++) {
                 Literal lit = queryLiterals.get(i);
@@ -922,7 +593,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         int expansion = getNextExpansion();
 
-        List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, proofCounter, expansion, bindingList);
+        List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, bindingList);
 
         if (bindingList != null) {
             bindingList = bindingList.copy();
@@ -945,7 +616,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         int expansion = getNextExpansion();
 
-        List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, proofCounter, expansion, null);
+        List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, null);
 
         if (newLiteral != null) {
             newQueryLiterals.add(0, newLiteral);
@@ -961,58 +632,9 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             bindingList = bindingList.copy();
         }
 
-        List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, proofCounter, expansion, bindingList);
+        List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, bindingList);
 
         return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), bindingList, proofCounter, expansion);
-    }
-
-    private static class StackTraceLiteral extends Literal {
-
-        private final Literal traceLiteral;
-
-        private final long proofCounter;
-
-        private final int expansion;
-
-        StackTraceLiteral(Literal traceLiteral, long proofCount, int expansion) {
-            this.traceLiteral = traceLiteral;
-            this.proofCounter = proofCount;
-            this.expansion = expansion;
-
-            predicateName = traceLiteral.getStringHandler().getPredicateName("StackTrace");
-        }
-
-        int getExpansion() {
-            return expansion;
-        }
-
-        Literal getTraceLiteral() {
-            return traceLiteral;
-        }
-
-        long getProofCounter() {
-            return proofCounter;
-        }
-
-        @Override
-        public String toString(int precedenceOfCaller) {
-            return "StackTrace(Return of " + traceLiteral + " [" + getProofCounter() + "." + getExpansion() + "])";
-        }
-
-        @Override
-        public String toPrettyString() {
-            return toString();
-        }
-
-        @Override
-        public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
-            return toString();
-        }
-
-        @Override
-        public String toString(int precedenceOfCaller, BindingList bindingList) {
-            return toString();
-        }
     }
 
     protected static class CutMarkerNode extends HornSearchNode {
@@ -1111,18 +733,4 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         }
     }
 
-    private static class FailedTraceNode extends HornSearchNode {
-
-        final Literal failedLiteral;
-
-        FailedTraceNode(HornClauseProver task, Literal failedLiteral, long parentProofCounter, int parentExpansionIndex) {
-            super(task, null, parentProofCounter, parentExpansionIndex);
-            this.failedLiteral = failedLiteral;
-        }
-
-        @Override
-        public String toString() {
-            return "StackTrace(Fail of " + failedLiteral + " [" + parentProofCounter + "." + parentExpansionIndex + "])";
-        }
-    }
 }

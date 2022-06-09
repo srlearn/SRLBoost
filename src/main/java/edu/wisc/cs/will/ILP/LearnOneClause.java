@@ -911,11 +911,6 @@ public class LearnOneClause extends StateBasedSearchTask {
                 return true;
             }
             else {
-
-                if ( prover.getTraceLevel() == 0 && prover.getSpyEntries().includeElement(head.predicateName, head.numberArgs())) {
-                    Utils.println("Spy point encountered on " + head.predicateName + "/" + head.numberArgs() + ".  Enabling tracing.");
-                    prover.setTraceLevel(1);
-                }
                 List<Literal> query = bindingList.applyTheta(clauseBody);
 				return prove(query);
 			}

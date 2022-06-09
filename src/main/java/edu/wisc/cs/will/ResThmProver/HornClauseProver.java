@@ -4,7 +4,6 @@ import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -21,23 +20,7 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 
 	final Set<PredicateName>                predefinedPredicateNamesUsedByChildCollector; // Those in those list are handled by collectChildrenActual.
 
-	/* Indicates level of output during proof.
-     *
-     * The traceLevel controls the amount of output generated
-     * at each step in the proof.  This is similar to the
-     */
-    private int                       traceLevel = 0;
-
-    private final PredicateNameAndArityFilter  spyEntries;
-
-	public HornClauseProver(HornClausebase factbase) {
-        this(factbase, new DepthFirstSearch());
-	}
-
-	private HornClauseProver(HornClausebase factbase, SearchStrategy searchStrategy) {
-        this(new DefaultHornClauseContext(factbase), searchStrategy, false);
-    }
-    public HornClauseProver(HornClauseContext context) {
+	public HornClauseProver(HornClauseContext context) {
         this(context, false);
     }
     public HornClauseProver(HornClauseContext context, boolean redoable) {        
@@ -50,8 +33,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
         
         HandleFOPCstrings stringHandler = context.getStringHandler();
 
-        spyEntries = stringHandler.getSpyEntries();
-        
         predefinedPredicateNamesUsedByChildCollector = stringHandler.standardPredicateNames.buildinPredicates;
 
 		InitHornProofSpace     myInitializer = new InitHornProofSpace(this);
@@ -86,38 +67,9 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		open.addToFrontOfOpenList(node); // Need to return the last item popped.
 	}
 
-    private void initialize(List<Literal> negatedConjunctiveQuery) {
-        ((InitHornProofSpace) initializer).loadNegatedConjunctiveQuery(negatedConjunctiveQuery, open);
-    }
-
-    private void initialize(SLDQuery query) throws IllegalArgumentException {
-        initialize(query.getNegatedQueryClause().negLiterals);
-    }
-
-    public BindingList prove(SLDQuery query) throws IllegalArgumentException, SearchInterrupted {
-        BindingList result = null;
-
-        initialize(query);
-        SearchResult sr = performSearch();
-
-        if ( sr.goalFound() ) {
-            result = new BindingList(((ProofDone) terminator).collectQueryBindings());
-        }
-
-        return result;
-    }
-
 	private boolean proveSimpleQuery(Literal negatedFact) throws SearchInterrupted {
 		((InitHornProofSpace) initializer).loadNegatedSimpleQuery(negatedFact, open);
 		return performSearch().goalFound();
-	}
-
-	private BindingList proveSimpleQueryAndReturnBindings(Literal negatedFact) throws SearchInterrupted {
-
-		if (proveSimpleQuery(negatedFact)) {
-			return new BindingList(((ProofDone) terminator).collectQueryBindings());
-		}
-		return null;
 	}
 
 	private int countOfWarningsForMaxNodes =   0;
@@ -142,40 +94,12 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		return null;
 	}
 
-	public List<Term> getAllUniqueGroundings(Literal query) throws SearchInterrupted {
-		Function   queryAsFunction = query.convertToFunction(getStringHandler());
-		Variable   var             = getStringHandler().getNewUnamedVariable();
-		List<Term> findAllArgList  = new ArrayList<>(3);
-		findAllArgList.add(queryAsFunction);
-		Clause clause = getStringHandler().getClause(query, false);
-		findAllArgList.add(getStringHandler().getSentenceAsTerm(clause, "getAllUniqueGroundings"));
-		findAllArgList.add(var);
-		Literal allRaw = getStringHandler().getLiteral(getStringHandler().standardPredicateNames.all, findAllArgList);
-		BindingList  bl = proveSimpleQueryAndReturnBindings(allRaw);
-		if (bl == null) { return null; }
-		ConsCell allResults = (ConsCell) bl.lookup(var);
-		if (allResults == null) { return null; }
-		return allResults.convertConsCellToList();
-	}
-
 	public HornClausebase getClausebase() {
         return context.getClausebase();
     }
 
     public HandleFOPCstrings getStringHandler() {
         return context.getStringHandler();
-    }
-
-    public PredicateNameAndArityFilter getSpyEntries() {
-        return spyEntries;
-    }
-
-    public int getTraceLevel() {
-        return traceLevel;
-    }
-
-	public void setTraceLevel(int traceLevel) {
-        this.traceLevel = traceLevel;
     }
 
 
