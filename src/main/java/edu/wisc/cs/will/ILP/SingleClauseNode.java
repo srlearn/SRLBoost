@@ -156,8 +156,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		LearnOneClause theTask = (LearnOneClause) task;
 		if (theTask.stringHandler.getPredicatesHaveCosts()) {
 			double total = 0.0;
-			for (Literal lit : getClauseBody()) {  // TODO: use recursion instead of getting the clause body?
-				total += lit.predicateName.getCost(lit.numberArgs());
+			for (Literal ignored : getClauseBody()) {  // TODO: use recursion instead of getting the clause body?
+				total += 1.0;
 			}
 			return total;
 		}
@@ -301,8 +301,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	double discountForRepeatedLiterals(Set<PredicateName> pNames) {
 		double localDiscount = 0.0;
 		if (literalAdded != null) {
-			PredicateName pName = literalAdded.predicateName;
-			if (pNames.contains(literalAdded.predicateName)) { localDiscount += 0.1 * pName.getCost(literalAdded.numberArgs()); }
+			if (pNames.contains(literalAdded.predicateName)) { localDiscount += 0.1; }
 			else { pNames.add(literalAdded.predicateName); }
 		}
 		SingleClauseNode parent = getParentNode();
@@ -630,27 +629,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (parent == null) { return false; }
 		return parent.posExampleAlreadyExcluded(example);
 	}
-	
-	// Used to get examples on the false branch for a node
-	private List<Example> posExampleFailedAtNode()  throws SearchInterrupted {
-		if (getPosCoverage() < 0.0) { computeCoverage(); }
-		if (this == ((LearnOneClause)task).currentStartingNode) {
-				return new ArrayList<>();
-		}
-		
-		List<Example> failedExamples;
-		if (posExamplesThatFailedHere != null) {
-			failedExamples = new ArrayList<>(posExamplesThatFailedHere);
-		} else {
-			failedExamples = new ArrayList<>();
-		}
-		
-		SingleClauseNode parent = getParentNode();
-		if (parent == null) { return failedExamples; }
-		failedExamples.addAll(parent.posExampleFailedAtNode());
-		return failedExamples;
-	}
-	
+
 	private boolean negExampleAlreadyExcluded(Literal example) throws SearchInterrupted {
 		if (negCoverage < 0.0) { computeCoverage(); }
 		if (negExamplesThatFailedHere != null && negExamplesThatFailedHere.contains(example)) { return true; }
@@ -898,12 +877,10 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		}
 		
 		if (result < 0) {
-			if (Math.abs(result) < 1e-8 ) {
-				result = 0;
-			} else {
-				Utils.waitHere(result +":"+ stats.toString());
-				result=0;
+			if (!(Math.abs(result) < 1e-8)) {
+				Utils.waitHere(result + ":" + stats);
 			}
+			result = 0;
 		}
 		return result;
 	}
@@ -981,10 +958,10 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		return posCoverageFailed / (posCoverageFailed + negCoverageFailed + theILPtask.getMEstimateNeg());
 	}
 	
-	double getVarianceTrueBranch() throws SearchInterrupted {
+	double getVarianceTrueBranch() {
 		return getVarianceTrueBranch(false);
 	}
-	double getVarianceTrueBranch(boolean computeMean) throws SearchInterrupted {
+	double getVarianceTrueBranch(boolean computeMean) {
 		LearnOneClause theILPtask = (LearnOneClause) task;
 		if (theILPtask.regressionTask) {
 			RegressionInfoHolder holder = getRegressionInfoHolder();
@@ -995,10 +972,10 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 
 	
-	double getVarianceFalseBranch() throws SearchInterrupted {
+	double getVarianceFalseBranch() {
 		return getVarianceFalseBranch(false);
 	}
-	double getVarianceFalseBranch(boolean computeMean) throws SearchInterrupted {
+	double getVarianceFalseBranch(boolean computeMean) {
 		LearnOneClause theILPtask = (LearnOneClause) task;
 
 		if (theILPtask.regressionTask) {
