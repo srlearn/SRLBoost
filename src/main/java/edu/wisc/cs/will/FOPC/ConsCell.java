@@ -97,58 +97,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
     }
 
-    public List<Term> convertConsCellToList() { // Only convert the "top-level" (i.e., no recursion on first).
-
-        ConsCell c = this;
-        while (c != null && !c.isNil()) {
-            Term first = first();
-
-            Term rest = c.rest();
-            if (rest instanceof ConsCell) {
-                c = (ConsCell) rest;
-            }
-            else {
-                c = null;
-            }
-        }
-
-        if (numberArgs() == 0) {
-            return new ArrayList<>();
-        }
-        Term first = getArgument(0);
-        ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1)); // ConsCells should never have one argument.  This will crash on 'dotted pairs' (since 'rest' isn't a ConsCell) but we're not allowing them.
-        List<Term> result = new ArrayList<>(length());
-
-        while (true) {
-            result.add(first);
-            if (rest.numberArgs() == 0) {
-                return result;
-            }
-            first = rest.getArgument(0);
-            rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-        }
-    }
-
-    static <T> ConsCell convertListToConsCell(HandleFOPCstrings stringHandler, List<T> items) {
-        if (items == null) {
-            return null;
-        }
-        ConsCell result = stringHandler.getNil();
-        if (items.isEmpty()) {
-            return result;
-        }
-
-        for (T item : items) { // Wrap non-terms in ObjectAsTerm instances.  Push on front.
-            if (item instanceof Term) {
-                result = stringHandler.getConsCell((Term) item, result, null);
-            }
-            else {
-                result = stringHandler.getConsCell(stringHandler.getObjectAsTerm(item), result, null);
-            }
-        }
-        return result.reverse();  // TODO - devise a way to avoid the need to reverse.
-    }
-
     // This is written iteratively instead of recursively to prevent stack overflows (which have happened).
     boolean memberViaEq(Term term) {
         for (Term element : this) {
@@ -450,35 +398,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
 
         return hash;
-    }
-
-    public ConsCell reverse() {
-        if (numberArgs() == 0) {
-            return this;
-        }
-        ConsCell answer = stringHandler.getNil(); // Answer is a stack upon which we push things in order to reverse the list.
-
-        Term first = getArgument(0);
-        ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1)); // ConsCells should never have one argument.  This will crash on 'dotted pairs' (since 'rest' isn't a ConsCell) but we're not allowing them.
-
-        while (true) {
-            answer = stringHandler.getConsCell(first, answer, null);
-            assert rest != null;
-            if (rest.numberArgs() == 0) {
-                return answer;
-            }
-            first = rest.getArgument(0);
-            rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-        }
-    }
-
-    public ConsCell sort() {
-        if (numberArgs() == 0) {
-            return this;
-        }
-        List<Term> sortedList = this.convertConsCellToList();
-        Collections.sort(sortedList);
-        return convertListToConsCell(stringHandler, sortedList);
     }
 
     public static ConsCell append(ConsCell a, ConsCell b) {

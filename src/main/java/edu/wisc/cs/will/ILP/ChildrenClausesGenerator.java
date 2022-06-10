@@ -102,15 +102,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 			return null;
        }
 
-        if (thisTask.performRRRsearch && thisTask.stillInRRRphase1) {
-            // See if have completed the first phase of RRR.
-            if (parentBodyLen >= thisTask.thisBodyLengthRRR) {
-                thisTask.stillInRRRphase1 = false;
-				// When done with RRR's first phase, reset to the standard beam width.
-                thisTask.beamWidth = thisTask.savedBeamWidth;
-            }
-        }
-
 		putParentClauseInFormForPruning(parent);
 
 		Set<PredicateNameAndArity> eligibleBodyModes = applyModeContraints(bodyModes, parent);
@@ -666,12 +657,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 					}
 				}
 			}
-		}
-
-		// Need to keep a random beamWidthRRR of these (note: elsewhere the beam width of the full OPEN will be used, but also limit here so that all children aren't scored since they can be time-consuming and this phase of RRR is intended to be fast).
-		if (thisTask.performRRRsearch && thisTask.stillInRRRphase1 && children.size() > thisTask.beamWidthRRR) {
-			// Randomly discard until small enough.
-			children = Utils.reduceToThisSizeByRandomlyDiscardingItemsInPlace(children, thisTask.beamWidthRRR);
 		}
 
 		if (thisTask.probOfDroppingChild > 0 && children.size() >= thisTask.minChildrenBeforeRandomDropping) {

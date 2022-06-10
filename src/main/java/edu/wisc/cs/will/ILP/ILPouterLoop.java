@@ -107,7 +107,6 @@ public class ILPouterLoop {
     private String         prefixForExtractedRules             = "";
     private String         postfixForExtractedRules            = "";
     private boolean		   learnMLNTheory					   = false;
-    private boolean        learnMultiValPredicates             = false;
     ///////////////////////////////////////////////////////////////////
 
     // All of the fields below are now in the ILPouterLoopState object.
@@ -125,18 +124,18 @@ public class ILPouterLoop {
 	public double randomlySelectWithoutReplacementThisManyModes = -1; // If in (0, 1), then is a FRACTION of the modes. If negative, then do not sample.	
 
     public ILPouterLoop(String workingDir, String prefix, String[] args,
-    					SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, 
-    	                HornClauseContext context, boolean useRRR, boolean deferLoadingExamples) throws IOException {
+                        SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor,
+                        HornClauseContext context, boolean deferLoadingExamples) throws IOException {
         this(workingDir, prefix, 
                 getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 0, "pos.txt")),
                 getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 1, "neg.txt")),
                 getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 2, "bk.txt")),
                 getBufferedReaderFromString(ILPouterLoop.getInputArgWithDefaultValue(args, 3, "facts.txt")),
-                strategy, scorer, monitor, context, useRRR, deferLoadingExamples);
+                strategy, scorer, monitor, context, deferLoadingExamples);
     }
 
     private ILPouterLoop(String workingDir, String prefix, Reader posExamplesReader, Reader negExamplesReader, Reader backgroundReader, Reader factsReader,
-                         SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, HornClauseContext context, boolean useRRR, boolean deferLoadingExamples) {
+                         SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor, HornClauseContext context, boolean deferLoadingExamples) {
 
        outerLoopState = new ILPouterLoopState();
        
@@ -161,9 +160,7 @@ public class ILPouterLoop {
         else if (monitor != null) {
             Utils.waitHere("The Search Monitor is not an instance of Gleaner: " + monitor);
         } 
-
-        setRRR(useRRR);
-	}
+    }
 	
 	private String getFoldInfoString() {
 		if (getCurrentFold() == -1) { return ""; }
@@ -454,11 +451,7 @@ public class ILPouterLoop {
                     }
 
                     // If we are learning a tree-structured theory, then we continue where we left off.
-                    if (isRRR()) {
-                        innerLoopTask.performRRRsearch(learningTreeStructuredTheory ? savedBestNode : null);
-                    } else {
-                        innerLoopTask.performSearch(learningTreeStructuredTheory ? savedBestNode : null);
-					}
+                    innerLoopTask.performSearch(learningTreeStructuredTheory ? savedBestNode : null);
 
                     // Want limits on (and statistics about) the full ILP search as well.
                     setTotal_nodesConsidered(getTotal_nodesConsidered() + innerLoopTask.getNodesConsidered());
@@ -594,11 +587,7 @@ public class ILPouterLoop {
                             } else {
                                 meanTrue = bestNode.meanIfTrue();
                             }
-                            
-                            if (learnMultiValPredicates) {
-                                // TODO(@hayesall): This branch always leads to an error, we might be able to exit earlier.
-                                Utils.error("No mean vector on true branch!!");
-                            }
+
                             // We use 2.1 * getMinPosCoverage() here since we assume each branch needs to have getMinPosCoverage() (could get by with 2, but then would need a perfect split).
                             // Since getLength() includes the head, we see if current length EXCEEDS the maxTreeDepthInLiterals.
                             // Since 'maxTreeDepthInLiterals' includes bridgers, count them as well.
@@ -617,12 +606,7 @@ public class ILPouterLoop {
                                     else if (goodEnoughFitTrueBranch) 											 { Utils.println("%   Creating a TRUE-branch leaf because good enough fit since score < " +  outerLoopState.maxAcceptableNodeScoreToStop); }
                                 }
                                 Term leaf;
-                                if (learnMultiValPredicates) {
-                                    // TODO(@hayesall): Replacing with null leads this to always fail.
-                                	leaf = createLeafNodeFromCurrentExamples(Objects.requireNonNull(null));
-                                } else {
-                                	leaf = createLeafNodeFromCurrentExamples(meanTrue);
-                                }
+                                leaf = createLeafNodeFromCurrentExamples(meanTrue);
                                 trueBranch = new TreeStructuredTheoryLeaf(wgtedCountTrueBranchPos, wgtedCountTrueBranchNeg, bestNode.getVarianceTrueBranch(), leaf, Example.makeLabel(trueBranchPosExamples));
                             } else {
                                 // Have another learning task.
@@ -631,12 +615,8 @@ public class ILPouterLoop {
                                 trueBranch = newTreeNode;
                                 newTreeNode.setParent(interiorNode); // Need a back pointer in case we later make this interior node a leaf.
                                 newTreeNode.setBoolPath(interiorNode.returnBoolPath()); newTreeNode.addToPath(true);// Set the path taken to this node
-                                if (learnMultiValPredicates) {
-                                	newTreeNode.setRegressionVectorIfLeaf(null);
-                                } else {
-                                	newTreeNode.setRegressionValueIfLeaf(meanTrue);
-                                }
-                                
+                                newTreeNode.setRegressionValueIfLeaf(meanTrue);
+
                                 // Since elsewhere we negate the score, do so here as well.
                                 Utils.println("%   Creating a TRUE-branch interior node with wgtedCountTrueBranchPos = " + Utils.truncate(wgtedCountTrueBranchPos, 1));
                                 outerLoopState.addToQueueOfTreeStructuredLearningTasks(newTask, newTreeNode, bestNode, -bestNode.getVarianceTrueBranch(true));
@@ -655,13 +635,8 @@ public class ILPouterLoop {
                                 wgtedCountFalseBranchPos <  outerLoopState.getOverallMinPosWeight()) {
           
                                 Term leaf;
-                                if (learnMultiValPredicates) {
-                                    // TODO(@hayesall): This simplified to `Objects.requireNonNull(null)`, remove.
-                                	leaf = createLeafNodeFromCurrentExamples(Objects.requireNonNull(null));
-                                } else {
-                                	leaf = createLeafNodeFromCurrentExamples(meanFalse);
-                                }
-                                
+                                leaf = createLeafNodeFromCurrentExamples(meanFalse);
+
 
                                 if (!atMaxDepth) {
                                     if      (interiorNode.getLevel() >= maxTreeDepthInInteriorNodes) { Utils.println("%   Creating a FALSE-branch leaf because level = "  + interiorNode.getLevel() + " > " + maxTreeDepthInInteriorNodes); }
@@ -684,11 +659,7 @@ public class ILPouterLoop {
                                 newTreeNode.setParent(interiorNode); // Need a back pointer in case we later make this interior node a leaf.
                                 newTreeNode.setBoolPath(interiorNode.returnBoolPath()); newTreeNode.addToPath(false);// Set the path taken to this node
 
-                                if (learnMultiValPredicates) {
-                                	newTreeNode.setRegressionVectorIfLeaf(null);
-                                } else {
-                                	newTreeNode.setRegressionValueIfLeaf(meanFalse);
-                                }
+                                newTreeNode.setRegressionValueIfLeaf(meanFalse);
                                 // Since elsewhere we negate the score, do so here as well.
                                 Utils.println("%   Creating a FALSE-branch interior node with wgtedCountFalseBranchPos = " + Utils.truncate(wgtedCountFalseBranchPos, 1));
                                 outerLoopState.addToQueueOfTreeStructuredLearningTasks(newTask, newTreeNode, parentSearchNode, -bestNode.getVarianceFalseBranch(true)); // We want to sort by TOTAL error, not AVERAGE.
@@ -807,12 +778,8 @@ public class ILPouterLoop {
 	private void createTreeStructuredLearningTaskLeaf(TreeStructuredLearningTask currentTask) {
 		Term val = null;
 			if (currentTask.getNode() != null) {
-				if (isLearnMultiValPredicates()) {
-					val = createLeafNodeFromCurrentExamples(currentTask.getNode().getRegressionVectorIfLeaf());
-				} else {
-					val = createLeafNodeFromCurrentExamples(currentTask.getNode().getRegressionValueIfLeaf());
-				}
-			} else {
+                val = createLeafNodeFromCurrentExamples(currentTask.getNode().getRegressionValueIfLeaf());
+            } else {
 				Utils.error("task is not interior node!!");
 			}
 		TreeStructuredTheoryLeaf leaf = new TreeStructuredTheoryLeaf(currentTask.getNode().getWeightedCountOfPositiveExamples(),
@@ -850,16 +817,9 @@ public class ILPouterLoop {
 				Utils.error("Should not reach here with ZERO examples!");
 				return -1;
 			}
-			
-			if (learnMultiValPredicates) {
-				VectorStatistics vecStats = new VectorStatistics();
-				if (currentExamples != null) for (Example ex : currentExamples) {
-					vecStats.addVector(VectorStatistics.scalarProduct(((RegressionExample) ex).getOutputVector(), 
-																		ex.getWeightOnExample()));
-				}
-				return vecStats.getVariance();
-			}
-			// Compute the mean value over all the (weighted) examples.
+
+            boolean learnMultiValPredicates = false;
+            // Compute the mean value over all the (weighted) examples.
 			double totalOfOutputValues  = 0.0;
 			double totalSquaredOfOutput = 0.0;
 			double weightedCount        = 0.0;
@@ -1084,13 +1044,8 @@ public class ILPouterLoop {
 		setNegExamples(new ArrayList<>(0));
     }
 
-	private boolean isLearnMultiValPredicates() {
-		return learnMultiValPredicates;
-	}
-
-	public void setLearnMultiValPredicates(boolean learnMultiValPredicates) {
-		this.learnMultiValPredicates = learnMultiValPredicates;
-		innerLoopTask.setLearnMultiVal(learnMultiValPredicates);
+    public void setLearnMultiValPredicatesFalse() {
+		innerLoopTask.setLearnMultiVal(false);
 	}
 	private Theory produceFinalTheory() {
 		// TODO allow theories to come from some covering algorithm, possibly based on all the Gleaners.		
@@ -1294,14 +1249,6 @@ public class ILPouterLoop {
 
     private void setWorkingDirectory(String workingDirectory) {
         this.workingDirectory = workingDirectory;
-    }
-
-    private void setRRR(boolean useRRR) {
-        outerLoopState.setRRR(useRRR);
-    }
-
-    private boolean isRRR() {
-        return outerLoopState.isRRR();
     }
 
     /* Sets the PosExamples to use for the search.

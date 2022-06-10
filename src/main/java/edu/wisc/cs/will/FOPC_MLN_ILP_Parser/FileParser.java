@@ -1278,68 +1278,7 @@ public class FileParser {
         return new NamedTermList(terms, names);
     }
 
-    /* Reads a list of Terms from the stream.
-     *
-     * Assumes that the initial '(' has already been read and that the terminating ')' will be
-     * consumed.
-     */
-    private ConsCell processConsCellList(boolean argumentsMustBeTyped) throws ParsingException, IOException {
-
-        ConsCell head = null;
-        ConsCell tail = null;
-
-        Term t;
-
-		boolean done = false;
-
-        // We check immediate for a closing bracket to
-        // support literals written as:  x() although
-        // this is illegal in prolog.
-        if (checkAndConsumeToken("]")) {
-            head = stringHandler.getNil();
-            done = true;
-        }
-
-        while (!done) {
-            // Look for a name?
-			checkAndConsumeArgumentName();
-            t = processTerm(argumentsMustBeTyped);
-
-            ConsCell cell = stringHandler.getConsCell(t, stringHandler.getNil(), null);
-            if ( head == null ) {
-                head = cell;
-                tail = head;
-            }
-            else {
-                tail.setCdr(cell);
-                tail = cell;
-            }
-
-            if (checkAndConsumeToken("]")) {
-                done = true;
-            }
-            else if ( checkAndConsumeToken("|") ) {
-				checkAndConsumeArgumentName();
-                t = processTerm(argumentsMustBeTyped);
-                tail.setCdr(t);
-
-                expectAndConsumeToken("]");
-
-                done = true;
-            }
-            else if (!checkToken(",")) {
-                getNextToken();
-                throw new ParsingException("Unexpected token '" + tokenizer.reportCurrentToken() + "'.  Expected ',', '|', or ']'." );
-            }
-            else {
-                expectAndConsumeToken(",");
-            }
-        }
-
-        return head;
-    }
-
-    private char getClosingBracket(char openingBracketChar) {
+	private char getClosingBracket(char openingBracketChar) {
         switch (openingBracketChar) {
                 case '(':
                     return ')';
@@ -1402,7 +1341,7 @@ public class FileParser {
             case '{':
                 return processTerm(argumentsMustBeTyped, 1);
             case '[': // Process a list.
-                return processConsCellList(argumentsMustBeTyped);
+				throw new ParsingException("Lists (ConsCells) are deprecated.");
             case '\\': // Could be \+().
             case '\'':
             case '"':

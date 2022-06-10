@@ -75,7 +75,6 @@ public final class HandleFOPCstrings {
 	public final Map<Term,List<Type>>    constantToTypesMap;       // A given constant can have multiple types.  Record them here.  TODO 'wrap' this variable?
 	private   ConsCell                    nil;                      // The nil used for lists.
     private   Literal                     nilAsLiteral;             // Just so we can convert back to the nil if we treat nil as a literal at some point.
-	private   Set<Term>                   setNIL;                   // NIL in a set.
 	private final Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
 	private   long varCounter             = 0; // Used to create new variable names that start with 'a', 'b', 'c', etc.
 	private   long overallCounter         = 0;
@@ -745,12 +744,6 @@ public final class HandleFOPCstrings {
         }
         return nilAsLiteral;
     }
-
-	public Set<Term> getSetNil() {
-		if (nil == null) { nil = this.getConsCell(); } // The list containing the empty cons cell.
-		if (setNIL == null) { setNIL = new HashSet<>(4); setNIL.add(nil); }
-		return setNIL;
-	}
 
 
 	private String standardize(String str, boolean cleanString, boolean hadQuotesOriginally) {
