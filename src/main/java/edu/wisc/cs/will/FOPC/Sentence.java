@@ -40,10 +40,6 @@ public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQue
 		return result;
 	}
 
-    Sentence copy() {
-		return copy(false);           // Default is to do a "top-level" copy.
-	}
-
 	public abstract Sentence copy(boolean recursiveCopy);
     
 	public abstract boolean containsTermAsSentence();

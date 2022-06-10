@@ -72,72 +72,8 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         }
     }
 
-    public Literal clearArgumentNamesInPlace() {
-        // TODO(@hayesall): Multiple `null` checks, this method might be simplified.
-        if (numberArgs() < 1) {
-            return this;
-        }
-        if (argumentNames != null) {
-            if (argumentNames.get(0).equalsIgnoreCase("name")) {
-                removeArgument(arguments.get(0), argumentNames.get(0));
-            }
-        }
-        argumentNames = null;
-        if (arguments == null) {
-            return this;
-        }
-        for (Term term : arguments) {
-            if (term instanceof Function) {
-                ((Function) term).clearArgumentNamesInPlace();
-            }
-        }
-        return this;
-    }
-
     public boolean isaBridgerLiteral() { // TODO need to check allCollector other vars are bound?
         return predicateName.isaBridgerLiteral(arguments);
-    }
-
-    // See Parser.processIsaInterval() for more information.
-    public Term getLowerBoundary_1D() {
-        int arity = numberArgs();
-        if (predicateName.boundariesAtEnd_1D.contains(arity)) {
-            return arguments.get(arity - 2);
-        }
-        if (arity != 3) {
-            Utils.println("predicateName = " + predicateName + " predicateName.boundariesAtEnd_1D = " + predicateName.boundariesAtEnd_1D);
-            Utils.error("This literal is said to be a 1D interval, but it doesn't have three arguments: " + this);
-        }
-        return arguments.get(0);
-    }
-
-    public Term getUpperBoundary_1D() {
-        int arity = numberArgs();
-        if (predicateName.boundariesAtEnd_1D.contains(arity)) {
-            return arguments.get(arity - 1);
-        }
-        if (arity != 3) {
-            Utils.error("This literal is said to be a 1D interval, but it doesn't have three arguments: " + this);
-        }
-        return arguments.get(2);
-    }
-
-    public Literal createLiteralWithMaskedBoundaries_1D() {
-        Literal newVersion = (Literal) copy();
-        int arity = numberArgs();
-        if (predicateName.boundariesAtEnd_1D.contains(arity)) {
-            newVersion.arguments.set(arity - 2, null);
-            newVersion.arguments.set(arity - 1, null);
-        }
-        else if (arity != 3) {
-            Utils.println("predicateName = " + predicateName + " predicateName.boundariesAtEnd_1D = " + predicateName.boundariesAtEnd_1D);
-            Utils.error("This literal is said to be a 1D interval, but it doesn't have three arguments: " + this);
-        }
-        else {
-            newVersion.arguments.set(0, null);
-            newVersion.arguments.set(2, null);
-        }
-        return newVersion;
     }
 
     private Literal getBareCopy(List<Term> newArguments) {
@@ -306,16 +242,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
             }
         }
         return result + ")";
-    }
-    
-    public String toStringOneLine() {
-    	int hold  = stringHandler.numberOfTermsPerRowInPrintouts;
-    	int holdL = stringHandler.numberOfTermsPerRowInPrintoutsForLiterals;
-    	stringHandler.numberOfTermsPerRowInPrintouts = Integer.MAX_VALUE;
-    	String result = toString();
-    	stringHandler.numberOfTermsPerRowInPrintouts            = hold;
-    	stringHandler.numberOfTermsPerRowInPrintoutsForLiterals = holdL;
-    	return result;
     }
 
     public PredicateName getPredicateName() {
@@ -719,17 +645,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         setNumberArgs();
     }
 
-    private void removeArgument(Term term, String name) {
-        if (!arguments.remove(term)) {
-            Utils.error("Could not remove '" + term + "' from '" + this + "'.");
-        }
-        if (!argumentNames.remove(name)) {
-            Utils.error("Could not remove '" + name + "' from '" + this + "'.");
-        }
-        setNumberArgs();
-        sortArgumentsByName();
-    }
-
     private void sortArgumentsByName() {
         if (argumentNames == null) {
             return;
@@ -759,30 +674,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
             arguments.add(nt.term);
             argumentNames.add(nt.name);
         }
-    }
-
-    /* Returns all possible TypeSpecs for this literal.
-     *
-     * If typeSpec variable is set, only that type
-     */
-    public List<TypeSpec> getTypeSpecs() {
-
-        List<TypeSpec> result;
-
-        List<PredicateSpec> predTypeSpec = predicateName.getTypeList();
-
-        if ( Utils.getSizeSafely(predTypeSpec) > 0 ) {
-            PredicateSpec ps = predTypeSpec.get(0);
-            result = ps.getTypeSpecList();
-        }
-        else {
-            result = new ArrayList<>();
-            for (Term term : getArguments()) {
-                result.add(term.getTypeSpec());
-            }
-        }
-        
-        return result;
     }
 
     public PredicateNameAndArity getPredicateNameAndArity() {

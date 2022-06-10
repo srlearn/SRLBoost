@@ -73,11 +73,6 @@ public class ListAsTerm extends Term {
 		return stringHandler.getListAsTerm(objects);
 	}
 
-    @Override
-    public Sentence asSentence() {
-        return null;
-    }
-
 	@Override
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		final int prime = 31;

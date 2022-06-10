@@ -61,7 +61,6 @@ public final class HandleFOPCstrings {
 	// NOTE: if variableIndicator=lowercase, then standard FOPC notation is used when printing.  Otherwise Prolog notation is used.  TODO - allow a separate variable to decide how to print?
 
 	public    boolean                     prettyPrintClauses     = true;
-	final boolean                     duplicateCostWarningEnabled = true;
 
 	private final Map<String,PredicateName>   predicateNameHash; // These map a given string to one and only one instance.
 	private final Map<String,FunctionName>    functionNameHash;
@@ -72,7 +71,6 @@ public final class HandleFOPCstrings {
 	private final Map<String,StringConstant>  stringConstantHash;
 	private final Map<String,NumericConstant> numericConstantHash;
 
-	private final Map<FunctionName,  Integer> precedenceTableForOperators;
 	private final Map<ConnectiveName,Integer> precedenceTableForConnectives;
 	public final Map<Term,List<Type>>    constantToTypesMap;       // A given constant can have multiple types.  Record them here.  TODO 'wrap' this variable?
 	private   ConsCell                    nil;                      // The nil used for lists.
@@ -83,8 +81,6 @@ public final class HandleFOPCstrings {
 	private   long overallCounter         = 0;
 	private   int  countOfSkolemFunctions = 0;
 
-	private boolean              predicatesHaveCosts = false; // Set if ANY predicate has a cost.  If so, the SUM of costs is used instead of length() to score a clause.
-
 	final Constant  trueIndicator;
 	final Constant falseIndicator;
 	public final Literal   trueLiteral;
@@ -92,8 +88,6 @@ public final class HandleFOPCstrings {
 
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
 	final boolean useFastHashCodeForClauses   = true;
-
-    private final Map<String,Integer> nameCounter    = new HashMap<>(4);  // Unique name counter for anonymous names...
 
 	private   static Map<String,Integer> precedenceTableForOperators_static   = null; // To avoid the need to pass around a stringHandler, there is also a static version that uses String.equals instead of '=='.
 	private   static Map<String,Integer> precedenceTableForConnectives_static = null;
@@ -146,7 +140,7 @@ public final class HandleFOPCstrings {
 		trueLiteral         = this.getLiteral(standardPredicateNames.trueName);
 		cutLiteral          = this.getLiteral(standardPredicateNames.cut);
 		Clause trueClause = this.getClause(trueLiteral, true);
-		precedenceTableForOperators   = new HashMap<>( 8);
+		Map<FunctionName, Integer> precedenceTableForOperators = new HashMap<>(8);
 		precedenceTableForConnectives = new HashMap<>(24);
 		initPrecedences(precedenceTableForOperators, precedenceTableForConnectives);
 		if (precedenceTableForOperators_static == null) {
@@ -265,11 +259,6 @@ public final class HandleFOPCstrings {
 		precedenceTableForConnectives.put("<->",        1200);	 // Also ForAll and Exists have precedence of 1500.
 	}
 
-	public        int getOperatorPrecedence(FunctionName fName) {
-		Integer result = precedenceTableForOperators.get(fName);
-		assert result != null;
-		return result;
-	}
 	static int getOperatorPrecedence_static(String fName) {
 		Integer result = precedenceTableForOperators_static.get(fName);
 		return result == null ? 1300 : result;
@@ -501,9 +490,6 @@ public final class HandleFOPCstrings {
 	ObjectAsTerm getObjectAsTerm(Object item) {
 		return new ObjectAsTerm(this, item, true);
 	}
-	public ObjectAsTerm getObjectAsTerm(Object item, boolean warnIfWrappingTerm) {
-		return new ObjectAsTerm(this, item, warnIfWrappingTerm);
-	}
 
 	public SentenceAsTerm getSentenceAsTerm(Sentence s, String wrapper) {
 		return new SentenceAsTerm(this, s, wrapper);
@@ -654,15 +640,6 @@ public final class HandleFOPCstrings {
         return getNegationByFailureContents((LiteralOrFunction)negationByFailure);
     }
 
-	/*
-	 * Call the math or list handler to simplify an expression.
-	 * @return The numeric result of computing the given expression.
-	 */
-	public Term simplify(Term expression) {
-		// TODO(hayesall): Nothing is simplified.
-		return expression;  // Sometimes plain-old items will appear (e.g., an integer) that don't need simplification.
-	}
-
 	public void resetVarCounters() {
 		// int n = 2; // Will start with this many aa's
 		varCounter  = 0; //(int) Math.pow(24.0, n - 1.0); // Assumes that the head has fewer that 24 variables (since the variables in the target are 'a', 'b', etc.).
@@ -677,17 +654,17 @@ public final class HandleFOPCstrings {
 		if (thisIsaNoMode) {
 			disableModeWithTypes(typedLiteral, signature, types);
 		} else {
-			recordModeWithTypes(typedLiteral, signature, types, maxOccurrences, maxPerInputVars, true);
+			recordModeWithTypes(typedLiteral, signature, types, maxOccurrences, maxPerInputVars);
 		}
 	}
 
-	private void recordModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
-        if (typedLiteral != null ) recordModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
+	private void recordModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars) {
+        if (typedLiteral != null ) recordModeWithTypes(typedLiteral.getPredicateNameAndArity(), signature, types, maxOccurrences, maxPerInputVars);
 	}
-	private void recordModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars, boolean okIfDuplicate) {
+	private void recordModeWithTypes(PredicateNameAndArity predicate, List<Term> signature, List<TypeSpec> types, int maxOccurrences, int maxPerInputVars) {
         if ( predicate != null ) {
             recordPredicatesWithKnownModes(predicate);
-            predicate.getPredicateName().recordMode(signature, types, maxOccurrences, maxPerInputVars, okIfDuplicate);
+            predicate.getPredicateName().recordMode(signature, types, maxOccurrences, maxPerInputVars);
         }
 	}
 	private void disableModeWithTypes(Literal typedLiteral, List<Term> signature, List<TypeSpec> types) {
@@ -789,14 +766,6 @@ public final class HandleFOPCstrings {
 		return standardize(str, false);
 	}
 
-	private boolean knownPredicateName(String nameRaw) {
-		String name    = cleanString(nameRaw);
-		String stdName = standardize(name); // Hash case-independently.
-		PredicateName hashedValue = predicateNameHash.get(stdName);
-
-		return (hashedValue != null);
-	}
-
 	public PredicateName getPredicateName(String nameRaw) {
 		return getPredicateName(nameRaw, cleanFunctionAndPredicateNames);
 	}
@@ -824,29 +793,7 @@ public final class HandleFOPCstrings {
         return new PredicateNameAndArity(pName, arity);
     }
 
-	private int getNextNameCounter(String name) {
-		Integer lookup = nameCounter.get(name);
-
-		if (lookup == null) { // The pName has an implicit '0' the first time it is created.
-			nameCounter.put(name, 1); // If there was a name conflict, then subsequent times we need to add to the counter.
-			return 1;
-		}
-		nameCounter.put(name, lookup + 1);
-		return lookup + 1;
-	}
-
-    public PredicateName getPredicateNameNumbered(String predicateName) {
-        String originalPredicateName = predicateName;
-    	while (knownPredicateName(predicateName)) {
-    		// Keep trying until a unique name is produced.  Want to only add counters to the ORGINAL name.
-            predicateName = originalPredicateName + getNextNameCounter(originalPredicateName);
-    	}
-    	PredicateName pName = getPredicateName(predicateName);
-    	pName.addTemporary(-1);
-    	return pName;
-    }
-
-   /* Looks up the predicate name in the cache.  If it exists, it returns the cached version.  In not, it adds the predicateName to the cache.
+	/* Looks up the predicate name in the cache.  If it exists, it returns the cached version.  In not, it adds the predicateName to the cache.
     *
     * This is used to look up PredicateNames when we are de-serializing.  We attempt to maintain
     * some information if possible about the predicateName.  However, in most cases, the predicateNames
@@ -1391,10 +1338,6 @@ public final class HandleFOPCstrings {
 		Function result = this.getFunction(fName, arguments, null);
 		result.typeSpec = typeSpec;
 		return result;
-	}
-
-	public boolean getPredicatesHaveCosts() {
-		return predicatesHaveCosts;
 	}
 
 	private final Map<String,SetParamInfo> hashOfSetParameters = new HashMap<>(4);

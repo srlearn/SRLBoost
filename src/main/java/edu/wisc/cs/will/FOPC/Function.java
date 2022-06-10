@@ -185,12 +185,7 @@ public class Function extends Term implements LiteralOrFunction {
 		return getBareCopy(newArguments, newArgNames);
 	}
 
-    @Override
-    public Sentence asSentence() {
-        return stringHandler.getLiteral(stringHandler.getPredicateName(functionName.name), arguments);
-    }
-
-    public Clause asClause() {
+	public Clause asClause() {
         return stringHandler.getClause( stringHandler.getLiteral(stringHandler.getPredicateName(functionName.name), arguments), true);
     }
 

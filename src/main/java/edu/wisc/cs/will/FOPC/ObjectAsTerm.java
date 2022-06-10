@@ -36,13 +36,7 @@ public class ObjectAsTerm extends Term {
     }
 
 
-
-    @Override
-    public Sentence asSentence() {
-        return null;
-    }
-
-    @Override
+	@Override
     public BindingList isEquivalentUptoVariableRenaming(Term that, BindingList bindings) {
         throw new UnsupportedOperationException("Not supported yet.");
     }

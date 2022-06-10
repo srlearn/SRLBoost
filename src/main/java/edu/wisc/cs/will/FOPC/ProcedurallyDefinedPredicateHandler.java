@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 import java.util.List;
@@ -37,10 +36,9 @@ public abstract class ProcedurallyDefinedPredicateHandler {
      */
     public abstract BindingList handle(HornClauseContext context, Literal literal, Unifier unifier, BindingList bindingList) throws SearchInterrupted;
 
-    protected boolean confirmAllVarsAreBound(String message, List<Term> args, boolean throwErrorIfVarFound) {
+    protected boolean confirmAllVarsAreBound(List<Term> args) {
 		if (args != null) for (Term arg : args) if (arg instanceof Variable) {
-			if (throwErrorIfVarFound) { Utils.error(message + "Cannot have an unbound variable in the arguments of this procedurally defined literal:\n " + args); }
-		    return false;
+            return false;
 		}
 		return true;
 	}

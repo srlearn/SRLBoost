@@ -37,12 +37,4 @@ public enum VariantClauseAction {
         return warn || remove;
     }
 
-    public static VariantClauseAction fromString(String setting) {
-        for (VariantClauseAction action : values()) {
-            if ( setting.toLowerCase().equals(action.parameterSetting.toLowerCase()) ) {
-                return action;
-            }
-        }
-        return null;
-    }
 }

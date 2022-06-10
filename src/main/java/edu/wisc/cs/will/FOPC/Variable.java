@@ -106,11 +106,6 @@ public class Variable extends Term {
     }
 
     @Override
-    public Sentence asSentence() {
-        return null;
-    }
-
-    @Override
     public Collection<Variable> collectFreeVariables(Collection<Variable> boundVariables) {
         if (boundVariables != null && boundVariables.contains(this)) {
             return null;
