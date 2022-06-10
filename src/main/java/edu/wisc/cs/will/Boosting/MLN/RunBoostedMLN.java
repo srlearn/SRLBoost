@@ -134,30 +134,23 @@ public class RunBoostedMLN extends RunBoostedModels {
 	}
 	
 	public void loadModel() {
+
 		if (fullModel == null) {
 			fullModel = new JointRDNModel();
 		}
-		Set<String> modelPreds = cmdArgs.getLoadPredModelVal();
-		if (modelPreds == null) {
-			modelPreds = cmdArgs.getTargetPredVal();
-		}
-		for (String pred : modelPreds) {
+
+		Utils.println("\n% Getting bRDN's target predicates.");
+
+		for (String pred : cmdArgs.getTargetPredVal()) {
 			ConditionalModelPerPredicate rdn;
 			if (fullModel.containsKey(pred)) {
 				rdn = fullModel.get(pred);
 				rdn.reparseModel(setup);
 			} else {
 				Utils.println("% Did not learn a model for '" + pred + "' this run.");
-				// YapFile doesn't matter here.
 				rdn = new ConditionalModelPerPredicate(setup);
-			
-				if (useSingleTheory(setup)) {
-					rdn.setHasSingleTheory(true);
-					rdn.setTargetPredicate(pred);
-					rdn.loadModel(LearnBoostedRDN.getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), pred), setup, cmdArgs.getMaxTreesVal());
-				} else {
-					rdn.loadModel(BoostingUtils.getModelFile(cmdArgs, pred, true), setup, cmdArgs.getMaxTreesVal());
-				}
+
+				rdn.loadModel(BoostingUtils.getModelFile(cmdArgs, pred, true), setup, cmdArgs.getMaxTreesVal());
 				rdn.setNumTrees(cmdArgs.getMaxTreesVal());
 				fullModel.put(pred, rdn);
 			}
@@ -168,13 +161,6 @@ public class RunBoostedMLN extends RunBoostedModels {
 		InferBoostedRDN infer = new InferBoostedRDN(cmdArgs, setup);
 		infer.runInference(fullModel, 0.5);
 	}
-	
-	private boolean useSingleTheory(WILLSetup setup2) {
-		String lookup;
-		if ((lookup =  setup2.getHandler().getParameterSetting("singleTheory")) != null) {
-			return Boolean.parseBoolean(lookup);
-		}
-		return false;
-	}
+
 }
 

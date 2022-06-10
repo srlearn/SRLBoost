@@ -9,7 +9,6 @@ import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.Utils.ProbDistribution;
-import edu.wisc.cs.will.Utils.RegressionValueOrVector;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
@@ -74,32 +73,6 @@ public class JointModelSampler extends SRLInference {
 		// Making a copy of the original map, since we will update the map to handle multi-class examples. 
 		// Only the map is copied, the examples are still the same. So careful while modifying the actual examples in jointExamples
 		Map<String, List<RegressionRDNExample>> jointExamples = new HashMap<>(originalJointExamples);
-		for (String target : originalJointExamples.keySet()) {
-			List<RegressionRDNExample> examples = originalJointExamples.get(target);
-			MultiClassExampleHandler mcExHandler= setup.getMulticlassHandler();
-			// Update examples if multi-class predicate
-			if (mcExHandler.isMultiClassPredicate(target)) {
-
-				List<RegressionRDNExample> newMulticlassExamples = new ArrayList<>();
-				Set<String> seenExamples = new HashSet<>();
-				for (RegressionRDNExample rex : examples) {
-					RegressionRDNExample newRex;
-					if (rex.predicateName.name.startsWith(WILLSetup.multiclassPredPrefix)) {
-						// Already a multi-class example
-						newRex = rex;
-					} else {
-						newRex = mcExHandler.morphExample(rex);
-					}
-					String newRexStr = newRex.toString();
-					if (!seenExamples.contains(newRexStr)) {
-						seenExamples.add(newRexStr);
-						newMulticlassExamples.add(newRex);
-					} 
-					// }
-				}
-				jointExamples.put(target, newMulticlassExamples);
-			}
-		}
 
 		// Break into components for MAP inference
 		sampleExampleProbabilities(jointExamples, orderedPredicates);
@@ -311,27 +284,14 @@ public class JointModelSampler extends SRLInference {
 		List<Example> posList = posEgs.get(target);
 		List<Example> negList = negEgs.get(target);
 
-		int numberValues = setup.getMulticlassHandler().numConstantsForPredicate(target);
-
 		for (RegressionRDNExample rex : examples) {
-			if (!rex.predicateName.name.equals(target) && !rex.predicateName.name.equals(WILLSetup.multiclassPredPrefix + target)) {
+			if (!rex.predicateName.name.equals(target)) {
 				Utils.error("Found example: '" + rex + "'\nwhile sampling for " + target);
 			}
-			if (setup.getMulticlassHandler().isMultiClassPredicate(target)) {
-				for (int i = 0; i < numberValues; i++) {
-					Example ex = setup.getMulticlassHandler().createExampleFromClass(rex, i);
-					if (rex.getSampledValue() == i) {
-						posList.add(ex);
-					} else {
-						negList.add(ex);
-					}
-				}
+			if (rex.getSampledValue() == 1) {
+				posList.add(rex);
 			} else {
-				if (rex.getSampledValue() == 1) {
-					posList.add(rex);
-				} else {
-					negList.add(rex);
-				}
+				negList.add(rex);
 			}
 		}
 	}
@@ -358,39 +318,9 @@ public class JointModelSampler extends SRLInference {
 			int i = 0;
 			// Store the example probabilities for the multi-class predicates.
 			// These probabilities are used to fill the probabilities in the originalJointExamples
-			Map<String, Double> exampleProbabilities = null;
 			for (RegressionRDNExample rex : jointExamples.get(target)) {
-				
-				if (setup.getMulticlassHandler().isMultiClassPredicate(target)) {
-					if (exampleProbabilities == null) { exampleProbabilities = new HashMap<>();}
-					ProbDistribution distr = rex.getProbOfExample();
-					for (int index = 0; index < distr.getProbDistribution().length; index++) {
-						Example ex = setup.getMulticlassHandler().createExampleFromClass(rex, index);
-						exampleProbabilities.put(ex.toString(), distr.getProbDistribution()[index]);
-					}
-				} else {
-					originalJointExamples.get(target).get(i).setProbOfExample(rex.getProbOfExample());
-				}
+				originalJointExamples.get(target).get(i).setProbOfExample(rex.getProbOfExample());
 				i++;
-			}
-			
-			// If the target was multi-class, we populated the probabilities for the individual examples
-			// corresponding to each class 
-			if (exampleProbabilities != null) {
-				for (RegressionRDNExample rex : originalJointExamples.get(target)) {
-
-					// Input was multi-class, no need to transfer probs
-					if (rex.predicateName.name.startsWith(WILLSetup.multiclassPredPrefix)) { continue; }
-
-					String rexstring = rex.toString();
-					if (exampleProbabilities.containsKey(rexstring)) {
-						double prob = exampleProbabilities.get(rexstring);
-						ProbDistribution distr=new ProbDistribution(prob);
-						rex.setProbOfExample(distr);
-					} else {
-						Utils.error("Unseen example during sampling:" + rexstring);
-					}
-				}
 			}
 		}
 		
@@ -403,15 +333,8 @@ public class JointModelSampler extends SRLInference {
 
 			for (RegressionRDNExample rex : jointExamples.get(target)) {
 				double[] counts = valueCounts.get(i);
-				
-				if (setup.getMulticlassHandler().isMultiClassPredicate(target)) {
-					ProbDistribution distr = new ProbDistribution(new RegressionValueOrVector(counts), false);
-					rex.setProbOfExample(distr);
-					
-				} else {
-					ProbDistribution distr = new ProbDistribution(counts[1]/(counts[1] + counts[0]));
-					rex.setProbOfExample(distr);
-				}
+				ProbDistribution distr = new ProbDistribution(counts[1]/(counts[1] + counts[0]));
+				rex.setProbOfExample(distr);
 				i++;
 			}
 			

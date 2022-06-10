@@ -994,6 +994,9 @@ public class ILPouterLoop {
     
     public void morphToRDNRegressionOuterLoop(double all_pos_wt, double all_neg_wt, double ratioOfNegToPositiveEx, 
     		double samplePositiveProb, boolean notLearnTrees, boolean reweighExs, boolean areRegressionEgs) {
+
+        // TODO(hayesall): inline `reweighExs = false`?
+
     	setFlagsForRegressionTask(notLearnTrees);
 		
 		List<Example>  origPosExamples = getPosExamples();

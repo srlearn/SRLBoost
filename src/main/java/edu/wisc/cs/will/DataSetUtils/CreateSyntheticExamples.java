@@ -22,7 +22,6 @@ public class CreateSyntheticExamples {
 														  Literal           target,
 														  List<ArgSpec>     targetArgSpecs,
 														  List<Term>        targetPredicateSignature,
-														  List<WorldState>  worldStatesToProcess,
 														  List<Example>     exceptions1,
 			  								              List<Example>     exceptions2,
                                                           Set<PredicateNameAndArity> factPredicates) {
@@ -30,52 +29,42 @@ public class CreateSyntheticExamples {
 		if (targetArgSpecs           == null) { Utils.warning("Can NOT have targetArgSpecs == null!");           return null; }
 		if (targetPredicateSignature == null) { Utils.warning("Can NOT have targetPredicateSignature == null!"); return null; }
 		int numbArgs = targetPredicateSignature.size();
-		boolean usingWorldStates = (worldStatesToProcess != null);
-		List<WorldState>  worldStatesToProcess2 = worldStatesToProcess;		
-		if (!usingWorldStates) {
-			worldStatesToProcess2 = new ArrayList<>(1);
-			worldStatesToProcess2.add(new WorldState()); // Create a dummy world state, so the FOR LOOP below is used once.
-		}
+
+		List<WorldState>  worldStatesToProcess2 = new ArrayList<>(1);
+		worldStatesToProcess2.add(new WorldState()); // Create a dummy world state, so the FOR LOOP below is used once.
 
 		Set< Example>  resultsAsSet      = new HashSet<>(4); // Use this to quickly look for duplicates.
 		List<Example>  results           = new ArrayList<>(4);
 		Constant       dummyConstant     = stringHandler.getStringConstant("Dummy"); // Need a filler for the positions from which we don't extract.
 		Set<Term>      dummyConstantSet  = new HashSet<>(4);
+
 		dummyConstantSet.add(dummyConstant);
 		for (WorldState worldState : worldStatesToProcess2) {
 			List<Set<Term>> crossProduct = new ArrayList<>(targetPredicateSignature.size());
 			int             leafCounter  = 0;
-			for (int argCounter = 0; argCounter < numbArgs; argCounter++) { // Look at each argument in the target's specification.
-				Term sig = targetPredicateSignature.get(argCounter);
-				
-				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)) {
-					crossProduct.add(dummyConstantSet); 
-					leafCounter++;
-					continue; 
-				}
-				if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)) {
-					crossProduct.add(dummyConstantSet);
-					leafCounter++;
-					continue; 
-				}
-				
+			for (Term sig : targetPredicateSignature) { // Look at each argument in the target's specification.
 				Set<Term> groundedTermsOfThisTypeInThisState = null;
 				if (sig instanceof Constant) {
 					groundedTermsOfThisTypeInThisState = getConstantsOfThisTypeInThisWorldState(stringHandler, targetArgSpecs.get(leafCounter), worldState, prover.getClausebase().getFacts(), factPredicates);
 					leafCounter++;
-                } else if (sig instanceof ConsCell) {
-                    groundedTermsOfThisTypeInThisState = new HashSet<>();
-                    groundedTermsOfThisTypeInThisState.add( stringHandler.getNil() );
-                    leafCounter++;
+				} else if (sig instanceof ConsCell) {
+					groundedTermsOfThisTypeInThisState = new HashSet<>();
+					groundedTermsOfThisTypeInThisState.add(stringHandler.getNil());
+					leafCounter++;
 				} else if (sig instanceof Function) {
 					Function f = (Function) sig;
 					groundedTermsOfThisTypeInThisState = createGroundFunctionsInThisWorldState(stringHandler, f, leafCounter, targetArgSpecs, worldState, prover, factPredicates);
 					if (groundedTermsOfThisTypeInThisState == null) { // If none in the state, grab 'globally.'
 						groundedTermsOfThisTypeInThisState = createGroundFunctionsInThisWorldState(stringHandler, f, leafCounter, targetArgSpecs, null, prover, factPredicates);
 					}
-					if (groundedTermsOfThisTypeInThisState == null) { crossProduct = null; break; } // Cannot make any examples from this state since no constants of the necessary type.
+					if (groundedTermsOfThisTypeInThisState == null) {
+						crossProduct = null;
+						break;
+					} // Cannot make any examples from this state since no constants of the necessary type.
 					leafCounter += f.countLeaves(); // Need to know where we are in the targetArgSpecs.					
-				} else { Utils.error("Cannot handle this type here: " + sig); }
+				} else {
+					Utils.error("Cannot handle this type here: " + sig);
+				}
 				crossProduct.add(groundedTermsOfThisTypeInThisState);
 			}
 			if (crossProduct != null) {
@@ -84,12 +73,10 @@ public class CreateSyntheticExamples {
 				for (List<Term> args : allPossibilities) {
 					counter++;
 					if (counter % 1000 == 0) { Utils.println("%   Have considered " + Utils.comma(counter) + " possible negative examples for " + worldState + "."); }
-					Example  example  = new Example(stringHandler, target.predicateName, null, provenanceString + (usingWorldStates ? " (" + worldState + ")." : "."), "createdNeg");
+					Example  example  = new Example(stringHandler, target.predicateName, null, provenanceString + ".", "createdNeg");
 					List<Term> arguments2 = new ArrayList<>(numbArgs);
 					for (int argCounter = 0; argCounter < numbArgs; argCounter++) {
-						if      (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)) { arguments2.add(worldState.getWorld()); }
-						else if (usingWorldStates && argCounter == stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)) { arguments2.add(worldState.getState()); }
-						else { arguments2.add(args.get(argCounter));	}
+						arguments2.add(args.get(argCounter));
 					}
 					example.setArguments(arguments2);
 					if (!resultsAsSet.contains(example) &&   // Watch for duplicates, both newly created and those in the exceptions lists..
@@ -170,13 +157,11 @@ public class CreateSyntheticExamples {
 
                 int numbArgs = lit.numberArgs();
                 // If worldState = null, then we ignore these special arguments.
-                Term worldArg = (worldState == null || worldState.isaNullWorldState() ? null : lit.getArguments().get(stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs)));  // Pull out the world argument.
-                Term stateArg = (worldState == null || worldState.isaNullWorldState() ? null : lit.getArguments().get(stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs)));  // Pull out the state argument.
+                Term worldArg = null;  // Pull out the world argument.
+                Term stateArg = null;  // Pull out the state argument.
 
-                if (worldState == null || worldState.isaNullWorldState() || worldState.equals(worldArg, stateArg)) { // See if a match.
-                    help_getConstantsOfThisTypeInThisWorldState(stringHandler, type, lit.getArguments(), results);
-				}
-            }
+				help_getConstantsOfThisTypeInThisWorldState(stringHandler, type, lit.getArguments(), results);
+			}
         }
 		if (worldState == null && Utils.getSizeSafely(results) < 1) {
 			Utils.warning("No constants for " + spec);

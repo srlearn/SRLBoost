@@ -6,7 +6,6 @@ import edu.wisc.cs.will.DataSetUtils.CreateSyntheticExamples;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.FOPC.HandleFOPCstrings.VarIndicator;
 import edu.wisc.cs.will.ILP.*;
 import edu.wisc.cs.will.ResThmProver.*;
 import edu.wisc.cs.will.Utils.Utils;
@@ -100,12 +99,8 @@ public final class WILLSetup {
 		if (forTraining && cmdArgs.getModelFileVal() != null) {
 			appendToPrefix = cmdArgs.getModelFileVal();
 		}
-		if (!forTraining && cmdArgs.outFileSuffix != null) {
-			appendToPrefix = cmdArgs.outFileSuffix;
-		} else {
-			if (!forTraining && cmdArgs.getModelFileVal() != null) {
-				appendToPrefix = cmdArgs.getModelFileVal();
-			}
+		if (!forTraining && cmdArgs.getModelFileVal() != null) {
+			appendToPrefix = cmdArgs.getModelFileVal();
 		}
 
 		// Try to place dribble files in the directory where RESULTS will go.
@@ -114,7 +109,7 @@ public final class WILLSetup {
 
 		Utils.createDribbleFile(resultsDir + prefix + getRunTypeMarker() + appendToPrefix  + "_dribble" + Utils.defaultFileExtensionWithPeriod);
 		Utils.touchFile(        resultsDir + prefix + getRunTypeMarker() + appendToPrefix  + "_started" + Utils.defaultFileExtensionWithPeriod);
-		createRegressionOuterLooper(file_paths, directory, prefix, cmdArgs.getSampleNegsToPosRatioVal(), cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples());
+		createRegressionOuterLooper(file_paths, directory, prefix, cmdArgs.getSampleNegsToPosRatioVal(), cmdArgs.isLearnRegression());
 
 		Utils.println("\n% Initializing the ILP inner looper.");
 		getOuterLooper().initialize(false);
@@ -183,13 +178,14 @@ public final class WILLSetup {
 		Utils.println(  "% Have " + Utils.comma(negExamplesRaw) + " 'raw' negative examples and kept " + Utils.comma(negExamples) + ".");
 
 		// These shouldn't be RegressionRDNExamples. They are assumed to be "Example"s. 
-		backupPosExamples = getExamplesByPredicateName(posExamples, false); // Do bagging on the outermost loop.
-		backupNegExamples = getExamplesByPredicateName(negExamples, false);	// But only if TRAINING.
+		backupPosExamples = getExamplesByPredicateName(posExamples); // Do bagging on the outermost loop.
+		backupNegExamples = getExamplesByPredicateName(negExamples);	// But only if TRAINING.
 		// Needed to get examples from fact files.
 		fillMissingExamples();
 
 
-		// TODO(hayesall): isDisableMultiClass showed up here.
+		// TODO(hayesall): isDisableMultiClass showed up here, but there was a comment saying the multiclasshandler
+		//		was created whether we used it or not.
 		// check if multi class trees are enabled.
 		// We still create the multi class handler object
 		multiclassHandler = new MultiClassExampleHandler();
@@ -204,23 +200,6 @@ public final class WILLSetup {
 		if (backupPosExamples != null) for (String target : backupPosExamples.keySet()) {
 			Collection<Example> posegs = backupPosExamples.get(target);
 			Collection<Example> negegs = backupNegExamples.get(target);
-
-			// weigh the negative examples based on ratio of examples
-			// If you have 10X negative examples, each negative example would be weighed 0.1
-			// This is not the weight due to sampling. This is the weight to make large skews in 
-			// data be equivalent to equal positive and negative examples. 
-			// Weights are recalculated later if any sampling is done.
-
-			double weightOnPosExamples = 1.0;
-			if (Math.abs(weightOnPosExamples - 1.0) > 0.000001) for (Example pos : posegs) {
-				pos.setWeightOnExample(weightOnPosExamples);
-			}
-
-			double weightOnNegExamples = 1.0;
-
-			if (backupNegExamples != null && Math.abs(weightOnNegExamples - 1.0) > 0.000001) for (Example pos : negegs) {
-				pos.setWeightOnExample(weightOnNegExamples);
-			}
 			Example.labelTheseExamples("#pos=", posegs);  // Used in comments only.
 			Example.labelTheseExamples("#neg=", negegs);  // Used in comments only.
 			Utils.println("\n% processing backup's for " + target +"\n%  POS EX = " + Utils.comma(posegs) +  "\n%  NEG EX = " + Utils.comma(negegs)	);
@@ -305,7 +284,7 @@ public final class WILLSetup {
 						List<Example> 
 						negEgs = CreateSyntheticExamples.createAllPossibleExamples("% Negative example created from facts.",
 									getHandler(), getProver(), getInnerLooper().getTargets().get(i),getInnerLooper().getTargetArgSpecs().get(i),
-									getInnerLooper().getExamplePredicateSignatures().get(i), null,
+									getInnerLooper().getExamplePredicateSignatures().get(i),
 								new ArrayList<>(backupPosExamples.get(predName)), null, null);
 						assert negEgs != null;
 						for (Example negEx : negEgs) {
@@ -353,10 +332,6 @@ public final class WILLSetup {
 		prepareFactsAndExamples(backupPosExamples, backupNegExamples, predicate, true, null);
 	}
 
-	// TODO(hayesall): Deprecate `recursive_` and `multiclass_`
-
-	static final String multiclassPredPrefix = "multiclass_";
-
 	// Maintain a list of predicates that are already added, so that we can save on time.
 	private final HashSet<String> predicatesAsFacts = new HashSet<>();
 	private final HashSet<Literal> addedToFactBase  = new HashSet<>();
@@ -399,82 +374,39 @@ public final class WILLSetup {
 		getOuterLooper().setPosExamples(new ArrayList<>(newPosEg));
 		getOuterLooper().setNegExamples(new ArrayList<>(newNegEg));
 
-		String prefix = null;
-
 		if (forLearning) {
 
-			if (multiclassHandler.isMultiClassPredicate(predicate)) {
-				Utils.println("Morphing to regression vector");
-				getOuterLooper().setLearnMultiValPredicates(true);
-				morphToRegressionVectorExamples(newPosEg, cmdArgs.isLearnMLN() && cmdArgs.isLearningMLNClauses());
-				prefix = WILLSetup.multiclassPredPrefix;
-			} else {
-				getOuterLooper().setLearnMultiValPredicates(false);
-				// 	Move the examples into facts and get facts to predicates.
-				getOuterLooper().morphToRDNRegressionOuterLoop(
-						1,
-						0,
-						cmdArgs.getSampleNegsToPosRatioVal(),
-						cmdArgs.getSamplePosProbVal(),
-						cmdArgs.isLearnMLN() && cmdArgs.isLearningMLNClauses(),
-						false,
-						cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples())
-				;
-			}
+			getOuterLooper().setLearnMultiValPredicates(false);
+			// 	Move the examples into facts and get facts to predicates.
+			getOuterLooper().morphToRDNRegressionOuterLoop(
+					1,
+					0,
+					cmdArgs.getSampleNegsToPosRatioVal(),
+					cmdArgs.getSamplePosProbVal(),
+					cmdArgs.isLearnMLN() && cmdArgs.isLearningMLNClauses(),
+					false,
+					cmdArgs.isLearnRegression())
+			;
 
 		}
 		// Set target literal to be just one literal.
-		getOuterLooper().innerLoopTask.setTargetAs(predicate, forLearning && cmdArgs.isJointModelDisabled(), prefix);
+		getOuterLooper().innerLoopTask.setTargetAs(predicate, false, null);
 		handler.getPredicateName(predicate).setCanBeAbsent(-1);
 
 		
 	}
-	/**
-	 * No need for any sampling since only positive examples used.
-	 */
-	private void morphToRegressionVectorExamples(
-			List<Example> newPosEg,
-			boolean notLearnTrees) {
 
-		// TODO(?): Subsample positives
-		// TODO(?): allow weights for examples
-
-		getOuterLooper().setFlagsForRegressionTask(notLearnTrees);
-		List<Example> positiveExamples = new ArrayList<>(4);
-
-		// Ignore the neg Eg since they are present as '0's in the regression vector
-
-		for (Example example : newPosEg) {
-			positiveExamples.add(multiclassHandler.morphExample(example));
-		}
-		
-		getOuterLooper().setPosExamples(positiveExamples);
-		getOuterLooper().setNegExamples(new ArrayList<>(0));
-	}
-
-	private Map<String,List<Example>> getExamplesByPredicateName(List<Example> examples, boolean createBootstrapSample) {
+	private Map<String,List<Example>> getExamplesByPredicateName(List<Example> examples) {
 		// TODO(@TVK): remove the common stuff from `getJointExamples`
 
 		Map<String,List<Example>> result = new HashMap<>();
 
-		if (createBootstrapSample) {
-			int numExamples = Utils.getSizeSafely(examples);
-			for (int i = 0; i < numExamples; i++) {
-				Example eg = examples.get(Utils.random0toNminus1(numExamples));
-				String target = eg.predicateName.name; 
-				if (!result.containsKey(target)) {
-					result.put(target, new ArrayList<>());
-				}
-				result.get(target).add(eg);
+		for (Example eg : examples) {
+			String target = eg.predicateName.name;
+			if (!result.containsKey(target)) {
+				result.put(target, new ArrayList<>());
 			}
-		} else {
-			for (Example eg : examples) {
-				String target = eg.predicateName.name; 
-				if (!result.containsKey(target)) {
-					result.put(target, new ArrayList<>());
-				}
-				result.get(target).add(eg);
-			}
+			result.get(target).add(eg);
 		}
 		return result;
 	}
@@ -613,15 +545,6 @@ public final class WILLSetup {
 		return getInnerLooper().getParser().parseDefiniteClause(fact);
 	}
 
-	Clause convertFactToClause(String fact, VarIndicator newVarIndicator) {
-		VarIndicator oldVarIndicator = getHandler().getVariableIndicatorNoSideEffects();
-		getHandler().setVariableIndicator(newVarIndicator);
-		getHandler().keepQuoteMarks = false;
-		Clause cl = getInnerLooper().getParser().parseDefiniteClause(fact);
-		getHandler().setVariableIndicator(oldVarIndicator);
-		return cl;
-	}
-
 	private void setOuterLooper(ILPouterLoop outerLooper) {
 		this.outerLooper = outerLooper;
 		this.innerLooper = outerLooper.innerLoopTask;
@@ -728,7 +651,7 @@ public final class WILLSetup {
 
 		// If a recursive call involves fewer than this number of examples, make a leaf node (ALSO IMPACTS THE INITIAL CALL?)
 		getOuterLooper().setOverallMinPosWeight(10);
-		if (!cmdArgs.isLearnRegression() && !cmdArgs.isLearnProbExamples()) {
+		if (!cmdArgs.isLearnRegression()) {
 			getInnerLooper().setMinPosCoverageAsFraction(minFractionOnBranches);   // For a clause to be acceptable, it needs to cover at least this fraction of the examples (and not more than 1 minus this fraction).
 		}
 
@@ -750,7 +673,7 @@ public final class WILLSetup {
 		getInnerLooper().clausesMustCoverFractPosSeeds = 0.999999 / getOuterLooper().numberPosSeedsToUse;
 		// Need to cover at least 1% of the examples, even if the root.
 		getOuterLooper().setMinPrecisionOfAcceptableClause(0.001);
-		getOuterLooper().setMaxNumberOfLiteralsAtAnInteriorNode(cmdArgs.getMaxLiteralsInAnInteriorNode());
+		getOuterLooper().setMaxNumberOfLiteralsAtAnInteriorNode(1);
 
 		// Counting is from 0 (i.e., this is really "max number of ancestor nodes").  maxNumberOfClauses might 'dominate' this setting.
 		getOuterLooper().setMaxTreeDepth(2);
@@ -763,7 +686,7 @@ public final class WILLSetup {
 		getOuterLooper().setMaxTreeDepthInLiterals(Math.max(3, (getOuterLooper().getMaxTreeDepth() + 1) * (getOuterLooper().innerLoopTask.maxFreeBridgersInBody + getOuterLooper().getMaxNumberOfLiteralsAtAnInteriorNode())));
 
 		// Reminder: "consider" means "expand" (i.e., remove from the OPEN list and generate its children);  "create" is a counter on children.
-		int matLitsAtNode = cmdArgs.getMaxLiteralsInAnInteriorNode() + getOuterLooper().innerLoopTask.maxFreeBridgersInBody;
+		int matLitsAtNode = 1 + getOuterLooper().innerLoopTask.maxFreeBridgersInBody;
 		// For reasons of time, don't want to expand too many nodes (does this setting matter if maxLits=1?).  Eg, expand the root, pick the best child, expand it, then pick the overall best unexpanded child, and repeat a few more times.
 		getInnerLooper().setMaxNodesToConsider(matLitsAtNode > 1 ?     10 :     50);
 		// This can be high since we want the # of expansions to be the limiting factor.
@@ -794,15 +717,6 @@ public final class WILLSetup {
 		if (neighboringFactFilterList == null) {
 			Set<PredicateNameAndArity> pars = new HashSet<>(BoostingUtils.convertBodyModesToPNameAndArity(getInnerLooper().getBodyModes()));
 			neighboringFactFilterList = new ArrayList<>(pars);
-		}
-	}
-
-	void getBitMaskForNeighboringFactArguments(String target) {
-		// TODO(@hayesall): This is only used by `InferBoostedRDN`.
-		String lookup;
-		if ((lookup =  getHandler().getParameterSetting("bitMaskForNeighboringFactArgsFor" + target)) != null) {
-			lookup = lookup.replaceAll("\"", "");
-			Utils.parseListOfStrings(lookup);
 		}
 	}
 

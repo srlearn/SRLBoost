@@ -43,7 +43,7 @@ public class RegressionInfoHolderForMLN extends RegressionInfoHolderForRDN {
 		}
 		RegressionInfoHolder totalFalseStats = caller.getTotalFalseBranchHolder() ;
 		if (totalFalseStats != null) {
-			falseStats = falseStats.add(((RegressionInfoHolderForRDN)totalFalseStats).falseStats);
+			falseStats = falseStats.add(totalFalseStats.falseStats);
 		}
 	}
 }

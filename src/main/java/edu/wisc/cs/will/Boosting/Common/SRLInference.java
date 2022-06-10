@@ -63,11 +63,4 @@ public abstract class SRLInference {
 		return (rdn.getAncestorsOfType(target, PredicateType.QUERY).size() == 0);
 	}
 
-	/**
-	 * @return the rdn
-	 */
-	public RelationalDependencyNetwork getRdn() {
-		return rdn;
-	}
-	
 }
