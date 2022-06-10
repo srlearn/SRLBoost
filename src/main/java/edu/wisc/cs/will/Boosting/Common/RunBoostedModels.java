@@ -147,13 +147,8 @@ public abstract class RunBoostedModels {
 		infer();
 	}
 
-
 	private void beforeInfer() {
 		loadModel();
-		if (cmdArgs.outFileSuffix != null) {
-			// TODO(hayesall): Deprecate calling cmdArgs outside.
-			cmdArgs.setModelFileVal(cmdArgs.outFileSuffix);
-		}
 	}
 
 	private boolean setupWILLForTest() {

@@ -55,7 +55,7 @@ public class RegressionInfoHolderForRDN extends RegressionInfoHolder {
 		if (addThis == null) {
 			regHolder.falseStats = this.falseStats.add(new BranchStats());
 		} else {
-			regHolder.falseStats = this.falseStats.add(((RegressionInfoHolderForRDN)addThis).falseStats);
+			regHolder.falseStats = this.falseStats.add(addThis.falseStats);
 		}
 		return regHolder;
 	}
@@ -87,7 +87,7 @@ public class RegressionInfoHolderForRDN extends RegressionInfoHolder {
 		}
 		RegressionInfoHolder totalFalseStats = caller.getTotalFalseBranchHolder() ;
 		if (totalFalseStats != null) {
-			falseStats = falseStats.add(((RegressionInfoHolderForRDN)totalFalseStats).falseStats);
+			falseStats = falseStats.add(totalFalseStats.falseStats);
 		}
 	}
 }

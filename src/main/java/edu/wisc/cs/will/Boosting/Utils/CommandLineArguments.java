@@ -29,7 +29,7 @@ public class CommandLineArguments {
 	private static final String learn = "l";
 
 	// Need to turn this off when using Condor.
-	public boolean useLockFiles = true;
+	public final boolean useLockFiles = true;
 	
 	private boolean learnVal = false;
 
@@ -54,7 +54,7 @@ public class CommandLineArguments {
 	private static final String maxMLNLength = "mlnClauseLen";
 	private int maxMLNClauseLength=2;
 
-	public String outFileSuffix = null;
+	public final String outFileSuffix = null;
 
 	private static final String infer = "i";
 	private boolean inferVal=false;
@@ -80,8 +80,6 @@ public class CommandLineArguments {
 
 	private static final String regressionFlag = "reg";
 	private boolean learnRegression = false;
-
-	private final int maxLiteralsInAnInteriorNodeVal = 1;
 
 	private static final String stepLen = "step";
 	private double stepLenVal =1;
@@ -269,10 +267,6 @@ public class CommandLineArguments {
 
 	private boolean checked_trainDirVal = false;
 
-	public boolean isDisabledBoosting() {
-		return false;
-	}
-
 	public String getTrainDirVal() {
 		if (!checked_trainDirVal && trainDirVal != null) {
 			checked_trainDirVal = true;
@@ -311,10 +305,6 @@ public class CommandLineArguments {
 
 	public int getMaxMLNClauseLength() {
 		return maxMLNClauseLength;
-	}
-
-	public boolean getBagOriginalExamples() {
-		return false;
 	}
 
 	public boolean useCheckPointing() {
@@ -368,10 +358,6 @@ public class CommandLineArguments {
 		return false;
 	}
 
-	public Set<String> getLoadPredModelVal() {
-		return loadPredModelVal;
-	}
-
 	public boolean isLearnRegression() {
 		return learnRegression;
 	}
@@ -405,20 +391,12 @@ public class CommandLineArguments {
 		String result = "_";
 		result += "pos_";
 		result += "neg_";
-		result += "Lits"  + maxLiteralsInAnInteriorNodeVal;
+		result += "Lits"  + 1;
 		if (maxTreesVal                    >= 0)    { result += "Trees" + maxTreesVal; }
 		if (sampleNegsToPosRatioVal        >= 0)    { result += "Skew"     + (int) sampleNegsToPosRatioVal; }
 		if (includeTestSkew &&
 				testNegsToPosRatioVal      >= 0)    { result += "TestSkew" + (int) testNegsToPosRatioVal; }
 		return result;
-	}
-
-	public int getMaxLiteralsInAnInteriorNode() {
-		return maxLiteralsInAnInteriorNodeVal;
-	}
-
-	public boolean isJointModelDisabled() {
-		return false;
 	}
 
 	public boolean isLearnMLN() {
@@ -443,10 +421,6 @@ public class CommandLineArguments {
 
 	public void setBeta(double beta) {
 		this.beta = beta;
-	}
-
-	public boolean isLearnProbExamples() {
-		return false;
 	}
 
 }

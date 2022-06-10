@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
-import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 
@@ -35,11 +34,4 @@ public class SingleModelSampler extends SRLInference {
 		conditionalModel.setNumTrees(max);
 	}
 
-	/*
-	 * @return the rdn
-	 */
-	public RelationalDependencyNetwork getRdn() {
-		// Since the joint model is updated, create RDN on the fly
-		return new RelationalDependencyNetwork(jointModel, setup);
-	}
 }

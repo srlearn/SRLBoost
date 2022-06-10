@@ -5,21 +5,19 @@ import edu.wisc.cs.will.Boosting.Trees.LearnRegressionTree;
 import edu.wisc.cs.will.Boosting.Trees.RegressionTree;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
-import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Literal;
-import edu.wisc.cs.will.FOPC.Sentence;
 import edu.wisc.cs.will.FOPC.Theory;
 import edu.wisc.cs.will.FOPC.TreeStructuredTheory;
-import edu.wisc.cs.will.ILP.ILPouterLoop;
 import edu.wisc.cs.will.Utils.ProbDistribution;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.VectorStatistics;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -36,11 +34,7 @@ public class LearnBoostedRDN {
 
 	private List<RegressionRDNExample> egs    = null;
 	private String  targetPredicate          = null;
-	private int     maxTrees;
-	private final boolean resampleExamples        = true;
-	private final boolean stopIfFewChanges        = false;
-	private final boolean learnSingleTheory 		= false;
-	private boolean disableBoosting			= false;
+	private final int     maxTrees;
 
 	private long learningTimeTillNow = 0;
 
@@ -48,9 +42,6 @@ public class LearnBoostedRDN {
 		this.cmdArgs = cmdArgs;
 		this.setup = setup;
 		maxTrees = cmdArgs.getMaxTreesVal();
-		if (cmdArgs.isDisabledBoosting()) {
-			disableBoosting=true;
-		}
 	}
 
 	public void learnNextModel(SRLInference sampler, ConditionalModelPerPredicate rdn, int numMoreTrees) {
@@ -79,29 +70,10 @@ public class LearnBoostedRDN {
 		if(rdn.getNumTrees() == 0) {
 			rdn.setTargetPredicate(pred);
 			rdn.setTreePrefix(pred + (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()));
-			if (learnSingleTheory) {
-				rdn.setHasSingleTheory(true);
-				rdn.setSetup(setup);
-				List<Sentence> bkClauses = setup.getInnerLooper().getParser().parse(getComputationPrologRules(maxTrees));
-				rdn.addSentences(bkClauses);
-			}
 		}
-		
 
-		List<RegressionRDNExample> old_eg_set = null;
+
 		long start = System.currentTimeMillis();
-		if (disableBoosting) {
-			maxTrees=1;
-			rdn.setLog_prior(0);
-			// Increase the depth and number of clauses
-			// TODO : Maybe make this settable ? Or assume caller sets it ?
-			ILPouterLoop outerLoop = setup.getOuterLooper();
-			outerLoop.setMaxTreeDepth(10);
-			outerLoop.setMaxTreeDepthInLiterals(12);
-			outerLoop.maxNumberOfClauses = 20;
-			outerLoop.maxNumberOfCycles = 20;
-			outerLoop.setMaxAcceptableNodeScoreToStop(0.0001);
-		}
 		//TODO(TVK!)
 		if (
 			cmdArgs.isLearnRegression()) {
@@ -149,10 +121,6 @@ public class LearnBoostedRDN {
 			
 			// Do we need this here? It is called before executeOuterLoop and in dumpTheoryToFiles.
 			setup.getOuterLooper().resetAll();
-			if ((sampler instanceof SingleModelSampler) &&
-				doEarlyStop(old_eg_set, (SingleModelSampler)sampler)) { // THIS NEEDS TO BE EXTENDED TO HANDLE MULTIPLE TREES.
-				break;
-			}
 
 			for (int modelNumber = 0; modelNumber < RunBoostedRDN.numbModelsToMake; modelNumber++) { // This code assumes modelNumber=0 is learned first.
 				// Build data set for this model in this iteration.
@@ -162,14 +130,8 @@ public class LearnBoostedRDN {
 				Utils.println("Time to build dataset: " + Utils.convertMillisecondsToTimeSpan(bbend-bddstart));
 				RegressionTree tree;
 				tree = getWILLTree(newDataSet, i);
-				double stepLength = 1;
-				if (!disableBoosting) {
-					stepLength = cmdArgs.getDefaultStepLenVal();
-					// Currently can't handle line search and single theory, since we need regression values for a single tree.
-					// TODO add support for single theory too.
-				}
+				double stepLength = cmdArgs.getDefaultStepLenVal();
 				rdn.addTree(tree, stepLength, modelNumber);  // This code assume modelNumber=0 is learned first.
-				old_eg_set = newDataSet;
 			}
 			rdn.updateSetOfTrees();
 			if (cmdArgs.useCheckPointing()) {
@@ -178,9 +140,6 @@ public class LearnBoostedRDN {
 			if ((i + 1) % 10 == 0) { 
 				rdn.saveModel(saveModelName);
 			} // Every now and then save the model so we can see how it is doing.
-		}
-		if (stopIfFewChanges) { 
-			Utils.println("Stopped after " + Utils.comma(i) + " trees.");
 		}
 		if (i >= maxTrees) {
 			addPrologCodeForUsingAllTrees(rdn, i); 
@@ -200,30 +159,7 @@ public class LearnBoostedRDN {
 							  ".\n//// Number of trees loaded:" + rdn.getNumTrees() ;
 			Utils.appendString(willFile, addString);
 		}
-		if (!resampleExamples) {
-			String chkptEgFile = BoostingUtils.getCheckPointExamplesFile(saveModelName);
-			if (Utils.fileExists(chkptEgFile)) {
-				Utils.appendString(willFile, "\n//// Also loaded examples from " + chkptEgFile);
-				try {
 
-					ObjectInputStream ois = new ObjectInputStream(new CondorFileInputStream(chkptEgFile));
-
-					Object obj = ois.readObject();
-					while(obj != null) {
-						RegressionRDNExample ex = (RegressionRDNExample)obj;
-						egs.add(ex);
-						obj = ois.readObject();
-					}
-
-					ois.close();
-				} 
-				catch(Exception e) {
-					Utils.reportStackTrace(e);
-					Utils.error("Problem in writing examples in createCheckPointForModel.");
-				}
-			}
-		}
-		
 		String chkptLitFile = BoostingUtils.getCheckPointFlattenedLitFile(saveModelName);
 		if (Utils.fileExists(chkptLitFile)) {
 			List<Literal> lits = setup.getInnerLooper().getParser().readLiteralsInPureFile(chkptLitFile);
@@ -235,27 +171,7 @@ public class LearnBoostedRDN {
 	private void createCheckPointForModel(ConditionalModelPerPredicate rdn, String saveModelName) {
 		String chkptFile = BoostingUtils.getCheckPointFile(saveModelName);
 		rdn.saveModel(chkptFile);
-		
-		// Save the examples if not re-sampling e.g.s
-		if (!resampleExamples) {
-			String chkptEgFile = BoostingUtils.getCheckPointExamplesFile(saveModelName);
-			// Need to write examples only during first iteration
-			if (Utils.fileExists(chkptEgFile)) {
-				try {
 
-					ObjectOutputStream oos = new ObjectOutputStream(new CondorFileOutputStream(chkptEgFile));
-					for (RegressionRDNExample eg : egs) {
-						oos.writeObject(eg);
-					}
-					oos.close();
-				} 
-				catch(Exception e) {
-					Utils.reportStackTrace(e);
-					Utils.error("Problem in writing examples in createCheckPointForModel.");
-				}
-			}
-		}
-		
 		File chkptLitFile = new CondorFile(BoostingUtils.getCheckPointFlattenedLitFile(saveModelName));
 		Utils.writeStringToFile("// Checkpointed flattened literals\n", chkptLitFile);
 		
@@ -282,12 +198,8 @@ public class LearnBoostedRDN {
 			setup.getOuterLooper().setPosExamples(BoostingUtils.convertToListOfExamples(newDataSet));
 			// Make sure the invented predicates (if any) have unique names.
 			setup.getOuterLooper().setPrefixForExtractedRules("");
-			if (learnSingleTheory) {
-				setup.getOuterLooper().setPostfixForExtractedRules(getTreeSuffix(i + 1));
-			} else {
-				setup.getOuterLooper().setPostfixForExtractedRules("");
-			}
-			
+			setup.getOuterLooper().setPostfixForExtractedRules("");
+
 			thry = setup.getOuterLooper().executeOuterLoop();
 
 			if (thry instanceof TreeStructuredTheory) {
@@ -306,43 +218,6 @@ public class LearnBoostedRDN {
 	}
 
 
-	private boolean doEarlyStop(List<RegressionRDNExample> old_eg_set, SingleModelSampler sampler) {
-		double minGradientForSame = 0.0002;
-		if (stopIfFewChanges && old_eg_set != null) {
-			int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
-			Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set));
-			double minPercentageSameForStop = 0.8;
-			return ((double) numOfEgSame / (double) old_eg_set.size()) > minPercentageSameForStop;
-		} else {
-			if(old_eg_set != null) {
-				int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
-				Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set) + " converged.");
-			}
-		}
-		return false;
-	}
-
-	private int getNumUnchangedEx(List<RegressionRDNExample> oldEgSet, double grad, SingleModelSampler sampler) {
-		int counter=0;
-		for (Example ex : oldEgSet) {
-			RegressionRDNExample eg = (RegressionRDNExample)ex;
-			ProbDistribution old_prob = eg.getProbOfExample();
-
-			sampler.getExampleProbability(eg);
-			ProbDistribution new_prob = eg.getProbOfExample();
-
-			ProbDistribution diff = new ProbDistribution(old_prob);
-			diff.scaleDistribution(-1);
-			diff.addDistribution(new_prob);
-			double eg_grad = diff.norm();
-			if (eg_grad < grad) {
-				counter++;
-			}
-
-		}
-		return counter;
-	}
-
 	private void getSampledPosNegEx(List<RegressionRDNExample> all_exs) {
 
 		if (egs != null) {
@@ -351,17 +226,9 @@ public class LearnBoostedRDN {
 				eg.clearCache();
 			}
 		}
-		if (!resampleExamples) {
-			if (egs != null) {
-				all_exs.addAll(egs);
-				return;
-				//	return numPosEx;
-			}
-		} else {
-			// Only sample the second time onwards.
-			if (egs != null) {
-				setup.prepareExamplesForTarget(targetPredicate);
-			}
+		// Only sample the second time onwards.
+		if (egs != null) {
+			setup.prepareExamplesForTarget(targetPredicate);
 		}
 		all_exs.addAll(BoostingUtils.castToListOfRegressionRDNExamples(setup.getOuterLooper().getPosExamples()));
 		Utils.println("% Dataset size: " + Utils.comma(all_exs));
@@ -373,6 +240,7 @@ public class LearnBoostedRDN {
 
 		getSampledPosNegEx(        all_exs);
 		// No need to get sample probabilities as there is no \psi_0 or gradient.
+		boolean disableBoosting = false;
 		if (!disableBoosting) {
 			Utils.println("Computing probabilities");
 			long start = System.currentTimeMillis();
@@ -388,51 +256,41 @@ public class LearnBoostedRDN {
 			
 			RegressionRDNExample eg = all_exs.get(i);
 			eg.clearCache();
-			if(cmdArgs.isLearnRegression() || cmdArgs.isLearnProbExamples()) {
+			if(cmdArgs.isLearnRegression()) {
 				eg.setOutputValue(eg.originalRegressionOrProbValue - eg.getProbOfExample().getProbOfBeingTrue());
 				continue;
 			}
 
-			if (disableBoosting) {
-				// TODO What would be the best value ?
-				if (eg.isOriginalTruthValue()) {
-					eg.setOutputValue(4);
-					
-				} else {
-					eg.setOutputValue(-4);
-				}
+			ProbDistribution probDistr = eg.getProbOfExample();
+			if (probDistr.isHasDistribution()) {
+				double[] base_prob;
+				double[] distr = probDistr.getProbDistribution();
+				base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
+
+				double[] grad  = VectorStatistics.subtractVectors(base_prob, distr);
+
+				// Only update for EM
+				eg.setOutputVector(grad);
 			} else {
-				ProbDistribution probDistr = eg.getProbOfExample();
-				if (probDistr.isHasDistribution()) {
-					double[] base_prob;
-					double[] distr = probDistr.getProbDistribution();
-					base_prob = VectorStatistics.createIndicator(distr.length, eg.getOriginalValue());
-
-					double[] grad  = VectorStatistics.subtractVectors(base_prob, distr);
-					
-					// Only update for EM
-					eg.setOutputVector(grad);
-				} else {
-					double prob = probDistr.getProbOfBeingTrue();
-					double stateProb = 1;
-					// Only set for EM
-					if (cmdArgs.isSoftM()){
-						double alpha = cmdArgs.getAlpha();
-						double beta = cmdArgs.getBeta();
-						if (eg.isOriginalTruthValue()) {
-
-							eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(alpha)));
-						} else {
-
-							eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(-beta)));
-						}
-					} else {
+				double prob = probDistr.getProbOfBeingTrue();
+				double stateProb = 1;
+				// Only set for EM
+				if (cmdArgs.isSoftM()){
+					double alpha = cmdArgs.getAlpha();
+					double beta = cmdArgs.getBeta();
 					if (eg.isOriginalTruthValue()) {
-						eg.setOutputValue(stateProb * (1 - prob));
+
+						eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(alpha)));
 					} else {
-						eg.setOutputValue(stateProb * (0 - prob));
+
+						eg.setOutputValue(1 - prob/(prob + (1-prob)* Math.exp(-beta)));
 					}
-					}
+				} else {
+				if (eg.isOriginalTruthValue()) {
+					eg.setOutputValue(stateProb * (1 - prob));
+				} else {
+					eg.setOutputValue(stateProb * (0 - prob));
+				}
 				}
 			}
 		}
@@ -451,7 +309,6 @@ public class LearnBoostedRDN {
 	private static final String STEPLEN_PREDICATE_PREFIX = "stepLength";
 
 	private File getWILLsummaryFile() {  // Always recompute in case 'targetPredicate' changes.
-	//	return new CondorFile(getWILLFile(setup.getOuterLooper().getWorkingDirectory() + "/" +  cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
 		return Utils.ensureDirExists(getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), targetPredicate));
 	}
 	
@@ -533,7 +390,7 @@ public class LearnBoostedRDN {
 		Literal       target  = null;
 		if (Utils.getSizeSafely(targets) == 1) { target = targets.get(0); } else { Utils.error("Should only have one target.  Have: " + targets); }
 		assert target != null;
-		if (!target.predicateName.name.equals(targetPredicate) && !target.predicateName.name.equals(WILLSetup.multiclassPredPrefix + targetPredicate) ) {
+		if (!target.predicateName.name.equals(targetPredicate)) {
 			Utils.error("These predicate names should match: targetPredicate = " + targetPredicate + " and target = " + target); 
 		}
 

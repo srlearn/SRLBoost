@@ -30,10 +30,6 @@ public class DependencyNetworkEdge {
 		return start;
 	}
 
-	public DependencyNode getEnd() {
-		return end;
-	}
-
 	private String styleForDOT() {
 		switch(edge) {
 			case DETERMINISTIC: return "dashed";

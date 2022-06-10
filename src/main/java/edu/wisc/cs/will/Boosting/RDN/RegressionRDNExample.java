@@ -83,10 +83,6 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 	public void setProbOfExample(ProbDistribution probOfExample) {
 		this.probOfExample = probOfExample;
 	}
-	
-	public String toString() {
-		return super.toString();
-	}
 
 	public String toPrettyString() {
 		String result= super.toString();

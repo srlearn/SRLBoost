@@ -5,7 +5,6 @@ import edu.wisc.cs.will.Boosting.Common.SRLInference;
 import edu.wisc.cs.will.Boosting.RDN.ConditionalModelPerPredicate;
 import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
 import edu.wisc.cs.will.Boosting.RDN.LearnBoostedRDN;
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Utils.Utils;
 
@@ -63,15 +62,9 @@ public class RunBoostedRegressionTrees extends RunBoostedModels {
 			} else {
 				Utils.println("% Did not learn a model for '" + pred + "' this run.");
 				rdn = new ConditionalModelPerPredicate(setup);
-			
-				if (useSingleTheory(setup)) {
-					rdn.setHasSingleTheory(true);
-					rdn.setTargetPredicate(pred);
-					rdn.loadModel(LearnBoostedRDN.getWILLFile(cmdArgs.getModelDirVal(), cmdArgs.getModelFileVal(), pred), setup, cmdArgs.getMaxTreesVal());
-				} else {
-					rdn.setTargetPredicate(pred);
-					rdn.loadModel(BoostingUtils.getModelFile(cmdArgs, pred, true), setup, cmdArgs.getMaxTreesVal());
-				}
+
+				rdn.setTargetPredicate(pred);
+				rdn.loadModel(BoostingUtils.getModelFile(cmdArgs, pred, true), setup, cmdArgs.getMaxTreesVal());
 				rdn.setNumTrees(cmdArgs.getMaxTreesVal());
 				fullModel.put(pred, rdn);
 			}
@@ -82,13 +75,6 @@ public class RunBoostedRegressionTrees extends RunBoostedModels {
 		InferRegressionTrees infer = new InferRegressionTrees(cmdArgs, setup);
 		infer.runInference(fullModel);
 	}
-	
-	private boolean useSingleTheory(WILLSetup setup2) {
-		String lookup;
-		if ((lookup =  setup2.getHandler().getParameterSetting("singleTheory")) != null) {
-			return Boolean.parseBoolean(lookup);
-		}
-		return false;
-	}
+
 }
 
