@@ -1,0 +1,7 @@
+father(elizabeth,mrbennet).
+father(jane,mrbennet).
+father(charlotte,mrlucas).
+father(charlotte,mrsbennet).
+father(jane,mrlucas).
+father(mrsbennet,mrbennet).
+father(jane,elizabeth).
