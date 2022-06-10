@@ -35,10 +35,7 @@ public class CreateSyntheticExamples {
 
 		Set< Example>  resultsAsSet      = new HashSet<>(4); // Use this to quickly look for duplicates.
 		List<Example>  results           = new ArrayList<>(4);
-		Constant       dummyConstant     = stringHandler.getStringConstant("Dummy"); // Need a filler for the positions from which we don't extract.
-		Set<Term>      dummyConstantSet  = new HashSet<>(4);
 
-		dummyConstantSet.add(dummyConstant);
 		for (WorldState worldState : worldStatesToProcess2) {
 			List<Set<Term>> crossProduct = new ArrayList<>(targetPredicateSignature.size());
 			int             leafCounter  = 0;
@@ -157,9 +154,6 @@ public class CreateSyntheticExamples {
 
                 int numbArgs = lit.numberArgs();
                 // If worldState = null, then we ignore these special arguments.
-                Term worldArg = null;  // Pull out the world argument.
-                Term stateArg = null;  // Pull out the state argument.
-
 				help_getConstantsOfThisTypeInThisWorldState(stringHandler, type, lit.getArguments(), results);
 			}
         }
