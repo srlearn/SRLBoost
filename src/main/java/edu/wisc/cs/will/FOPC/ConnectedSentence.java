@@ -399,7 +399,6 @@ public class ConnectedSentence extends Sentence implements Serializable {
 
     // Need to handle (A ^ (B ^ C)) by giving them all 1/3rd the weight, that than 1/2, 1/4th, and 1/4th.
     private ConnectedSentence spreadWeightEquallyOverConjuncts(double wgtSentenceToUse) {
-		if (wgtSentenceToUse <= minWeight && wgtSentenceToUse >= maxWeight) { return this; }
 		ConnectiveName andConnective = stringHandler.getConnectiveName("^");
 		int numberOfConjuncts = countANDconnectives(andConnective);
 		if (numberOfConjuncts < 1) { Utils.error("This should not happen: " + this); }

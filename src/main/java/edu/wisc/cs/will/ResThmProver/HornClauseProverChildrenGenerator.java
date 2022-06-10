@@ -79,10 +79,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
      */
     private int nextExpansion;
 
-    /* Caches a failLiteral locally.
-     */
-    private final Literal failLiteral;
-
     /* Tracks the current proof step counter.
      *
      * Each time a literal is evaluated (it's expanded to include it's children),
@@ -105,14 +101,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         HandleFOPCstrings stringHandler = context.getStringHandler();
 
-        failLiteral = stringHandler.getLiteral(stringHandler.standardPredicateNames.fail);
-
-        PrettyPrinterOptions prettyPrintOptions = new PrettyPrinterOptions();
-        prettyPrintOptions.setMaximumConsCells(5);
-        prettyPrintOptions.setMultilineOutputEnabled(false);
-        prettyPrintOptions.setSentenceTerminator("");
-        prettyPrintOptions.setRenameVariables(false);
-
     }
 
     @Override
@@ -133,7 +121,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         return result;
     }
 
-    private List<HornSearchNode> collectChildrenActual(HornSearchNode hornSearchNode) throws SearchInterrupted {
+    private List<HornSearchNode> collectChildrenActual(HornSearchNode hornSearchNode) throws SearchInterrupted, RuntimeException {
 
 
         // Grab the first negated literal in this node, and find all "rules" in the theory that unify with it.
@@ -141,9 +129,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         // then resolving P and !P produces (!A v ... v !H v !R v ... !Z) where theta=unify(P, P') is applied to the result.
 
         resetCutMarkerAndCounters();
-
-        HandleFOPCstrings stringHandler = context.getStringHandler();
-
 
         List<Literal> queryLiterals = hornSearchNode.clause.negLiterals;
         Literal negatedLiteral = queryLiterals.get(0);
@@ -155,186 +140,11 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         boolean noPredArgMatchFound;
 
         if (thisTask.predefinedPredicateNamesUsedByChildCollector.contains(negatedLiteralPredName)) {
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.falseName || negatedLiteralPredName == stringHandler.standardPredicateNames.fail) {
-                if (negatedLiteral.numberArgs() != 0) {
-                    Utils.error("Cannot have arguments to the 'false' predicate.  You have: '" + negatedLiteral + "'");
-                }
-                return null;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.trueName) { // Could have this be procedurally defined, but duplicate code here for simplicity.
-                if (negatedLiteral.numberArgs() != 0) {
-                    Utils.error("Cannot have arguments to the 'true' predicate.  You have: '" + negatedLiteral + "'");
-                }
-                children = new ArrayList<>(1);
-                children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.repeat) {
-                if (negatedLiteral.numberArgs() != 0) {
-                    Utils.error("Cannot have arguments to the 'repeat' predicate.  You have: '" + negatedLiteral + "'");
-                }
-                children = new ArrayList<>(1);
-                children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
-                children.add(hornSearchNode); // In a repeat, we backtrack to this same node.  'Repeat' can be viewed as: 'repeat. repeat :- repeat.'
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.cutMarker) {
-                return null; // Don't want this to succeed.
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.cut) {
-
-                popOpenUptoThisCutMarker(negatedLiteral); // Discard everything up this cut's marker.
-                // Add the remainder of this query following the cut.
-                children = new ArrayList<>(1);
-                children.add(createChildWithNoNewLiterals(hornSearchNode, queryLiterals, null));
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.negationByFailure) {
-                // Convert '\+ P' to
-                //    dummy :- P, !, false.
-                //    dummy :- true.
-
-                Clause negationContents = stringHandler.getNegationByFailureContents(negatedLiteral);
-
-                if (negationContents == null) {
-                    Utils.error("Expected term of negation to be Function or SentenceAsTerm.");
-                }
-
-                if (negationContents.getNegLiteralCount() == 0) {
-                    negationContents = stringHandler.getClause(negationContents.getNegativeLiterals(), negationContents.getPositiveLiterals());
-                }
-
-                createCutMarkerNode(hornSearchNode, negatedLiteral);
-
-                List<Literal> expandedNotLiterals = new LinkedList<>();
-                if (negationContents.getNegativeLiterals() != null) {
-                    expandedNotLiterals.addAll(negationContents.getNegativeLiterals());
-                }
-                if (cutLiteral == null) { Utils.waitHere(); }
-                expandedNotLiterals.add(cutLiteral);
-                expandedNotLiterals.add(failLiteral);
-
-                HornSearchNode negationSucessNode = createChildWithMultipleNewLiterals(hornSearchNode, expandedNotLiterals, queryLiterals, null);
-                HornSearchNode negationFailedNode = createChildWithMultipleNewLiterals(hornSearchNode, null, queryLiterals, null);
-
-                children = new ArrayList<>(3);
-
-                children.add(negationSucessNode);
-                children.add(negationFailedNode);
-                children.add(cutMarkerNode);
-
-                return children;
-            }
-
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.then) {
-                // Convert 'if P then Q else R' - note there is no backtracking across P due to the cut.
-                //    if(P,Q,R) :- P, !, Q.
-                //    if(P,Q,R) :- R. [note that R is optional]
-                throw new UnsupportedOperationException();
-
-            }
-
-            // Handle "call(X)" by pulling out X and adding it back in.
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.call || negatedLiteralPredName == stringHandler.standardPredicateNames.implicit_call) { //Utils.println("% CALL!");
-                if (negatedLiteral.numberArgs() != 1) {
-                    Utils.error("Must have ONE argument to the 'call' predicate.  You have: '" + negatedLiteral + "'");
-                }
-                Clause callBody = negatedLiteral.getArgument(0).asClause();
-
-                HornSearchNode newNode = createChildWithMultipleNewLiterals(hornSearchNode, callBody.getPositiveLiterals(), queryLiterals, null);
-                children = new ArrayList<>(1);
-                children.add(newNode);
-                return children;
-            }
-
-            // Here is the definition for once: once(G) :- call(G), !.
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.once) {
-                if (negatedLiteral.numberArgs() != 1) {
-                    Utils.error("Must have ONE argument to the 'once' predicate.  You have: '" + negatedLiteral + "'");
-                }
-                // Need to convert the body of the once() to clause form (this is now done at parse time) and add a cut at the end.  BE SURE THE CLAUSE IS MARKED AS CONTAINING A CUT!
-                // Then need to add this internal clause to
-                SentenceAsTerm onceBody = (SentenceAsTerm) negatedLiteral.getArgument(0); // Count on these being the proper type, so that casting works.
-                Clause clauseBody = (Clause) onceBody.sentence;
-
-                if (cutMarkerNode != null) {
-                    Utils.error("cutMarkerLiteral should be null here!");
-                }
-                createCutMarkerNode(hornSearchNode, negatedLiteral);
-
-                List<Literal> expandedOnceLiterals = new LinkedList<>();
-                if (clauseBody.negLiterals != null) {
-                    expandedOnceLiterals.addAll(clauseBody.negLiterals);
-                }
-                Utils.println("once: Adding a cut marker.");  if (cutLiteral == null) { Utils.waitHere(); }
-                expandedOnceLiterals.add(cutLiteral);
-
-                HornSearchNode expandedOnceNode = createChildWithMultipleNewLiterals(hornSearchNode, expandedOnceLiterals, queryLiterals, null);
-                children = new ArrayList<>(2);
-                children.add(expandedOnceNode);
-                children.add(cutMarkerNode); // Want the cut to be the OLDEST item in OPEN among these children.
-                return children;
-            }
-
-            // Handle a findAll (and all, setOf, bagOf, etc)
-            if (negatedLiteralPredName == stringHandler.standardPredicateNames.findAll || negatedLiteralPredName == stringHandler.standardPredicateNames.all
-                    || negatedLiteralPredName == stringHandler.standardPredicateNames.setOf || negatedLiteralPredName == stringHandler.standardPredicateNames.bagOf
-                    || negatedLiteralPredName == stringHandler.standardPredicateNames.countProofs || negatedLiteralPredName == stringHandler.standardPredicateNames.countUniqueBindings) {
-                Term term, list;
-                Clause goal;
-                if (negatedLiteralPredName == stringHandler.standardPredicateNames.countProofs || negatedLiteralPredName == stringHandler.standardPredicateNames.countUniqueBindings) {
-                    if (negatedLiteral.numberArgs() != 2) {
-                        Utils.error("Must have TWO arguments to the '" + negatedLiteralPredName + "' predicate.  You have: '" + negatedLiteral + "'");
-                    }
-                    term = negatedLiteral.getArgument(0); // Only needed for countUniqueBindings(), but stick in here anyway so internal rep's consistent across these variants.
-                    goal = (Clause) ((SentenceAsTerm) term).sentence;
-                    list = negatedLiteral.getArgument(1);
-                }
-                else {
-                    if (negatedLiteral.numberArgs() != 3) {
-                        Utils.error("Must have THREE arguments to the '" + negatedLiteralPredName + "' predicate.  You have: '" + negatedLiteral + "'");
-                    }
-                    term = negatedLiteral.getArgument(0);
-                    goal = (Clause) ((SentenceAsTerm) negatedLiteral.getArgument(1)).sentence;
-                    list = negatedLiteral.getArgument(2);
-                }
-                PredicateName collectorPred = getStringHandler().getPredicateName(negatedLiteralPredName + "Collector");
-                // Collect ALL proofs of goal, which must be a literal or a conjunct - actually, a clause with only negative literals.
-                // And for each proof, save 'term' (which presumably shares variables with 'goal') in a list.
-                // Unify this list with 'list' as the final step.  EXCEPTION: the count* variants return the LENGTH of this list.
-                ObjectAsTerm answersList = getStringHandler().getObjectAsTerm(getStringHandler().getNil(), false); // Need to WRAP this since we'll be "cons'ing" to the front and we need something to hold the resulting consCell.
-                List<Term> collectorArgs = new ArrayList<>(2); // This will collect all the answers.
-                collectorArgs.add(term);
-                collectorArgs.add(answersList);
-                List<Term> resultArgs = new ArrayList<>(3); // This will return once all the answers have been collected. The 3rd argument is simply there so that we can easily differentiate the two.
-                resultArgs.add(list);
-                resultArgs.add(answersList);
-                resultArgs.add(term); // Might as well put something useful here ..
-                Literal collector = getStringHandler().getLiteral(collectorPred, collectorArgs);
-
-                List<Literal> collectorLiterals = new LinkedList<>();
-                if (goal.negLiterals != null) {
-                    collectorLiterals.addAll(goal.negLiterals);
-                }
-                collectorLiterals.add(collector);
-
-                Literal answerLiteral = getStringHandler().getLiteral(collectorPred, resultArgs);
-
-                HornSearchNode collectNode = createChildWithMultipleNewLiterals(hornSearchNode, collectorLiterals, queryLiterals, null);
-                HornSearchNode answerNode = createChildWithSingleNewLiteral(hornSearchNode, answerLiteral, queryLiterals);
-
-                children = new ArrayList<>(1);
-                children.add(collectNode);
-                children.add(answerNode);
-                return children;
-            }
+            // TODO(hayesall): These should not be reachable
+            throw new RuntimeException("This code should not be reachable.");
         }
+
+        // TODO(hayesall): Each of these refer to a ProcedurallyDefinedPredicateHandler, or a "user provided" version.
 
         // See if there is a special procedurally defined predicate, and if so, call its handler.
         int arity = negatedLiteral.numberArgs();
@@ -352,23 +162,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
                 return children;
             }
             return null;  // If the procedurally defined predicate failed, then this search path has failed.
-        }
-        // See if this is a built-in (into the ResolutionTheoremProver) predicate that needs to be handled by special code.
-        ProcedurallyDefinedPredicateHandler builtinProcedurallyDefinedPredicateHandlerInstance = getClausebase().getBuiltinProcedurallyDefinedPredicateHandler();
-        if (builtinProcedurallyDefinedPredicateHandlerInstance.canHandle(negatedLiteralPredName, arity)) {
-            if (bindingList.theta.size() > 0) {
-                bindingList.theta.clear();
-            } // Revert to the empty binding list.
-            BindingList theta = builtinProcedurallyDefinedPredicateHandlerInstance.handle(context, negatedLiteral, unifier, bindingList);
-            if (theta != null) {
-
-                HornSearchNode newNode = createChildWithNoNewLiterals(hornSearchNode, queryLiterals, theta);
-
-                children = new ArrayList<>(1);
-                children.add(newNode);
-                return children;
-            }
-            return null;  // If the built-in procedurally defined predicate failed, then this search path has failed.
         }
 
         // If we get here, there is no special handling to do.  Just look the literal up in the clause base and
@@ -535,22 +328,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         return newRuleBody;
     }
 
-    private void popOpenUptoThisCutMarker(Literal cutLiteral) {
-
-        CutMarkerNode markerNode = ((CutLiteral) cutLiteral).cutMarkerNode;
-
-        OpenList<HornSearchNode> openList = getTask().open;
-
-        while (!openList.isEmpty() && openList.peek() != markerNode) {
-            openList.popOpenList();
-        }
-
-        if (openList.isEmpty()) {
-            Utils.error("Pop'ed all of OPEN but did not find: '" + markerNode + "'");
-        }
-
-    }
-
     private int getNextExpansion() {
         return nextExpansion++;
     }
@@ -610,19 +387,6 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         }
 
         return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), bindingList, proofCounter, expansion);
-    }
-
-    private HornSearchNode createChildWithSingleNewLiteral(HornSearchNode hornSearchNode, Literal newLiteral, List<Literal> queryLiterals) {
-
-        int expansion = getNextExpansion();
-
-        List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, null);
-
-        if (newLiteral != null) {
-            newQueryLiterals.add(0, newLiteral);
-        }
-
-        return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), null, proofCounter, expansion);
     }
 
     private HornSearchNode createChildWithNoNewLiterals(HornSearchNode hornSearchNode, List<Literal> queryLiterals, BindingList bindingList) {

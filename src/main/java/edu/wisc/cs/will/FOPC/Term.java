@@ -71,18 +71,8 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
 	public int compareTo(Term otherTerm) { // Could be made more efficient for subclasses if this ends up taking too much time.
 		return toString().compareTo(otherTerm.toString());
 	}
-	
-    /* Returns the term in the form of a sentence.
-     *
-     * Not all terms have sentence representations.  For example, there is no
-     * sentence representation for a NumericConstant.  If no sentence representation
-     * exists, null is returned.
-     *
-     * @return Sentence representation of this term, or null if one does not exist.
-     */
-    public abstract Sentence       asSentence();
 
-    /* Returns the Term as a clause.
+	/* Returns the Term as a clause.
      * @return Clause represented by the term, or null if one does not exist.
      */
     public Clause         asClause() { return null; }

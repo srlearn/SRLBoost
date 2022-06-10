@@ -1,7 +1,5 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.Utils.MapOfLists;
-import edu.wisc.cs.will.Utils.MapOfSets;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.io.IOException;
@@ -18,7 +16,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   List<PredicateSpec>      typeSpecList = null; // Information about this Predicate, e.g. legal arguments to it.  A 'type' describes both the kind of arguments it takes (e.g., 'people' are 'books') and whether these arguments are "input" variables, "output" variables, or constants.
 	private   List<PredicateSpec>      typeOnlyList = null; // Similar to above, but the input/output markers are not included.
 	private   Set<Integer>             typeDeSpeced = null; // Modes that have been disabled - currently all modes of a given arity are disabled
-	Set<Integer> boundariesAtEnd_1D       = null; // If true, the last N arguments specify the boundaries, e.g., if 1D the last two arguments are lower and upper, if 2d then they are lower1, upper1, lower2, upper2, etc.
 	private   Map<Integer,Integer> maxOccurrencesPerArity = null; // During structure (i.e., rule) learning, cannot appear more than this many times in one rule.
 	private   Map<Integer,Map<List<Type>,Integer>> maxOccurrencesPerInputVars = null; // During structure (i.e., rule) learning, cannot appear more than this many times in one rule.
 	private   Set<Integer> canBeAbsentThisArity                         = null;  // OK if this predicate name with one of these arities can be absent during theorem proving.
@@ -94,14 +91,14 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return (bridgerSpec != null && bridgerSpec.contains(Utils.getSizeSafely(arguments)));
 	}
 
-	void recordMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars, boolean okIfDup) {
+	void recordMode(List<Term> signature, List<TypeSpec> typeSpecs, int max, int maxPerInputVars) {
         if (Utils.getSizeSafely(signature) != Utils.getSizeSafely(typeSpecs)) {
             Utils.waitHere(this + " sig = " + signature + " specs = " + typeSpecs);
         }
 
         PredicateSpec pSpec = new PredicateSpec(signature, typeSpecs, this);
 
-        addToTypeListForILP(pSpec, !okIfDup);
+        addToTypeListForILP(pSpec);
         addToTypeListForMLN(pSpec);
 
         int arity = Utils.getSizeSafely(signature);
@@ -120,7 +117,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         addToDeSpecTypeList(arity);
 	}
 	
-	private void addToTypeListForILP(PredicateSpec pSpec, boolean warnIfDup) {
+	private void addToTypeListForILP(PredicateSpec pSpec) {
 		boolean checkForWarnings = !name.startsWith("isaInteresting") &&  !name.startsWith("isaDifferentInteresting");	
 		if (checkForWarnings) {
 			boolean hasPlusArg = false; // Modes should have at least one "input argument" or new predicates won't be coupled to the clause being created.  (Maybe allow this to be overridden?)
@@ -132,9 +129,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 
 		if (typeSpecList == null) { typeSpecList  = new ArrayList<>(1); }
 		for (PredicateSpec oldPspec : typeSpecList) if (oldPspec.equals(pSpec)) {
-			if (warnIfDup && checkForWarnings) { // Add a way to override?  TODO
-				Utils.warning("% Duplicate type specification found for '" + this + "':\n%   '" + pSpec + "'/new vs.\n%   '" + oldPspec + "'/old."); 
-			}
 			return;
 		}
 		typeSpecList.add(pSpec);

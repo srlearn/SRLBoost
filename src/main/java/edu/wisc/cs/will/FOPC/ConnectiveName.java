@@ -12,7 +12,9 @@ import java.util.Map;
  *  All functions with the same name map to the same instance. 
  */
 public class ConnectiveName extends AllOfFOPC implements Serializable { // If items are added here, add them to HandleFOPCstrings as well.
-	
+
+	// TODO(hayesall): Simplify the language by removing some of these duplicates.
+
     private final static String ANDalt0        = "AND";
 	private final static String ANDalt1        = "^";
 	private final static String ANDalt2        = "&";

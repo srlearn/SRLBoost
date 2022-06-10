@@ -16,6 +16,9 @@ import java.util.*;
  */
 public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence> {
 
+	// TODO(hayesall): This deals with quite a few of the terms I've been factoring out:
+	//		inline, temporary, prune, support
+
 	private InlineManager              inlineHandler       = null;
 
 	public void setInlineHandler(InlineManager inlineHandler) {
@@ -69,6 +72,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	}
 
 	private void collectNeededNames() {
+		// TODO(hayesall): pretty sure these can be dropped. `standardPredicateNames.number` is odd though.
+
     	sameAsPname      = stringHandler.getPredicateName("sameAs");
     	sameAsPnameIL    = stringHandler.getPredicateName("sameAsIL"); // NOTE: this is some leakage of the BL project into WILL.
     	differentPname   = stringHandler.getPredicateName("different");
@@ -104,10 +109,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     	somethingSimplified  = false;
     	newNegListVars       = null; // I am not sure why this is outside the clause FOR loop, but that is the way it was when simplifyListOfLiterals's code was pulled out (to allow recursion), and so I left it that way (7/30/10).
     	for (Clause cRaw : theseClauses) {
-    		Clause c = useDeterminateLiteralsToUnifyVariables(cRaw);
-    		List<Literal> newNegLits = simplifyListOfLiterals(c.negLiterals);
-
-			Clause newC = stringHandler.getClause(c.posLiterals, newNegLits, c.getExtraLabel());
+			List<Literal> newNegLits = simplifyListOfLiterals(cRaw.negLiterals);
+			Clause newC = stringHandler.getClause(cRaw.posLiterals, newNegLits, cRaw.getExtraLabel());
     		results.add(newC);
     	}
     	return results;
@@ -118,7 +121,9 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     private boolean haveCollectedRemainingInLiners = false;
     private final Set<Clause> collectedSupporters = new HashSet<>(4);
     private void collectAnyRemainingInliners() {
-    	if (haveCollectedRemainingInLiners) { return; }
+    	if (haveCollectedRemainingInLiners) {
+			return;
+		}
     	collectedSupporters.clear();
     	help_collectAnyRemainingInliners(clauses);
     	help_collectAnyRemainingInliners(supportClauses);
@@ -130,26 +135,48 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     }
     
     private void help_collectAnyRemainingInliners(List<Clause> theseClauses) {
-    	if (theseClauses == null) { return; }
+    	if (theseClauses == null) {
+			return;
+		}
 		for (Clause cRaw : theseClauses) {
-			if (cRaw.negLiterals != null) for (Literal lit : cRaw.negLiterals) { help_collectAnyRemainingInliners(lit, 1 + 1); }
+			if (cRaw.negLiterals != null) {
+				for (Literal lit : cRaw.negLiterals) {
+					help_collectAnyRemainingInliners(lit, 1 + 1);
+				}
+			}
     	}
     }
     
     private void help_collectAnyRemainingInliners(Clause cRaw, int depth) {
-    	if (cRaw == null) { return; }
-    	if (depth > 20) { Utils.error("cRaw = " + cRaw + " depth = " + depth); }
-    	if (cRaw.negLiterals != null) for (Literal lit : cRaw.negLiterals) { help_collectAnyRemainingInliners(lit, depth + 1); }
+    	if (cRaw == null) {
+			return;
+		}
+    	if (depth > 20) {
+			Utils.error("cRaw = " + cRaw + " depth = " + depth);
+		}
+    	if (cRaw.negLiterals != null) {
+			for (Literal lit : cRaw.negLiterals) {
+				help_collectAnyRemainingInliners(lit, depth + 1);
+			}
+		}
     }
     	
     private void help_collectAnyRemainingInliners(Literal lit, int depth) {
-		if (depth > 20) {  Utils.error("help_collectAnyRemainingInliners: lit = '" + lit + "' depth = " + depth); }
+		if (depth > 20) {
+			Utils.error("help_collectAnyRemainingInliners: lit = '" + lit + "' depth = " + depth);
+		}
 
-		if (lit.getArity() > 0) for (Term term : lit.getArguments()) { help_collectAnyRemainingInliners(term, depth + 1); }
+		if (lit.getArity() > 0) {
+			for (Term term : lit.getArguments()) {
+				help_collectAnyRemainingInliners(term, depth + 1);
+			}
+		}
     }
     
     private void help_collectAnyRemainingInliners(Term term, int depth) {
-		if (depth > 20) {  Utils.error("help_collectAnyRemainingInliners: term = '" + term + "' depth = " + depth); }
+		if (depth > 20) {
+			Utils.error("help_collectAnyRemainingInliners: term = '" + term + "' depth = " + depth);
+		}
 
     	if (term instanceof LiteralAsTerm) {
     		LiteralAsTerm lat = (LiteralAsTerm) term;
@@ -193,13 +220,16 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 							SentenceAsTerm satNotNot = (SentenceAsTerm) argNotNot;
 							List<Clause> clausesNotNot    = satNotNot.sentence.convertToClausalForm();
 							List<Clause> simplifiedNotNot = simplify(clausesNotNot);
-							if (simplifiedNotNot != null) for (Clause cNotNot : simplifiedNotNot) {
-								if (Utils.getSizeSafely(cNotNot.posLiterals) == 0 && cNotNot.negLiterals != null) {
-									newNegLits.addAll(cNotNot.negLiterals);
-									saveIt = false; continue;
+							if (simplifiedNotNot != null) {
+								for (Clause cNotNot : simplifiedNotNot) {
+									if (Utils.getSizeSafely(cNotNot.posLiterals) == 0 && cNotNot.negLiterals != null) {
+										newNegLits.addAll(cNotNot.negLiterals);
+										saveIt = false;
+										continue;
+									}
+									Utils.waitHere("Have a double negation: '" + f + "'  that needs to be handled.");
+									// Could just let it go?
 								}
-								Utils.waitHere("Have a double negation: '" + f + "'  that needs to be handled.");
-								// Could just let it go?
 							}
 						} else if (argNotNot instanceof Function) {
 							Literal lit =  ((Function) argNotNot).convertToLiteral(stringHandler);
@@ -265,11 +295,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		if (newNegLits.size() < 1) { newNegLits.add(stringHandler.trueLiteral); } // Could propagate this 'true' but it is an unlikely case and so don't bother.
 		return newNegLits;
     }
-    
-    private Clause useDeterminateLiteralsToUnifyVariables(Clause c) {
-		// First group literals by predicateName
-		return c;
-	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -451,26 +476,30 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     }
 
 	public void addPreAndPostfixToTemporaryNames(String prefixForSupportClause, String postfixForSupportClause) {
-		if (clauses != null) for (Clause c : clauses) { // These are the main clauses.  Don't rename them (shouldn't happen since should not be in renameTheseSupportingPredicates), but check their bodies.
-			for (int i = 0; i < c.getLength(); i++) {
-				Literal lit = c.getIthLiteral(i);
-				if (lit.predicateName == stringHandler.standardPredicateNames.negationByFailure) {
-					renameNegationByFailure(lit, prefixForSupportClause, postfixForSupportClause);
-				} else { 
-					renameLiteralIfTemporary(lit, prefixForSupportClause, postfixForSupportClause);
+		if (clauses != null) {
+			for (Clause c : clauses) { // These are the main clauses.  Don't rename them (shouldn't happen since should not be in renameTheseSupportingPredicates), but check their bodies.
+				for (int i = 0; i < c.getLength(); i++) {
+					Literal lit = c.getIthLiteral(i);
+					if (lit.predicateName == stringHandler.standardPredicateNames.negationByFailure) {
+						renameNegationByFailure(lit, prefixForSupportClause, postfixForSupportClause);
+					} else {
+						renameLiteralIfTemporary(lit, prefixForSupportClause, postfixForSupportClause);
+					}
 				}
 			}
 		}
-		if (supportClauses != null) for (Clause c : supportClauses) { // These are the supporting clauses.  Rename them, plus check their bodies.
-			for (int i = 0; i < c.getLength(); i++) {
-				Literal lit = c.getIthLiteral(i);
-				if (lit.predicateName == stringHandler.standardPredicateNames.negationByFailure) {
-					renameNegationByFailure(lit, prefixForSupportClause, postfixForSupportClause);
-				} else {
-					renameLiteralIfTemporary(lit, prefixForSupportClause, postfixForSupportClause);
-				} //else { Utils.println("% THIS IS NOT A TEMPORARY NAME AND SO NO PRE/POST-FIX ADDED: " + lit.predicateName); }
+		if (supportClauses != null) {
+			for (Clause c : supportClauses) { // These are the supporting clauses.  Rename them, plus check their bodies.
+				for (int i = 0; i < c.getLength(); i++) {
+					Literal lit = c.getIthLiteral(i);
+					if (lit.predicateName == stringHandler.standardPredicateNames.negationByFailure) {
+						renameNegationByFailure(lit, prefixForSupportClause, postfixForSupportClause);
+					} else {
+						renameLiteralIfTemporary(lit, prefixForSupportClause, postfixForSupportClause);
+					} //else { Utils.println("% THIS IS NOT A TEMPORARY NAME AND SO NO PRE/POST-FIX ADDED: " + lit.predicateName); }
+				}
 			}
-		}		
+		}
 	}
 	
 	private void renameNegationByFailure(Literal negationByFailure, String prefixForSupportClause, String postfixForSupportClause) {

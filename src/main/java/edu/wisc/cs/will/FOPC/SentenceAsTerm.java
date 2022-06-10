@@ -57,12 +57,7 @@ public class SentenceAsTerm extends Term {
 		return new SentenceAsTerm(stringHandler, sentence, wrapperPredicate);
 	}
 
-    @Override
-    public Sentence asSentence() {
-        return sentence;
-    }
-
-    @Override
+	@Override
     public Clause asClause() {
         return sentence.convertToClause();
     }

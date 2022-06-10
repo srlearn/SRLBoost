@@ -327,11 +327,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 	       return negExamples;
 	}
 
-	Iterable<Clause> getBackgroundKnowledge() {
-        return context.getClausebase().getBackgroundKnowledge();
-    }
-
-	public HandleFOPCstrings getStringHandler() {
+    public HandleFOPCstrings getStringHandler() {
 		return stringHandler;
 	}
 	public final HornClauseProver getProver() {
@@ -536,16 +532,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         return null;
     }
 
-	private void processThresholds() {
-
-		/* Override to disable thresholding.
-		 *
-		 * If set to false, thresholding will be skipped.  This is particularly useful
-		 * when we are only using the LearnOneClause to evaluate a learned theory.
-		 */
-    }
-
-	public void addBodyMode(PredicateNameAndArity pName) {
+    public void addBodyMode(PredicateNameAndArity pName) {
         bodyModes.add(pName);
         stringHandler.addKnownMode(pName);
     }

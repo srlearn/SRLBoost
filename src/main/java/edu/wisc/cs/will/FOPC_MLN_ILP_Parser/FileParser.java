@@ -553,7 +553,9 @@ public class FileParser {
 				Sentence leftArg  = (Sentence)accumulator.get(countOfLowestItem - 1);
 				Sentence rightArg = (Sentence)accumulator.get(countOfLowestItem + 1);
 				Sentence cSent    = stringHandler.getConnectedSentence(leftArg, cName, rightArg);
-				if (cName.name.equalsIgnoreCase("then")) { cSent = processTHEN((ConnectedSentence) cSent); }
+				if (cName.name.equalsIgnoreCase("then")) {
+					throw new ParsingException("'then' is deprecated");
+				}
 				accumulator.add(   countOfLowestItem + 2, cSent); // Add after the three items being combined.
 				accumulator.remove(countOfLowestItem + 1); // Do this in the proper order so shifting doesn't mess up counting.
 				accumulator.remove(countOfLowestItem);
@@ -562,40 +564,6 @@ public class FileParser {
 		}
 
 		return (Sentence) accumulator.get(0);
-	}
-
-	private Literal processTHEN(ConnectedSentence connSent) throws ParsingException {
-		// We need to treat the 'connective' THEN specially.  It is of the form 'P then Q else R' where P, Q, and R need to each convert to one clause.  E.g., (p, q then r, s else x, y, z).
-		Sentence          sentenceLeft  = connSent.getSentenceA();
-		Sentence          sentenceRight = connSent.getSentenceB();
-		Clause            clauseP       = convertSimpleConjunctIntoClause(sentenceLeft, connSent);
-
-		PredicateName pName  = stringHandler.standardPredicateNames.then;
-		if (sentenceRight instanceof ConnectedSentence && ConnectiveName.isaOR(((ConnectedSentence) sentenceRight).getConnective().name)) {
-			ConnectedSentence sentenceRightConnected = (ConnectedSentence) sentenceRight;
-			Clause   clauseQ   = convertSimpleConjunctIntoClause(sentenceRightConnected.getSentenceA(), connSent);
-			Clause   clauseR   = convertSimpleConjunctIntoClause(sentenceRightConnected.getSentenceB(), connSent);
-			// 'P then Q else R' is implemented as 'dummy :- P, !, Q.' and 'dummy :- R' so create these two clause bodies here.
-			clauseP.negLiterals.add(createCutLiteral());
-			clauseP.negLiterals.addAll(clauseQ.negLiterals);
-			clauseP.setBodyContainsCut(true);
-			List<Term> args = new ArrayList<>(2);
-			args.add(stringHandler.getSentenceAsTerm(clauseP, "thenInner"));
-			args.add(stringHandler.getSentenceAsTerm(clauseR, "thenInner"));
-			return   stringHandler.getLiteral(pName, args);
-		}
-		Clause clauseQ = convertSimpleConjunctIntoClause(sentenceRight, connSent);
-		List<Term> args = new ArrayList<>(1);
-		clauseP.negLiterals.add(createCutLiteral()); // No need to combine the posLiterals since there should not be any.
-		clauseP.negLiterals.addAll(clauseQ.negLiterals);
-		clauseP.setBodyContainsCut(true);
-		args.add(stringHandler.getSentenceAsTerm(clauseP, "then"));
-		return stringHandler.getLiteral(pName, args);
-	}
-
-	private Literal createCutLiteral() {
-		PredicateName pName = stringHandler.standardPredicateNames.cut;
-		return stringHandler.getLiteral(pName);
 	}
 
 	private Literal processNegationByFailure(ConnectedSentence connSent) throws ParsingException {

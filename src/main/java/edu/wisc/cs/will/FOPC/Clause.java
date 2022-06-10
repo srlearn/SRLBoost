@@ -592,8 +592,7 @@ public class Clause extends Sentence implements DefiniteClause {
 		}
 		if (numPosLits == 0) { // In this case, write out the negative literals as a negated conjunction. I.e., 'p,q->false' is the same as '~p v ~q v false' which is the same as '~(p ^ q)'.
 			result.append("~(");
-			counter2 = 0;
-			if (negLiterals != null) for (Literal literal : negLiterals) {
+            if (negLiterals != null) for (Literal literal : negLiterals) {
 				if (counter2++ > currentMaxLiteralsToPrint) { result.append(" ... [plus ").append(Utils.comma(Utils.getSizeSafely(negLiterals) - currentMaxLiteralsToPrint)).append(" more negative literals]"); break; }
 				if (firstOne) { firstOne = false; } else {
 					result.append(" ^ "); }
@@ -666,8 +665,7 @@ public class Clause extends Sentence implements DefiniteClause {
 					}
 					result.append(literal.toString(precedence, bindingList));
 				}
-				if (numPosLits < 1) { result.append(extra); }
-			}
+            }
 		}
 		if (precedenceOfCaller < precedence) { result.append(")"); }
 		return result.toString();
@@ -680,21 +678,8 @@ public class Clause extends Sentence implements DefiniteClause {
 		stringHandler.numberOfLiteralsPerRowInPrintouts = temp;
         return result;
 	}
-    
-    public String toStringOneLine(int precedenceOfCaller, BindingList bindingList) {
-    	int holdT  = stringHandler.numberOfTermsPerRowInPrintouts;
-    	int holdTL = stringHandler.numberOfTermsPerRowInPrintoutsForLiterals;
-		int holdL  = stringHandler.numberOfLiteralsPerRowInPrintouts;
-    	stringHandler.numberOfTermsPerRowInPrintouts    = Integer.MAX_VALUE;
-		stringHandler.numberOfLiteralsPerRowInPrintouts = Integer.MAX_VALUE;
-    	String result = toString(precedenceOfCaller, bindingList);
-    	stringHandler.numberOfTermsPerRowInPrintouts            = holdT;
-    	stringHandler.numberOfTermsPerRowInPrintoutsForLiterals = holdTL;
-    	stringHandler.numberOfLiteralsPerRowInPrintouts         = holdL;
-    	return result;
-    }
 
-        @Override
+    @Override
         protected String toString(int precedenceOfCaller, BindingList bindingList) {
 		if (stringHandler.prettyPrintClauses) {
 			return toPrettyString("", precedenceOfCaller, 10, bindingList);

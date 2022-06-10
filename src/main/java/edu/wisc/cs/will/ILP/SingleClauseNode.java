@@ -153,14 +153,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	}
 	
 	double getCost() { // If predicates have costs, sum the costs. Otherwise all predicates 'cost' 1, so we can return length.
-		LearnOneClause theTask = (LearnOneClause) task;
-		if (theTask.stringHandler.getPredicatesHaveCosts()) {
-			double total = 0.0;
-			for (Literal ignored : getClauseBody()) {  // TODO: use recursion instead of getting the clause body?
-				total += 1.0;
-			}
-			return total;
-		}
 		return bodyLength();
 	}
 

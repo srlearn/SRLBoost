@@ -37,10 +37,6 @@ public class PrettyPrinterOptions {
         return multilineOutputEnabled;
     }
 
-    public void setMultilineOutputEnabled(boolean multilineOutputEnabled) {
-        this.multilineOutputEnabled = multilineOutputEnabled;
-    }
-
     boolean isRenameVariables() {
         return renameVariables;
     }
@@ -69,16 +65,8 @@ public class PrettyPrinterOptions {
         return maximumConsCells;
     }
 
-    public void setMaximumConsCells(int maximumConsCells) {
-        this.maximumConsCells = maximumConsCells;
-    }
-
     String getSentenceTerminator() {
         return sentenceTerminator;
-    }
-
-    public void setSentenceTerminator(String sentenceTerminator) {
-        this.sentenceTerminator = sentenceTerminator;
     }
 
     int getMaximumIndentationAfterImplication() {

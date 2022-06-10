@@ -159,113 +159,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         return false;
     }
 
-    boolean memberViaEquals(Term term) {
-        for (Term element : this) {
-            if (element.equals(term)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public int position(Term term) { // Starts from 0, -1 means 'failed' Ignore matching in a possible 'dotted pair.'
-        if (numberArgs() == 0) {
-            return -1;
-        }
-        int counter = 0;
-        Term first = getArgument(0);
-        if (term.equals(first)) {
-            return 0;
-        }
-        Term restRaw = getArgument(1);
-        if (!Function.isaConsCell(restRaw)) {
-            return -1;
-        }
-        ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1)); // ConsCells should never have one argument.
-
-        while (true) {
-            if (term.equals(first)) {
-                return counter;
-            }
-            if (rest.numberArgs() == 0) {
-                return -1;
-            }
-            first = rest.getArgument(0);
-            rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-            counter++;
-        }
-    }
-
-    Term nth(int n) { // Return the nth item in this list.  Counting starts from 0. Return null if it doesn't exist.  Ignore matching in a possible 'dotted pair.'
-        return getListElement(n);
-    }
-
-    double addNumbers() { // Adds all the numbers in this list.  Error if a non-number appears.
-        if (numberArgs() == 0) {
-            return 0;
-        }
-        double result = 0.0;
-        Term first = getArgument(0);
-        Term restRaw = getArgument(1);
-        if (!Function.isaConsCell(restRaw)) {
-            if (first instanceof NumericConstant) {
-                result += ((NumericConstant) first).value.doubleValue();
-            }
-            if (restRaw instanceof NumericConstant) {
-                result += ((NumericConstant) restRaw).value.doubleValue();
-            }
-            return result;
-        }
-        ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1)); // ConsCells should never have one argument.
-
-        while (true) {
-            if (first instanceof NumericConstant) {
-                result += ((NumericConstant) first).value.doubleValue();
-            }
-            else {
-                Utils.error("Expecting a number here: " + first);
-            }
-            if (rest.numberArgs() == 0) {
-                return result;
-            } // At NIL.
-            first = rest.getArgument(0);
-            rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-        }
-    }
-
-    double multiplyNumbers() { // Multiply all the numbers in this list.  Error if a non-number appears.
-        if (numberArgs() == 0) {
-            return 1;
-        }
-        double result = 1.0;
-        Term first = getArgument(0);
-        Term restRaw = getArgument(1);
-        if (!Function.isaConsCell(restRaw)) {
-            if (first instanceof NumericConstant) {
-                result *= ((NumericConstant) first).value.doubleValue();
-            }
-            if (restRaw instanceof NumericConstant) {
-                result *= ((NumericConstant) restRaw).value.doubleValue();
-            }
-            return result;
-        }
-        ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1)); // ConsCells should never have one argument.
-
-        while (true) {
-            if (first instanceof NumericConstant) {
-                result *= ((NumericConstant) first).value.doubleValue();
-            }
-            else {
-                Utils.error("Expecting a number here: " + first);
-            }
-            if (rest.numberArgs() == 0) {
-                return result;
-            } // At NIL.
-            first = rest.getArgument(0);
-            rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-        }
-    }
-
     public Term car() {
         return first();
     }
@@ -287,10 +180,6 @@ public class ConsCell extends Function implements Iterable<Term> {
             result = getArgument(1);
         }
         return result;
-    }
-
-    public ConsCell push(Term term) { // Note: we are ignoring typeSpec here.  If needed, it'll need to be passed on as well.
-        return stringHandler.getConsCell(term, this, null);
     }
 
     public void setCdr(Term cdr) {
@@ -563,65 +452,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         return hash;
     }
 
-    /* Returns the ith element if the consCell was treated as a list.
-     */
-    private Term getListElement(int index) {
-        Term currentTerm = this;
-
-        int currentIndex = 0;
-
-        Term result = null;
-
-        // ConsCells should always be length 2 with the
-        // exception of the Nil ConsCell.  However, we
-        // haven't been consistent so we need to do the
-        // safety checks here...
-        while (currentTerm != null) {
-
-            if (currentIndex == index) {
-
-                if (currentTerm instanceof ConsCell) {
-                    ConsCell aCell = (ConsCell) currentTerm;
-
-                    if (aCell.getArity() == 0) {
-                        throw new IndexOutOfBoundsException("ConsCell end-of-list encountered at " + currentIndex + ".  Requested index " + index + ".");
-                    }
-                    else {
-                        result = aCell.car();
-                    }
-                }
-                else {
-                    result = currentTerm;
-                }
-
-                currentTerm = null;
-            }
-            else {
-                if (currentTerm instanceof ConsCell) {
-                    ConsCell aCell = (ConsCell) currentTerm;
-
-                    if (aCell.getArity() != 2) {
-                        throw new IndexOutOfBoundsException("ConsCell end-of-list encountered at " + currentIndex + ".  Requested index " + index + ".");
-                    }
-                    else {
-                        currentTerm = aCell.cdr();
-                    }
-                }
-                else {
-                    throw new IndexOutOfBoundsException("ConsCell end-of-list encountered at " + currentIndex + ".  Requested index " + index + ".");
-                }
-            }
-
-            currentIndex++;
-        }
-
-        if (result == null) {
-            throw new IndexOutOfBoundsException("ConsCell end-of-list encountered at " + currentIndex + ".  Requested index " + index + ".");
-        }
-
-        return result;
-    }
-
     public ConsCell reverse() {
         if (numberArgs() == 0) {
             return this;
@@ -655,20 +485,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         return a.append(b);
     }
 
-    static ConsCell union(ConsCell a, ConsCell b) {
-        if (a.length() <= b.length()) { // Walk through the smaller set.
-            return a.union(b);
-        }
-        return b.union(a);
-    }
-
-    static ConsCell intersection(ConsCell a, ConsCell b) {
-        if (a.length() <= b.length()) { // Walk through the smaller set.
-            return a.intersection(b);
-        }
-        return b.intersection(a);
-    }
-
     // TODO - write an iterative version of this.
     // Note: this is NOT an in-place copy.
     public ConsCell append(ConsCell other) { // TODO: 'typeSpec' is not properly propagated, but wait until we see if that is needed.
@@ -685,66 +501,6 @@ public class ConsCell extends Function implements Iterable<Term> {
     @Override
     public <Return, Data> Return accept(TermVisitor<Return, Data> visitor, Data data) {
         return visitor.visitConsCell(this, data);
-    }
-
-    ConsCell intersection(ConsCell other) {
-        if (this == other) {
-            return this;
-        }
-        if (other == null) {
-            return null;
-        }
-
-        // Collect the items in THIS that are in OTHER.
-        List<Term> result = new ArrayList<>(1); // Assume no duplicates in 'this'.
-        if (this.numberArgs() == 0) {
-            return convertListToConsCell(stringHandler, result);
-        }
-        Term       first  = getArgument(0);
-        ConsCell   rest   = ensureIsaConsCell(stringHandler, getArgument(1));
-        boolean continueWhile = true;
-        while (continueWhile) {
-            if (other.memberViaEquals(first)) {
-                result.add(first);
-            }
-            assert rest != null;
-            if (rest.numberArgs() < 1) {
-                continueWhile = false;
-            } else {
-                first = rest.getArgument(0);
-                rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-            }
-        }
-        return convertListToConsCell(stringHandler, result); // Just use the original typeSpec (TODO - what if OTHER doesn't match?).
-    }
-
-    ConsCell union(ConsCell other) { // NOTE: since a Set is used, the order of the result is arbitrary.
-        if (this == other) {
-            return this;
-        }
-        if (other == null) {
-            return null;
-        }
-
-        // Collect the items in THIS that are in OTHER.
-        Set<Term> result = new HashSet<>(4);
-        Term      first  = getArgument(0);
-        ConsCell  rest   = ensureIsaConsCell(stringHandler, getArgument(1));
-        result.addAll(other.convertConsCellToList()); // Collect everything in other.
-        boolean continueWhile = true;
-        while (continueWhile) {
-            result.add(first);
-            assert rest != null;
-            if (rest.numberArgs() < 1) {
-                continueWhile = false;
-            } else {
-                first = rest.getArgument(0);
-                rest = ensureIsaConsCell(stringHandler, rest.getArgument(1));
-            }
-        }
-        List<Term> resultAsList = new ArrayList<>(result.size());
-        resultAsList.addAll(resultAsList);
-        return convertListToConsCell(stringHandler, resultAsList); // Just use the original typeSpec (TODO - what if OTHER doesn't match?).
     }
 
     // Cache this calculation to save time.

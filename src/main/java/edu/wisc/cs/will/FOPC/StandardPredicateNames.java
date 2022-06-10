@@ -12,8 +12,6 @@ import java.util.Set;
  */
 public class StandardPredicateNames { // A few FUNCTION names also appear here; for instance, sometimes we need to convert a literal to a function.
 
-    public final PredicateName var;
-
     public final PredicateName number;
 
     public final PredicateName list;
@@ -34,11 +32,7 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
     public final PredicateName falseName;
 
-    public final PredicateName fail;
-
     public final PredicateName repeat;
-
-    public final PredicateName once;
 
     public final PredicateName call;
 
@@ -57,8 +51,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
     public final PredicateName countProofs;
 
     public final PredicateName countUniqueBindings;
-
-    public final PredicateName then;
 
     public final PredicateName negationByFailure;
 
@@ -84,7 +76,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         boolean hold = stringHandler.cleanFunctionAndPredicateNames;
         stringHandler.cleanFunctionAndPredicateNames = false;
 
-        var = stringHandler.getPredicateName("var");
         number = stringHandler.getPredicateName("number");
         list = stringHandler.getPredicateName("list");
         is = stringHandler.getPredicateName("is");
@@ -100,9 +91,7 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         implicit_call = stringHandler.getPredicateName("implicit_call");
         trueName = stringHandler.getPredicateName("true");
         falseName = stringHandler.getPredicateName("false");
-        fail = stringHandler.getPredicateName("fail");
         repeat = stringHandler.getPredicateName("repeat");
-        once = stringHandler.getPredicateName("once");
         call = stringHandler.getPredicateName("call");
         cut = stringHandler.getPredicateName("!");
         cutMarker = stringHandler.getPredicateName("cutMarker");
@@ -112,7 +101,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         bagOf = stringHandler.getPredicateName("bagOf");
         countProofs = stringHandler.getPredicateName("countProofs");
         countUniqueBindings = stringHandler.getPredicateName("countUniqueBindings");
-        then = stringHandler.getPredicateName("then");
         negationByFailure = stringHandler.getPredicateName("\\+");
 
         negationByFailureAsFunction = stringHandler.getFunctionName("\\+");
@@ -160,14 +148,11 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
 
         call.setContainsCallable(1);
         negationByFailure.setContainsCallable(1);
-        once.setContainsCallable(1);
 
         buildinPredicates = new HashSet<>(32);
         buildinPredicates.add(trueName);
         buildinPredicates.add(falseName);
-        buildinPredicates.add(fail);
         buildinPredicates.add(repeat);
-        buildinPredicates.add(once);
         buildinPredicates.add(call);
         buildinPredicates.add(implicit_call);
         buildinPredicates.add(cut);
@@ -178,7 +163,6 @@ public class StandardPredicateNames { // A few FUNCTION names also appear here; 
         buildinPredicates.add(bagOf);
         buildinPredicates.add(countProofs);
         buildinPredicates.add(countUniqueBindings);
-        buildinPredicates.add(then);
         buildinPredicates.add(negationByFailure);
 
         stringHandler.cleanFunctionAndPredicateNames = hold;

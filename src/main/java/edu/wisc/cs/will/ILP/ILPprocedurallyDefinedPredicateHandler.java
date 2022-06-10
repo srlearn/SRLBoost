@@ -52,7 +52,7 @@ public class ILPprocedurallyDefinedPredicateHandler extends	ProcedurallyDefinedP
 			List<Term> sublist = args.subList(1, size);
 			
 			// NOTE: be careful if making a new string each time, which is a performance hit, but we might want to get the literal in there in case there is a problem.
-			if (!confirmAllVarsAreBound("procDefinedNeedForNewVariables: ", sublist, false)) {
+			if (!confirmAllVarsAreBound(sublist)) {
 				return null; // If some other variable is unbound, then could use that and no need for the new variable, at least on this proof path.
 			}			
 			// See if the new variable was not bound, which can happen if negation-by-failure involved (and maybe other times?  TODO think this through better).

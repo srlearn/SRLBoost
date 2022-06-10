@@ -165,10 +165,6 @@ public class StringConstant extends Constant implements Serializable {
     public Clause asClause() {
         return stringHandler.getClause(stringHandler.getLiteral( stringHandler.getPredicateName(name)), true);
     }
-    @Override
-    public Sentence asSentence() {
-        return stringHandler.getLiteral(stringHandler.getPredicateName(name));
-    }
 
     @Override
     public Literal asLiteral() {

@@ -32,31 +32,6 @@ public class HornSearchNode extends SearchNode {
         this.parentExpansionIndex = parentExpansionIndex;
 	}
 
-    // Note that the bindings returned by this might look confusing since two different instances of the variable x will print the same,
-	// and since they are really two different variables, they may well bind to different things.
-    List<Binding> collectBindingsToRoot() {
-
-        List<Binding> bindingList = null;
-
-        if ( getParentNode() != null ) {
-            bindingList = getParentNode().collectBindingsToRoot();
-        }
-
-        if ( bindings != null ) {
-            if ( bindingList == null ) {
-                bindingList = bindings.collectBindingsInList();
-            }
-            else {
-                List<Binding> moreBindings = bindings.collectBindingsInList();
-                if ( moreBindings != null ) {
-                    bindingList.addAll(moreBindings);
-                }
-            }
-        }
-		
-		return bindingList;
-	}
-
     private BindingList getQueryVariables() {
 
         BindingList bl;
@@ -96,29 +71,6 @@ public class HornSearchNode extends SearchNode {
 
         return bl;
 
-    }
-
-    /*
-     * Returns the binding for variable, or null if no binding is found.
-     */
-    Term getBinding(Variable variable) {
-
-        Term result = variable;
-
-        HornSearchNode currentNode = this;
-
-        while(result instanceof Variable && currentNode != null) {
-            if ( bindings != null ) {
-               Term newResult = bindings.getMapping((Variable)result);
-               if ( newResult != null ) {
-                   result = newResult;
-               }
-            }
-
-            currentNode = currentNode.getParentNode();
-        }
-
-        return result == variable ? null : result;
     }
 
     /* Returns the ParentNode.

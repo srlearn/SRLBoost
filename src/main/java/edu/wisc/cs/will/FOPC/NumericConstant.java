@@ -59,18 +59,6 @@ public class NumericConstant extends Constant implements Serializable {
         return type;
     }
 
-    boolean isaInteger() {
-        return getType() == isaInteger;
-    }
-
-    boolean isaDouble() {
-        return getType() == isaDouble;
-    }
-
-    boolean isaFloat() {
-        return getType() == isaFloat;
-    }
-
     @Override
     public BindingList isEquivalentUptoVariableRenaming(Term that, BindingList bindings) {
         if (!(that instanceof NumericConstant)) {
