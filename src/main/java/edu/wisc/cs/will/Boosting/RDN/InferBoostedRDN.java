@@ -18,18 +18,14 @@ import java.util.*;
 
 public class InferBoostedRDN {
 
-	private boolean printExamples = false;
 	private final boolean writeQueryAndResults = true;
-	private double minLCTrees = 20;
-	private double incrLCTrees = 2;
-	
+
 	private final CommandLineArguments cmdArgs;
 	private final WILLSetup setup;
 
 	public InferBoostedRDN(CommandLineArguments args, WILLSetup setup) {
 		this.cmdArgs = args;
 		this.setup = setup;
-		setParamsUsingSetup(setup);
 	}
 	
 	public void runInference(JointRDNModel rdns, double thresh) {
@@ -51,12 +47,8 @@ public class InferBoostedRDN {
 			}
 		} else {
 			sampler = new JointModelSampler(rdns, setup);
-			// We can sub sample negatives if no recursion or joint inference.
-			if (!sampler.getRdn().needsJointInference() &&
-				!sampler.getRdn().hasRecursion()) {
-				subsampleNegatives(jointExamples);
-				negativesSampled = true;
-			}
+			subsampleNegatives(jointExamples);
+			negativesSampled = true;
 		}
 			
 		int startCount = cmdArgs.getMaxTreesVal();
@@ -162,22 +154,6 @@ public class InferBoostedRDN {
 		}
 	}
 
-	private void setParamsUsingSetup(WILLSetup willSetup) {
-		String lookup;
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("printEg")) != null) {
-			printExamples = Boolean.parseBoolean(lookup);
-		}
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("minRecallForAUCPR")) != null) {
-			double minRecallForAUCPR = Double.parseDouble(lookup);
-		}
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("minLCTrees")) != null) {
-			minLCTrees = Double.parseDouble(lookup);
-		}
-		if ((lookup =  willSetup.getInnerLooper().getStringHandler().getParameterSetting("incrLCTrees")) != null) {
-			incrLCTrees = Double.parseDouble(lookup);
-		}
-	}
-
 	private String getQueryFile(String target) {
 		return setup.getOuterLooper().getWorkingDirectory() + "/query_" + target + ".db";
 	}
@@ -198,12 +174,6 @@ public class InferBoostedRDN {
 												+ (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) + ".txt");
 		Utils.ensureDirExists(result);
 		return result;
-	}
-
-	private String getLearningCurveFile(String target, String type) {
-		return setup.getOuterLooper().getWorkingDirectory() + "/curve" +
-				(cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) +
-				(target.isEmpty() ? "" : "_"+target) + "." + type;
 	}
 
 	private void getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
@@ -249,10 +219,10 @@ public class InferBoostedRDN {
 		String fileNameForResults = (writeQueryAndResults ? getTestsetInfoFile(target) : null);
 
 		if (threshold != -1) {
-			Utils.println("%   Precision = " + Utils.truncate(score.getPrecision(), 6)       + (threshold != -1 ? " at threshold = " + Utils.truncate(threshold, 3) : " "));
+			Utils.println("%   Precision = " + Utils.truncate(score.getPrecision(), 6) + " at threshold = " + Utils.truncate(threshold, 3));
 			Utils.println("%   Recall    = " + Utils.truncate(score.getRecall(),    6));
 			Utils.println("%   F1        = " + Utils.truncate(score.getF1(),        6));
-			resultsString += "\n//   Precision = " + Utils.truncate(score.getPrecision(), 6) + (threshold != -1 ? " at threshold = " + Utils.truncate(threshold, 3) : " ");
+			resultsString += "\n//   Precision = " + Utils.truncate(score.getPrecision(), 6) + " at threshold = " + Utils.truncate(threshold, 3);
 			resultsString += "\n//   Recall    = " + Utils.truncate(score.getRecall(),    6);
 			resultsString += "\n//   F1        = " + Utils.truncate(score.getF1(),        6);
 			resultsString += "\nprecision(" + target + ", " + Utils.truncate(score.getPrecision(), 6) + ", usingThreshold(" + threshold + ")).";
@@ -332,8 +302,8 @@ public class InferBoostedRDN {
 				printProb = 1-prob;
 			}
 			try {
-				queryFile.write(prefix + pex.toString() + "\n");
-				resultsFile.write(prefix + pex.toString()+ " " + printProb + "\n");
+				queryFile.write(prefix + pex + "\n");
+				resultsFile.write(prefix + pex + " " + printProb + "\n");
 
 			} catch (IOException e) {
 				Utils.reportStackTrace(e);
@@ -377,12 +347,6 @@ public class InferBoostedRDN {
 		double count = 0;
 		double countOfPos = 0;
 		double countOfNeg = 0;
-		int numberToPrint = Utils.getSizeSafely(examples);
-		double maxToPrintOnAverage = 250.0;
-
-		if (printExamples && numberToPrint > maxToPrintOnAverage) {
-			Utils.println("% Note: since more than " + Utils.truncate(maxToPrintOnAverage, 0) + " examples, will randomly report.");
-		}
 
 		StringBuilder sb = new StringBuilder();
 
@@ -396,10 +360,6 @@ public class InferBoostedRDN {
 
 			if (regressionExample.isOriginalTruthValue()) {
 				// Positive Example
-
-				if (printExamples && Utils.random() < maxToPrintOnAverage / numberToPrint) {
-					Utils.println("% Pos #" + Utils.truncate(score.getTruePositives() + score.getFalseNegatives(), 0) + ": '" + regressionExample + "' prob = " + Utils.truncate(probability, 6));
-				}
 
 				sb.append("pos,")
 						.append(probability)
@@ -418,9 +378,6 @@ public class InferBoostedRDN {
 				}
 			} else {
 				// Negative Example
-				if (printExamples && Utils.random() < maxToPrintOnAverage / numberToPrint) {
-					Utils.println("% Neg #" + Utils.truncate(score.getTrueNegatives() + score.getFalsePositives(), 0) + ": '" + regressionExample + "' prob = " + Utils.truncate(probability, 6));
-				}
 
 				sb.append("neg, ")
 						.append(probability)

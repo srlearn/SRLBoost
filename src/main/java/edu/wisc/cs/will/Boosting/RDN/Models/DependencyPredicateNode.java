@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN.Models;
 
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.FOPC.PredicateName;
 import edu.wisc.cs.will.FOPC.PredicateSpec;
 import edu.wisc.cs.will.FOPC.TypeSpec;
@@ -19,7 +18,6 @@ public class DependencyPredicateNode extends DependencyNode {
 		EVIDENCE,
 		QUERY,
 		COMPUTED,
-		RECURSIVE,
 	}
 	// Default value is EVIDENCE
 	private PredicateType type;
@@ -50,7 +48,6 @@ public class DependencyPredicateNode extends DependencyNode {
 		switch(type) {
 			case QUERY: return "gray52";
 			case HIDDEN: return "gray62";
-			case RECURSIVE: return "gray72";
 			case COMPUTED: return "gray82";
 			case EVIDENCE: return "gray92";
 		}
@@ -71,9 +68,6 @@ public class DependencyPredicateNode extends DependencyNode {
 	 * @param predicate the predicate to set
 	 */
 	private void setPredicate(PredicateName predicate) {
-		if (predicate.name.startsWith(WILLSetup.recursivePredPrefix)) {
-			type = PredicateType.RECURSIVE;
-		}
 		this.predicate = predicate;
 	}
 	

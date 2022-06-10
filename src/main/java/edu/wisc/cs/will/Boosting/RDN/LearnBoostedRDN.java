@@ -1,13 +1,10 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
-import edu.wisc.cs.will.Boosting.RDN.Models.PhiFunctionForRDN;
 import edu.wisc.cs.will.Boosting.Trees.LearnRegressionTree;
 import edu.wisc.cs.will.Boosting.Trees.RegressionTree;
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
-import edu.wisc.cs.will.Boosting.Utils.ExampleSubSampler;
-import edu.wisc.cs.will.Boosting.Utils.LineSearch;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.FOPC.Sentence;
@@ -33,19 +30,16 @@ import java.util.List;
  *
  */
 public class LearnBoostedRDN {
-	private final static int debugLevel = 1; // Used to control output from this class (0 = no output, 1=some, 2=much, 3=all).
 
 	private final CommandLineArguments cmdArgs;
-	private final ExampleSubSampler egSubSampler;
 	private final WILLSetup setup;
 
 	private List<RegressionRDNExample> egs    = null;
 	private String  targetPredicate          = null;
-	private int     maxTrees                 = 10;
-	private boolean resampleExamples        = true;
+	private int     maxTrees;
+	private final boolean resampleExamples        = true;
 	private final boolean stopIfFewChanges        = false;
-	private boolean performLineSearch       = false;
-	private boolean learnSingleTheory 		= false;
+	private final boolean learnSingleTheory 		= false;
 	private boolean disableBoosting			= false;
 
 	private long learningTimeTillNow = 0;
@@ -54,11 +48,9 @@ public class LearnBoostedRDN {
 		this.cmdArgs = cmdArgs;
 		this.setup = setup;
 		maxTrees = cmdArgs.getMaxTreesVal();
-		setParamsUsingSetup(setup);
 		if (cmdArgs.isDisabledBoosting()) {
 			disableBoosting=true;
 		}
-		egSubSampler = new ExampleSubSampler(setup);
 	}
 
 	public void learnNextModel(SRLInference sampler, ConditionalModelPerPredicate rdn, int numMoreTrees) {
@@ -151,7 +143,7 @@ public class LearnBoostedRDN {
 				setup.getOuterLooper().maxNumberOfClauses = (20/(i+1));
 				setup.getOuterLooper().maxNumberOfCycles = (20/(i+1));
 			}
-			if (i > 0 && debugLevel > 0) {
+			if (i > 0) {
 				Utils.println("% Time taken to learn " + Utils.comma(i) + " trees is " + Utils.convertMillisecondsToTimeSpan(learningTimeTillNow + end - start, 3) + ".\n");
 			}
 			
@@ -170,22 +162,11 @@ public class LearnBoostedRDN {
 				Utils.println("Time to build dataset: " + Utils.convertMillisecondsToTimeSpan(bbend-bddstart));
 				RegressionTree tree;
 				tree = getWILLTree(newDataSet, i);
-				if (debugLevel > 1) { reportStats(); }
 				double stepLength = 1;
 				if (!disableBoosting) {
 					stepLength = cmdArgs.getDefaultStepLenVal();
 					// Currently can't handle line search and single theory, since we need regression values for a single tree.
 					// TODO add support for single theory too.
-					if (performLineSearch && !learnSingleTheory) {
-						LineSearch    searcher = new LineSearch();
-						PhiFunctionForRDN func = new PhiFunctionForRDN(rdn, tree, newDataSet);
-						double        newAlpha = searcher.getStepLength(func);
-						stepLength = (newAlpha == 0 ? stepLength : newAlpha);
-					} else {
-						if (performLineSearch) {
-							Utils.waitHere("Can't handle both line search and single theory. Disable one.");
-						}
-					}
 				}
 				rdn.addTree(tree, stepLength, modelNumber);  // This code assume modelNumber=0 is learned first.
 				old_eg_set = newDataSet;
@@ -290,20 +271,7 @@ public class LearnBoostedRDN {
 		}
 		
 	}
-	
 
-	private void setParamsUsingSetup(WILLSetup willSetup) {
-		String lookup;
-		if ((lookup =  willSetup.getHandler().getParameterSetting("resampleEgs")) != null) {
-			resampleExamples = Boolean.parseBoolean(lookup);
-		}
-		if ((lookup =  willSetup.getHandler().getParameterSetting("singleTheory")) != null) {
-			learnSingleTheory = Boolean.parseBoolean(lookup);
-		}
-		if ((lookup =  willSetup.getHandler().getParameterSetting("lineSearch")) != null) {
-			performLineSearch = Boolean.parseBoolean(lookup);
-		}
-	}
 
 	private final Collection<Literal> theseFlattenedLits = new HashSet<>(4);
 	private RegressionTree getWILLTree(List<RegressionRDNExample> newDataSet, int i) {
@@ -342,13 +310,13 @@ public class LearnBoostedRDN {
 		double minGradientForSame = 0.0002;
 		if (stopIfFewChanges && old_eg_set != null) {
 			int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
-			if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set)); }
+			Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set));
 			double minPercentageSameForStop = 0.8;
 			return ((double) numOfEgSame / (double) old_eg_set.size()) > minPercentageSameForStop;
 		} else {
 			if(old_eg_set != null) {
 				int numOfEgSame = getNumUnchangedEx(old_eg_set, minGradientForSame, sampler);
-				if (debugLevel > 0) { Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set) + " converged."); }
+				Utils.println("% Only " + numOfEgSame + " out of " + Utils.getSizeSafely(old_eg_set) + " converged.");
 			}
 		}
 		return false;
@@ -470,7 +438,6 @@ public class LearnBoostedRDN {
 		}
 		// TODO(@hayesall): This `println` was originally conditioned on the result of the removed `isHiddenLiteral` method
 		Utils.println("No hidden examples for : " + targetPredicate);
-		all_exs = egSubSampler.sampleExamples(all_exs);
 		return all_exs;
 	}
 
@@ -497,13 +464,6 @@ public class LearnBoostedRDN {
 		return filename;
 	}
 
-	private void reportStats() {
-		setup.reportStats();
-		Utils.println("\n% Memory usage by LearnBoostedRDN:");
-		Utils.println("%  |egs|                = " + Utils.comma(egs));
-		Utils.println("%  |theseFlattenedLits| = " + Utils.comma(theseFlattenedLits));
-	}
-
 
 	private void addToFlattenedLiterals(Collection<Literal> lits) { // Written by JWS.
 		if (lits == null) { return; }
@@ -515,7 +475,7 @@ public class LearnBoostedRDN {
 	}
 	private void dumpTheoryToFiles(Theory th, int i) {
 		String stringToPrint = (i < 0 ? "" : "\n%%%%%  WILL-Produced Tree #" + (i + 1) + " @ " + Utils.getDateTime() + ".  [" + Utils.reportSystemInfo() + "]  %%%%%\n\n");
-		if (debugLevel > 0 && i >= 0) { Utils.println(stringToPrint); }
+		if (i >= 0) { Utils.println(stringToPrint); }
 		File file = getWILLsummaryFile();
 		if (i >= 0) { Utils.appendString(file, stringToPrint + th.toPrettyString(), cmdArgs.useLockFiles); } 
 		else { // Write a file right away in case a run crashes.
@@ -543,7 +503,7 @@ public class LearnBoostedRDN {
 			Utils.writeStringToFile(stringToPrint + "\n", file); 
 		}
 		if (i >= 0) {
-			if (debugLevel > 0) { Utils.println(th.toPrettyString()); }
+			Utils.println(th.toPrettyString());
 			// 	Model directory is set to the working directory as the default value.
 			if (th instanceof TreeStructuredTheory) {
 				String tree_dotfile = cmdArgs.getModelDirVal() + "bRDNs/dotFiles/WILLTreeFor_" + targetPredicate + i + ".dot";
@@ -601,7 +561,7 @@ public class LearnBoostedRDN {
 		}
 
 		Utils.appendString(file, stringToPrint.toString(), cmdArgs.useLockFiles);
-		if (debugLevel > 0) { Utils.println(stringToPrint.toString()); }
+		Utils.println(stringToPrint.toString());
 	}
 
 
