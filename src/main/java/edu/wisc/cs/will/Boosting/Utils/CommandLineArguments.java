@@ -174,6 +174,8 @@ public class CommandLineArguments {
 				continue; 
 			}
 			if (argMatches(args[i], targetPred)) {
+				// TODO(hayesall): There doesn't seem to be any advantage to passing multiple targets at once.
+				//		several places actually throw errors complaining that YAP is not available if there are multiple targets.
 				String targetStr = args[++i];
 				targetPredVal = new HashSet<>();
 				targetPredVal.addAll(Arrays.asList(targetStr.split(",")));

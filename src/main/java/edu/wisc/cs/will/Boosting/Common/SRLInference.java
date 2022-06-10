@@ -55,13 +55,6 @@ public abstract class SRLInference {
 	}
 
 	/**
-	 * Returns true, if the predicate is using recursion.
-	 */
-	protected boolean isRecursive(String target) {
-		return rdn.isRecursive(target);
-	}
-
-	/**
 	 * 
 	 * @param target predicate name to evaluate for
 	 * @return true, if the target predicate has no query ancestors.

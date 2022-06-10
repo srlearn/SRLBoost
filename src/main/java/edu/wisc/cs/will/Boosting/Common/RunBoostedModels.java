@@ -151,6 +151,7 @@ public abstract class RunBoostedModels {
 	private void beforeInfer() {
 		loadModel();
 		if (cmdArgs.outFileSuffix != null) {
+			// TODO(hayesall): Deprecate calling cmdArgs outside.
 			cmdArgs.setModelFileVal(cmdArgs.outFileSuffix);
 		}
 	}

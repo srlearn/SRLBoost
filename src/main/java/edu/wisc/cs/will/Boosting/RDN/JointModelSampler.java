@@ -172,12 +172,7 @@ public class JointModelSampler extends SRLInference {
 				 * If we are using recursion for this target, tell SingleModelSampler to use Gibbs sampling 
 				 * for probabilities.
 				 */
-				// TODO(?): Move this check into singlemodelsampler.
-				if (isRecursive(target) && !useMLNInference) {
-					((SingleModelSampler)sampler).getProbabilitiesUsingSamples(examples);
-				} else {
-					sampler.getProbabilities(examples);
-				}
+				sampler.getProbabilities(examples);
 			} else {
 				// If there is one query predicate that has query predicate as parents, we need sampling.
 				needSampling = true;
@@ -214,12 +209,8 @@ public class JointModelSampler extends SRLInference {
 						// takes care of how to sample the examples.
 						SingleModelSampler sampler = new SingleModelSampler(mod,setup, jointModel);
 
-						if (!isRecursive(target)) {
-							sampler.getProbabilities(examples);
-							getSampleForExamples(examples);
-						} else {
-							sampler.setSample(examples);
-						}
+						sampler.getProbabilities(examples);
+						getSampleForExamples(examples);
 					}
 				} else {
 					// Doesn't have a query predicate as parent, so probability doesn't change,

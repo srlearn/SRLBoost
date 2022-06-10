@@ -1,7 +1,5 @@
 package edu.wisc.cs.will.Boosting.RDN.Models;
 
-import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
@@ -28,23 +26,12 @@ public class DependencyNetwork {
 			}
 		}
 		stream.write("digraph RDN{\n");
-		// Rename recursive nodes
-		for (String stringRep : stringRepToNode.keySet()) {
-			if (stringRep.startsWith(WILLSetup.recursivePredPrefix)) {
-				DependencyNode node = stringRepToNode.get(stringRep);
-				String newRep = stringRep.replace(WILLSetup.recursivePredPrefix, "");
-				DependencyNode targetNode = stringRepToNode.get(newRep);
-				node.setNumberForDOTGraph(targetNode.getNumberForDOTGraph());
-			}
-		}
 
 		// For each node
 		for (String stringRep : stringRepToNode.keySet()) {
 			DependencyNode node = stringRepToNode.get(stringRep);
-			if (!stringRep.startsWith(WILLSetup.recursivePredPrefix)) {
-				if (node.getNumberForDOTGraph() != -1) {
-					stream.write(node.getNumberForDOTGraph() + "[" + node.textForDOT() + "];\n");
-				}
+			if (node.getNumberForDOTGraph() != -1) {
+				stream.write(node.getNumberForDOTGraph() + "[" + node.textForDOT() + "];\n");
 			}
 			// Write edges
 			for (int i = 0; i < node.numParents(); i++) {

@@ -26,8 +26,6 @@ import java.util.*;
  */
 public final class WILLSetup {
 
-	private static final int debugLevel = 0;
-
 	// TODO(@hayesall): The `WILLSetup.outerLooper` ILPouterLoop is touched by quite a few functions.
 	private ILPouterLoop outerLooper;
 
@@ -135,15 +133,6 @@ public final class WILLSetup {
 			Example.writeObjectsToFile(file_paths[1], getInnerLooper().getNegExamples(), ".", "// Negative examples, including created ones.");
 		}
 
-		boolean bagOriginalNegExamples = false;
-
-		// Should the examples be bagged upon reading them in?
-		boolean bagOriginalPosExamples = false;
-		if (cmdArgs.getBagOriginalExamples()) {
-			bagOriginalPosExamples = true;
-			bagOriginalNegExamples = true;
-		}
-
 		List<Literal> targets = getInnerLooper().targets;
 		Set<Integer> arities = new HashSet<>(4);
 		if (targets != null) for (Literal target : targets) { arities.add(target.getArity()); }
@@ -194,21 +183,21 @@ public final class WILLSetup {
 		Utils.println(  "% Have " + Utils.comma(negExamplesRaw) + " 'raw' negative examples and kept " + Utils.comma(negExamples) + ".");
 
 		// These shouldn't be RegressionRDNExamples. They are assumed to be "Example"s. 
-		backupPosExamples = getExamplesByPredicateName(posExamples, forTraining && bagOriginalPosExamples); // Do bagging on the outermost loop.
-		backupNegExamples = getExamplesByPredicateName(negExamples, forTraining && bagOriginalNegExamples);	// But only if TRAINING.
+		backupPosExamples = getExamplesByPredicateName(posExamples, false); // Do bagging on the outermost loop.
+		backupNegExamples = getExamplesByPredicateName(negExamples, false);	// But only if TRAINING.
 		// Needed to get examples from fact files.
 		fillMissingExamples();
 
+
+		// TODO(hayesall): isDisableMultiClass showed up here.
 		// check if multi class trees are enabled.
 		// We still create the multi class handler object
 		multiclassHandler = new MultiClassExampleHandler();
-		if (!cmdArgs.isDisableMultiClass()) {
-			multiclassHandler.initArgumentLocation(this);
-			for (String pred : backupPosExamples.keySet()) {
-				multiclassHandler.addConstantsFromLiterals(backupPosExamples.get(pred));
-				if (backupNegExamples.containsKey(pred)) {
-					multiclassHandler.addConstantsFromLiterals(backupNegExamples.get(pred));
-				}
+		multiclassHandler.initArgumentLocation(this);
+		for (String pred : backupPosExamples.keySet()) {
+			multiclassHandler.addConstantsFromLiterals(backupPosExamples.get(pred));
+			if (backupNegExamples.containsKey(pred)) {
+				multiclassHandler.addConstantsFromLiterals(backupNegExamples.get(pred));
 			}
 		}
 
@@ -249,17 +238,6 @@ public final class WILLSetup {
 		
 		reportStats();
 
-		// TODO(@hayesall): `recursion` seems to be false by default, but is also loaded in from the handler?
-		String lookup = getHandler().getParameterSetting("recursion");
-		if (lookup != null) {
-			allowRecursion = Boolean.parseBoolean(lookup);
-			Utils.println("Recursion set to:" + allowRecursion);
-		}
-		
-		if (cmdArgs.getBagOriginalExamples()) { // DecisionForest Decision Forest DF DF df50
-			Utils.waitHere("Is this still being used?");
-			getOuterLooper().randomlySelectWithoutReplacementThisManyModes = 0.50; // TODO - allow this to be turned off (or the fraction set) when bagging.
-		}
 		return true;
 	}
 
@@ -375,9 +353,8 @@ public final class WILLSetup {
 		prepareFactsAndExamples(backupPosExamples, backupNegExamples, predicate, true, null);
 	}
 
-	// TODO(@hayesall): It seems like a bug that `allowRecursion = false`.
-	private boolean allowRecursion = false;
-	public static final String recursivePredPrefix = "recursive_";
+	// TODO(hayesall): Deprecate `recursive_` and `multiclass_`
+
 	static final String multiclassPredPrefix = "multiclass_";
 
 	// Maintain a list of predicates that are already added, so that we can save on time.
@@ -403,17 +380,11 @@ public final class WILLSetup {
 								 String predicate, boolean forLearning,
 								 String only_mod_pred) {
 
-		long start = System.currentTimeMillis();
-
-		if (allowRecursion || posEg.keySet().size() > 1 || negEg.keySet().size() > 1) {
+		if (posEg.keySet().size() > 1 || negEg.keySet().size() > 1) {
 			// JWS added the negEq check since we need to work with only NEG examples (ie, on an unlabeled testset).
 			prepareFactsForJoint(posEg, negEg, predicate, only_mod_pred, forLearning);
 		}
 		prepareExamplesForTarget(posEg.get(predicate), negEg.get(predicate), predicate, forLearning);
-		long end = System.currentTimeMillis();
-		if (debugLevel > 1) { 
-			Utils.waitHere("% Time taken for preparing WILL: " + Utils.convertMillisecondsToTimeSpan(end - start, 3) + ".");
-		}
 	}
 
 	public void prepareExamplesForTarget(String predicate) {
@@ -425,16 +396,12 @@ public final class WILLSetup {
 										  String predicate,
 										  boolean forLearning) {
 
-		if (debugLevel > 1) { Utils.println("% prepareWILLForPredicate: |newPosEg| = " + Utils.comma(newPosEg) + " |newNegEg| = " + Utils.comma(newNegEg));}
-
 		getOuterLooper().setPosExamples(new ArrayList<>(newPosEg));
 		getOuterLooper().setNegExamples(new ArrayList<>(newNegEg));
 
 		String prefix = null;
 
 		if (forLearning) {
-
-			if (debugLevel > 1) { Utils.println("\n% Morphing task.");}
 
 			if (multiclassHandler.isMultiClassPredicate(predicate)) {
 				Utils.println("Morphing to regression vector");
@@ -583,8 +550,8 @@ public final class WILLSetup {
 		Set<String> newlyAddedPredicates = new HashSet<>();
 		for (String target : posEg.keySet()) {
 			if (target.equals(predicate)) {
-				if (predicatesAsFacts.contains(target) && 
-					disableFactBase && !allowRecursion) {
+				if (predicatesAsFacts.contains(target) &&
+						disableFactBase) {
 					System.currentTimeMillis();
 					for (Example eg : posEg.get(target)) {
 						removeFact(eg);
@@ -600,39 +567,10 @@ public final class WILLSetup {
 							}
 							removeFact(eg);
 						}
-						// add the recursive fact
-						if (allowRecursion) {
-							Literal lit = getHandler().getLiteral(handler.getPredicateName(recursivePredPrefix + eg.predicateName.name), eg.getArguments());
-							if (disableFactBase || !addedToFactBase.contains(lit)) {
-								addFact(lit);
-								if (!disableFactBase) {
-									addedToFactBase.add(lit);
-								}
-							}
-						}
 					}
 				}
 			} else {
 				for (Example eg : posEg.get(target)) {
-					// Remove the recursion fact as this is not the target predicate
-					if (allowRecursion) {
-						Literal lit = getHandler().getLiteral(handler.getPredicateName(recursivePredPrefix + eg.predicateName.name), eg.getArguments());
-						// if target predicate is set to null, we add the recursive fact as we want to add all examples as facts
-						// for sampling hidden states
-						if (predicate != null) {
-							if (disableFactBase || addedToFactBase.contains(lit)) {
-								if (!disableFactBase) {
-									addedToFactBase.remove(lit);
-								}
-								removeFact(lit);
-							}
-						} else {
-							if (!disableFactBase) {
-								addedToFactBase.add(lit);
-							}
-							addFact(lit);
-						}
-					} 
 
 					if ((onlyModPred == null || eg.predicateName.name.equals(onlyModPred)) &&
 						(!(predicatesAsFacts.contains(eg.predicateName.name) && forLearning)) && 
@@ -660,15 +598,6 @@ public final class WILLSetup {
 					removeFact(eg);
 					if (!disableFactBase) {
 						addedToFactBase.remove(eg);
-					}
-				}
-				if (allowRecursion) {
-					Literal lit = getHandler().getLiteral(handler.getPredicateName(recursivePredPrefix + eg.predicateName.name), eg.getArguments());
-					if (disableFactBase || addedToFactBase.contains(lit)) {
-						removeFact(lit);
-						if (!disableFactBase) {
-							addedToFactBase.remove(lit);
-						}
 					}
 				}
 			}
@@ -863,56 +792,9 @@ public final class WILLSetup {
 
 	void getListOfPredicateAritiesForNeighboringFacts() {
 		if (neighboringFactFilterList == null) {
-			Set<PredicateNameAndArity> pars = new HashSet<>();
-			String lookup;
-			boolean addAllModes = true;
-			if ((lookup =  getHandler().getParameterSetting("useAllBodyModesForNeighboringFacts")) != null) {
-				addAllModes = Utils.parseBoolean(lookup);
-			}
-			if (addAllModes) {
-				pars.addAll(BoostingUtils.convertBodyModesToPNameAndArity(getInnerLooper().getBodyModes()));
-			}
-			if ((lookup =  getHandler().getParameterSetting("includePredicatesForNeighboringFacts")) != null) {
-				lookup = lookup.replaceAll("\"", "");
-				List<String> preds = Utils.parseListOfStrings(lookup);
-				for (String pred : preds) {
-					pars.addAll(convertStringToPnameArity(pred));
-				}
-			}
-			if ((lookup =  getHandler().getParameterSetting("excludePredicatesForNeighboringFacts")) != null) {
-				lookup = lookup.replaceAll("\"", "");
-				List<String> preds = Utils.parseListOfStrings(lookup);
-				for (String pred : preds) {
-					pars.removeAll(convertStringToPnameArity(pred));
-				}
-			}
+			Set<PredicateNameAndArity> pars = new HashSet<>(BoostingUtils.convertBodyModesToPNameAndArity(getInnerLooper().getBodyModes()));
 			neighboringFactFilterList = new ArrayList<>(pars);
 		}
-	}
-	
-	private List<PredicateNameAndArity> convertStringToPnameArity(String pname) {
-		String[] parts = pname.split("/");
-		List<PredicateNameAndArity> pars = new ArrayList<>();
-		// Arity given
-		if (parts.length > 1) {
-			String pred = parts[0];
-			int arity = Integer.parseInt(parts[1]);
-			pars.add(new PredicateNameAndArity(getHandler().getPredicateName(pred), arity));
-		} else {
-
-			PredicateName predicate = getHandler().getPredicateName(parts[0]);
-			// For each spec for the predicate
-			for (PredicateSpec spec : predicate.getTypeList()) {
-				if (spec.getTypeSpecList() != null) {
-					int arity = spec.getTypeSpecList().size();
-					PredicateNameAndArity par = new PredicateNameAndArity(predicate, arity);
-					if (!pars.contains(par)) {
-						pars.add(par);
-					}
-				}
-			}
-		}
-		return pars;
 	}
 
 	void getBitMaskForNeighboringFactArguments(String target) {
