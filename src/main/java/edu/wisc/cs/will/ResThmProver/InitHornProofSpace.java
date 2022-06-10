@@ -5,7 +5,6 @@ import edu.wisc.cs.will.FOPC.HandleFOPCstrings;
 import edu.wisc.cs.will.FOPC.Literal;
 import edu.wisc.cs.will.ResThmProver.HornClauseProverChildrenGenerator.CutLiteral;
 import edu.wisc.cs.will.ResThmProver.HornClauseProverChildrenGenerator.CutMarkerNode;
-import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.Initializer;
 import edu.wisc.cs.will.stdAIsearch.OpenList;
 
