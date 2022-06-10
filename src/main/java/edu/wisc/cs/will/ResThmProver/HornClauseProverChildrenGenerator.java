@@ -3,10 +3,12 @@ package edu.wisc.cs.will.ResThmProver;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.ChildrenNodeGenerator;
-import edu.wisc.cs.will.stdAIsearch.OpenList;
 import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /*
  * @author shavlik
