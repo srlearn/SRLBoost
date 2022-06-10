@@ -331,7 +331,7 @@ public class LearnBoostedRDN {
 		}
 	}
 	private void dumpTheoryToFiles(Theory th, int i) {
-		String stringToPrint = (i < 0 ? "" : "\n%%%%%  WILL-Produced Tree #" + (i + 1) + " @ " + Utils.getDateTime() + ".  [" + Utils.reportSystemInfo() + "]  %%%%%\n\n");
+		String stringToPrint = (i < 0 ? "" : "\n%%%%%  WILL-Produced Tree #" + (i + 1) + " @ " + Utils.getDateTime() + ".  %%%%%\n\n");
 		if (i >= 0) { Utils.println(stringToPrint); }
 		File file = getWILLsummaryFile();
 		if (i >= 0) { Utils.appendString(file, stringToPrint + th.toPrettyString(), cmdArgs.useLockFiles); } 

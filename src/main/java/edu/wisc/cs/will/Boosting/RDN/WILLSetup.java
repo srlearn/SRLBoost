@@ -2,7 +2,6 @@ package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
-import edu.wisc.cs.will.DataSetUtils.CreateSyntheticExamples;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.*;
@@ -223,7 +222,7 @@ public final class WILLSetup {
 	/**
 	 * This method moves facts to Examples if they are part of the joint inference task.
 	 */
-	private void fillMissingExamples() {
+	private void fillMissingExamples() throws RuntimeException {
 		Set<String> missingPositiveTargets = new HashSet<>();
 		Set<String> missingNegativeTargets = new HashSet<>();
 		for (String pred : cmdArgs.getTargetPredVal()) {
@@ -281,16 +280,7 @@ public final class WILLSetup {
 					// for any predicate missing negs iff createSyntheticexamples is enabled.
 					if (missingPositiveTargets.contains(predName)) {
 						Utils.println("Creating neg ex for: " + predName);
-						List<Example> 
-						negEgs = CreateSyntheticExamples.createAllPossibleExamples("% Negative example created from facts.",
-									getHandler(), getProver(), getInnerLooper().getTargets().get(i),getInnerLooper().getTargetArgSpecs().get(i),
-									getInnerLooper().getExamplePredicateSignatures().get(i),
-								new ArrayList<>(backupPosExamples.get(predName)), null, null);
-						assert negEgs != null;
-						for (Example negEx : negEgs) {
-							getInnerLooper().confirmExample(negEx);
-						}
-						backupNegExamples.put(predName, negEgs);
+						throw new RuntimeException("Creating Synthetic Examples this way is deprecated.");
 					}
 				}
 			}
@@ -376,7 +366,7 @@ public final class WILLSetup {
 
 		if (forLearning) {
 
-			getOuterLooper().setLearnMultiValPredicates(false);
+			getOuterLooper().setLearnMultiValPredicatesFalse();
 			// 	Move the examples into facts and get facts to predicates.
 			getOuterLooper().morphToRDNRegressionOuterLoop(
 					1,
@@ -610,7 +600,7 @@ public final class WILLSetup {
 			stringHandler.keepQuoteMarks                       = true;
 			stringHandler.dontComplainIfMoreThanOneTargetModes = true;
 			Utils.println("\n% Calling ILPouterLoop from createRegressionOuterLooper.");
-			setOuterLooper(new ILPouterLoop(directory, prefix, newArgList, strategy, scorer, new Gleaner(), context, false, isaRegressionTaskRightAway));
+			setOuterLooper(new ILPouterLoop(directory, prefix, newArgList, strategy, scorer, new Gleaner(), context, isaRegressionTaskRightAway));
 			Utils.println("\n% The outer looper has been created.");
 		} catch (IOException e) {
 			Utils.reportStackTrace(e);
@@ -623,7 +613,6 @@ public final class WILLSetup {
 		getInnerLooper().maxNumberOfNewVars =      7;
 		getInnerLooper().maxDepthOfNewVars  =      7;
 		getInnerLooper().maxPredOccurrences =      5;
-		getInnerLooper().restartsRRR        =     25;
 		getOuterLooper().max_total_nodesExpanded = 10000000;
 		getOuterLooper().max_total_nodesCreated  = 10 * getOuterLooper().max_total_nodesExpanded;
 		getHandler().setStarMode(TypeSpec.minusMode);

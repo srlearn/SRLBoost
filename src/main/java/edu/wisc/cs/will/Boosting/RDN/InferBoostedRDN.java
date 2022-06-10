@@ -178,14 +178,16 @@ public class InferBoostedRDN {
 
 	private void getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
 							 String target, int trees) {
-		// TODO(@hayesall): Why does this return a double when the double is never used?
 
 		// We repeatedly loop over the examples, but the code at least is cleaner.
 		// Update the probabilities here if needed, such as normalizing.
-		
+
 		// Update true positive, false positives etc.
+
 		CoverageScore  score = new CoverageScore();
-		String resultsString = "useLeadingQuestionMarkVariables: true.\n\n" + updateScore(examples, score, threshold);
+
+		String resultsString = updateScore(examples, score, threshold);
+
 		if (trees == cmdArgs.getMaxTreesVal()) {
 
 			// Print examples and some 'context' for possible use by other MLN software.
@@ -196,45 +198,27 @@ public class InferBoostedRDN {
 
 		ComputeAUC auc = computeAUCFromEg(examples);
 
-		{
-			ThresholdSelector selector = new ThresholdSelector();
-			for (RegressionRDNExample regEx : examples) {
-				// This code should only be called for single-class examples
-				selector.addProbResult(regEx.getProbOfExample().getProbOfBeingTrue(), regEx.isOriginalTruthValue());
-			}
-			double thresh = selector.selectBestThreshold();
-			Utils.println("% F1 = " + selector.lastComputedF1);
-			Utils.println("% Threshold = " + thresh);
+		ThresholdSelector selector = new ThresholdSelector();
+		for (RegressionRDNExample regEx : examples) {
+			// This code should only be called for single-class examples
+			selector.addProbResult(regEx.getProbOfExample().getProbOfBeingTrue(), regEx.isOriginalTruthValue());
 		}
+		double thresh = selector.selectBestThreshold();
+		Utils.println("% F1 = " + selector.lastComputedF1);
+		Utils.println("% Threshold = " + thresh);
+
 
 		Utils.println("\n%   AUC ROC   = " + Utils.truncate(auc.getROC(), 6));
 		Utils.println("%   AUC PR    = " + Utils.truncate(auc.getPR(),  6));
 		Utils.println("%   CLL	      = " + Utils.truncate(auc.getCLL(),  6));
 
-		resultsString += "\n//  AUC ROC   = " + Utils.truncate(auc.getROC(), 6);
-		resultsString += "\n//  AUC PR    = " + Utils.truncate(auc.getPR(),  6);
-		resultsString += "\n//  CLL       = " + Utils.truncate(auc.getCLL(),  6);
-		resultsString += "\naucROC(" +  target + ", " + Utils.truncate(auc.getROC(), 6) + ").";
-		resultsString += "\naucPR( " +  target + ", " + Utils.truncate(auc.getPR(),  6) + ").\n";
-		String fileNameForResults = (writeQueryAndResults ? getTestsetInfoFile(target) : null);
-
 		if (threshold != -1) {
 			Utils.println("%   Precision = " + Utils.truncate(score.getPrecision(), 6) + " at threshold = " + Utils.truncate(threshold, 3));
 			Utils.println("%   Recall    = " + Utils.truncate(score.getRecall(),    6));
 			Utils.println("%   F1        = " + Utils.truncate(score.getF1(),        6));
-			resultsString += "\n//   Precision = " + Utils.truncate(score.getPrecision(), 6) + " at threshold = " + Utils.truncate(threshold, 3);
-			resultsString += "\n//   Recall    = " + Utils.truncate(score.getRecall(),    6);
-			resultsString += "\n//   F1        = " + Utils.truncate(score.getF1(),        6);
-			resultsString += "\nprecision(" + target + ", " + Utils.truncate(score.getPrecision(), 6) + ", usingThreshold(" + threshold + ")).";
-			resultsString += "\nrecall(   " + target + ", " + Utils.truncate(score.getRecall(),    6) + ", usingThreshold(" + threshold + ")).";
-			resultsString += "\nF1(       " + target + ", " + Utils.truncate(score.getF1(),        6) + ", usingThreshold(" + threshold + ")).";
-			if (writeQueryAndResults) { Utils.writeStringToFile(resultsString + "\n", new CondorFile(fileNameForResults)); }
-			score.getF1();
-			return;
-		}
-		
-		if (writeQueryAndResults) { Utils.writeStringToFile(resultsString + "\n", new CondorFile(fileNameForResults)); }
 
+			score.getF1();
+		}
 	}
 
 	private ComputeAUC computeAUCFromEg(List<RegressionRDNExample> examples) {
@@ -320,31 +304,16 @@ public class InferBoostedRDN {
 		}
 	}
 
-	private String getNameOfCSVFile() {
-		// TODO(@hayesall): When and where is this file used?
-		String modelDirectory = cmdArgs.getResultsDirVal();
-		String result = Utils.replaceWildCards((modelDirectory != null ? modelDirectory : setup.getOuterLooper().getWorkingDirectory())
-				+ "bRDNs/"
-				+ "predictions"
-				+ cmdArgs.getExtraMarkerForFiles(true)
-				+ ".csv");
-
-		Utils.ensureDirExists(result);
-		return result;
-	}
-
 	/*
 	 * Should be called with only single-value examples.
 	 */
 	private String updateScore(List<RegressionRDNExample> examples, CoverageScore score, double threshold) {
-		// TODO(@hayesall): maxToPrintOnAve should be removed.
+		// TODO(hayesall): I think there's a side effect invoked in here.
 
 		double sum = 0;
 		double count = 0;
 		double countOfPos = 0;
 		double countOfNeg = 0;
-
-		StringBuilder sb = new StringBuilder();
 
 		for (RegressionRDNExample regressionExample : examples) {
 
@@ -356,12 +325,6 @@ public class InferBoostedRDN {
 
 			if (regressionExample.isOriginalTruthValue()) {
 				// Positive Example
-
-				sb.append("pos,")
-						.append(probability)
-						.append(", ")
-						.append(regressionExample)
-						.append("\n");
 
 				// Compute the weighted sum:
 				sum += probability * weightOnExample;
@@ -375,12 +338,6 @@ public class InferBoostedRDN {
 			} else {
 				// Negative Example
 
-				sb.append("neg, ")
-						.append(probability)
-						.append(", ")
-						.append(regressionExample)
-						.append("\n");
-
 				// Compute the weighted sum:
 				sum += (1 - probability) * weightOnExample;
 				countOfNeg += weightOnExample;
@@ -392,8 +349,6 @@ public class InferBoostedRDN {
 				}
 			}
 		}
-
-		Utils.writeStringToFile(sb.toString(), new CondorFile(getNameOfCSVFile()));
 
 		// TODO(@JWS) Use geometric mean if this is over the training set.
 		//		For test (or tuning) it is fine to use the expected value.

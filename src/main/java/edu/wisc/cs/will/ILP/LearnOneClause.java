@@ -98,9 +98,7 @@ import java.util.*;
 
 public class LearnOneClause extends StateBasedSearchTask {
 
-	final boolean             whenComputingThresholdsWorldAndStateArgsMustBeWorldAndStateOfAcurrentExample = true; // This will prevent test sets bleeding unto train set (if these stringHandler.locationOfWorldArg or stringHandler.locationOfStateArg are -1, then matching is not required).
-
-	Object              caller     = null;                           // The instance that called this LearnOneClause instance.
+    Object              caller     = null;                           // The instance that called this LearnOneClause instance.
 	String              callerName = "unnamed caller";               // Used to annotate printing during runs.
 
 	private final FileParser          parser;
@@ -141,19 +139,9 @@ public class LearnOneClause extends StateBasedSearchTask {
 	boolean             dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds = true;  // If have p(x) :- q(x,y) but if over all positive seeds can never get x and y to bind to different constants, then use p(x) :- q(x,x).  Similar (equivalent?) to "variable splitting" = false in Aleph.
 	long                maxResolutionsPerClauseEval    = 10000000;     // When evaluating a clause, do not perform more than this many resolutions.  If this is exceeded, a clause is said to cover 0 pos and 0 neg, regardless of how many have been proven and it won't be expanded.
 	public final boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
-	////////////////////////////////////////////////////////////
-	//  Variables for controlling random-rapid-restart searches (i.e., repeatedly randomly create an initial clause, then do some local search around each).
-	//    The initial clause randomly created will meet the specification on the positive and negative seeds.
-	////////////////////////////////////////////////////////////
-	boolean             performRRRsearch      = false;
-	int                 beamWidthRRR          =     1; // When doing RRR, use this beam width (if set too low, might not find a starting point for local search of the requested length).
-    public    int                 restartsRRR           =   100; // Do this many RRR restarts per "ILP inner loop" call.
 
-    ////////////////////////////////////////////////////////////
-	boolean             stillInRRRphase1      =  true; // In the first phase of RRR, build a random clause that covers the required fraction of POS seeds.
-	int                 savedBeamWidth;                // Save the old beam width so it can be restored when in phase 2 of RRR.
-	int                 thisBodyLengthRRR;             // The chosen body length for this RRR iteration.
-	private List<Example>         posExamples;
+    int                 savedBeamWidth;                // Save the old beam width so it can be restored when in phase 2 of RRR.
+    private List<Example>         posExamples;
     private List<Example>         negExamples;
 	double              totalPosWeight = -1.0;   // Sum of the weights on the positive examples.
 	double              totalNegWeight;          // Ditto for negative examples.
@@ -337,10 +325,10 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return prover;
 	}
 
-	private void initialize() throws SearchInterrupted {
+	private void initialize() {
 		initialize(false);
 	}
-	public void initialize(boolean creatingConjunctiveFeaturesOnly) throws SearchInterrupted { // Make this a separate call so that caller can set some public variables if it wants to do so.
+	public void initialize(boolean creatingConjunctiveFeaturesOnly) { // Make this a separate call so that caller can set some public variables if it wants to do so.
 		if (!initialized) {
 			long istart = System.currentTimeMillis();
             initialized = true;
@@ -796,44 +784,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return totalPosWeight / (totalPosWeight +  getMEstimateNeg());
 	}
 
-	void performRRRsearch(SingleClauseNode bestNodeFromPreviousSearch) throws SearchInterrupted { //TODO: add some early-stopping criteria
-
-		int hold_maxNodesToExpand = getMaxNodesToConsider(); // Save these so they can be restored.
-		int hold_maxNodesToCreate = getMaxNodesToCreate();
-		int hold_nodesExpanded    = 0;
-		int hold_nodesCreated     = 0;
-
-		performRRRsearch   = true;
-        // These are per each RRR iteration.
-        int maxNodesToConsiderRRR = 100;
-        setMaxNodesToConsider(maxNodesToConsiderRRR); // Switch to the RRR-specific settings.
-        int maxNodesToCreateRRR = 1000;
-        setMaxNodesToCreate(maxNodesToCreateRRR);
-		for (int i = 1; i <= restartsRRR; i++) {
-			if (hold_nodesExpanded >= hold_maxNodesToExpand) {
-				searchMonitor.searchEndedByMaxNodesConsidered(hold_nodesExpanded);
-				break;
-			}
-			if (hold_nodesCreated    >= hold_maxNodesToCreate) {
-				searchMonitor.searchReachedMaxNodesCreated(   hold_nodesCreated);
-				break;
-			}
-			stillInRRRphase1  = true;
-            int maxBodyLengthRRR = 10;
-            // Uniformly choose body lengths from minBodyLengthRRR to maxBodyLengthRRR (inclusive).
-            int minBodyLengthRRR = 1;
-            thisBodyLengthRRR = minBodyLengthRRR + Utils.random1toN(maxBodyLengthRRR - minBodyLengthRRR);
-			performSearch(bestNodeFromPreviousSearch);  // No need to do a open.clear() since performSearch() does that.
-			hold_nodesExpanded += nodesConsidered;
-			hold_nodesCreated  += nodesCreated;
-		}
-		nodesConsidered    = hold_nodesExpanded; // Set the search totals to count ALL the RRR iterations.
-		nodesCreated       = hold_nodesCreated;
-		setMaxNodesToConsider(hold_maxNodesToExpand); // Revert to the old settings for these.
-		setMaxNodesToCreate(hold_maxNodesToCreate);
-	}
-
-	List<Example> collectPosExamplesCovered(SingleClauseNode node) throws SearchInterrupted {
+    List<Example> collectPosExamplesCovered(SingleClauseNode node) throws SearchInterrupted {
 		return collectExamplesCovered(getPosExamples(),node);
 	}
 	List<Example> collectNegExamplesCovered(SingleClauseNode node) throws SearchInterrupted {
@@ -1585,15 +1536,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		countOfSearchesPerformedWithCurrentModes = 0; 
 	}
 
-	public List<List<ArgSpec>> getTargetArgSpecs() {
-		return targetArgSpecs;
-	}
-
-	public List<List<Term>> getExamplePredicateSignatures() {
-		return examplePredicateSignatures;
-	}
-
-	void resetAll() {
+    void resetAll() {
 		resetAllForReal();
 		if (seedPosExamples != null) { seedPosExamples.clear(); }
 		if (seedNegExamples != null) { seedNegExamples.clear(); }
