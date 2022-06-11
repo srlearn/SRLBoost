@@ -64,7 +64,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 	}
 
 	// TODO(?): reuse this list which returns children. This is called a lot so don't want to make anew each time.
-	private List<SearchNode> children = new ArrayList<>(8);
+	private final List<SearchNode> children = new ArrayList<>(8);
 
 
 	// TODO(@hayesall): Too complex to analyze with data flow: major need of refactoring.
