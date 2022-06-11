@@ -477,10 +477,7 @@ public final class HandleFOPCstrings {
 		return new Literal(this, pred, arguments, argumentNames);
 	}
 
-	private Literal getLiteral(PredicateName pred, Term argument) {
-		return new Literal(this, pred, argument);
-	}
-    public Literal getLiteral(Literal existingLiteral, List<Term> newArguments) {
+	public Literal getLiteral(Literal existingLiteral, List<Term> newArguments) {
         int newArgCount = newArguments == null ? 0 : newArguments.size();
         if ((existingLiteral.getArity() > 0 && newArguments == null) || (existingLiteral.getArity() != newArgCount)) {
             throw new IllegalArgumentException("newArguments.size() must match arity of " + existingLiteral);
@@ -508,10 +505,6 @@ public final class HandleFOPCstrings {
 		return new LiteralAsTerm(this, itemBeingWrapped);
 	}
 
-	ObjectAsTerm getObjectAsTerm(Object item) {
-		return new ObjectAsTerm(this, item, true);
-	}
-
 	public SentenceAsTerm getSentenceAsTerm(Sentence s, String wrapper) {
 		return new SentenceAsTerm(this, s, wrapper);
 	}
@@ -519,90 +512,6 @@ public final class HandleFOPCstrings {
 	public UniversalSentence getUniversalSentence(Collection<Variable> variables, Sentence body) {
 		return new UniversalSentence(this, variables, body);
 	}
-
-	/* Returns the NegationByFailure of clauseInsideNot.
-     *
-     * Note: For proper logical sense, the clause within
-     * the negation should have positive literals, not negated
-     * literals.
-     *
-     * \+(P) is defined as:
-     *
-     * \+(P) :- P, !, fail.
-     * \+(P).
-     *
-     * This is logically equivalent to:
-     *
-     * \+(P) OR ~P OR ~! OR ~fail.  Here ~ is true negation.
-     *
-     * Consider ~Q as the contents of \+:
-     *
-     * \+(~Q). Expanding the first clause of definition of +\(~Q), we get:
-     *
-     * \+(~Q) :- ~Q, !, fail.
-     *
-     * Equivalent to:
-     *
-     * \+(~Q) OR ~(~Q)), ~!, ~fail.
-     *
-     * equivalent to:
-     *
-     * \+(~Q) OR Q OR ~! OR ~fail.
-     *
-     * However, this is not a definite clause, so that implies
-     * that the literal inside a negation by failure,
-     * can not be a negated literal.
-     *
-     * Plus, the parser will parse \+( A,B,C ) such
-     * that A,B,C will be a SentenceAsTerm as a positive
-     * literal.
-     *
-     * If the contentsOfNegationByFailure clause is a set of negative literals,
-     * the clause will be adjusted to be a set of positive literals.
-     *
-     * @param contentsOfNegationByFailure Contents to put inside the negation-by-failure.  Clause
-     * should contain either all positive literals or all negative literals.
-     * @return a Literal with predicate name of \+ and arity 1, whose argument is a
-     * clause with all positive literals obtained from contentsOfNegationByFailure.
-     */
-    public Literal getNegationByFailure(Clause contentsOfNegationByFailure) {
-
-        Literal result;
-
-        if ( contentsOfNegationByFailure.getPosLiteralCount() != 0 && contentsOfNegationByFailure.getNegLiteralCount() != 0 ) {
-            Utils.error("Negation-by-failure content clause contains both positive and negative literals!");
-        }
-
-        List<Literal> negatedLiterals;
-        if (contentsOfNegationByFailure.getPosLiteralCount() > 0) {
-            negatedLiterals = contentsOfNegationByFailure.getPositiveLiterals();
-        }
-        else {
-            negatedLiterals = contentsOfNegationByFailure.getNegativeLiterals();
-        }
-
-        if ( negatedLiterals.isEmpty() ) {
-            // Empty clauseInside creates a \+(true).  We
-            // could replace with fail, but I want to maintain
-            // the negation structure.
-            StringConstant trueConstant = getStringConstant("true");
-            result = getLiteral(standardPredicateNames.negationByFailure, trueConstant);
-        }
-        else if(negatedLiterals.size() == 1) {
-            Function insideFunction = negatedLiterals.get(0).convertToFunction(this);
-            result = getLiteral(standardPredicateNames.negationByFailure, insideFunction);
-        }
-        else {
-            List<Term> terms = new ArrayList<>(negatedLiterals.size());
-            for (Literal literal : negatedLiterals) {
-                terms.add(literal.asFunction());
-            }
-
-            result = getLiteral(standardPredicateNames.negationByFailure, terms);
-        }
-
-        return result;
-    }
 
 	/* Returns the contents of a negation-by-failure as a clause with all positive literals.
      *
@@ -936,9 +845,6 @@ public final class HandleFOPCstrings {
 
 	public StringConstant getStringConstant(String name) {
 		return getStringConstant(null, name);
-	}
-    public StringConstant getStringConstant(String name, boolean cleanString) {
-		return getStringConstant(null, name, cleanString);
 	}
 
 
@@ -1416,7 +1322,7 @@ public final class HandleFOPCstrings {
         String anonymousName;
 
         if (doVariablesStartWithQuestionMarks()) {
-            anonymousName = "?" + stringBuilder.toString();
+            anonymousName = "?" + stringBuilder;
         }
         else if (usingStdLogicNotation()) {
             anonymousName = stringBuilder.toString().toLowerCase();
