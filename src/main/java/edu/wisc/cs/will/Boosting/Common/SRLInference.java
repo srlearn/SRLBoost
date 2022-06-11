@@ -2,7 +2,6 @@ package edu.wisc.cs.will.Boosting.Common;
 
 import edu.wisc.cs.will.Boosting.MLN.MLNInference;
 import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
-import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode.PredicateType;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
