@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.Boosting.RDN.Models;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 public abstract class DependencyNode {
 
@@ -44,10 +43,6 @@ public abstract class DependencyNode {
 	 */
 	void addChild(DependencyNetworkEdge edge) {
 		children.add(edge);
-	}
-
-	Collection<DependencyNetworkEdge> getParents() {
-		return parents;
 	}
 
 	/*

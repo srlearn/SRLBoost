@@ -75,16 +75,15 @@ public class RelationalDependencyNetwork extends DependencyNetwork {
 		// Check if we have parent node
 		DependencyNode parNode = getDependencyNode(parent);
 		DependencyNode chiNode = getDependencyNode(child);
-		DependencyNetworkEdge edge = getDependencyEdge(parNode, chiNode, type);
+		DependencyNetworkEdge edge = getDependencyEdge(parNode, type);
 		parNode.addChild(edge);
 		chiNode.addParent(edge);
 	}
 
 	private DependencyNetworkEdge getDependencyEdge(
 			DependencyNode parNode,
-			DependencyNode chiNode,
-			EdgeType type) {
-		return new DependencyNetworkEdge(parNode, chiNode, type);
+            EdgeType type) {
+		return new DependencyNetworkEdge(parNode, type);
 	}
 
 	public DependencyPredicateNode getDependencyNode(PredicateName parent) {

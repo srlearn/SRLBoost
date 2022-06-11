@@ -10,9 +10,7 @@ import edu.wisc.cs.will.Utils.Utils;
  */
 public class DependencyPredicateNode extends DependencyNode {
 	private PredicateName predicate;
-	// Order in Gibbs sampling
-	private int order = -1;
-	
+
 	public enum PredicateType {
 		HIDDEN,
 		EVIDENCE,
@@ -41,7 +39,7 @@ public class DependencyPredicateNode extends DependencyNode {
 				}
 			}
 		}
-		return predicate.toString()  + "(" + arglist + ")" + (order == -1 ? "" : "[" + order + "]");
+		return predicate.toString()  + "(" + arglist + ")" + "";
 	}
 	
 	private String colorForDOT() {
@@ -86,20 +84,6 @@ public class DependencyPredicateNode extends DependencyNode {
 			Utils.waitHere("Changing type for " + this.labelForDOT() + " from " + this.type +" to " + type);
 		}
 		this.type = type;
-	}
-
-	/*
-	 * @return the order
-	 */
-	public int getOrder() {
-		return order;
-	}
-
-	/*
-	 * @param order the order to set
-	 */
-	public void setOrder(int order) {
-		this.order = order;
 	}
 
 	@Override
