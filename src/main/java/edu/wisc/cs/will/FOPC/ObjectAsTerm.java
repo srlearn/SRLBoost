@@ -10,7 +10,7 @@ import java.util.Map;
  *
  */
 public class ObjectAsTerm extends Term {
-	public Object item;
+	public final Object item;
 	
 	/*
 	 * Wrap an arbitrary item in a Term.  Don't operate on it.

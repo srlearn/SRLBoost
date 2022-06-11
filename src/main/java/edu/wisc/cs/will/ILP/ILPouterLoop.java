@@ -1011,9 +1011,7 @@ public class ILPouterLoop {
 		setNegExamples(new ArrayList<>(0));
     }
 
-    public void setLearnMultiValPredicatesFalse() {
-	}
-	private Theory produceFinalTheory() {
+    private Theory produceFinalTheory() {
 		// TODO allow theories to come from some covering algorithm, possibly based on all the Gleaners.		
 		Theory result;
 		if (learningTreeStructuredTheory) {

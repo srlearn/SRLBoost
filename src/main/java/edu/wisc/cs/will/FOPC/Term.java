@@ -27,9 +27,6 @@ public abstract class Term extends AllOfFOPC implements Serializable, Comparable
 		if (     typeSpec == null) { return; }
 		if (this.typeSpec == null) { this.typeSpec = typeSpec; return; }
 
-		if (!this.typeSpec.equals(typeSpec)) {
-			this.typeSpec.isNotYetSet();
-		}
 		int newMode =      typeSpec.mode;
 		int oldMode = this.typeSpec.mode;
 		if (newMode != oldMode) { this.typeSpec.mode = newMode; }

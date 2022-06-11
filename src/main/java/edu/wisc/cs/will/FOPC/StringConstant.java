@@ -40,13 +40,12 @@ public class StringConstant extends Constant implements Serializable {
     }
 
     private String toTypedString() {
-        String end = (typeSpec != null ? typeSpec.getCountString() : "");
         assert typeSpec != null;
         if (name == null) {
-            return typeSpec.getModeString() + typeSpec.isaType.typeName + end;
+            return typeSpec.getModeString() + typeSpec.isaType.typeName;
         } // Sometimes anonymous string constants are used (e.g., to pass around typeSpec's).
         String nameToUse = getName();
-        return (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" + nameToUse + end : nameToUse + end);
+        return (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" + nameToUse : nameToUse);
     }
     
     private void checkIfQuoteMarksNeeded() { 
@@ -151,7 +150,7 @@ public class StringConstant extends Constant implements Serializable {
             if (typeSpec == null) {
                 Utils.error("Have a stringConstant with name=null and typeSpec=null");
             }
-            return prefix + typeSpec.getModeString() + typeSpec.isaType.typeName + typeSpec.getCountString();  // Sometimes anonymous string constants are used (e.g., to pass around typeSpec's).
+            return prefix + typeSpec.getModeString() + typeSpec.isaType.typeName;  // Sometimes anonymous string constants are used (e.g., to pass around typeSpec's).
         }
         if (stringHandler.doVariablesStartWithQuestionMarks()) {
             if (!alwaysUseDoubleQuotes && name.charAt(0) == '?') {

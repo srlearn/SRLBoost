@@ -31,10 +31,6 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 
     public Integer mode;    // One of the above, which are used to describe how this argument is to be used.
 	public Type    isaType; // Can be "human," "book," etc.  Type hierarchies are user-provided.
-	public int     truthCounts = 0; // Specifies how often this predicate will be true.
-							       // If truthCounts =  0 then any number is possible.
-								   // If truthCounts =  K and K > 0, then for EXACTLY K of the possibly values for this argument will the predicate be true.
-								   // If truthCounts = -K and K > 0, then for AT MOST K possible values will this predicate be true.
 	transient HandleFOPCstrings stringHandler;
 
 	public TypeSpec(String modeAsString, String typeAsString, HandleFOPCstrings stringHandler) {
@@ -164,11 +160,6 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 		return (str.equalsIgnoreCase(">") || str.equalsIgnoreCase("unknown"));
 	}
 
-	boolean isPlusOrMinus() { // A rather odd special case.  We don't want to count 'star' (nor '^' ?) here.
-		int modeToUse = mode;
-		return mustBeBound() ||  modeToUse == minusMode; //  || modeToUse == novelMode;
-	}
-	
 	public boolean mustBeBound() {
 		int modeToUse = mode;
 		if (mode == starMode) { modeToUse = stringHandler.getStarMode(); }
@@ -247,20 +238,8 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 					 return null;
 		}		
 	}
-	
-	String getCountString() {
-		if (truthCounts ==  0) { return "";  }
-		if (truthCounts ==  1) { return "!"; }
-		if (truthCounts == -1) { return "$"; }
-		if (truthCounts >   1) { return "!" + truthCounts; }
-		return                          "$" + truthCounts;
-	}
 
-	boolean isNotYetSet() {
-		return mode == modeNotYetSet;
-	}
-	
-    @Override
+	@Override
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		return getModeString() + isaType;
 	}

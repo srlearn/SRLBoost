@@ -325,11 +325,6 @@ public class Variable extends Term {
                 String counterString = Long.toString(counter);
                 appendable.append(" v").append(counterString);
             }
-
-            if (typeSpec != null) {
-                String s = typeSpec.getCountString();
-                appendable.append(s);
-            }
         } catch (IOException ignored) {
         }
     }
