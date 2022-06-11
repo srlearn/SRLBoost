@@ -279,15 +279,37 @@ public final class HandleFOPCstrings {
 		return result;
 	}
 
-	public boolean isVariableIndicatorSet() {  return variableIndicator != null; } // This allows us to know that the first setting in a file should become the chosen setting even after that file is closed.
-	public void    usePrologNotation()     { if (!usingPrologNotation())   {
-		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to Prolog notation for variables; previous setting = "         + variableIndicator);
-	} setVariableIndicator(VarIndicator.uppercase); }
-	public void    useStdLogicNotation()   { if (!usingStdLogicNotation()) {
-		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to standard-logic notation for variables; previous setting = " + variableIndicator);
-	} setVariableIndicator(VarIndicator.lowercase);	 }
-	public boolean usingPrologNotation()   { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.uppercase; }
-	public boolean usingStdLogicNotation() { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.lowercase; }
+	public boolean isVariableIndicatorSet() {
+		return variableIndicator != null;
+	}
+
+	public void usePrologNotation() {
+		if (!usingPrologNotation()) {
+			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to Prolog notation for variables; previous setting = " + variableIndicator);
+		}
+		setVariableIndicator(VarIndicator.uppercase);
+	}
+
+	public void useStdLogicNotation() {
+		if (!usingStdLogicNotation()) {
+			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to standard-logic notation for variables; previous setting = " + variableIndicator);
+		}
+		setVariableIndicator(VarIndicator.lowercase);
+	}
+
+	public boolean usingPrologNotation() {
+		if (getVariableIndicator() == null) {
+			setVariableIndicator(defaultVariableIndicator);
+		}
+		return variableIndicator == VarIndicator.uppercase;
+	}
+
+	public boolean usingStdLogicNotation() {
+		if (getVariableIndicator() == null) {
+			setVariableIndicator(defaultVariableIndicator);
+		}
+		return variableIndicator == VarIndicator.lowercase;
+	}
 
 
 	boolean printUsingStdLogicNotation() {
