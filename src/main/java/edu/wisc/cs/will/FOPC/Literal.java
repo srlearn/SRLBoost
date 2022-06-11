@@ -221,7 +221,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
                 }
                 else {
                     result.append(", ");
-                    if (stringHandler.numberOfTermsPerRowInPrintouts == 1 || stringHandler.numberOfTermsPerRowInPrintoutsForLiterals == 1) { result.append("\n        "); } // TODO -  write to properly handle stringHandler.numberOfLiteralsPerRowInPrintouts > 1
                 }
                 if (arg == null) {
                     result.append("null");

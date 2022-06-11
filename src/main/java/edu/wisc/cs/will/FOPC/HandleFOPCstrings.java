@@ -38,8 +38,6 @@ public final class HandleFOPCstrings {
 	public boolean printVariableCounters = false; // If set to true, then variables will have their counters printed.
 
 	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
-	int     numberOfTermsPerRowInPrintouts            = 4; // Actually only if this is 1 does it matter (used for debugging).
-	int     numberOfTermsPerRowInPrintoutsForLiterals = 4; // The Literal class will use the MIN of this and the above.
 
 	private int     starModeMap = TypeSpec.plusMode; // '*' modes are defined via this (this allows a program to change modes within a run).
 
