@@ -871,7 +871,7 @@ public class ILPouterLoop {
     	return null;
     }
 
-    public void initialize(boolean creatingCompoundFeaturesOnly) throws SearchInterrupted { // Pull this out from the constructor so that the caller can set some globals in innerLoopTask after that instance is created.
+    public void initialize(boolean creatingCompoundFeaturesOnly) { // Pull this out from the constructor so that the caller can set some globals in innerLoopTask after that instance is created.
     	
 		// All the stuff that used to be here was moved to resetAll()...
     	
@@ -884,18 +884,13 @@ public class ILPouterLoop {
 		////////////////////////////////////////////////////////
 		// Set parameters using setParams:
 		////////////////////////////////////////////////////////
+
+        // TODO(hayesall): Move this into `FileParser`?
+        //  It feels like bad practice to be dynamically parsing new options in multiple places.
+
 		String lookup;
-		if ((lookup =  innerLoopTask.getStringHandler().getParameterSetting("maxNodesToConsider")) != null) {
-			innerLoopTask.setMaxNodesToConsider(Integer.parseInt(lookup));
-		}
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxNodesToCreate")) != null) {
-			innerLoopTask.setMaxNodesToCreate(Integer.parseInt(lookup));
-		}
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxTreeDepth")) != null) {
 			setMaxTreeDepth(Integer.parseInt(lookup));
-		}
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("clauseLength")) != null) {
-			setMaxTreeDepthInLiterals(Integer.parseInt(lookup));
 		}
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("nodeSize")) != null) {
 			setMaxNumberOfLiteralsAtAnInteriorNode(Integer.parseInt(lookup));
@@ -907,14 +902,6 @@ public class ILPouterLoop {
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfCycles")) != null) {
 			maxNumberOfCycles = Integer.parseInt(lookup);
 		}
-        if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxScoreToStop")) != null) {
-			setMaxAcceptableNodeScoreToStop(Double.parseDouble(lookup));
-		}
-		
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("minPosCoverage")) != null) {
-			innerLoopTask.setMinPosCoverage(Double.parseDouble(lookup));
-		}
-
 	}		
 
     // TODO - put all this RDN stuff in a subclass of ILPouterLoop.
