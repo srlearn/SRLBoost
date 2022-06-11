@@ -378,7 +378,7 @@ public class FileParser {
 						if (currentWord.equalsIgnoreCase("weight") || currentWord.equalsIgnoreCase("wgt")) {
 							throw new ParsingException("weight no longer supported");
 						}
-						if (!ignoreThisConnective(currentWord) && ConnectiveName.isaConnective(currentWord) && !ConnectiveName.isTextualConnective(currentWord)) { // NOT's handled by processFOPC_sentence.
+						if (!ConnectiveName.isaNOT(currentWord) && ConnectiveName.isaConnective(currentWord) && !ConnectiveName.isTextualConnective(currentWord)) { // NOT's handled by processFOPC_sentence.
 							throw new ParsingException("Deprecated");
 						}
 						// The default is to read an FOPC sentence.
@@ -470,10 +470,6 @@ public class FileParser {
 
         return result;
     }
-
-	private boolean ignoreThisConnective(String str) {
-		return ((ConnectiveName.isaNOT(str)));
-	}
 
 	/*
 	 * Allow specification of notation for logical variables.  See comments about "useStdLogicVariables" and "usePrologVariables" above.
