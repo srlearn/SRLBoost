@@ -364,7 +364,7 @@ public class FileParser {
 							throw new ParsingException("useStdLogicNotation is deprecated.");
 						}
 						if (colonNext && currentWord.equalsIgnoreCase("usePrologVariables")) {
-							processCaseForVariables(false);
+							processCaseForVariables();
 							break;
 						}
 						if (colonNext && currentWord.equalsIgnoreCase("usePrologNotation")) {
@@ -474,50 +474,19 @@ public class FileParser {
 	/*
 	 * Allow specification of notation for logical variables.  See comments about "useStdLogicVariables" and "usePrologVariables" above.
 	 */
-	private void processCaseForVariables(boolean defaultIsUseStdLogic) throws ParsingException, IOException {
+	private void processCaseForVariables() throws ParsingException, IOException {
 		int nextToken = tokenizer.nextToken();
 
 		if (nextToken != StreamTokenizer.TT_WORD) {
 			throw new ParsingException("Expecting a token after useStdLogicVariables/usePrologVariables");
 		}
 		if (tokenizer.sval().equalsIgnoreCase("true") || tokenizer.sval().equalsIgnoreCase("yes") || tokenizer.sval().equalsIgnoreCase("1")) {
-			if (defaultIsUseStdLogic) {
-				stringHandler.useStdLogicNotation();
-			} else {
-				stringHandler.usePrologNotation();
-			}
+			stringHandler.usePrologNotation();
 		}
 		else {
-			if (defaultIsUseStdLogic) {
-				stringHandler.usePrologNotation();
-			} else {
-				stringHandler.useStdLogicNotation();
-			}
+			stringHandler.useStdLogicNotation();
 		}
 		peekEOL();
-	}
-
-	private Literal processInfixLiteral(Term firstTerm, String inFixOperatorName) throws ParsingException, IOException {
-		return processInfixLiteral(firstTerm, inFixOperatorName, false);
-	}
-
-	private Literal processInfixLiteral(Term firstTerm, String inFixOperatorName, boolean argumentsMustBeTyped) throws ParsingException, IOException {
-		// TODO(hayesall): Why is `argumentsMustBeTyped` always false?
-
-		Term secondTerm;
-        
-        if (inFixOperatorName.equalsIgnoreCase("is")) {
-			throw new ParsingException("`is` is no longer supported");
-        }
-        else {
-            secondTerm = processTerm(argumentsMustBeTyped);
-        }
-
-		List<Term>    args   = new ArrayList<>(2);
-		PredicateName pName  = stringHandler.getPredicateName(inFixOperatorName); pName.printUsingInFixNotation = true;
-        args.add(firstTerm);
-        args.add(secondTerm);
-		return stringHandler.getLiteral(pName, args);
 	}
 
 	private Sentence convertAccumulatorToFOPC(List<AllOfFOPC> accumulator) throws ParsingException {
