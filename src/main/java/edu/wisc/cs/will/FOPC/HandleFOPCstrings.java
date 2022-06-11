@@ -148,27 +148,6 @@ public final class HandleFOPCstrings {
 			initPrecedences_static(precedenceTableForOperators_static, precedenceTableForConnectives_static);
 		}
 
-		// Initialize some parameters used in libraries.
-		// TODO(hayesall): I've deleted the libraries, is it even possible for these to be used?
-		// 		Some of these appear to be related to "relevance," which I've already deprecated.
-		recordSetParameter("mixAndMatchAdviceLiterals", "WEAKLY_RELEVANT");
-		recordSetParameter("atOrAboveTargetArguments", "IRRELEVANT");
-		recordSetParameter("belowTargetArguments",     "WEAKLY_RELEVANT");
-		recordSetParameter("typeInRelevance2",         "ISA_OBSERVED_FEATURE");
-		recordSetParameter("typeInRelevance1",         "STRONGLY_RELEVANT");
-		recordSetParameter("typeInRelevance0",         "POSSIBLE_ANSWER");
-		recordSetParameter("typeInRelevance",          "POSSIBLE_ANSWER"); // TODO - this is in some megatest files for IL; can deleted once those are updated.
-		recordSetParameter("modeMax1",     "1");
-		recordSetParameter("modeMax2",     "2");
-		recordSetParameter("modeMax3",     "3");
-		recordSetParameter("modeMax4",     "4");
-		recordSetParameter("modeMax5",     "5");
-		recordSetParameter("modeMaxInf", "100"); // Currently (6/09) not used in the libraries, but that might change.
-		recordSetParameter("thresholdsMax1",     "10");
-		recordSetParameter("thresholdsMax2",    "100");
-		recordSetParameter("thresholdsMax3",   "1000");
-		recordSetParameter("thresholdsMax4",  "10000");
-		recordSetParameter("thresholdsMax5", "100000");
 		cleanFunctionAndPredicateNames = hold;
 
 		setVariableIndicator(null); // Wait for the first user file to set things, and keep that as the default.
@@ -279,15 +258,37 @@ public final class HandleFOPCstrings {
 		return result;
 	}
 
-	public boolean isVariableIndicatorSet() {  return variableIndicator != null; } // This allows us to know that the first setting in a file should become the chosen setting even after that file is closed.
-	public void    usePrologNotation()     { if (!usingPrologNotation())   {
-		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to Prolog notation for variables; previous setting = "         + variableIndicator);
-	} setVariableIndicator(VarIndicator.uppercase); }
-	public void    useStdLogicNotation()   { if (!usingStdLogicNotation()) {
-		Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to standard-logic notation for variables; previous setting = " + variableIndicator);
-	} setVariableIndicator(VarIndicator.lowercase);	 }
-	public boolean usingPrologNotation()   { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.uppercase; }
-	public boolean usingStdLogicNotation() { if (getVariableIndicator() == null) { setVariableIndicator(defaultVariableIndicator); } return variableIndicator == VarIndicator.lowercase; }
+	public boolean isVariableIndicatorSet() {
+		return variableIndicator != null;
+	}
+
+	public void usePrologNotation() {
+		if (!usingPrologNotation()) {
+			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to Prolog notation for variables; previous setting = " + variableIndicator);
+		}
+		setVariableIndicator(VarIndicator.uppercase);
+	}
+
+	public void useStdLogicNotation() {
+		if (!usingStdLogicNotation()) {
+			Utils.println(STRING_HANDLER_VARIABLE_INDICATOR, "\n% Switching to standard-logic notation for variables; previous setting = " + variableIndicator);
+		}
+		setVariableIndicator(VarIndicator.lowercase);
+	}
+
+	public boolean usingPrologNotation() {
+		if (getVariableIndicator() == null) {
+			setVariableIndicator(defaultVariableIndicator);
+		}
+		return variableIndicator == VarIndicator.uppercase;
+	}
+
+	public boolean usingStdLogicNotation() {
+		if (getVariableIndicator() == null) {
+			setVariableIndicator(defaultVariableIndicator);
+		}
+		return variableIndicator == VarIndicator.lowercase;
+	}
 
 
 	boolean printUsingStdLogicNotation() {
@@ -455,10 +456,7 @@ public final class HandleFOPCstrings {
 		return new Literal(this, pred, arguments, argumentNames);
 	}
 
-	private Literal getLiteral(PredicateName pred, Term argument) {
-		return new Literal(this, pred, argument);
-	}
-    public Literal getLiteral(Literal existingLiteral, List<Term> newArguments) {
+	public Literal getLiteral(Literal existingLiteral, List<Term> newArguments) {
         int newArgCount = newArguments == null ? 0 : newArguments.size();
         if ((existingLiteral.getArity() > 0 && newArguments == null) || (existingLiteral.getArity() != newArgCount)) {
             throw new IllegalArgumentException("newArguments.size() must match arity of " + existingLiteral);
@@ -486,10 +484,6 @@ public final class HandleFOPCstrings {
 		return new LiteralAsTerm(this, itemBeingWrapped);
 	}
 
-	ObjectAsTerm getObjectAsTerm(Object item) {
-		return new ObjectAsTerm(this, item, true);
-	}
-
 	public SentenceAsTerm getSentenceAsTerm(Sentence s, String wrapper) {
 		return new SentenceAsTerm(this, s, wrapper);
 	}
@@ -497,90 +491,6 @@ public final class HandleFOPCstrings {
 	public UniversalSentence getUniversalSentence(Collection<Variable> variables, Sentence body) {
 		return new UniversalSentence(this, variables, body);
 	}
-
-	/* Returns the NegationByFailure of clauseInsideNot.
-     *
-     * Note: For proper logical sense, the clause within
-     * the negation should have positive literals, not negated
-     * literals.
-     *
-     * \+(P) is defined as:
-     *
-     * \+(P) :- P, !, fail.
-     * \+(P).
-     *
-     * This is logically equivalent to:
-     *
-     * \+(P) OR ~P OR ~! OR ~fail.  Here ~ is true negation.
-     *
-     * Consider ~Q as the contents of \+:
-     *
-     * \+(~Q). Expanding the first clause of definition of +\(~Q), we get:
-     *
-     * \+(~Q) :- ~Q, !, fail.
-     *
-     * Equivalent to:
-     *
-     * \+(~Q) OR ~(~Q)), ~!, ~fail.
-     *
-     * equivalent to:
-     *
-     * \+(~Q) OR Q OR ~! OR ~fail.
-     *
-     * However, this is not a definite clause, so that implies
-     * that the literal inside a negation by failure,
-     * can not be a negated literal.
-     *
-     * Plus, the parser will parse \+( A,B,C ) such
-     * that A,B,C will be a SentenceAsTerm as a positive
-     * literal.
-     *
-     * If the contentsOfNegationByFailure clause is a set of negative literals,
-     * the clause will be adjusted to be a set of positive literals.
-     *
-     * @param contentsOfNegationByFailure Contents to put inside the negation-by-failure.  Clause
-     * should contain either all positive literals or all negative literals.
-     * @return a Literal with predicate name of \+ and arity 1, whose argument is a
-     * clause with all positive literals obtained from contentsOfNegationByFailure.
-     */
-    public Literal getNegationByFailure(Clause contentsOfNegationByFailure) {
-
-        Literal result;
-
-        if ( contentsOfNegationByFailure.getPosLiteralCount() != 0 && contentsOfNegationByFailure.getNegLiteralCount() != 0 ) {
-            Utils.error("Negation-by-failure content clause contains both positive and negative literals!");
-        }
-
-        List<Literal> negatedLiterals;
-        if (contentsOfNegationByFailure.getPosLiteralCount() > 0) {
-            negatedLiterals = contentsOfNegationByFailure.getPositiveLiterals();
-        }
-        else {
-            negatedLiterals = contentsOfNegationByFailure.getNegativeLiterals();
-        }
-
-        if ( negatedLiterals.isEmpty() ) {
-            // Empty clauseInside creates a \+(true).  We
-            // could replace with fail, but I want to maintain
-            // the negation structure.
-            StringConstant trueConstant = getStringConstant("true");
-            result = getLiteral(standardPredicateNames.negationByFailure, trueConstant);
-        }
-        else if(negatedLiterals.size() == 1) {
-            Function insideFunction = negatedLiterals.get(0).convertToFunction(this);
-            result = getLiteral(standardPredicateNames.negationByFailure, insideFunction);
-        }
-        else {
-            List<Term> terms = new ArrayList<>(negatedLiterals.size());
-            for (Literal literal : negatedLiterals) {
-                terms.add(literal.asFunction());
-            }
-
-            result = getLiteral(standardPredicateNames.negationByFailure, terms);
-        }
-
-        return result;
-    }
 
 	/* Returns the contents of a negation-by-failure as a clause with all positive literals.
      *
@@ -914,9 +824,6 @@ public final class HandleFOPCstrings {
 
 	public StringConstant getStringConstant(String name) {
 		return getStringConstant(null, name);
-	}
-    public StringConstant getStringConstant(String name, boolean cleanString) {
-		return getStringConstant(null, name, cleanString);
 	}
 
 
@@ -1394,7 +1301,7 @@ public final class HandleFOPCstrings {
         String anonymousName;
 
         if (doVariablesStartWithQuestionMarks()) {
-            anonymousName = "?" + stringBuilder.toString();
+            anonymousName = "?" + stringBuilder;
         }
         else if (usingStdLogicNotation()) {
             anonymousName = stringBuilder.toString().toLowerCase();
