@@ -140,7 +140,7 @@ public class FileParser {
 			initTokenizer(tokenizer);
 			while (tokenizer.nextToken() != StreamTokenizer.TT_EOF) {
 				tokenizer.pushBack();
-				Literal lit = processLiteral(false);
+				Literal lit = processLiteral();
 				results.add(lit);
 				peekEOL(true); // Suck up an optional EOL.
 			}			
@@ -370,22 +370,14 @@ public class FileParser {
 							throw new ParsingException("weight no longer supported");
 						}
 						if (!ignoreThisConnective(true, currentWord) && ConnectiveName.isaConnective(currentWord) && !ConnectiveName.isTextualConnective(currentWord)) { // NOT's handled by processFOPC_sentence.
-							//Utils.error("Need to handle a PREFIX connective: '" + currentWord + "'.");
-							// If here, there must be exactly two arguments.
-							ConnectiveName connective = stringHandler.getConnectiveName(currentWord);
-							if (!checkAndConsume('(')) { tokenizer.nextToken(); throw new ParsingException("Expecting a left parenthesis, but read '" + reportLastItemRead() + "'."); }
-							Sentence arg1 = processFOPC_sentence(0, true);
-							if (!checkAndConsume(',')) { tokenizer.nextToken(); throw new ParsingException("Expecting a comma, but read '" + reportLastItemRead() + "'."); }
-							Sentence arg2 = processFOPC_sentence(0, true);
-							if (!checkAndConsume(')')) { tokenizer.nextToken(); throw new ParsingException("Expecting a right parenthesis, but read  '" + reportLastItemRead() + "'."); }
-							nextSentence = stringHandler.getConnectedSentence(arg1, connective, arg2);
-							break;
+							throw new ParsingException("Deprecated");
 						}
 						// The default is to read an FOPC sentence.
 						tokenizer.pushBack();
 						nextSentence =                                                  processFOPC_sentence(0);
 						break;
-					case StreamTokenizer.TT_NUMBER:  throw new ParsingException("Should not happen in the parser:  Read this NUMBER: " + tokenizer.nval());  // See comment above as to why this won't be reached.
+					case StreamTokenizer.TT_NUMBER:
+						throw new ParsingException("Should not happen in the parser:  Read this NUMBER: " + tokenizer.nval());  // See comment above as to why this won't be reached.
 					case '\\':  // Could be starting '\+'
 					case '~':
 					case '(':
@@ -400,11 +392,13 @@ public class FileParser {
 					case '.': // An empty sentence is OK, plus reading an FOPC sentence never sucks up the closing EOL.
 					case ';':
 						break;
-					case StreamTokenizer.TT_EOL:    throw new ParsingException("Should not read EOL's here."); // EOL is in the "traditional" sense here (e.g., '\n').
-					default:                        if (tokenRead == '/') {
-						Utils.println("If a file ends with '*/' add a space after the '/' to overcome an apparent bug with StringTokenizer's handling of comments.");
-					}
-													throw new ParsingException("Read this *unexpected* character: '" + (char)tokenRead + "'."); // TODO - hit this once when the last character was the '/' in a closing quote (i.e., '*/').  Added a space afterwards and all worked fine.
+					case StreamTokenizer.TT_EOL:
+						throw new ParsingException("Should not read EOL's here."); // EOL is in the "traditional" sense here (e.g., '\n').
+					default:
+						if (tokenRead == '/') {
+							Utils.println("If a file ends with '*/' add a space after the '/' to overcome an apparent bug with StringTokenizer's handling of comments.");
+						}
+						throw new ParsingException("Read this *unexpected* character: '" + (char)tokenRead + "'."); // TODO - hit this once when the last character was the '/' in a closing quote (i.e., '*/').  Added a space afterwards and all worked fine.
 				}
 				if (nextSentence != null) {
 					if (nextSentence.containsTermAsSentence()) {
@@ -431,13 +425,7 @@ public class FileParser {
 		return listOfSentencesReadOrCreated;
 	}
 
-    /* Parses a string into a list of sentences.
-     */
-    public List<Sentence> parse(String string) {
-        return readFOPCstream(string);
-    }
-
-    public Clause parseDefiniteClause(String definiteClause) throws ParsingException {
+	public Clause parseDefiniteClause(String definiteClause) throws ParsingException {
 
         Clause result = null;
 
@@ -541,15 +529,12 @@ public class FileParser {
 			}
 			ConnectiveName  cName    = (ConnectiveName) accumulator.get(countOfLowestItem);
 			if (ConnectiveName.isaNOT(cName.name)) { // If 'NOT' or '~' is the connective, need to handle it specially as an in-fix operator.
-				Sentence rightArg = (Sentence)accumulator.get(countOfLowestItem + 1);
-				Sentence cSent    = stringHandler.getConnectedSentence(cName, rightArg);
-				if (cName.name.equalsIgnoreCase("\\+")) { cSent = processNegationByFailure((ConnectedSentence) cSent); }
-				accumulator.add(   countOfLowestItem + 2, cSent); // Add after the two items being combined.
-				accumulator.remove(countOfLowestItem + 1); // Do this in the proper order so shifting doesn't mess up counting.
-				accumulator.remove(countOfLowestItem);
+				throw new ParsingException("Deprecated");
 			}
 			else { // Next combine the lowest-precedence operator and make a sentence with it and its two neighbors.
-				if (countOfLowestItem < 1 || countOfLowestItem > accumulator.size() - 2) { Utils.error("Connectives cannot be in the first or last positions: " + accumulator); }
+				if (countOfLowestItem < 1 || countOfLowestItem > accumulator.size() - 2) {
+					Utils.error("Connectives cannot be in the first or last positions: " + accumulator);
+				}
 				Sentence leftArg  = (Sentence)accumulator.get(countOfLowestItem - 1);
 				Sentence rightArg = (Sentence)accumulator.get(countOfLowestItem + 1);
 				Sentence cSent    = stringHandler.getConnectedSentence(leftArg, cName, rightArg);
@@ -566,86 +551,41 @@ public class FileParser {
 		return (Sentence) accumulator.get(0);
 	}
 
-	private Literal processNegationByFailure(ConnectedSentence connSent) throws ParsingException {
-		Clause clause = convertSimpleConjunctIntoClause(connSent.getSentenceB(), connSent); // Remember that for unary 'connectives' the body is sentenceB.
-        return stringHandler.getNegationByFailure(clause);
-	}
-
 	private String isInfixTokenPredicate(int tokenRead) throws ParsingException {
 		switch (tokenRead) {  // If changed, check out checkForPredicateNamesThatAreCharacters (for cases where a single-char string is returned).
 		case '\\':
-			if (checkAndConsume('=')) {
-				if (checkAndConsume('=')) { return "\\=="; }
-				return "\\=";
-			}
-			// if (peekThisChar('+')) { return "\\+"; }  / Allow this to be in-fix?
-			return null;
+			throw new ParsingException("Deprecated");
 		case '=': // By itself, '=' means unify (and '==' means 'equal').
-			if (checkAndConsume('>')) {
-				tokenizer.pushBack(); // This is a valid operator, albeit a logical connective.
-				return null;
-			}
-			if (checkAndConsume('<')) {
-				return "=<"; // This is Prolog's notation for "<=" (which apparently looks too much like an implication).
-			}
-            if (checkAndConsume('=')) {
-				return "=="; // This is Prolog's notation for "==".
-			}
-			if (checkAndConsume(':')) {
-				if (checkAndConsume('=')) { return "=:="; }
-				tokenizer.pushBack(2); // Not sure what '=:' would be though ...
-				return null;
-			}
-			if (checkAndConsume('\\')) {
-				if (checkAndConsume('=')) { return "=\\="; }
-				tokenizer.pushBack(2); // Not sure what '=\' would be though ...
-				return null;
-			}
-			if (checkAndConsume('.')) {
-				if (checkAndConsume('.')) { return "=.."; }
-				tokenizer.pushBack();
-				return "="; // The following period will cause a problem, but leave that for elsewhere.
-			}
-
-            return String.valueOf((char) tokenRead);
+			throw new ParsingException("Deprecated");
 		case '<':
-			if (checkAndConsume('=') || checkAndConsume('-')) {
-				if (checkAndConsume('>')) {
-					tokenizer.pushBack(2); // This is a valid operator, albeit a logical connective.
-					return null;
-				}
-				tokenizer.pushBack(1);
-			}
+			throw new ParsingException("Deprecated");
 		case '>':
-			if (checkAndConsume('=')) { return (char) tokenRead + "="; }
-			return String.valueOf((char) tokenRead);
+			throw new ParsingException("Deprecated");
 		case StreamTokenizer.TT_WORD:
 			String tokenString = tokenizer.sval();
-			if (tokenString.equalsIgnoreCase("is"))   { return "is";  }
-			if (tokenString.equalsIgnoreCase("mod"))  { return "mod"; }
+			if (tokenString.equalsIgnoreCase("is")) {
+				throw new ParsingException("Deprecated");
+			}
+			if (tokenString.equalsIgnoreCase("mod")) {
+				throw new ParsingException("Deprecated");
+			}
 			return null;
-		default: return null;	}
+		default:
+			return null;
+		}
 	}
 
 	// TODO - clean this up
 	private int checkForPredicateNamesThatAreCharacters(int tokenRead) throws ParsingException, IOException {
 		if (!isaPossibleTermName(tokenRead)) {
-			String seeIfInfixPred = isInfixTokenPredicate(tokenRead);
-			if (seeIfInfixPred == null) {
-				throw new ParsingException("Expecting a predicate name but read: '" + reportLastItemRead() + "'.");
-			}
-			if ("=".equals(seeIfInfixPred)) {
-				return tokenRead;
-			}
-			tokenizer.pushBack(seeIfInfixPred); // Hopefully no prevToken called here ...
-			return getNextToken();
+			throw new ParsingException("Deprecated");
 		}
 		String seeIfPredNameUsingCharacters = getPredicateOrFunctionName(tokenRead);
 		if (seeIfPredNameUsingCharacters != null) {
-			if        ("-".equals(seeIfPredNameUsingCharacters)) {
-				return tokenRead;
+			if ("-".equals(seeIfPredNameUsingCharacters)) {
+				throw new ParsingException("Deprecated");
 			} else if ("+".equals(seeIfPredNameUsingCharacters)) {
-				return tokenRead;
+				throw new ParsingException("Deprecated");
 			} else {
 				tokenizer.pushBack(seeIfPredNameUsingCharacters); // Hopefully no prevToken called here ...
 			}
@@ -723,23 +663,29 @@ public class FileParser {
 
 	private void processDirective(String directiveName) throws ParsingException, IOException {
 		// Have already read something like 'okIfUnknown:" (the colon isn't passed in).
-		if (directiveName == null) { throw new ParsingException("Cannot pass in directiveName=null."); } // This is a programmer, rather than user, error.
+		if (directiveName == null) {
+			throw new ParsingException("Cannot pass in directiveName=null.");
+		} // This is a programmer, rather than user, error.
 		int tokenRead = checkForPredicateNamesThatAreCharacters(getNextToken());
 		if (tokenRead == StreamTokenizer.TT_WORD) {
 			String currentWord = tokenizer.sval();
 			PredicateName pName = stringHandler.getPredicateName(currentWord);
 			tokenRead = getNextToken();
-			if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in a '" + directiveName + "' specification, but got: '" + reportLastItemRead() + "'."); }
-			if (checkAndConsume('#')) {
-				if      (directiveName.equalsIgnoreCase("okIfUnknown"))                    { pName.setCanBeAbsent(-1); } // -1 means "any arity"
-				else if (directiveName.equalsIgnoreCase("dontComplainAboutMultipleTypes")) { pName.setDontComplainAboutMultipleTypes(-1); }
-				else { throw new ParsingException("Cannot process directiveName=" + directiveName+ "."); } // This is a programmer, rather than user, error.
+			if (tokenRead != '/') {
+				throw new ParsingException("Expecting a '/' (slash) in a '" + directiveName + "' specification, but got: '" + reportLastItemRead() + "'.");
 			}
-			else {
+			if (checkAndConsume('#')) {
+				throw new ParsingException("Deprecated.");
+			} else {
 				int arity = readInteger();
-				if (directiveName.equalsIgnoreCase("okIfUnknown"))                         { pName.setCanBeAbsent(arity); }
-				else if (directiveName.equalsIgnoreCase("dontComplainAboutMultipleTypes")) { pName.setDontComplainAboutMultipleTypes(arity); }
-				else { throw new ParsingException("Cannot process directiveName=" + directiveName+ "."); } // This is a programmer, rather than user, error.
+				if (directiveName.equalsIgnoreCase("okIfUnknown")) {
+					pName.setCanBeAbsent(arity);
+				} else if (directiveName.equalsIgnoreCase("dontComplainAboutMultipleTypes")) {
+					pName.setDontComplainAboutMultipleTypes(arity);
+				} else {
+					// This is a programmer, rather than user, error.
+					throw new ParsingException("Cannot process directiveName=" + directiveName+ ".");
+				}
 			}
 			peekEOL(true);
 			return;
@@ -747,44 +693,22 @@ public class FileParser {
 		throw new ParsingException("Expecting the name of a predicate in a '" + directiveName + "' but read: '" + reportLastItemRead() + "'.");
 	}
 
-	private boolean atInfinity() {
-		String currentWord = tokenizer.reportCurrentToken();
-		boolean result = (currentWord.equalsIgnoreCase("inf") || currentWord.equalsIgnoreCase("infinity"));
-
-		if (result && checkAndConsume('(')) { // Allow inf() to be a predicate.
-			tokenizer.pushBack();
-			return false;
-		}
-		return result;
-	}
-
 	private double processNumber(int tokenRead) throws ParsingException, IOException {
 		int countOfBackupsNeeded = 0;
 		int negate               = 1;
 		if (tokenRead == '@') {  // A leading @ indicates the value needs to be looked up in the list of set parameters.
-			getNextToken();
-			String wordRead = tokenizer.sval();
-			String setting  = stringHandler.getParameterSetting(wordRead);
-			if (setting     == null) { throw new ParsingException(" Read '@" + wordRead + "', but '" + wordRead + "' has not been set."); }
-			return Double.parseDouble(setting);
+			throw new ParsingException("Deprecated.");
 		} else if (tokenRead == '-')  { // Have a minus sign.
-			negate    = -1;
-			countOfBackupsNeeded++;
-			getNextToken();
-			if (atInfinity()) { return Double.NEGATIVE_INFINITY; }
+			throw new ParsingException("Deprecated.");
 		} else if (tokenRead == '+')  { // Allow a plus sign.
-			countOfBackupsNeeded++;
-			getNextToken();
-			if (atInfinity()) { return Double.POSITIVE_INFINITY; }
+			throw new ParsingException("Deprecated.");
 		}
 
 		if (tokenizer.ttype() != StreamTokenizer.TT_WORD) {
-			tokenizer.pushBack(countOfBackupsNeeded); // Return to where the processNumber() started.
-			return Double.NaN;
+			throw new ParsingException("Deprecated.");
 		}
 
 		String wordRead = tokenizer.sval();
-		if (atInfinity()) { return Double.POSITIVE_INFINITY; }
 		Long integerConstant = null;
         char firstCharacter = wordRead.charAt(0);
         if ( firstCharacter >= '0' && firstCharacter <= '9') {
@@ -805,6 +729,7 @@ public class FileParser {
                             nextToken = getNextToken();
                             switch (nextToken) {
                                 case '+':
+									// TODO(hayesall): This can *probably* be deprecated, but explicitly saying a number is positive *might* be reasonable?
                                     countOfBackupsNeeded++;
                                     nextToken = getNextToken();
                                     if (nextToken != StreamTokenizer.TT_WORD) { tokenizer.pushBack(countOfBackupsNeeded); throw new ParsingException("Period is not decimal point."); }
@@ -869,7 +794,7 @@ public class FileParser {
 			stringHandler.recordSetParameter(parameterName, parameterValue);
 
 			// Handle parser strings here.
-			if        (parameterName.equalsIgnoreCase("parsingWithNamedArguments")) {
+			if (parameterName.equalsIgnoreCase("parsingWithNamedArguments")) {
 				throw new ParsingException("parsingWithNamedArguments no longer supported");
 			} else if (parameterName.equalsIgnoreCase("maxWarnings")) {
 				throw new ParsingException("maxWarnings no longer supported");
@@ -877,11 +802,9 @@ public class FileParser {
 				throw new ParsingException("variablesStartWithQuestionMarks no longer supported");
 			} else if (parameterName.equalsIgnoreCase("stringsAreCaseSensitive")) {
 				stringHandler.setStringsAreCaseSensitive(Boolean.parseBoolean(parameterValue));
-			}
-            else if (parameterName.equals("duplicateRuleAction")) {
+			} else if (parameterName.equals("duplicateRuleAction")) {
 				throw new ParsingException("duplicateRuleAction no longer supported");
-            }
-            else if (parameterName.equals("duplicateFactAction")) {
+            } else if (parameterName.equals("duplicateFactAction")) {
 				throw new ParsingException("duplicateFactAction no longer supported");
             }
 		}
@@ -919,8 +842,7 @@ public class FileParser {
 			String constantAsString = tokenizer.sval();
 			if (isAllDigits(constantAsString)) {
 				constants.add(stringHandler.getNumericConstant(Integer.parseInt(constantAsString)));
-			}
-			else {
+			} else {
 				constants.add(stringHandler.getStringConstant(constantAsString));
 			}
 			checkForComma();
@@ -948,55 +870,30 @@ public class FileParser {
 	 *  			   [maxPerInputVars=#]     // Optionally indicate that PER SETTING to the 'input' (i.e. '+') variables, can occur at most this many times (an idea taken from Aleph).
 	 */
 	private void processMode(List<Sentence> listOfSentences) throws ParsingException, IOException {  // TODO if token not a known optional argument could pushback() w/o needing an EOL, but be more restrictive for now.
-		Literal       typedHeadLiteral = processLiteral(true);
+		Literal       typedHeadLiteral = processLiteral();
 		int           tokenRead    = getNextToken();
 		PredicateName targetPred   = null;
 		int           arity        = -1; // '-1' means not specified.
 		int           max          = Integer.MAX_VALUE;
 		int        maxPerInputVars = Integer.MAX_VALUE;
 
-		while (!atEOL()) { // Have some optional arguments since not yet at EOL.
-			String currentWord = tokenizer.reportCurrentToken();
-			if (tokenRead == ',') {
-
-			}
-			else if (currentWord.equalsIgnoreCase("max")) {
-				// BUG: the user can't use 'max' nor 'maxPerInputVars' as target predicates.  TODO fix
-				if (max < Integer.MAX_VALUE) { throw new ParsingException("Have already read max=" + max + " when processing a mode and have encountered 'max' again."); }
-				max             = readEqualsInteger();
-			}
-			else if (currentWord.equalsIgnoreCase("maxPerInputVars")) {
-				if (maxPerInputVars < Integer.MAX_VALUE) { throw new ParsingException("Have already read maxPerInputVars=" + max + " when processing a mode and have encountered 'maxPerInputVars' again."); }
-				maxPerInputVars = readEqualsInteger();
-			}
-			else if (currentWord.equalsIgnoreCase("target")) {
-				Utils.warning("The use of the 'target' option in the specification of modes has not yet been implemented.  So this mode will apply to all targets.");
-				if (targetPred != null) { throw new ParsingException("Have already read targetPred=" + targetPred + " and have now read '" + currentWord + " when processing a mode."); }
-				tokenRead    = getNextToken();
-				if (tokenRead != '=') { throw new ParsingException("Expecting to read '=' (after 'target'), but instead read: '" + reportLastItemRead() + "'."); }
-				currentWord = getNextString();
-				targetPred = stringHandler.getPredicateName(currentWord);
-				tokenRead = getNextToken();
-				if (tokenRead != '/') { throw new ParsingException("Expecting a '/' (slash) in a mode specification but got: '" + reportLastItemRead() + "'."); }
-				arity = readInteger();
-			}
-			else {
-				throw new ParsingException("Parsing a mode - " + typedHeadLiteral + " - and instead of reading 'target=' or 'max=' or 'maxPerInputVars=', unexpectedly read: '" + reportLastItemRead() + "'.");
-			}
-			tokenRead = getNextToken();
+		if (!atEOL()) { // Have some optional arguments since not yet at EOL.
+			throw new ParsingException("Deprecated.");
 		}
 
 		if (typedHeadLiteral.getArguments() != null) {
 			for (Term term : typedHeadLiteral.getArguments()) {
 				if (term instanceof Function) {
+					// TODO(hayesall): Where were `Function` used?
+					throw new ParsingException("Deprecated.");
+				}
+				if (term.getTypeSpec() != null) {
 					continue;
 				}
-				if (term.getTypeSpec() != null) { continue; }
 				throw new ParsingException("All arguments in mode specifications must be typed.  There is no type for '" + term + "' in '" + typedHeadLiteral + "'.");
 			}
 		}
 		stringHandler.recordMode(typedHeadLiteral, max, maxPerInputVars, false);
-		
 
         listOfSentences.add(stringHandler.getClause(stringHandler.getLiteral("mode", typedHeadLiteral.convertToFunction(stringHandler)), true));
 
@@ -1042,22 +939,6 @@ public class FileParser {
 		return tokenRead;
 	}
 
-	/*
-	 * Read the next token and return it as a string. If the next token is
-	 * not a string, throw an exception.
-	 */
-	private String getNextString() throws ParsingException, IOException {
-		int tokenRead = getNextToken();
-		if (tokenRead != StreamTokenizer.TT_WORD) { throw new ParsingException("Expected to read a token, but read: '" + reportLastItemRead() + "'."); }
-		return tokenizer.sval();
-	}
-
-	private int readEqualsInteger() throws ParsingException, IOException {
-		int tokenRead = getNextToken();
-		if (tokenRead != '=') { throw new ParsingException("Expecting an '=' but got: " + reportLastItemRead() + "."); }
-		return readInteger();
-	}
-
 	private int readInteger() throws ParsingException, IOException {
 		int   tokenRead = getNextToken();
 		boolean negated = false;
@@ -1065,18 +946,11 @@ public class FileParser {
 			negated   = true;
 			tokenRead = getNextToken();
 		}
-		if (tokenRead == '@') {  // A leading # indicates the value needs to be looked up in the list of set parameters.
-			getNextToken();
-			String wordRead = tokenizer.sval();
-			String setting  = stringHandler.getParameterSetting(wordRead);
-			if (setting      == null) { Utils.error(" Read '@" + wordRead + "', but '" + wordRead + "' has not been set."); }
-			return Integer.parseInt(Objects.requireNonNull(setting));
+		if (tokenRead == '@') {
+			throw new ParsingException("Deprecated.");
 		}
 		if (tokenRead != StreamTokenizer.TT_WORD || !isAllDigits(tokenizer.sval())) {
-			String lastItem = reportLastItemRead();
-			tokenizer.pushBack();
-			if (negated) { tokenizer.pushBack(); } // Get back to state when readInteger() called in case the caller wants to field the exception.
-			throw new ParsingException("Expecting an integer but got: '" + lastItem + "'.");
+			throw new ParsingException("Deprecated.");
 		}
 		int value = Integer.parseInt(tokenizer.sval());
 		if (negated) { return -value; }
@@ -1114,23 +988,24 @@ public class FileParser {
 	 */
 	private boolean peekEOL(boolean okIfEOF) throws ParsingException, IOException {
 		int token = tokenizer.nextToken(); // Suck up the EOL if it is next.
-		if (!okIfEOF && token == StreamTokenizer.TT_EOF) { throw new IOException("Unexpected EOF."); }
-		if (token == '.' || token == ';') { return true; }
+		if (!okIfEOF && token == StreamTokenizer.TT_EOF) {
+			throw new IOException("Unexpected EOF.");
+		}
+		if (token == '.' || token == ';') {
+			return true;
+		}
 		tokenizer.pushBack();
 		return false;
 	}
 
-	private void checkForComma() throws ParsingException, IOException {
-		if (checkAndConsume(',')) { return; }
-		if (checkAndConsume('}')) { tokenizer.pushBack(); return; }
-		if (checkAndConsume(']')) { tokenizer.pushBack(); return; }
-		if (peekEOL(true))     { return; }
-		getNextToken();
-		throw new ParsingException("Was looking for a comma"
-							+ ("")
-							+ (" or a right brace or bracket")
-							+ (" or an EOL character ('.' or ';')")
-							+ " when " + "processing a type range" + ", but read: '" + reportLastItemRead() + "'.");
+	private void checkForComma() throws ParsingException {
+		if (checkAndConsume(',')) {
+			return;
+		}
+		if (checkAndConsume('}')) {
+			tokenizer.pushBack(); return;
+		}
+		throw new ParsingException("Deprecated.");
 	}
 
 	private boolean isAllDigits(String integerString) {
@@ -1141,18 +1016,26 @@ public class FileParser {
 
 	private String reportLastItemRead() {
 		int tokenRead = tokenizer.ttype();
-		if (tokenRead == StreamTokenizer.TT_EOF)  { return "EOF"; }
-		if (tokenRead == StreamTokenizer.TT_WORD) { return tokenizer.sval(); }
-		return String.valueOf((char) tokenRead);  // Want the character not its integer representation.
+		if (tokenRead == StreamTokenizer.TT_EOF)  {
+			return "EOF";
+		}
+		if (tokenRead == StreamTokenizer.TT_WORD) {
+			return tokenizer.sval();
+		}
+		// Want the character not its integer representation.
+		return String.valueOf((char) tokenRead);
 	}
 
 	private boolean isaPossibleTermName(int tokenRead) {
 		switch (tokenRead) {
-			case '+':                     return (tokenizer.prevToken() == '\\');
-			case '\\':                    return true; // Might be \+().
-			case '-':                     return true; // Added by JWS Jan 2010.
-			case StreamTokenizer.TT_WORD: return true;
-			default:                      return false;
+			case '+':
+			case '-':
+			case '\\':
+				throw new ParsingException("Deprecated.");
+			case StreamTokenizer.TT_WORD:
+				return true;
+			default:
+				return false;
 		}
 	}
 
@@ -1164,21 +1047,15 @@ public class FileParser {
 		return getPredicateOrFunctionName(tokenizer.ttype());
 	}
 	private String getPredicateOrFunctionName(int tokenRead) throws ParsingException {
-		switch (tokenRead) {  // If changed, check out checkForPredicateNamesThatAreCharacters (for cases where a single-char string is returned).
-			case StreamTokenizer.TT_WORD:                   return tokenizer.sval();
-		//	case ':':  if (tokenizer.prevToken() == '-')  { return ":-"; } // Support ':-' as a predicate.
-			case '-':                                       return "-";
-			case '+':  if (tokenizer.prevToken() == '\\') { return "\\+"; }
-					   return "+";
-			case '=':  if (tokenizer.prevToken() == '\\') {
-							if (checkAndConsume('='))     { return "\\=="; }
-					   }
-					   break;
-			case '\\': if (checkAndConsume('+'))          { return "\\+";  }
-			  		   if (checkAndConsume('='))  {
-							if (checkAndConsume('='))     { return "\\=="; }
-							                                return "\\=";
-			 		   }
+		switch (tokenRead) {
+			// If changed, check out checkForPredicateNamesThatAreCharacters (for cases where a single-char string is returned).
+			case StreamTokenizer.TT_WORD:
+				return tokenizer.sval();
+			case '-':
+			case '\\':
+			case '=':
+			case '+':
+				throw new ParsingException("Deprecated.");
 		}
 		throw new ParsingException("Expecting a predicate name but read: '" + reportLastItemRead() + "'.");
 	}
@@ -1191,7 +1068,7 @@ public class FileParser {
         if ( token == StreamTokenizer.TT_WORD) {
             possibleName = tokenizer.reportCurrentToken();
             if ( checkAndConsumeToken("=") ) {
-                return possibleName;
+				throw new ParsingException("Deprecated.");
             }
         }
         tokenizer.pushBack();
@@ -1199,12 +1076,10 @@ public class FileParser {
         return null;
     }
 
-	private Literal processLiteral(boolean argumentsMustBeTyped) throws ParsingException, IOException {
+	private Literal processLiteral() throws ParsingException, IOException {
 		int tokenRead        = getNextToken();
-		int leftParenCounter = 0;
-		while (tokenRead == '(' || tokenRead == '{' || tokenRead == '[') {
-			leftParenCounter++;
-			tokenRead = getNextToken();
+		if (tokenRead == '(' || tokenRead == '{' || tokenRead == '[') {
+			throw new ParsingException("Deprecated.");
 		}
 
 		tokenRead = checkForPredicateNamesThatAreCharacters(tokenRead);
@@ -1213,18 +1088,10 @@ public class FileParser {
 
 		if (tokenRead == StreamTokenizer.TT_EOF) { return convertTermToLiteral(possibleTerm); }
 		String peekAtNextWord = isInfixTokenPredicate(tokenRead);
-		Literal inFixLiteral  = null;
 		if (peekAtNextWord != null) { // Handle 'is' and <, >, >=, <=, ==, etc.
-			inFixLiteral = processInfixLiteral(possibleTerm, peekAtNextWord, argumentsMustBeTyped);
-			tokenRead    = getNextToken(); // Needed for the check for left parentheses.
+			throw new ParsingException("Deprecated.");
 		}
-		while (leftParenCounter > 0) { // Suck up any closing parentheses.
-			if (tokenRead != ')' && tokenRead != '}' && tokenRead != ']') { throw new ParsingException("Expecting " + leftParenCounter + " more right parentheses, but read: '" + tokenizer.reportCurrentToken() + "'."); }
-			leftParenCounter--;
-			tokenRead = getNextToken(true); // Always read one too many, then push back below.
-		}
-		if (tokenRead != StreamTokenizer.TT_EOF) { tokenizer.pushBack(); }
-		if (inFixLiteral != null) { return inFixLiteral; }
+		tokenizer.pushBack();
 		return convertTermToLiteral(possibleTerm);
 	}
 
@@ -1244,7 +1111,7 @@ public class FileParser {
         // support literals written as:  x() although
         // this is illegal in prolog.
         if (checkAndConsumeToken(closingBracketChar)) {
-            done = true;
+			throw new ParsingException("Deprecated.");
         }
 
         while (!done) {
@@ -1254,21 +1121,15 @@ public class FileParser {
 
             terms.add(t);
 
-            if (names != null || name != null) {
-                if (names == null) {
-                    names = new ArrayList<>();
-                }
-                // Have to add even the null names just
-                // in case they are necessary.
-                names.add(name);
+            if (name != null) {
+				throw new ParsingException("Deprecated.");
             }
 
             if (checkAndConsumeToken(closingBracketChar)) {
                 done = true;
             }
             else if (!checkToken(",")) {
-                getNextToken();
-                throw new ParsingException("Unexpected token '" + tokenizer.reportCurrentToken() + "'.  Expected ',' or '" + closingBracketChar + "'." );
+				throw new ParsingException("Deprecated.");
             }
             else {
                 expectAndConsumeToken(",");
@@ -1297,14 +1158,12 @@ public class FileParser {
 	private boolean atTypeSpec() throws IOException {
 		int tokenRead = tokenizer.ttype();
 		if (tokenRead == '+' || tokenRead == '-') {
-			if (tokenizer.prevToken() == '\\') { return false; } // Currently at the ISO standard, but semi-weirdly named, predicate '\+'.
+			if (tokenizer.prevToken() == '\\') {
+				throw new ParsingException("Deprecated.");
+			}
 			// If '+' or '-' need to see if the next item is a string of digits.
 			int nextToken  = getNextToken();
 			if (nextToken == StreamTokenizer.TT_WORD && isAllDigits(tokenizer.sval())) {  // This '+' or '-' is a sign in front of some digits.
-				tokenizer.pushBack();
-				return false;
-			}
-			if (nextToken == StreamTokenizer.TT_WORD && atInfinity()) { // Have +inf or -inf, which is not a type spec for type 'inf'.
 				tokenizer.pushBack();
 				return false;
 			}
@@ -1317,7 +1176,9 @@ public class FileParser {
 	private TypeSpec getTypeSpec(int tokenRead, StreamTokenizerJWS tokenizer) throws ParsingException, IOException {
 		char modeAsChar = (char)tokenRead;
 		int nextTokenRead = getNextToken();
-		if (nextTokenRead != StreamTokenizer.TT_WORD) { throw new ParsingException("Expecting a type in a typed term (e.g., 'human' in '+human:John'), but instead got: '" + reportLastItemRead() + "'."); }
+		if (nextTokenRead != StreamTokenizer.TT_WORD) {
+			throw new ParsingException("Expecting a type in a typed term (e.g., 'human' in '+human:John'), but instead got: '" + reportLastItemRead() + "'.");
+		}
 		return new TypeSpec(modeAsChar, tokenizer.sval(), stringHandler);
 	}
 
@@ -1332,12 +1193,7 @@ public class FileParser {
         int tokenRead = getNextToken();
         switch (tokenRead) {
             case '(': // Handle parentheses.
-                NamedTermList terms = processListOfTerms('(', argumentsMustBeTyped);
-                List<Literal> literals = new ArrayList<>();
-                for (Term term : terms.getTerms()) {
-                    literals.add(term.asLiteral());
-                }
-                return stringHandler.getSentenceAsTerm(stringHandler.getClause(literals, null), "");
+				throw new ParsingException("Deprecated.");
             case '{':
                 return processTerm(argumentsMustBeTyped, 1);
             case '[': // Process a list.
@@ -1376,7 +1232,9 @@ public class FileParser {
     }
 
 	private Term processTerm(Term termSoFar, int leftParensCount) throws ParsingException, IOException {
-		if (leftParensCount < 0) { throw new ParsingException("Have too many right parentheses after " + termSoFar); }
+		if (leftParensCount < 0) {
+			throw new ParsingException("Have too many right parentheses after " + termSoFar);
+		}
 		int tokenRead = getNextToken();
 		switch (tokenRead) {
 			case '(':
@@ -1386,10 +1244,13 @@ public class FileParser {
 			case ')':
 			case '}':
 			case ']':
-				if (leftParensCount == 0) { return termSoFar; }
+				if (leftParensCount == 0) {
+					return termSoFar;
+				}
 				return processTerm(termSoFar, (leftParensCount - 1));
 			case StreamTokenizer.TT_WORD:
-			default: throw new ParsingException("Expecting a parentheses, but read unexpected character: '" + reportLastItemRead() + "'.");
+			default:
+				throw new ParsingException("Expecting a parentheses, but read unexpected character: '" + reportLastItemRead() + "'.");
 		}
 	}
 
@@ -1403,9 +1264,12 @@ public class FileParser {
 			case '\\': // Could be \+().
 			case StreamTokenizer.TT_WORD:
 				Term result = processRestOfTerm(tokenRead, argumentsMustBeTyped);
-				if (leftParensCount == 0) { return result; }
+				if (leftParensCount == 0) {
+					return result;
+				}
 				return processTerm(result, leftParensCount);
-			default: throw new ParsingException("Expecting a literal, but read unexpected character: '" + reportLastItemRead() + "'.");
+			default:
+				throw new ParsingException("Expecting a literal, but read unexpected character: '" + reportLastItemRead() + "'.");
 		}
 	}
 
@@ -1458,7 +1322,6 @@ public class FileParser {
 			}
 			tokenRead = getNextToken();
 		}
-		if (atInfinity()) { return convertToNumericConstant(stringHandler, typeSpec, Double.POSITIVE_INFINITY); }
 		if (atQuotedString(tokenRead)) {
 			Term sc;
 			// This actually also handles doubles, and even negation signs.
@@ -1470,11 +1333,9 @@ public class FileParser {
 		if (tokenRead == '-')  { // Have a minus sign.  Since this is a logical expression, can only be negating a number.
 			negate    = -1;
 			tokenRead = getNextToken();
-			if (atInfinity()) { return convertToNumericConstant(stringHandler, typeSpec, Double.NEGATIVE_INFINITY); }
 		}
 		if (tokenRead == '+' && tokenizer.prevToken() != '\\') {  // Just a plus sign that can be ignored (note: we confirmed it isn't the built-in "\+" predicate).
 			tokenRead = getNextToken();
-			if (atInfinity()) { return convertToNumericConstant(stringHandler, typeSpec, Double.POSITIVE_INFINITY); }
 			skippedOverPlusSign = true;
 		}
 		if (!isaPossibleTermName(tokenRead)) { throw new ParsingException("Expecting a term or literal name but read: '" + reportLastItemRead() + "'."); }
@@ -1493,53 +1354,15 @@ public class FileParser {
 			List<String> names = null;
 			// ONCE is really more of a connective than a predicate, but since it is the only prefix-based connective, treat it here.
 			if (wordRead.equalsIgnoreCase("once")) { // A once() needs to have an argument that is an FOPC clause.
-				Sentence sent = processFOPC_sentence(1); // No need to require once()'s that only have one argument, which was a common source of errors in Prolog anyway.
-				Clause clause = convertSimpleConjunctIntoClause(sent, fName);
-				arguments     = new ArrayList<>(  1);
-				arguments.add(stringHandler.getSentenceAsTerm(clause, "once"));
+				throw new ParsingException("Deprecated");
 			} else if (wordRead.equalsIgnoreCase("call")) {
-				Term termForCall = processTerm(argumentsMustBeTyped); // This can be a variable here, but at evaluation time it needs to be a function, which will be converted to a literal and evaluated.
-				if (!checkAndConsume(')') && !checkAndConsume('}') && !checkAndConsume(']')) { throw new ParsingException("Expecting a right parenthesis to close this " + wordRead + "()."); }
-				arguments     = new ArrayList<>(  1);
-				arguments.add(termForCall);
+				throw new ParsingException("Deprecated");
 			} else if (wordRead.equalsIgnoreCase("findAll") || wordRead.equalsIgnoreCase("all")   ||
 				       wordRead.equalsIgnoreCase("bagOf")   || wordRead.equalsIgnoreCase("setOf")) { // A findAll(), etc. needs to have an SECOND argument that is an FOPC clause.
-				Term termForFindall     = processTerm(argumentsMustBeTyped);
-				if (!checkAndConsume(',')) { throw new ParsingException("Expecting a comma after '" + termForFindall + "' in a " + wordRead + "()."); }
-				Sentence sentenceForFindAll = processFOPC_sentence(0, true);
-				if (!checkAndConsume(',')) { throw new ParsingException("Expecting a comma after '" + termForFindall + "' and '" + sentenceForFindAll + "' in a " + wordRead + "()."); }
-				Term listForFindAll     = processTerm(argumentsMustBeTyped);
-				if (!checkAndConsume(')') && !checkAndConsume('}') && !checkAndConsume(']')) { throw new ParsingException("Expecting a right parenthesis to close this " + wordRead + "()."); }
-				Sentence implicitImplication = stringHandler.getConnectedSentence(sentenceForFindAll, stringHandler.getConnectiveName("->"), stringHandler.getTermAsLiteral(termForFindall)); //stringHandler.getLiteral(stringHandler.getPredicateName("implictHead")));
-				List<Clause> clauses = implicitImplication.convertToClausalForm();
-				if (clauses.size() != 1) { throw new ParsingException("The body of a findAll(), etc. needs to be a simple clause.  You provided: " + sentenceForFindAll); }
-				Clause clause = clauses.get(0);
-				if (clause.posLiterals == null) { Utils.error("Renamed posList = null in " + implicitImplication + " and " + clause); }
-				TermAsLiteral renamedHead =  (TermAsLiteral) clause.posLiterals.get(0);
-				if (renamedHead == null) { Utils.error("Renamed head = null in " + implicitImplication + " and " + clause); }
-
-				Term termForFindall2 = Objects.requireNonNull(renamedHead).term; // Need to get this so variable renaming is consistent.
-				if (!clause.isDefiniteClause()) { throw new ParsingException("The body of a findAll(), etc. needs to be a conjunction ('and') of literals.  You provided: " + sentenceForFindAll); }
-				clause.posLiterals = null; // No need to keep the "implictHeadForFindAll" around.  The resolution theorem prover "knows" it is implicitly there.
-				arguments = new ArrayList<>(  3);
-				arguments.add(termForFindall2);
-				arguments.add(stringHandler.getSentenceAsTerm(clause, wordRead));
-				arguments.add(listForFindAll);
+				throw new ParsingException("Deprecated");
 			}
 			else if (wordRead.equalsIgnoreCase("countProofs") || wordRead.equalsIgnoreCase("countUniqueBindings")) { // A countProofs() needs to have an FIRST argument that is an FOPC clause.
-					Sentence sentenceForCounter = processFOPC_sentence(0, true);
-					if (!checkAndConsume(',')) { throw new ParsingException("Expecting a comma '" + sentenceForCounter + "' in a " + wordRead + "()."); }
-					Term listForCounter     = processTerm(argumentsMustBeTyped);
-					if (!checkAndConsume(')') && !checkAndConsume('}') && !checkAndConsume(']')) { throw new ParsingException("Expecting a right parenthesis to close this " + wordRead + "().  Recall countProofs(clause, N) and countUniqueBindingsclause, N) only have two arguments."); }
-					Sentence implicitImplication = stringHandler.getConnectedSentence(sentenceForCounter, stringHandler.getConnectiveName("->"), stringHandler.getLiteral(stringHandler.getPredicateName("implictHead")));
-					List<Clause> clauses = implicitImplication.convertToClausalForm();
-					if (clauses.size() != 1) { throw new ParsingException("The body of a countProofs() or countUniqueBindings() needs to be a simple clause.  You provided: " + sentenceForCounter); }
-					Clause clause = clauses.get(0);
-					if (!clause.isDefiniteClause()) { throw new ParsingException("The body of a Counter(), etc. needs to be a conjunction ('and') of literals.  You provided: " + sentenceForCounter); }
-					clause.posLiterals = null; // No need to keep the "implictHeadForCounter" around.  The resolution theorem prover "knows" it is implicitly there.
-					arguments = new ArrayList<>(2);
-					arguments.add(stringHandler.getSentenceAsTerm(clause, wordRead));
-					arguments.add(listForCounter);
+				throw new ParsingException("Deprecated");
 			}
 			else {
 				 NamedTermList namedTermList = processListOfTerms('(', argumentsMustBeTyped); // This should suck up the closing parenthesis.
@@ -1568,21 +1391,6 @@ public class FileParser {
 		}
 		tokenizer.pushBack();
 		return false;
-	}
-
-	private Clause convertSimpleConjunctIntoClause(Sentence sent, AllOfFOPC caller) throws ParsingException {
-		Sentence implicitImplication = stringHandler.getConnectedSentence(sent, stringHandler.getConnectiveName("->"), stringHandler.getLiteral(stringHandler.getPredicateName("implictHead")));
-		List<Clause> clauses = implicitImplication.convertToClausalForm();
-		return convertlistOfSentencesIntoClause(clauses, sent, caller);
-	}
-	private Clause convertlistOfSentencesIntoClause(List<Clause> clauses, Sentence sent, AllOfFOPC caller) throws ParsingException {
-		if (clauses.size() != 1) { throw new ParsingException("The body of a '" + caller + "' needs to be a simple clause.  You provided: " + sent); }
-		Clause clause = clauses.get(0);
-		      if (!clause.isDefiniteClause()) {
-            throw new ParsingException("The body of a '" + caller + "' needs to be a conjunction ('and') of literals.  You provided: " + sent);
-        }
-        clause.posLiterals = null; // No need to keep the "implictHead" around.  The resolution theorem prover "knows" it is implicitly there.
-		return clause;
 	}
 
 	private boolean atQuotedString(int token) {
