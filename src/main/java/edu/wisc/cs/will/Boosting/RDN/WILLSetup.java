@@ -208,7 +208,6 @@ public final class WILLSetup {
 	 */
 	private void fillMissingExamples() throws RuntimeException {
 		Set<String> missingPositiveTargets = new HashSet<>();
-		Set<String> missingNegativeTargets = new HashSet<>();
 		for (String pred : cmdArgs.getTargetPredVal()) {
 			// Make sure all targets have facts
 			if (!backupPosExamples.containsKey(pred) ||
@@ -222,7 +221,6 @@ public final class WILLSetup {
 				backupNegExamples.get(pred) == null ||
 				backupNegExamples.get(pred).isEmpty()) {
 				Utils.println("% No neg ex for " + pred);
-				missingNegativeTargets.add(pred);
 			}
 			// Initialize the hash map
 			backupPosExamples.computeIfAbsent(pred, k -> new ArrayList<>());
