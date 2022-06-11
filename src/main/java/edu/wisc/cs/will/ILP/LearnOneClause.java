@@ -14,7 +14,6 @@ import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.ResThmProver.HornClausebase;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.stdAIsearch.*;
 
@@ -108,37 +107,22 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 	public    boolean			  regressionTask    = false; // Is this a REGRESSION task?
 	boolean			  mlnRegressionTask	= false;
-    private boolean             learnMultiValPredicates             = false;
-	final boolean 			  sampleForScoring  = false;
-	final int				  maxExamplesToSampleForScoring = 300;
 
-	final int                 maxCrossProductSize               =1000;     // When generating candidate groundings of a literal in the child-generator, randomly seleect if more than this many.
-	int                 maxBodyLength                     =   9;     // Max length for the bodies of clauses.
+    int                 maxBodyLength                     =   9;     // Max length for the bodies of clauses.
 	public    int                 maxFreeBridgersInBody             = maxBodyLength; // Bridgers can run amok so limit them (only has an impact when countBridgersInLength=true).  This is implemented as follows: the first  maxBridgersInBody don't count in the length, but any excess does.
 	public    int                 maxNumberOfNewVars                =  10;     // Limit on the number of "output" variables used in a rule body.
 	public    int        		  maxDepthOfNewVars                 =   7;     // The depth of variables in the head is 0.  The depth of a new variable is 1 + max depth of the input variables in the new predicate.
 	public    int                 maxPredOccurrences                =   5;     // Maximum number of times a given predicate can appear in a clause (REGARDLESS of whether or not the input variables differ).  Ccn be overwritten on a per-predicate basis.
-	int                 maxConstantBindingsPerLiteral     = 100;     // When trying to fill #vars in a new literal, don't create more than this many candidates (if more than randomly discard - note, if more than 1000 collected, the collecting process terminates, so if more than 1000 possibilities, selection will NOT be random).  If this is not a positive number, it is ignored.  Note: this can also be accomplished via maxPredOccursPerInputVars, though that does not solely deal with #vars and that is a DEPTH limit whereas this is a BREADTH limit.  TODO allow this to be done on a per-literal basis?
-	private   double              minPosCoverage                    =   2.0;   // [If in (0,1), treat as a FRACTION of totalPosWeight].  Acceptable clauses must cover at least this many positive examples.  NOTE: this number is compared to SUMS of weighted examples, not simply counts (which is why this is a 'double').
+    private   double              minPosCoverage                    =   2.0;   // [If in (0,1), treat as a FRACTION of totalPosWeight].  Acceptable clauses must cover at least this many positive examples.  NOTE: this number is compared to SUMS of weighted examples, not simply counts (which is why this is a 'double').
 	private   double              maxNegCoverage                    =  -1.0;   // [If in (0,1), treat as a FRACTION of totalNegWeight].  Acceptable clauses must cover no  more this many negative examples.  NOTE: this number is compared to SUMS of weighted examples, not simply counts (which is why this is a 'double').  IGNORE IF A NEGATIVE NUMBER.
 	double              minPrecision                      =   0.501; // Acceptable clauses must have at least this precision.
 	double              maxRecall                         =   1.01;  // When learning trees, don't want to accept nodes with TOO much recall, since want some examples on the 'false' branch.
-	double              stopExpansionWhenAtThisNegCoverage =  0.0;   // Once a clause reaches this negative coverage, don't bother expanding it further.
-	boolean             stopIfPerfectClauseFound          =   true;  // Might want to continue searching if a good SET of rules (eg, for Gleaner) is sought.
+    boolean             stopIfPerfectClauseFound          =   true;  // Might want to continue searching if a good SET of rules (eg, for Gleaner) is sought.
 	public    double              clausesMustCoverFractPosSeeds     =   0.499; // ALL candidate clauses must cover at least this fraction of the pos seeds.  If performing RRR, these sets are used when creating the starting points.
-	double              clausesMustNotCoverFractNegSeeds  =   0.501; // And all must NOT cover at least this fraction of the negative seeds (if any).
-	boolean             allowPosSeedsToBeReselected       =  false;  // Can a positive seed be used more than once (in the ILP outer loop)?
-	boolean             allowNegSeedsToBeReselected       =  false;  // Ditto for negatives?
-	boolean             stopWhenUnacceptableCoverage      =   true;  // If set to  true, don't continue to prove examples when impossible to meet the minPosCoverage and minPrecision specifications.
-    int                 minChildrenBeforeRandomDropping   =  10;     // Before randomly discarding children, there must be this many.
-	double              probOfDroppingChild               =  -1.0;   // If not negative, probability of dropping a child.
+    boolean             stopWhenUnacceptableCoverage      =   true;  // If set to  true, don't continue to prove examples when impossible to meet the minPosCoverage and minPrecision specifications.
     public    int                 minNumberOfNegExamples            =  10;     // If less than this many negative examples, create some implicit negative examples.
 	public    double              fractionOfImplicitNegExamplesToKeep = 0.10;  // NEW: if > 1.1, then count this NUMBER of examples, otherwise when generating implicit negatives, keep this fraction (but first make sure the min neg's number above is satisfied).
-	boolean             requireThatAllRequiredHeadArgsAppearInBody         = false;  // If true, then a clause will not be considered accepted unless all required variables in the head appear in the body.
-	boolean             allTargetVariablesMustBeInHead                     = false;
-	boolean             dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds = true;  // If have p(x) :- q(x,y) but if over all positive seeds can never get x and y to bind to different constants, then use p(x) :- q(x,x).  Similar (equivalent?) to "variable splitting" = false in Aleph.
-	long                maxResolutionsPerClauseEval    = 10000000;     // When evaluating a clause, do not perform more than this many resolutions.  If this is exceeded, a clause is said to cover 0 pos and 0 neg, regardless of how many have been proven and it won't be expanded.
-	public final boolean             createdSomeNegExamples                  = false; // Record if some negative examples were created (caller might want to write them to a file).
+    final long                maxResolutionsPerClauseEval    = 10000000;     // When evaluating a clause, do not perform more than this many resolutions.  If this is exceeded, a clause is said to cover 0 pos and 0 neg, regardless of how many have been proven and it won't be expanded.
 
     int                 savedBeamWidth;                // Save the old beam width so it can be restored when in phase 2 of RRR.
     private List<Example>         posExamples;
@@ -369,7 +353,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 
 		// The method below will check if the prune file already exists, and if so, will simply return true.
 			// Files cached (if requested):
-            boolean pruneFileAlreadyExists = lookForPruneOpportunities(getParser(), pruneFileNameToUse);
+            boolean pruneFileAlreadyExists = lookForPruneOpportunities(getParser());
 
 			Utils.println("\n% Started collecting constants");
 		long start = System.currentTimeMillis();
@@ -396,14 +380,13 @@ public class LearnOneClause extends StateBasedSearchTask {
         }
 	}
 
-    private boolean lookForPruneOpportunities(FileParser parser, String fileName) {
+    private boolean lookForPruneOpportunities(FileParser parser) {
         // See if any 'prune' rules can be generated from this rule set.
         // For example, if 'p :- q, r' is the ONLY way to derive 'p,' then if 'p' in a clause body, no need to consider adding 'q' nor 'r.'
 
         //  Could simply redo this each time, since the calculation is simple, but this design allows the user to EDIT this file.
         StringBuilder parseThisString = new StringBuilder();
-        CondorFileOutputStream outStream = null; // Don't create unless needed.
-        PrintStream printStream = null;
+        // Don't create unless needed.
         for (DefiniteClause definiteClause : getContext().getClausebase().getAssertions()) {
             if (definiteClause instanceof Clause) {
                 Clause clause = (Clause) definiteClause;
@@ -887,13 +870,7 @@ public class LearnOneClause extends StateBasedSearchTask {
            throw new NullPointerException("seedPosExamplesUsed and seedNegExamplesUsed must be non-null.");
        }
 
-		if (allowPosSeedsToBeReselected ) {
-			seedPosExamplesUsed.clear();
-		}
-		if (allowNegSeedsToBeReselected ) {
-			seedNegExamplesUsed.clear();
-		}
-		if (posSeedIndices != null && posSeedIndices.length > 0) {
+        if (posSeedIndices != null && posSeedIndices.length > 0) {
 			seedPosExamples = new ArrayList<>(posSeedIndices.length);
 			for (int index : posSeedIndices) {
 				if (index < 0 || index >= numberOfPosEx) { Utils.error("Pos seed index " + index + " must be in [0," + (numberOfPosEx - 1) + "]"); }
@@ -943,9 +920,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return getProver().proveConjunctiveQuery(negatedConjunctiveQuery);
 	}
 
-	private int warningCountAboutExamples = 0;
-
-	public boolean confirmExample(Literal lit) {
+    public boolean confirmExample(Literal lit) {
 		// TODO(@hayesall): This method always returns `true`, but also prints warnings.
 		//		The `VARIABLEs in examples` warning could be good to have, but might be better treated as an error.
 
@@ -961,17 +936,11 @@ public class LearnOneClause extends StateBasedSearchTask {
 			examplePredicateSignatures = new ArrayList<>(1);
 		}
 
-        boolean allowMultipleTargets = true;
-        if (allowMultipleTargets || examplePredicates.isEmpty()) {
-			if (!matchesExistingTargetSpec(lit)) {
-				examplePredicates.add(pnaa);
-				examplePredicateSignatures.add(stringHandler.getSignature(lit.getArguments()));
-			}
-		}
-		else if (!examplePredicates.contains(pnaa) && warningCountAboutExamples++ < 10) {
-			Utils.severeWarning("AllowMultipleTargets = false and example '" + lit + "' does not have the predicate name of the other examples: " + examplePredicates +".");
-		}
-		return true;
+        if (!matchesExistingTargetSpec(lit)) {
+            examplePredicates.add(pnaa);
+            examplePredicateSignatures.add(stringHandler.getSignature(lit.getArguments()));
+        }
+        return true;
 	}
 
 	private boolean matchesExistingTargetSpec(Literal lit) {
@@ -1160,11 +1129,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		context.assertSentences(newFacts);
 	}
 
-	void addRule(Clause rule) {
-		context.assertDefiniteClause(rule);
-	}
-
-	private void chooseTargetMode() {
+    private void chooseTargetMode() {
 		chooseTargetMode(stringHandler.dontComplainIfMoreThanOneTargetModes);
 		
 	}
@@ -1560,32 +1525,7 @@ public class LearnOneClause extends StateBasedSearchTask {
         }
     }
 
-    // See if these args are in these positions in SOME training example.
-    // TODO(?): allow argumentW and argumentS to be null, meaning we dont care if they match?  Arguments should not be 'null' - but that could happen, so maybe a better indicator of 'dont care' is needed?
-	boolean isWorldStateArgPairInAnExample(Term argumentW, Term argumentS) {
-		return (isWorldStateArgPairInAnPosExample(argumentW, argumentS) ||
-				isWorldStateArgPairInAnNegExample(argumentW, argumentS));
-	}
-	boolean isWorldStateArgPairInAnPosExample(Term argumentW, Term argumentS) {
-		if (posExamples != null) for (Example ex : posExamples) {
-			int numbArgs = ex.numberArgs();
-			int wArg = stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs);
-			int sArg = stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs);	
-			if (ex.getArgument(wArg).equals(argumentW) && ex.getArgument(sArg).equals(argumentS)) { return true; }
-		}
-		return false;
-	}
-	boolean isWorldStateArgPairInAnNegExample(Term argumentW, Term argumentS) {
-		if (negExamples != null) for (Example ex : negExamples) {
-			int numbArgs = ex.numberArgs();
-			int wArg = stringHandler.getArgumentPosition(stringHandler.locationOfWorldArg, numbArgs);
-			int sArg = stringHandler.getArgumentPosition(stringHandler.locationOfStateArg, numbArgs);	
-			if (ex.getArgument(wArg) == argumentW && ex.getArgument(sArg) == argumentS) { return true; }
-		}
-		return false;
-	}
-
-	ILPSearchAction fireOuterLoopStarting(ILPouterLoop outerLoop) {
+    ILPSearchAction fireOuterLoopStarting(ILPouterLoop outerLoop) {
         ILPSearchAction action = ILPSearchAction.PERFORM_LOOP;
 
         Object[] listeners = searchListenerList.getListenerList();
@@ -1642,23 +1582,16 @@ public class LearnOneClause extends StateBasedSearchTask {
     }
 
 	void setMlnRegressionTask(boolean val) {
+        // TODO(hayesall): This might explain why MLN regression has been so poorly behaved.
 		mlnRegressionTask = val;
 	}
 
-	void setLearnMultiVal(boolean val) {
-		learnMultiValPredicates = val;
-	}
-	
-	RegressionInfoHolder getNewRegressionHolderForTask() {
+    RegressionInfoHolder getNewRegressionHolderForTask() {
 		if (mlnRegressionTask) {
 			return new RegressionInfoHolderForMLN();
 		} else {
-			if (learnMultiValPredicates) {
-				return new RegressionVectorInfoHolderForRDN();
-			} else {
-				return new RegressionInfoHolderForRDN();
-			}
-		}
+            return new RegressionInfoHolderForRDN();
+        }
 	}
 
 }

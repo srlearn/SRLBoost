@@ -209,7 +209,7 @@ public class ILPouterLoop {
 			return false;
 		} // Simply skip over indices that are out of bounds.
 		Example chosenExample = innerLoopTask.getPosExamples().get(index);
-		if ((innerLoopTask.allowPosSeedsToBeReselected || getSeedPosExamplesUsed() == null || !getSeedPosExamplesUsed().contains(chosenExample)) && // Make sure that this wasn't previously a seed.
+		if ((getSeedPosExamplesUsed() == null || !getSeedPosExamplesUsed().contains(chosenExample)) && // Make sure that this wasn't previously a seed.
 			!getCoveredPosExamples().contains(chosenExample)) { // Make sure this is an uncovered seed.
 			int[] posSeeds = new int[1];
 			posSeeds[0] = index;
@@ -240,17 +240,7 @@ public class ILPouterLoop {
 		Set<Integer> negChosen = new HashSet<>(4);
 		
 		// Could be really slow if selecting nearly all of the examples, but we're limiting this to 10X tries, so don't worry about it.
-		if (innerLoopTask.allowPosSeedsToBeReselected) {
-			int counter = 0; // Put a limit on the number of cycles here.
-			while (posCounter < numberPosSeedsToUse && counter++ < 10 * numberPosSeedsToUse) {
-				int index = Utils.random0toNminus1(getNumberOfPosExamples());
-				if (!posChosen.contains(index)) {
-					posChosen.add(index);
-					posSeeds[posCounter++] = index;
-				}
-			}			
-		}
-		// It still looking, grab in order.
+        // It still looking, grab in order.
 		if (posCounter < numberPosSeedsToUse) {
 			int i = 0;
 			// Use the 1.1 to handle the case of not getting enough due to sampling effects.  This fraction is ratio of SEEDS_NEEDED over SEEDS_TO_SELECT_FROM.
@@ -264,18 +254,8 @@ public class ILPouterLoop {
 				i++;
 			}
 		}
-		
-		if (innerLoopTask.allowNegSeedsToBeReselected) {
-			int counter = 0;
-			while (negCounter < numberNegSeedsToUse && counter++ < 10 * numberNegSeedsToUse) {
-				int index = Utils.random0toNminus1(getNumberOfNegExamples());
-				if (!negChosen.contains(index)) {
-					negChosen.add(index);
-					negSeeds[posCounter++] = index;
-				}
-			}			
-		}
-		if (negCounter < numberNegSeedsToUse) {
+
+        if (negCounter < numberNegSeedsToUse) {
 			int i = 0; // See comment above.
 			double fraction = 1.1 * (numberNegSeedsToUse - negCounter) / (double) (innerLoopTask.getNegExamples().size() - outerLoopState.getNegExamplesUsedAsSeeds().size() - negCounter);
 			for (Example neg : innerLoopTask.getNegExamples()) {
@@ -1045,7 +1025,6 @@ public class ILPouterLoop {
     }
 
     public void setLearnMultiValPredicatesFalse() {
-		innerLoopTask.setLearnMultiVal(false);
 	}
 	private Theory produceFinalTheory() {
 		// TODO allow theories to come from some covering algorithm, possibly based on all the Gleaners.		

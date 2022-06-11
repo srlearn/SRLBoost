@@ -407,7 +407,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (theILPtask.totalWeightOnNegSeeds > 0 && theILPtask.seedNegExamples != null) {
 			negSeedWgtedCount = wgtedCountOfNegExamplesCovered(theILPtask.seedNegExamples);
 
-			return !(negSeedWgtedCount >= theILPtask.clausesMustNotCoverFractNegSeeds * theILPtask.totalWeightOnNegSeeds);
+			return !(negSeedWgtedCount >= 0.501 * theILPtask.totalWeightOnNegSeeds);
 		}
 		return true;
 	}
@@ -553,22 +553,17 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 				if (theILPtask.regressionTask &&
 						theILPtask.mlnRegressionTask &&
 						posExamplesThatFailedHere != null) {
-					int fraction = (posExamplesThatFailedHere.size()/(theILPtask.maxExamplesToSampleForScoring*2)) + 1;
-					double prob = 1.0/(double)fraction;
-					if (!theILPtask.sampleForScoring) {fraction =1;prob=1;}
 					for (Example posEx : posExamplesThatFailedHere) {
-						if (Utils.random() < prob) {
-							long num = 1;
-							if (parent != null && parent != getRootNode()) { 
-								num = parent.getNumberOfGroundingsForRegressionEx(posEx);
-							}
-							if (num == 0) {
-								Utils.waitHere("Number of groundings = 0 for " + posEx + " with " + parent.getClause());
-							}
-							((RegressionExample) posEx).getOutputValue();
-							cachedLocalRegressionInfoHolder.getFalseStats().addFailureExample(posEx, num, fraction*posEx.getWeightOnExample());
+						long num = 1;
+						if (parent != null && parent != getRootNode()) {
+							num = parent.getNumberOfGroundingsForRegressionEx(posEx);
 						}
-					} 
+						if (num == 0) {
+							Utils.waitHere("Number of groundings = 0 for " + posEx + " with " + parent.getClause());
+						}
+						((RegressionExample) posEx).getOutputValue();
+						cachedLocalRegressionInfoHolder.getFalseStats().addFailureExample(posEx, num, 1 * posEx.getWeightOnExample());
+					}
 				}
 			}
 		}
@@ -609,7 +604,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		// see if there is any need to continue searching (ie, if a rule covers ALL pos and NO neg examples, then can stop).  Might want to override this, say if collecting a range of good rules ala' Gleaner.
 		if (firstTime && theILPtask.stopIfPerfectClauseFound && 
 				!Utils.diffDoubles(getPosCoverage(), theILPtask.totalPosWeight) && negCoverage <= 0.0
-				&& acceptableClauseExtraFilter(theILPtask)) { 
+				&& acceptableClauseExtraFilter()) {
 			// Be careful that setting this doesn't mess up what is being kept as the best node.  TODO - make sure that if the score of a perfect clause is insufficient (eg, m-estimate of accuracy is too low), this is caught early on.
 			theILPtask.continueTheSearch = false;
 		}
@@ -684,8 +679,8 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (bestPrecisionPossible <  theILPtask.minPrecision) {
 			return false;
 		}
-		if (!acceptableClauseExtraFilter(thisTask)) { return true; } // If a clause doesn't meet the 'acceptability' test, it can presumably be improved (e.g., might need to extend it, even if precision is 100%).
-		return !(negCoverage <= theILPtask.stopExpansionWhenAtThisNegCoverage);  // If no negs covered, adding literals wont help.
+		if (!acceptableClauseExtraFilter()) { return true; } // If a clause doesn't meet the 'acceptability' test, it can presumably be improved (e.g., might need to extend it, even if precision is 100%).
+		return !(negCoverage <= 0.0);  // If no negs covered, adding literals wont help.
 		// Still some neg's that could be eliminated.
 	}
 	
@@ -693,8 +688,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 	// E.g., in some work involving plan recognition, a learned rule must be a complete plan (i.e., reaches a final state),
 	// rather than simply doing a good job of differentiating good from bad examples.
 	// Also, if requireThatAllRequiredHeadArgsAppearInBody=true, see if this requirement is met.
-	boolean acceptableClauseExtraFilter(LearnOneClause thisTask) {
-		if (thisTask.requireThatAllRequiredHeadArgsAppearInBody && !allRequiredHeadArgsAppearInBody(thisTask)) { return false; }
+	boolean acceptableClauseExtraFilter() {
 		return allTheseArgsAppearinBody(getRequiredVariablesInBody());
 		// TODO need a better design here.
 	}
@@ -716,11 +710,11 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		return ((SingleClauseRootNode) this).variablesInTarget;
 	}
 	
-	private boolean allRequiredHeadArgsAppearInBody(LearnOneClause thisTask) {
+	private boolean allRequiredHeadArgsAppearInBody() {
 		SingleClauseRootNode root = getRootNode();
 		assert root.targetArgSpecs != null;
 		for (ArgSpec argSpec : root.targetArgSpecs) if (argSpec.arg instanceof Variable) {
-			if ((thisTask.allTargetVariablesMustBeInHead || argSpec.typeSpec.mustBeBound()) 
+			if (argSpec.typeSpec.mustBeBound()
 					&& !variableAppearsInThisClause((Variable) argSpec.arg)) {
 					return false;
 			}

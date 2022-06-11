@@ -70,7 +70,7 @@ public class Gleaner extends SearchMonitor implements Serializable {
 		
 		if (clause.getPosCoverage() < 0 || clause.negCoverage < 0) { Utils.error("% Should not reach here with an unevaluated node: '" + nodeBeingCreated + "'."); }
 
-		if (!clause.acceptableClauseExtraFilter(task)) {
+		if (!clause.acceptableClauseExtraFilter()) {
 			return false; // Unacceptable according to user-provided acceptability test.
 		}
 		if (task.getMinPosCoverage() > 0 && clause.getPosCoverage() < task.getMinPosCoverage()) {

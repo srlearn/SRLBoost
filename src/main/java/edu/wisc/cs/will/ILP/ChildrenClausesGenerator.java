@@ -389,7 +389,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				// Now need to create the cross product of allowed terms.  I.e., if arg1 of predicate p can be any of {x1, x2} and argument any of {y1, y2, y3} than can create p(x1,y1), p(x1,y2), p(x1,y3), p(x2,y1), p(x2,y2), and p(x2,y3).  				
 				if (allNeededPredsFound) {
 
-					List<List<Term>> allArgPossibilities = Utils.computeCrossProduct(usableTerms, thisTask.maxCrossProductSize); // This is the set of cross products.
+					List<List<Term>> allArgPossibilities = Utils.computeCrossProduct(usableTerms, 1000); // This is the set of cross products.
 
 					List<List<Term>> allArgPossibilities2 = allArgPossibilities;
 
@@ -422,8 +422,8 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 								if (thisTask.collectedConstantBindings != null) {
 									// Note: we may get MANY sets of constants here.  Elsewhere there is a limit of the first 1000, which hopefully is never reached.
 									List<List<Term>> allConstantsBindings = thisTask.collectedConstantBindings;
-									if (thisTask.maxConstantBindingsPerLiteral > 0 && allConstantsBindings.size() > thisTask.maxConstantBindingsPerLiteral) {
-										allConstantsBindings = Utils.reduceToThisSizeByRandomlyDiscardingItemsInPlace(allConstantsBindings, thisTask.maxConstantBindingsPerLiteral);
+									if (allConstantsBindings.size() > 100) {
+										allConstantsBindings = Utils.reduceToThisSizeByRandomlyDiscardingItemsInPlace(allConstantsBindings, 100);
 									}
 									for (List<Term> args2 : allConstantsBindings) {
 										// Need to collect all those constants that involve the variables in typesOfNewConstants.
@@ -569,7 +569,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 							// can play a role on enough positive seeds (e.g., if for all seeds, this variable is not bound
 							// differently than the other candidate fillers, then don't include this new clause).
 
-							if (thisTask.dontAddNewVarsUnlessDiffBindingsPossibleOnPosSeeds && typesOfNewTerms != null) {
+							if (typesOfNewTerms != null) {
 								List<Variable> newVars  = collectNewVariables(args, typesOfNewTerms);
 
 								// TODO(@hayesall): Based on the comments, this seems to be dealing with the `-` mode.
@@ -659,9 +659,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 			}
 		}
 
-		if (thisTask.probOfDroppingChild > 0 && children.size() >= thisTask.minChildrenBeforeRandomDropping) {
-			children.removeIf(sn -> Utils.random() < thisTask.probOfDroppingChild);
-		}
 		return children;
 	}
 	
