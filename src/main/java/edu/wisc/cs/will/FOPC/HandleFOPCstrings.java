@@ -148,27 +148,6 @@ public final class HandleFOPCstrings {
 			initPrecedences_static(precedenceTableForOperators_static, precedenceTableForConnectives_static);
 		}
 
-		// Initialize some parameters used in libraries.
-		// TODO(hayesall): I've deleted the libraries, is it even possible for these to be used?
-		// 		Some of these appear to be related to "relevance," which I've already deprecated.
-		recordSetParameter("mixAndMatchAdviceLiterals", "WEAKLY_RELEVANT");
-		recordSetParameter("atOrAboveTargetArguments", "IRRELEVANT");
-		recordSetParameter("belowTargetArguments",     "WEAKLY_RELEVANT");
-		recordSetParameter("typeInRelevance2",         "ISA_OBSERVED_FEATURE");
-		recordSetParameter("typeInRelevance1",         "STRONGLY_RELEVANT");
-		recordSetParameter("typeInRelevance0",         "POSSIBLE_ANSWER");
-		recordSetParameter("typeInRelevance",          "POSSIBLE_ANSWER"); // TODO - this is in some megatest files for IL; can deleted once those are updated.
-		recordSetParameter("modeMax1",     "1");
-		recordSetParameter("modeMax2",     "2");
-		recordSetParameter("modeMax3",     "3");
-		recordSetParameter("modeMax4",     "4");
-		recordSetParameter("modeMax5",     "5");
-		recordSetParameter("modeMaxInf", "100"); // Currently (6/09) not used in the libraries, but that might change.
-		recordSetParameter("thresholdsMax1",     "10");
-		recordSetParameter("thresholdsMax2",    "100");
-		recordSetParameter("thresholdsMax3",   "1000");
-		recordSetParameter("thresholdsMax4",  "10000");
-		recordSetParameter("thresholdsMax5", "100000");
 		cleanFunctionAndPredicateNames = hold;
 
 		setVariableIndicator(null); // Wait for the first user file to set things, and keep that as the default.
