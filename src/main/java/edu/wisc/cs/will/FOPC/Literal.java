@@ -658,16 +658,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
     @Override
-    public Clause getNegatedQueryClause() throws IllegalArgumentException {
-
-        Clause result;
-
-        result = stringHandler.getClause(null, Collections.singletonList(this));
-
-        return result;
-    }
-
-	   @Override
     public int countVarOccurrencesInFOPC(Variable v) {
         int total = 0;
         if (arguments != null) {
