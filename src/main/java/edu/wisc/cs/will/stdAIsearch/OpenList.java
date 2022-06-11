@@ -2,7 +2,6 @@ package edu.wisc.cs.will.stdAIsearch;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
 /*
@@ -99,12 +98,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
 
         // See if this node is an acceptable for setting 'bestScoreSeenSoFar.'
         boolean acceptable = true;
-        if (task.discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar &&
-                task.scorer.computeMaxPossibleScore(node) <= task.bestScoreSeenSoFar) {
-            // TODO(?): allow this to be '<=' or '<'
-            task.nodesNotAddedToOPENsinceMaxScoreTooLow++;
-            return;
-        }
 
         // Don't tell the monitor if pruned, since the monitor may want to compute something
         // cpu-intensive for a node that is being rejected.
@@ -119,17 +112,6 @@ public class OpenList<T extends SearchNode> extends LinkedList<T> {
             // TODO(?): allow '<' and '<=' the best score
             // Do not use BONUS here, since that should only impact sorting in the list.
             task.bestScoreSeenSoFar = score;
-            if (task.discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar) {
-                // TODO(?): allow '<' and '<=' the best score.
-                // Remove items from OPEN that cannot beat.
-                for (Iterator<T> iter = this.iterator(); iter.hasNext();) {
-                    T n = iter.next();
-                    if (task.scorer.computeMaxPossibleScore(n) <= score) {
-                        iter.remove();
-                        task.nodesRemovedFromOPENsinceMaxScoreNowTooLow++;
-                    }
-                }
-            }
         }
 
         if (node.dontActuallyAddToOpen()) {

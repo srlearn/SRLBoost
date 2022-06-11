@@ -104,7 +104,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
     protected boolean redoable = false;
 
 
-    protected boolean      discardIfBestPossibleScoreOfNodeLessThanBestSeenSoFar = false; // If true, do a branch-and-bound search.
     double       bestScoreSeenSoFar                                    = Double.NEGATIVE_INFINITY;
     public    int          nodesNotAddedToOPENsinceMaxScoreTooLow                = 0;
     public    int          nodesRemovedFromOPENsinceMaxScoreNowTooLow            = 0;
