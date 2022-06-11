@@ -37,8 +37,10 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 	 * Rather than using a boolean value, use integer for sampled value
 	 * for single class problem, 0==false, 1==true
 	 * for multi class problem, the sampledValue is an index to a constant value stored in MultiClassExampleHandler
+	 *
+	 * TODO(hayesall): This `sampledValue` looks like a bug.
 	 */
-	private int sampledValue= (Utils.random() > 0.8) ? 1 : 0;
+	private final int sampledValue= (Utils.random() > 0.8) ? 1 : 0;
 
 
 	/**
@@ -55,10 +57,6 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 		super(stringHandler, literal, outputValue, provenance, extraLabel);
 		originalTruthValue = truthValue;
 		originalValue = truthValue ? 1:0;
-	}
-
-	public RegressionRDNExample(Literal lit, boolean truthValue, String provenance) {
-		this(lit.getStringHandler(), lit, (truthValue ? 1 : 0), provenance, null);
 	}
 
 	public boolean isOriginalTruthValue() {
@@ -105,10 +103,6 @@ public class RegressionRDNExample extends RegressionExample  implements Serializ
 
 	int getSampledValue() {
 		return sampledValue;
-	}
-
-	void setSampledValue(int sampledValue) {
-		this.sampledValue = sampledValue;
 	}
 
 }

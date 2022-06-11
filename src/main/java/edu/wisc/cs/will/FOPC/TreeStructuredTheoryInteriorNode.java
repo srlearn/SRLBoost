@@ -22,7 +22,6 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 	// TODO(@hayesall): This should have no knowledge of boosting, refactor.
 
 	private double				       regressionValueIfLeaf= 0;    // Since we reset the examples while trying to expand a node, this value is lost. Rather than re-computing it, we cache it here.
-	private double[]                   regressionVectorIfLeaf;
 	private List<Boolean>			   treePath = new ArrayList<>();
 	
 	public TreeStructuredTheoryInteriorNode(double weightedCountOfPositiveExamples, double weightedCountOfNegativeExamples, Clause learnedClause, Clause localClause, SingleClauseNode searchNodeThatLearnedTheClause) {
@@ -238,14 +237,6 @@ public class TreeStructuredTheoryInteriorNode extends TreeStructuredTheoryNode {
 	}
 	public void setRegressionValueIfLeaf(double regressionValueIfLeaf) {
 		this.regressionValueIfLeaf = regressionValueIfLeaf;
-	}
-
-	public double[] getRegressionVectorIfLeaf() {
-		return regressionVectorIfLeaf;
-	}
-
-	public void setRegressionVectorIfLeaf(double[] regressionVectorIfLeaf) {
-		this.regressionVectorIfLeaf = regressionVectorIfLeaf;
 	}
 
 }

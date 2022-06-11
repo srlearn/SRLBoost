@@ -1163,7 +1163,7 @@ public class FileParser {
             case '{':
 				throw new ParsingException("Deprecated.");
             case '[': // Process a list.
-				throw new ParsingException("Lists (ConsCells) are deprecated.");
+				throw new ParsingException("Deprecated.");
             case '\\': // Could be \+().
             case '\'':
             case '"':
@@ -1182,7 +1182,7 @@ public class FileParser {
             case StreamTokenizer.TT_WORD:
                 Term result = processRestOfTerm(tokenRead, argumentsMustBeTyped);
                 if ( checkForOperator() ) {
-					throw new ParsingException("MathExpression is deprecated.");
+					throw new ParsingException("Deprecated.");
                 }
                 return result;
             default:

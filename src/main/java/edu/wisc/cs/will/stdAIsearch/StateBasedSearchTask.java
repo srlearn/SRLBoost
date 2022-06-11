@@ -191,14 +191,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
         continueTheSearch = true;
     }
 
-    /*
-     * Some applications built on top of this general search algorithm might be
-     * extra "markers" of various sorts in OPEN. This method allows them to
-     * cleanup OPEN should they wish to do so. Does nothing.
-     */
-    public void cleanOpen() {
-    }
-
 
     /* Resets the search space completely, including the open and closed list.
      *
@@ -210,9 +202,6 @@ public class StateBasedSearchTask<T extends SearchNode> {
         resetAll(false);
         clearClosedList();
         clearOpenList();
-        
-        //if (open   != null) {open.reportOpenSize();     }
-        //if (closed != null) {closed.reportClosedSize(); }
     }
     
     private void clearOpenList() {

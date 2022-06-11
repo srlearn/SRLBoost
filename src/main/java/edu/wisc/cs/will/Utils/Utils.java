@@ -270,43 +270,6 @@ public class Utils {
         return map.size();
     }
 
-    // TODO(@hayesall): Utils/MapOfSets.java uses this?
-    static String getStringWithLinePrefix(String string, String prefix) {
-        if (prefix != null && !prefix.isEmpty() && !string.isEmpty()) {
-
-            StringBuilder stringBuilder = new StringBuilder();
-
-
-            int index = -1;
-            int lastIndex = 0;
-
-            stringBuilder.append(prefix);
-
-            while ((index = string.indexOf("\n", index + 1)) != -1) {
-                String s = string.substring(lastIndex, index + 1);
-
-                if (!s.isEmpty()) {
-                    if (lastIndex != 0) {
-                        stringBuilder.append(prefix);
-                    }
-                    stringBuilder.append(s);
-                }
-
-                lastIndex = index + 1;
-            }
-
-            if (lastIndex != 0) {
-                stringBuilder.append(prefix);
-            }
-            stringBuilder.append(string.substring(lastIndex));
-
-            return stringBuilder.toString();
-        }
-        else {
-            return string;
-        }
-    }
-
     /*
      * Create a file-name string from this directory and (possibly partial) fileName. 
      * (Could just return a File, but this is what other methods are expecting.)

@@ -54,18 +54,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		Literal       negatedLiteral = queryLiterals.get(0);
 		return negatedLiteral.predicateName;
 	}
-	
-    @Override
-	public void cleanOpen() { // This is used to remove cutMarkers from the front of open.  This is only called from the read-eval-print loop, since some cutMarkers can be in an OPEN that should be empty.  Be careful calling this from elsewhere.
-		if (open.isEmpty()) { return; }
-		HornSearchNode node = open.popOpenList();
-		while (getPredicateNameFromFirstNegatedLiteral(node) == getStringHandler().standardPredicateNames.cutMarker) {
-			Utils.println("  discard this no-longer-needed cut marker: " + node);
-			if (open.isEmpty()) { return; } // The last item in open was a cutMarkerPred, so don't do another POP.
-			node = open.popOpenList();
-		}
-		open.addToFrontOfOpenList(node); // Need to return the last item popped.
-	}
 
 	private boolean proveSimpleQuery(Literal negatedFact) throws SearchInterrupted {
 		((InitHornProofSpace) initializer).loadNegatedSimpleQuery(negatedFact, open);
