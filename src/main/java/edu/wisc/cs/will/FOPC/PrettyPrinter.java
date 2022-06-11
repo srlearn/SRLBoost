@@ -47,36 +47,6 @@ public class PrettyPrinter {
         return stringBuilder.toString();
     }
 
-    public static String print(Term s, String firstLinePrefix, String additionalLinesPrefix, PrettyPrinterOptions options, BindingList variableBindings) {
-
-        FOPCPrettyPrinterData data = new FOPCPrettyPrinterData();
-        if (variableBindings == null) {
-            data.variableBindings = new BindingList();
-        }
-        else {
-            data.variableBindings = variableBindings;
-        }
-
-        if (options != null) {
-            data.options = options;
-        }
-
-        data.pushIndent(Math.max(additionalLinesPrefix.length(), firstLinePrefix.length()));
-
-        PPResult r = s.accept(PRETTY_PRINTER_VISITOR, data);
-
-        StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append(firstLinePrefix);
-
-        appendWithPrefix(stringBuilder, r.getResultString(), additionalLinesPrefix);
-
-        stringBuilder.append(data.options.getSentenceTerminator());
-
-
-        return stringBuilder.toString();
-    }
-
     private static void appendWithPrefix(StringBuilder stringBuilder, String resultString, String prefix) {
 
         if (prefix != null && !prefix.isEmpty() && !resultString.isEmpty()) {
