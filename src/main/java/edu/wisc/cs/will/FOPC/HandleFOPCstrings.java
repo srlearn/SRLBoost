@@ -476,10 +476,6 @@ public final class HandleFOPCstrings {
         }
     }
 
-	public Literal getTermAsLiteral(Term term) {
-		return new TermAsLiteral(this, term);
-	}
-
 	public LiteralAsTerm getLiteralAsTerm(Literal itemBeingWrapped) {
 		return new LiteralAsTerm(this, itemBeingWrapped);
 	}

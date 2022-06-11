@@ -16,7 +16,7 @@ import java.util.*;
  * See http://en.wikipedia.org/wiki/First-order_logic or an AI textbook for more info.
  *
  */
-public abstract class Sentence extends AllOfFOPC implements Serializable, SLDQuery {
+public abstract class Sentence extends AllOfFOPC implements Serializable {
 
 	final static double maxWeight     = 300.0; // Since weights are used in exp^weight, want something that avoids overflow.
 	final static double minWeight     = -maxWeight;	 // Also want to avoid underflow (note: code does not yet use this).

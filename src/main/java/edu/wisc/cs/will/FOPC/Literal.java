@@ -51,16 +51,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
 
-    Literal(HandleFOPCstrings stringHandler, PredicateName pred, Term argument) {
-    	this();
-        predicateName = pred;
-        List<Term> args = new ArrayList<>(1);
-        args.add(argument);
-        this.stringHandler = stringHandler;
-        this.arguments     = args;
-        this.argumentNames = null;
-    }
-
     Literal(HandleFOPCstrings stringHandler, PredicateName pred, List<Term> arguments, List<String> argumentNames) {
         this(stringHandler, pred, arguments);
         this.argumentNames = argumentNames;
@@ -246,24 +236,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
 
     public PredicateName getPredicateName() {
         return predicateName;
-    }
-
-    private FunctionName getFunctionName() {
-        return getStringHandler().getFunctionName(predicateName.name);
-    }
-
-    public Function asFunction() {
-
-        // We need special handling for conCells for some reason...
-        if ( this == getStringHandler().getNilAsLiteral() ) {
-            return getStringHandler().getNil(); // Make sure we preserve the Nil function for lists.
-        }
-        else if (predicateName.equals(getStringHandler().standardPredicateNames.consCell)) {
-            return getStringHandler().getConsCell(stringHandler.getFunctionName("consCell"), arguments, argumentNames, null);
-        }
-        else {
-            return getStringHandler().getFunction( getFunctionName(),  getArguments(), getArgumentNames(), null);
-        }
     }
 
     public boolean equals(Object obj, boolean considerUseStrictEqualsForLiterals) {
@@ -686,16 +658,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
     @Override
-    public Clause getNegatedQueryClause() throws IllegalArgumentException {
-
-        Clause result;
-
-        result = stringHandler.getClause(null, Collections.singletonList(this));
-
-        return result;
-    }
-
-	   @Override
     public int countVarOccurrencesInFOPC(Variable v) {
         int total = 0;
         if (arguments != null) {

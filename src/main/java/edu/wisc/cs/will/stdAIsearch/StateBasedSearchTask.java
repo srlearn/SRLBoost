@@ -142,12 +142,8 @@ public class StateBasedSearchTask<T extends SearchNode> {
                                                  SearchStrategy strategy, ScoringFunction scorer,
                                                  ChildrenNodeGenerator childrenGenerator, ClosedList closed) {
         // TODO convert errors to exceptions
+        // TODO(hayesall): Assert strategy is always provided.
 
-        // First create defaults if necessary and where possible.  Otherwise complain if something is mandatory.
-        if (strategy == null) {
-            strategy = new BreadthFirstSearch();
-            Utils.waitHere("Breadth-first search being used since no search strategy was provided.");
-        }
         if (searchMonitor == null) {
             searchMonitor = new SearchMonitor(this);
         }

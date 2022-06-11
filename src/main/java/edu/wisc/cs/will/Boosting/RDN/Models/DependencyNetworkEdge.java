@@ -9,7 +9,7 @@ package edu.wisc.cs.will.Boosting.RDN.Models;
  */
 public class DependencyNetworkEdge {
 	private final DependencyNode start;
-	private final DependencyNode end;
+
 	public enum EdgeType {
 		DETERMINISTIC,
 		PROBABILISTIC,
@@ -18,11 +18,9 @@ public class DependencyNetworkEdge {
 	private final EdgeType edge;
 
 	DependencyNetworkEdge(DependencyNode start,
-						  DependencyNode end,
 						  EdgeType edge) {
 		super();
 		this.start = start;
-		this.end = end;
 		this.edge = edge;
 	}
 

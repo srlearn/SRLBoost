@@ -2,14 +2,15 @@ package edu.wisc.cs.will.FOPC_MLN_ILP_Parser;
 
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.FOPC.HandleFOPCstrings.VarIndicator;
-import edu.wisc.cs.will.Utils.NamedInputStream;
 import edu.wisc.cs.will.Utils.NamedReader;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileInputStream;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import static edu.wisc.cs.will.Utils.MessageType.STRING_HANDLER_VARIABLE_INDICATOR;
 
@@ -236,13 +237,7 @@ public class FileParser {
         // This is a big hack to pass around the name with stream.
         // There are better ways to do this, but not at this point in time.
         Reader r;
-        if ( inStream instanceof NamedInputStream ) {
-            r = new NamedReader(new InputStreamReader(inStream), inStream.toString());
-	}
-        else {
-            r = new InputStreamReader(inStream);
-        }
-
+		r = new InputStreamReader(inStream);
 		return readFOPCreader(file, r);
 	}
 

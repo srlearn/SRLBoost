@@ -736,7 +736,6 @@ public class Clause extends Sentence implements DefiniteClause {
         this.bodyContainsCut = bodyContainsCut;
     }
 
-    @Override
     public Clause getNegatedQueryClause() throws IllegalArgumentException {
 
         Clause result;

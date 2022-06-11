@@ -145,18 +145,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
     }
 
-    public ConsCell remove(Term term) { // Remove ALL occurrences.  TODO write iterative version.
-        if (numberArgs() == 0) {
-            return this;
-        }
-        Term first = getArgument(0);
-        ConsCell rest = ensureIsaConsCell(stringHandler, getArgument(1)).remove(term);
-        if (first.equals(term)) {
-            return rest;
-        }
-        return stringHandler.getConsCell(first, rest, null);
-    }
-
     public boolean isNil() {
         return this == getStringHandler().getNil();
     }
@@ -398,10 +386,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         }
 
         return hash;
-    }
-
-    public static ConsCell append(ConsCell a, ConsCell b) {
-        return a.append(b);
     }
 
     // TODO - write an iterative version of this.

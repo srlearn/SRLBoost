@@ -6,13 +6,12 @@ import edu.wisc.cs.will.Utils.Utils;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 /*
  * @author shavlik
  */
-public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, Comparable<Term> {
+public abstract class Term extends AllOfFOPC implements Serializable, Comparable<Term> {
 	TypeSpec          typeSpec;
 	transient HandleFOPCstrings stringHandler; // Add another field to everything so it can access this, and hence access things like lowercaseMeansVariable.
 
@@ -86,14 +85,6 @@ public abstract class Term extends AllOfFOPC implements Serializable, SLDQuery, 
         return visitor.visitOtherTerm(this);
     }
 
-
-	public Clause getNegatedQueryClause() throws IllegalArgumentException {
-        // We are going to just wrap the term in a literal for now.  The prover
-        // probably won't know how to handle this yet, but that should be an easy enough
-        // change to make.
-
-        return stringHandler.getClause(null, Collections.singletonList(stringHandler.getTermAsLiteral(this)));
-    }
 
 	public abstract BindingList          isEquivalentUptoVariableRenaming(Term that, BindingList bindings);
 
