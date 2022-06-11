@@ -1,0 +1,14 @@
+setParam: stringsAreCaseSensitive = true.
+
+usePrologVariables: true.
+
+
+(advisedby(A, B, 0.2259271347240843) :-  /* #neg=1 #pos=43 */ hasposition(B, faculty), publication(_, B), inphase(A, post_generals)).
+(advisedby(A, B, 0.17699941504051978) :-  /* #neg=3 #pos=31 */ hasposition(B, faculty), publication(_, B), inphase(A, post_quals)).
+(advisedby(_, A, -0.016291638230602357) :-  /* #neg=12 #pos=8 */ hasposition(A, faculty), publication(_, A)).
+(advisedby(A, B, 0.12912364006138713) :-  /* #neg=1 #pos=3 */ hasposition(B, faculty), ta(UniqueVar1, A, _), courselevel(UniqueVar1, level_400)).
+(advisedby(A, B, -0.464609230317172) :-  /* #neg=4 */ hasposition(B, faculty), ta(_, A, _)).
+(advisedby(A, B, 0.22634998170995196) :-  /* #pos=4 */ hasposition(B, faculty), yearsinprogram(A, year_4)).
+(advisedby(_, A, -0.17838297519566323) :-  /* #neg=3 #pos=1 */ hasposition(A, faculty)).
+(advisedby(_, A, -0.16945679063740365) :-  /* #neg=28 #pos=3 */ taughtby(_, A, _)).
+advisedby(_, _, -0.06699747595640818) /* #neg=153 #pos=4 */ .

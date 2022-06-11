@@ -49,6 +49,7 @@ public class RunBoostedMLN extends RunBoostedModels {
 		
 		int iterStepSize = 1;
 		if (cmdArgs.getTargetPredVal().size() == 1) {
+			// TODO(hayesall): This should always be true.
 			iterStepSize = cmdArgs.getMaxTreesVal();
 		}
 

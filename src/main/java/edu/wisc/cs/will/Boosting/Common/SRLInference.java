@@ -54,13 +54,4 @@ public abstract class SRLInference {
 		}
 	}
 
-	/**
-	 * 
-	 * @param target predicate name to evaluate for
-	 * @return true, if the target predicate has no query ancestors.
-	 */
-	protected boolean hasNoTargetParents(String target) {
-		return (rdn.getAncestorsOfType(target, PredicateType.QUERY).size() == 0);
-	}
-
 }

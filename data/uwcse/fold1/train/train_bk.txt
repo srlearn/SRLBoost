@@ -4,6 +4,7 @@ setParam: nodeSize=1.
 setParam: numOfClauses=8.
 setParam: numOfCycles=8.
 queryPred: advisedby/2.
+okIfUnknown: advisedby/2.
 mode: advisedby(+person,+person).
 mode: courselevel(+course,#level).
 mode: courselevel(+course,+level).

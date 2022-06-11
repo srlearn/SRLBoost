@@ -1,9 +1,7 @@
 package edu.wisc.cs.will.Boosting.RDN;
 
 import edu.wisc.cs.will.Boosting.Common.SRLInference;
-import edu.wisc.cs.will.Boosting.MLN.MLNInference;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyNetwork;
-import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode.PredicateType;
 import edu.wisc.cs.will.Boosting.RDN.Models.RelationalDependencyNetwork;
 import edu.wisc.cs.will.DataSetUtils.Example;
@@ -25,23 +23,10 @@ import java.util.*;
  */
 public class JointModelSampler extends SRLInference {
 
-	private final boolean useMLNInference;
-
-	/*
-	 * 
-	 * @param model - The joint model to use
-	 * @param setup - The WILLSetup class with the facts
-	 * @param cmdArgs - Arguments set by user.
-	 */
 	JointModelSampler(JointRDNModel model, WILLSetup setup) {
-		this(model, setup, false);
-	}
-
-	JointModelSampler(JointRDNModel model, WILLSetup setup, boolean useMLNs) {
 		super(setup);
 		this.jointModel   = model;
 		this.setup   = setup;
-		this.useMLNInference = useMLNs;
 		// Use the model to obtain the RDN structure
 		rdn = new RelationalDependencyNetwork(model, setup);
 	}
@@ -65,7 +50,13 @@ public class JointModelSampler extends SRLInference {
 		// We want to order predicates by the number of query/target predicate parents.
 		// For e.g., if "sameBib" has two query predicates as parents, while "sameTitle" has only one
 		// query predicate as parent, we should sample in the order {sameTitle, sameBib}.
-		Collection<String> orderedPredicates = getOrderedPredicates(originalJointExamples.keySet());
+
+		if (originalJointExamples.keySet().size() > 1) {
+			throw new RuntimeException("Multiple targets is deprecated.");
+		}
+
+		Collection<String> orderedPredicates = originalJointExamples.keySet();
+
 		// Print after getting the order, as we print the order in the DOT file too.
 		String rdnDotFile = setup.cmdArgs.getModelDirVal() + "bRDNs/dotFiles/rdn.dot";
 		printNetwork(rdn, rdnDotFile);
@@ -87,15 +78,11 @@ public class JointModelSampler extends SRLInference {
 	private void sampleExampleProbabilities(
 			Map<String, List<RegressionRDNExample>> jointExamples,
 			Collection<String> orderedPredicates) {
-		
-		boolean needSampling = false;
+
+		// TODO(hayesall): Most of this method related to sampling when there were multiple targets.
 
 		Map<String,List<Example>>  posEgs = new HashMap<>();
 		Map<String,List<Example>>  negEgs = new HashMap<>();
-
-		// First init the pos and neg examples. The posEgs and negEgs are updated with
-		// each sample and become facts for the next round and hence need to be collected.
-		Map<String, List<double[]>> counters = new HashMap<>();
 
 		for (String target : jointExamples.keySet()) {
 			List<RegressionRDNExample> examples = jointExamples.get(target);
@@ -108,163 +95,40 @@ public class JointModelSampler extends SRLInference {
 			// Based on the current sampled state(which would have been randomly assigned in the 
 			// RegressionRDNExample constructor), find out the current positive and negative examples.
 			updatePosNegWithSample(target, examples, posEgs, negEgs);
-			counters.put(target, new ArrayList<>());
-			// Find out what predicates are precomputed and are needed for predicting target predicates.
-			Collection<PredicateName> pnames = rdn.getAncestorsOfType(target, PredicateType.COMPUTED);
 		}
 
-		String last_target = null;
 		for (String target : orderedPredicates) {
 			// No examples for this predicate
 			if (!jointExamples.containsKey(target)) {
 				continue;
 			}
 			ConditionalModelPerPredicate mod = jointModel.get(target);
+
 			/*
 			 * If this query predicate doesn't have any query predicates as parents,
 			 * we can just compute the probabilities based on evidence and hence we 
 			 * don't need sampling.
 			 * Also if there is only one query predicate, we don't need joint inference.
+			 *
+			 * TODO(hayesall): Assert there is always a single query predicate.
 			 */
-			if (hasNoTargetParents(target) || jointExamples.size() == 1) {
-				List<RegressionRDNExample> examples = jointExamples.get(target);
 
-				if (examples.isEmpty()) {
-					continue;
-				}
-				setup.prepareFactsAndExamples(posEgs, negEgs, target, false, null);
-				SRLInference sampler;
+			List<RegressionRDNExample> examples = jointExamples.get(target);
 
-				if (useMLNInference) {
-					sampler = new MLNInference(setup, jointModel);
-				} else {
-					sampler = new SingleModelSampler(mod, setup, jointModel);
-				}
-
-				/*
-				 * If we are using recursion for this target, tell SingleModelSampler to use Gibbs sampling 
-				 * for probabilities.
-				 */
-				sampler.getProbabilities(examples);
-			} else {
-				// If there is one query predicate that has query predicate as parents, we need sampling.
-				needSampling = true;
-				Utils.println("Need sampling for:" + target);
+			if (examples.isEmpty()) {
+				continue;
 			}
+			setup.prepareFactsAndExamples(posEgs, negEgs, target, false);
+			SRLInference sampler;
+
+			sampler = new SingleModelSampler(mod, setup, jointModel);
+
+			/*
+			 * If we are using recursion for this target, tell SingleModelSampler to use Gibbs sampling
+			 * for probabilities.
+			 */
+			sampler.getProbabilities(examples);
 		}
-		if (!needSampling) {
-			Utils.println("% No Gibbs sampling needed during inference.");
-			return;
-		}	
-
-		// We should atleast sample 10X number of states considering there will be 2^examples number of states.
-		// But don't want to exceed 1000
-		// Now do Gibbs sampling.
-		int numOfSamples = 1000;
-		int burnInSteps = 200;
-		for (int i = -burnInSteps; i < numOfSamples; i++) {
-			// For all query predicates.
-			for (String target : jointExamples.keySet()) {
-				ConditionalModelPerPredicate mod = jointModel.get(target);
-				List<RegressionRDNExample> examples = jointExamples.get(target);
-				// Double negation here. If "target" has a query predicate as parent,
-				// then we need to compute the probabilities and generate a sample.
-				if(!hasNoTargetParents(target)) {
-					setup.prepareFactsAndExamples(posEgs, negEgs,
-							target, false, last_target);
-
-					if (useMLNInference) {
-						MLNInference sampler = new MLNInference(setup, jointModel);
-						sampler.getProbabilities(examples);
-						getSampleForExamples(examples);
-					} else {
-						// Assume that the model doesn't have recursion as the "if" condition
-						// takes care of how to sample the examples.
-						SingleModelSampler sampler = new SingleModelSampler(mod,setup, jointModel);
-
-						sampler.getProbabilities(examples);
-						getSampleForExamples(examples);
-					}
-				} else {
-					// Doesn't have a query predicate as parent, so probability doesn't change,
-					// in every iteration. But we still need a sample as others may depend on it.
-					getSampleForExamples(examples);
-				}
-				// Use the sample
-				updatePosNegWithSample(target, examples, posEgs, negEgs);
-				last_target = target;
-			}
-			if (i % 100 == 0 && i != 0) {
-				Utils.println("%   Sample #" + i);
-			}
-			// Get counts for the sample, after burn-in
-			if (i >= 0) {
-				getCountsForSample(jointExamples, counters);
-			}
-		}
-		// Set the probability.
-		setProbabilityFromCounters(jointExamples, counters);
-	}
-
-	/*
-	 * Orders predicates by the number of query predicates that are ancestors of 
-	 * a predicate. Actually, it marks the best predicate; finds the next best predicate
-	 * with least number of unmarked predicates and marks it. This is done till all
-	 * predicates are marked and the order of marking is the order of predicates.
-	 * @param keySet - The set of predicates to be ordered
-	 * @return A list of ordered predicates.
-	 */
-	private Collection<String> getOrderedPredicates(Set<String> keySet) {
-		// If only one target, no order.
-		if (keySet.size() == 1) {
-			return keySet;
-		}
-		// Result stored here
-		ArrayList<String> orderedPreds = new ArrayList<>();
-		// Temporary array which is emptied 
-		ArrayList<String> newSet = new ArrayList<>(keySet);
-		while(!newSet.isEmpty()) {
-			String bestPredicate= "";
-			int leastNeighbours = newSet.size() + 1;
-			for (String predicate : newSet) {
-				int nbrs = getNumUnmarkedParents(predicate);
-				if (nbrs < leastNeighbours) {
-					leastNeighbours = nbrs;
-					bestPredicate = predicate;
-				}
-			}
-
-			// Add best predicate
-			orderedPreds.add(bestPredicate);
-			newSet.remove(bestPredicate);
-			markBestPredicate(bestPredicate, orderedPreds.size());
-		}
-		// For now just return the same set
-		return orderedPreds;
-	}
-
-
-	/**
-	 * Used by getOrderedPredicates, to mark a predicate with a number
-	 */
-	private void markBestPredicate(String bestPredicate, int number) {
-		DependencyPredicateNode node = rdn.getDependencyNode(setup.getHandler().getPredicateName(bestPredicate));
-		node.setOrder(number);
-	}
-
-	/**
-	 * Number of ancestors that are unmarked.
-	 */
-	private int getNumUnmarkedParents(String predicate) {
-		Collection<PredicateName> ancestors = rdn.getQueryParents(predicate);
-		int count = 0;
-		for (PredicateName predicateName : ancestors) {
-			DependencyPredicateNode node = rdn.getDependencyNode(predicateName);
-			if (node.getOrder() < 0) {
-				count++;
-			}
-		}
-		return count;
 	}
 
 	private void updatePosNegWithSample(String target, List<RegressionRDNExample> examples,
@@ -325,54 +189,12 @@ public class JointModelSampler extends SRLInference {
 		}
 		
 	}
-	private void setProbabilityFromCounters(Map<String, List<RegressionRDNExample>> jointExamples,
-											Map<String, List<double[]>> counters) {
-		for (String target : jointExamples.keySet()) {
-			int i=0;
-			List<double[]> valueCounts = counters.get(target);
-
-			for (RegressionRDNExample rex : jointExamples.get(target)) {
-				double[] counts = valueCounts.get(i);
-				ProbDistribution distr = new ProbDistribution(counts[1]/(counts[1] + counts[0]));
-				rex.setProbOfExample(distr);
-				i++;
-			}
-			
-		}
-	}
 
 	private void removeAllExamples(Map<String, List<RegressionRDNExample>> jointExamples) {
 		for (String target : jointExamples.keySet()) {
 			for (RegressionRDNExample eg : jointExamples.get(target)) {
 				setup.removeFact(eg);
 			}
-		}
-	}
-
-	private void getCountsForSample(
-			Map<String,
-			List<RegressionRDNExample>> jointExamples,
-			Map<String, List<double[]>> counters) {
-		for (String target : jointExamples.keySet()) {
-			int i=0;
-			int totalVals = setup.getMulticlassHandler().numConstantsForPredicate(target);
-			for (RegressionRDNExample rex : jointExamples.get(target)) {
-				List<double[]> valueCounts = counters.get(target);
-				if (valueCounts.size() <= i) {
-					valueCounts.add(new double[totalVals]);
-				}
-				int val = rex.getSampledValue();
-				valueCounts.get(i)[val] += 1;
-				i++;
-			}
-		}
-	}
-	
-	private void getSampleForExamples(List<RegressionRDNExample> examples) {
-		for (RegressionRDNExample rex : examples) {
-			ProbDistribution prob = rex.getProbOfExample();
-			int val = prob.randomlySelect();
-			rex.setSampledValue(val);
 		}
 	}
 

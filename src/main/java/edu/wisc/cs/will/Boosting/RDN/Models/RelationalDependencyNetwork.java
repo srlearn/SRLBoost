@@ -18,26 +18,10 @@ import java.util.*;
  */
 public class RelationalDependencyNetwork extends DependencyNetwork {
 
-	private HashMap<String, HashMap<PredicateType, Set<PredicateName>>> predicateToAncestorMap;
-	private HashMap<String,                        Set<PredicateName>> predicateToQueryParentsMap;
-
-	/*
-	 * Set to true, if there is any recursive node in RDN.
-	 */
-
 	public RelationalDependencyNetwork(JointRDNModel fullModel, WILLSetup setup) {
 		super();
 		initializeRDNUsingModel(fullModel, setup);
 		initializeRDNUsingPrecompute(setup);
-		resetCache();
-	}
-	
-	/*
-	 * Call this whenever a node or a link is added to the graph.
-	 */
-	private void resetCache() {
-		predicateToAncestorMap = new HashMap<>();
-		predicateToQueryParentsMap = new HashMap<>();
 	}
 
 	private void initializeRDNUsingPrecompute(WILLSetup setup) {
@@ -67,25 +51,6 @@ public class RelationalDependencyNetwork extends DependencyNetwork {
 				parents.add(lit.predicateName);
 			}
 		}
-
-		for (PredicateName pName : predicateToParents.keySet()) {
-			// Facts are sometimes(LazyHornClauseBase) stored as fact(x) :- .
-			// This would be interpreted as "fact" being a precompute, which is wrong. 
-			// So make sure that the rule has some predicates in the body, before labelling 
-			// a predicate as precompute. 
-			if (predicateToParents.get(pName) != null &&
-				predicateToParents.get(pName).size() > 0) {
-				// Rule has non-empty body, so it is a precomputed predicate.
-				getDependencyNode(pName).setType(PredicateType.COMPUTED);
-				// Add links for each parent
-				for (PredicateName parent : predicateToParents.get(pName)) {
-					if (parent.name.contains("wumpus") || pName.name.equals("wumpus")) {
-						Utils.waitHere("Adding link between " + parent + " & " + pName);
-					}
-					addLink(parent, pName, EdgeType.DETERMINISTIC);
-				}
-			}
-		}
 	}
 
 	private void initializeRDNUsingModel(JointRDNModel fullModel, WILLSetup setup) {
@@ -113,7 +78,6 @@ public class RelationalDependencyNetwork extends DependencyNetwork {
 		DependencyNetworkEdge edge = getDependencyEdge(parNode, chiNode, type);
 		parNode.addChild(edge);
 		chiNode.addParent(edge);
-		resetCache();
 	}
 
 	private DependencyNetworkEdge getDependencyEdge(
@@ -127,88 +91,8 @@ public class RelationalDependencyNetwork extends DependencyNetwork {
 		if (!stringRepToNode.containsKey(parent.name)) {
 			DependencyPredicateNode newPar = new DependencyPredicateNode(parent); 
 			stringRepToNode.put(parent.name, newPar);
-			resetCache();
 		}
 		return (DependencyPredicateNode)stringRepToNode.get(parent.name);
-	}
-
-	public Collection<PredicateName> getQueryParents(String predicate) {
-		if (!predicateToQueryParentsMap.containsKey(predicate)) {
-			// Not in the cache. build the cache for node
-			DependencyNode node = stringRepToNode.get(predicate);
-			// Queue of ancestors
-			Set<PredicateName> ancestors = new HashSet<>();
-			Set<PredicateName> nodesConsidered = new HashSet<>();
-			// Search for ancestors
-			ArrayList<DependencyNetworkEdge> ancestors_queue = new ArrayList<>(node.getParents());
-			while(!ancestors_queue.isEmpty()) {
-				// Since we are looking at parents, we need source
-				DependencyPredicateNode ancestor = (DependencyPredicateNode)ancestors_queue.remove(0).getStart();
-				// Ignore nodes already seen.
-				if (nodesConsidered.contains(ancestor.getPredicate())) {
-					Utils.println("\n% getQueryParents: Already seen this ancestor: " + ancestor.getPredicate()); 
-					continue;
-				}
-				nodesConsidered.add(ancestor.getPredicate());
-				PredicateType aType = ancestor.getType();
-				if (aType == PredicateType.QUERY) {
-					ancestors.add(ancestor.getPredicate());
-				}
-				if (aType == PredicateType.COMPUTED) {
-					// 	Add the parents of the ancestor, if this node is computed
-					ancestors_queue.addAll(ancestor.getParents());
-				}
-			}
-			predicateToQueryParentsMap.put(predicate, ancestors);
-		}	
-		return predicateToQueryParentsMap.get(predicate);
-	}
-	public Collection<PredicateName> getAncestorsOfType(String predicate,
-			PredicateType type) {
-		
-		if (!predicateToAncestorMap.containsKey(predicate)) {
-			// Not in the cache. build the cache for node
-			DependencyNode node = stringRepToNode.get(predicate);
-			if (node == null) {
-				Utils.error("Doesn't contain the predicate " + predicate + " in the RDN");
-			}
-			// Queue of ancestors
-			HashMap<PredicateType, Set<PredicateName>> ancestorsOfType = new HashMap<>();
-			Set<PredicateName> nodesConsidered = new HashSet<>();
-
-			// Search for ancestors
-			ArrayList<DependencyNetworkEdge> ancestors = new ArrayList<>(node.getParents());
-			while(!ancestors.isEmpty()) {
-				// Since we are looking at parents, we need source
-				DependencyPredicateNode ancestor = (DependencyPredicateNode)ancestors.remove(0).getStart();
-				// Ignore nodes already seen.
-				if (nodesConsidered.contains(ancestor.getPredicate())) {
-					continue;
-				}
-				nodesConsidered.add(ancestor.getPredicate());
-
-				PredicateType aType = ancestor.getType();
-				if (!ancestorsOfType.containsKey(aType)) {
-					ancestorsOfType.put(aType, new HashSet<>());
-				}
-				if (ancestorsOfType.get(aType).add(ancestor.getPredicate())) {
-					// 	Add the parents of the ancestor, if this node was never seen before
-					// ie if it is not already in the ancestor set, it is new.
-					ancestors.addAll(ancestor.getParents());
-				}
-			}
-			predicateToAncestorMap.put(predicate, ancestorsOfType);
-		}	
-		
-		
-		HashMap<PredicateType, Set<PredicateName>> map = predicateToAncestorMap.get(predicate);
-
-		// We have already computed the ancestors for this node.
-		if (map.containsKey(type)) {
-			return map.get(type);
-		}
-		// No ancestors of this type found. Return empty list
-		return new HashSet<>();
 	}
 
 }
