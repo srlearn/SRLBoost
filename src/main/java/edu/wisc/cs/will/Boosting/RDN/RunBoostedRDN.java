@@ -63,7 +63,7 @@ public class RunBoostedRDN extends RunBoostedModels {
 			for (String pred : cmdArgs.getTargetPredVal()) {
 				SingleModelSampler sampler = new SingleModelSampler(fullModel.get(pred), setup, fullModel);
 				if (cmdArgs.getTargetPredVal().size() > 1) {
-					Utils.error("Yap is not available");
+					throw new RuntimeException("Multiple targets is deprecated.");
 				}
 			
 				if (fullModel.get(pred).getNumTrees() >= (i+iterStepSize)) {

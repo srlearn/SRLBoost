@@ -32,8 +32,6 @@ public final class WILLSetup {
 	private LearnOneClause innerLooper;
 	private HandleFOPCstrings handler;
 	private HornClauseContext context;
-	private HornClauseProver prover;
-	private MultiClassExampleHandler multiclassHandler;
 
 	private Map<String, List<Example>> backupPosExamples;
 	private Map<String, List<Example>> backupNegExamples;
@@ -182,20 +180,6 @@ public final class WILLSetup {
 		// Needed to get examples from fact files.
 		fillMissingExamples();
 
-
-		// TODO(hayesall): isDisableMultiClass showed up here, but there was a comment saying the multiclasshandler
-		//		was created whether we used it or not.
-		// check if multi class trees are enabled.
-		// We still create the multi class handler object
-		multiclassHandler = new MultiClassExampleHandler();
-		multiclassHandler.initArgumentLocation(this);
-		for (String pred : backupPosExamples.keySet()) {
-			multiclassHandler.addConstantsFromLiterals(backupPosExamples.get(pred));
-			if (backupNegExamples.containsKey(pred)) {
-				multiclassHandler.addConstantsFromLiterals(backupNegExamples.get(pred));
-			}
-		}
-
 		if (backupPosExamples != null) for (String target : backupPosExamples.keySet()) {
 			Collection<Example> posegs = backupPosExamples.get(target);
 			Collection<Example> negegs = backupNegExamples.get(target);
@@ -245,69 +229,9 @@ public final class WILLSetup {
 			backupNegExamples.computeIfAbsent(pred, k -> new ArrayList<>());
 		}
 
-		if (missingPositiveTargets.isEmpty()) {
-			return;
+		if (!missingPositiveTargets.isEmpty()) {
+			throw new RuntimeException("If you've reached this point, something has gone wrong.");
 		}
-
-		// These predicates are in facts.
-		predicatesAsFacts.addAll(missingPositiveTargets);
-		
-		for (Literal lit : getContext().getClausebase().getFacts()) {
-
-			String litPredicate = lit.predicateName.name;
-			if (missingPositiveTargets.contains(litPredicate)) {
-
-				// Telling WILL that this is an example.
-				getInnerLooper().confirmExample(lit);
-				
-				RegressionRDNExample eg = new RegressionRDNExample(lit, true, "% Obtained from facts.");
-				addExampleToMap(eg, backupPosExamples);
-				if (!disableFactBase) {
-					addedToFactBase.add(eg);
-				}
-			}
-		}
-		
-		if (missingNegativeTargets.size() > 0) {
-			// Update targetArgSpecs so that predicates are available for creating negatives.
-			getInnerLooper().chooseTargetMode(true);
-			
-			for (int i = 0; i < getInnerLooper().getTargets().size(); i++) {
-				String predName = getInnerLooper().getTargets().get(i).predicateName.name;
-				//Utils.println("considering " + predName);
-				if (missingNegativeTargets.contains(predName)) {
-					// Only create negs for predicates completely missing from pos/neg or 
-					// for any predicate missing negs iff createSyntheticexamples is enabled.
-					if (missingPositiveTargets.contains(predName)) {
-						Utils.println("Creating neg ex for: " + predName);
-						throw new RuntimeException("Creating Synthetic Examples this way is deprecated.");
-					}
-				}
-			}
-		}
-		// If no examples found, return
-		for (String predName : cmdArgs.getTargetPredVal()) {
-			if (missingPositiveTargets.contains(predName) && 
-					(!backupPosExamples.containsKey(predName) || backupPosExamples.get(predName).isEmpty()) && 
-				missingNegativeTargets.contains(predName) &&
-					(!backupNegExamples.containsKey(predName) || backupNegExamples.get(predName).isEmpty())) {
-				// Missing all examples of a particular type.
-
-				String mesg = "No examples(positive & negative) found for predicate: " + predName;
-				Utils.warning(mesg);
-				return;
-			}
-		}
-		// Update targetArgSpecs.
-		getInnerLooper().chooseTargetMode(true);
-	}
-
-	private void addExampleToMap(Example eg, Map<String,List<Example>> exampleMap) {
-		String litPredicate = eg.predicateName.name;
-		if(!exampleMap.containsKey(litPredicate) ||	exampleMap.get(litPredicate) == null) {
-			exampleMap.put(litPredicate, new ArrayList<>());
-		}
-		exampleMap.get(litPredicate).add(eg);
 	}
 
 	void reportStats() {
@@ -319,14 +243,13 @@ public final class WILLSetup {
 	}	
 	
 	public void prepareFactsAndExamples(String predicate) {
-		prepareFactsAndExamples(backupPosExamples, backupNegExamples, predicate, true, null);
+		prepareFactsAndExamples(backupPosExamples, backupNegExamples, predicate, true);
 	}
 
 	// Maintain a list of predicates that are already added, so that we can save on time.
 	private final HashSet<String> predicatesAsFacts = new HashSet<>();
 	private final HashSet<Literal> addedToFactBase  = new HashSet<>();
-	private final boolean disableFactBase = true;
-	
+
 	private final Set<PredicateNameAndArity> backupTargetModes=new HashSet<>();
 
 	void addAllTargetModes() {
@@ -342,12 +265,11 @@ public final class WILLSetup {
 	
 	void prepareFactsAndExamples(Map<String, List<Example>> posEg,
 								 Map<String, List<Example>> negEg,
-								 String predicate, boolean forLearning,
-								 String only_mod_pred) {
+								 String predicate, boolean forLearning) {
 
 		if (posEg.keySet().size() > 1 || negEg.keySet().size() > 1) {
 			// JWS added the negEq check since we need to work with only NEG examples (ie, on an unlabeled testset).
-			prepareFactsForJoint(posEg, negEg, predicate, only_mod_pred, forLearning);
+			throw new RuntimeException("Should only be possible when there is more than one target.");
 		}
 		prepareExamplesForTarget(posEg.get(predicate), negEg.get(predicate), predicate, forLearning);
 	}
@@ -462,75 +384,6 @@ public final class WILLSetup {
 		return result;
 	}
 
-	private void prepareFactsForJoint(
-			Map<String, List<Example>> posEg,
-			Map<String, List<Example>> negEg,
-			String predicate, String onlyModPred,
-			boolean forLearning) {
-
-		// to  be safe
-		Set<String> newlyAddedPredicates = new HashSet<>();
-		for (String target : posEg.keySet()) {
-			if (target.equals(predicate)) {
-				if (predicatesAsFacts.contains(target) &&
-						disableFactBase) {
-					System.currentTimeMillis();
-					for (Example eg : posEg.get(target)) {
-						removeFact(eg);
-					}
-					System.currentTimeMillis();
-				} else {
-					for (Example eg : posEg.get(target)) {
-						// Remove this fact from clausebase.
-						if (predicatesAsFacts.contains(target) && 
-								(disableFactBase || addedToFactBase.contains(eg))) {
-							if (!disableFactBase) {
-								addedToFactBase.remove(eg);
-							}
-							removeFact(eg);
-						}
-					}
-				}
-			} else {
-				for (Example eg : posEg.get(target)) {
-
-					if ((onlyModPred == null || eg.predicateName.name.equals(onlyModPred)) &&
-						(!(predicatesAsFacts.contains(eg.predicateName.name) && forLearning)) && 
-						(disableFactBase || !addedToFactBase.contains(eg))) {
-						if (!disableFactBase) {
-							addedToFactBase.add(eg);
-						}
-						addFact(eg);
-					}
-				}
-				// update the set
-				newlyAddedPredicates.add(target);
-			}
-		}
-		for (String target : negEg.keySet()) {
-			for (Example eg : negEg.get(target)) {
-				if (!target.equals(predicate)) {
-					// update the set
-					newlyAddedPredicates.add(target);
-				}
-				// Either way remove this fact
-				if (predicatesAsFacts.contains(eg.predicateName.name) &&
-					(onlyModPred == null || eg.predicateName.name.equals(onlyModPred)) &&
-					(disableFactBase || addedToFactBase.contains(eg))) {
-					removeFact(eg);
-					if (!disableFactBase) {
-						addedToFactBase.remove(eg);
-					}
-				}
-			}
-		}
-		predicatesAsFacts.addAll(newlyAddedPredicates);
-		// Remove the target as predicate
-		if (predicate != null) {
-			predicatesAsFacts.remove(predicate);
-		}
-	}
-
 	public Clause convertFactToClause(String fact) {
 		return getInnerLooper().getParser().parseDefiniteClause(fact);
 	}
@@ -540,7 +393,6 @@ public final class WILLSetup {
 		this.innerLooper = outerLooper.innerLoopTask;
 		this.handler     = outerLooper.innerLoopTask.getStringHandler();
 		this.context     = outerLooper.innerLoopTask.getContext();
-		this.prover      = outerLooper.innerLoopTask.getProver();
 		neighboringFactFilterList = null;
 	}
 
@@ -568,10 +420,6 @@ public final class WILLSetup {
 		getContext().getClausebase().assertFact(eg);
 	}
 
-	private HornClauseProver getProver() {
-		return prover;
-	}
-	
 	// Pulled out by JWS (7/8/10) so could be called elsewhere for a plain regression-tree learning.
 	private void createRegressionOuterLooper(String[] newArgList, String directory, String prefix, double negToPosRatio, boolean isaRegressionTaskRightAway) {
 
@@ -707,13 +555,6 @@ public final class WILLSetup {
 			Set<PredicateNameAndArity> pars = new HashSet<>(BoostingUtils.convertBodyModesToPNameAndArity(getInnerLooper().getBodyModes()));
 			neighboringFactFilterList = new ArrayList<>(pars);
 		}
-	}
-
-	/**
-	 * @return the multiclassHandler
-	 */
-	MultiClassExampleHandler getMulticlassHandler() {
-		return multiclassHandler;
 	}
 
 }

@@ -7,7 +7,6 @@ import edu.wisc.cs.will.Boosting.Utils.ThresholdSelector;
 import edu.wisc.cs.will.DataSetUtils.ComputeAUC;
 import edu.wisc.cs.will.ILP.CoverageScore;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.Utils.condor.CondorFileWriter;
 
 import java.io.BufferedWriter;
@@ -29,26 +28,27 @@ public class InferBoostedRDN {
 	}
 	
 	public void runInference(JointRDNModel rdns, double thresh) {
+
+		// TODO(hayesall): This has conditional behavior depending on how many targets are passed as input.
+		//		Experimenting with dropping support for passing multiple targets.
+
 		Map<String,List<RegressionRDNExample>> targetExamples = setup.getJointExamples(cmdArgs.getTargetPredVal());
 		Map<String,List<RegressionRDNExample>> jointExamples;
 		jointExamples = new HashMap<>(targetExamples);
-		boolean negativesSampled = false;
-		
+
+		if (jointExamples.keySet().size() > 1) {
+			throw new RuntimeException("Multiple targets is deprecated.");
+		}
+
 		Utils.println("\n% Starting inference in bRDN.");
 		SRLInference sampler;
 		if (cmdArgs.isLearnMLN()) {
-			if (jointExamples.keySet().size() > 1) {
-				sampler = new JointModelSampler(rdns, setup, true);
-			} else {
-				Utils.println("\n% Subsampling the negative examples.");
-				subsampleNegatives(jointExamples);
-				negativesSampled = true;
-				sampler = new MLNInference(setup, rdns);
-			}
+			Utils.println("\n% Subsampling the negative examples.");
+			subsampleNegatives(jointExamples);
+			sampler = new MLNInference(setup, rdns);
 		} else {
 			sampler = new JointModelSampler(rdns, setup);
 			subsampleNegatives(jointExamples);
-			negativesSampled = true;
 		}
 			
 		int startCount = cmdArgs.getMaxTreesVal();
@@ -65,14 +65,6 @@ public class InferBoostedRDN {
 				}
 			}
 
-			// Subsample the negatives for reporting.
-			if (!negativesSampled) {
-				Utils.println("\n% Subsampling the negative examples for reporting.");
-				subsampleNegatives(jointExamples);
-				negativesSampled=true;
-			}
-
-		
 			// clear the query file.
 			if (writeQueryAndResults) {
 				for (String target : jointExamples.keySet()) {

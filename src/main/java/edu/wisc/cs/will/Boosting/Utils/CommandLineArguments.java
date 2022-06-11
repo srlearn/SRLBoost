@@ -177,6 +177,11 @@ public class CommandLineArguments {
 				String targetStr = args[++i];
 				targetPredVal = new HashSet<>();
 				targetPredVal.addAll(Arrays.asList(targetStr.split(",")));
+
+				if (targetPredVal.size() > 1) {
+					throw new RuntimeException("Passing multiple targets is deprecated.");
+				}
+
 				continue;
 			}
 			if (argMatches(args[i], regressionFlag)) {
