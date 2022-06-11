@@ -41,7 +41,7 @@ public class PrettyPrinter {
 
         appendWithPrefix(stringBuilder, r.getResultString(), additionalLinesPrefix);
 
-        stringBuilder.append(data.options.getSentenceTerminator());
+        stringBuilder.append(".");
 
 
         return stringBuilder.toString();
@@ -144,7 +144,7 @@ public class PrettyPrinter {
             if (a != null) {
                 stringBuilder.append(prefix);
 
-                if (/*a.multiline ||*/a.getPrecedence() > precedence) {
+                if (a.getPrecedence() > precedence) {
                     stringBuilder.append("(");
                     if (multiline && data.options.isNewLineAfterOpenParathesis()) {
                         stringBuilder.append("\n").append(prefix2);
@@ -153,7 +153,7 @@ public class PrettyPrinter {
 
                 appendWithPrefix(stringBuilder, a.resultString, prefix2);
 
-                if (/*a.multiline ||*/a.getPrecedence() > precedence) {
+                if (a.getPrecedence() > precedence) {
                     if (multiline) {
                         stringBuilder.append("\n").append(prefix);
                     }
@@ -197,7 +197,7 @@ public class PrettyPrinter {
                 }
             }
 
-            result.setMultiline(data.options.isMultilineOutputEnabled() && multiline);
+            result.setMultiline(multiline);
             result.setResultString(stringBuilder.toString());
 
             data.popIndent();
@@ -371,7 +371,7 @@ public class PrettyPrinter {
                     totalWidth += tpp.getMaximumWidth();
                 }
 
-                multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > 130 - data.getCurrentIndentation());
+                multiline = (multiline || totalWidth > 130 - data.getCurrentIndentation());
 
                 String prefix = "";
 
@@ -386,22 +386,19 @@ public class PrettyPrinter {
                     PPResult tpp = list.get(i);
                     if (i > 0) {
                         stringBuilder.append(", ");
-                        if (data.options.isMultilineOutputEnabled()) {
-                            if (lastWasMultiline || tpp.multiline) {
+                        if (lastWasMultiline || tpp.multiline) {
+                            stringBuilder.append("\n").append(prefix);
+                            currentWidth = 0;
+                            termsOnLine = 0;
+                            lastWasMultiline = tpp.multiline;
+                            multiline = true;
+                        }
+                        else {
+                            if (currentWidth + tpp.getMaximumWidth() >= maximumWidth || (data.options.getMaximumLiteralsPerLine() > 0 && termsOnLine >= data.options.getMaximumLiteralsPerLine())) {
                                 stringBuilder.append("\n").append(prefix);
                                 currentWidth = 0;
                                 termsOnLine = 0;
-                                lastWasMultiline = tpp.multiline;
                                 multiline = true;
-                            }
-                            else {
-                                if (currentWidth + tpp.getMaximumWidth() >= maximumWidth || (data.options.getMaximumLiteralsPerLine() > 0 && termsOnLine >= data.options.getMaximumLiteralsPerLine())) {
-                                    stringBuilder.append("\n").append(prefix);
-                                    currentWidth = 0;
-                                    termsOnLine = 0;
-                                    multiline = true;
-                                }
-                                lastWasMultiline = false;
                             }
                         }
                     }
@@ -445,11 +442,7 @@ public class PrettyPrinter {
 
                 PPResult tpp;
 
-                if (data.options.getMaximumConsCells() != -1 && cellCount >= data.options.getMaximumConsCells()) {
-                    tpp = new PPResult("...", false, 1000);
-                    currentCell = null;
-                }
-                else if (currentCell instanceof ConsCell) {
+                if (currentCell instanceof ConsCell) {
                     ConsCell aCell = (ConsCell) currentCell;
                     Term head = aCell.car();
                     currentCell = aCell.getArgument(1);
@@ -474,7 +467,7 @@ public class PrettyPrinter {
 
             }
 
-            multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > 130 - data.getCurrentIndentation());
+            multiline = (multiline || totalWidth > 130 - data.getCurrentIndentation());
 
             String prefix = spaces(1);
 
@@ -500,20 +493,17 @@ public class PrettyPrinter {
                         stringBuilder.append(", ");
                     }
 
-                    if (data.options.isMultilineOutputEnabled()) {
-                        if (lastWasMultiline || tpp.multiline) {
+                    if (lastWasMultiline || tpp.multiline) {
+                        stringBuilder.append("\n").append(prefix);
+                        currentWidth = 0;
+                        lastWasMultiline = tpp.multiline;
+                        multiline = true;
+                    }
+                    else {
+                        if (currentWidth + tpp.getMaximumWidth() >= maximumWidth) {
                             stringBuilder.append("\n").append(prefix);
                             currentWidth = 0;
-                            lastWasMultiline = tpp.multiline;
                             multiline = true;
-                        }
-                        else {
-                            if (currentWidth + tpp.getMaximumWidth() >= maximumWidth) {
-                                stringBuilder.append("\n").append(prefix);
-                                currentWidth = 0;
-                                multiline = true;
-                            }
-                            lastWasMultiline = false;
                         }
                     }
                 }
@@ -611,7 +601,7 @@ public class PrettyPrinter {
                     totalWidth += tpp.getMaximumWidth();
                 }
 
-                multiline = data.options.isMultilineOutputEnabled() && (multiline || totalWidth > 130 - data.getCurrentIndentation());
+                multiline = (multiline || totalWidth > 130 - data.getCurrentIndentation());
 
                 String prefix = spaces(pred.length() + 1);
 
@@ -632,22 +622,19 @@ public class PrettyPrinter {
                         if (!infix) {
                             stringBuilder.append(", ");
                         }
-                        if (data.options.isMultilineOutputEnabled()) {
-                            if (lastWasMultiline || tpp.multiline) {
+                        if (lastWasMultiline || tpp.multiline) {
+                            stringBuilder.append("\n").append(prefix);
+                            currentWidth = 0;
+                            termsOnLine = 0;
+                            lastWasMultiline = tpp.multiline;
+                            multiline = true;
+                        }
+                        else {
+                            if (!infix && (currentWidth + tpp.getMaximumWidth() >= maximumWidth || (maxTermsPerLine > 0 && termsOnLine >= maxTermsPerLine))) {
                                 stringBuilder.append("\n").append(prefix);
                                 currentWidth = 0;
                                 termsOnLine = 0;
-                                lastWasMultiline = tpp.multiline;
                                 multiline = true;
-                            }
-                            else {
-                                if (!infix && (currentWidth + tpp.getMaximumWidth() >= maximumWidth || (maxTermsPerLine > 0 && termsOnLine >= maxTermsPerLine))) {
-                                    stringBuilder.append("\n").append(prefix);
-                                    currentWidth = 0;
-                                    termsOnLine = 0;
-                                    multiline = true;
-                                }
-                                lastWasMultiline = false;
                             }
                         }
                     }
