@@ -878,19 +878,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 		return false;
 	}
 
-	BindingList bindVarsToUniqueConstants(Literal numberedLiteral) {
-		BindingList          blForParent = cachedBindingListForPruning;
-		BindingList          result      = new BindingList();
-		Collection<Variable> newVars     = numberedLiteral.collectFreeVariables(null);		
-		if (newVars != null) {
-			int currentPositionInConstants = (blForParent == null ? 0 : blForParent.theta.size());
-			for (Variable newVar : newVars) { 
-				result.addBinding(newVar, constantsToUse[currentPositionInConstants++]); // If we get an error here, look at Clause.copyAndReplaceVariablesWithNumbers (seems unlikely we'll ever have more than 100 unique variables in a clause ...).
-			}
-		}
-		return result;
-	}
-		
 	public void clearAnySavedInformation() {
 		if (newTypesPresentInChild    != null) { newTypesPresentInChild.clear();    }
 		if (newTypesPresentInChildMap != null) { newTypesPresentInChildMap.clear(); }

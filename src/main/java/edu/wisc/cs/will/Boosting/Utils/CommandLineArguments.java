@@ -359,10 +359,6 @@ public class CommandLineArguments {
 		return targetPredVal;
 	}
 
-	public boolean isDisableMultiClass() {
-		return false;
-	}
-
 	public boolean isLearnRegression() {
 		return learnRegression;
 	}

@@ -158,16 +158,6 @@ public class InferBoostedRDN {
 		return setup.getOuterLooper().getWorkingDirectory() + "/results_" + suff + target + ".db";
 	}
 
-	private String getTestsetInfoFile(String target) {
-		String modelDir = cmdArgs.getResultsDirVal();
-		String result   = Utils.replaceWildCards((modelDir != null ? modelDir : setup.getOuterLooper().getWorkingDirectory())
-												+ "bRDNs/" + (target == null || target.isEmpty() ? "" : target + "_") 
-												+ "testsetStats" + cmdArgs.getExtraMarkerForFiles(true)
-												+ (cmdArgs.getModelFileVal() == null ? "" : "_" + cmdArgs.getModelFileVal()) + ".txt");
-		Utils.ensureDirExists(result);
-		return result;
-	}
-
 	private void getF1ForEgs(List<RegressionRDNExample> examples, double threshold,
 							 String target, int trees) {
 

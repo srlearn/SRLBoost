@@ -1,7 +1,6 @@
 package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.FOPC.*;
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.List;
@@ -23,7 +22,7 @@ public class ILPprocedurallyDefinedPredicateHandler extends	ProcedurallyDefinedP
 		return predicateName == task.procDefinedNeedForNewVariables && arity >= 2;
 	}
 
-	public BindingList handle(HornClauseContext context,Literal literal, Unifier unifier, BindingList bindingList) {
+	public BindingList handle(Literal literal, BindingList bindingList) {
 		PredicateName pred = literal.predicateName;
 		List<Term>    args = literal.getArguments();
 		int           size = args.size();

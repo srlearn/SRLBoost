@@ -9,7 +9,6 @@ import edu.wisc.cs.will.FOPC_MLN_ILP_Parser.FileParser;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolder;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForMLN;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForRDN;
-import edu.wisc.cs.will.ILP.Regression.RegressionVectorInfoHolderForRDN;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.ResThmProver.HornClausebase;
@@ -97,8 +96,7 @@ import java.util.*;
 
 public class LearnOneClause extends StateBasedSearchTask {
 
-    Object              caller     = null;                           // The instance that called this LearnOneClause instance.
-	String              callerName = "unnamed caller";               // Used to annotate printing during runs.
+    String              callerName = "unnamed caller";               // Used to annotate printing during runs.
 
 	private final FileParser          parser;
 
@@ -112,7 +110,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 	public    int                 maxFreeBridgersInBody             = maxBodyLength; // Bridgers can run amok so limit them (only has an impact when countBridgersInLength=true).  This is implemented as follows: the first  maxBridgersInBody don't count in the length, but any excess does.
 	public    int                 maxNumberOfNewVars                =  10;     // Limit on the number of "output" variables used in a rule body.
 	public    int        		  maxDepthOfNewVars                 =   7;     // The depth of variables in the head is 0.  The depth of a new variable is 1 + max depth of the input variables in the new predicate.
-	public    int                 maxPredOccurrences                =   5;     // Maximum number of times a given predicate can appear in a clause (REGARDLESS of whether or not the input variables differ).  Ccn be overwritten on a per-predicate basis.
     private   double              minPosCoverage                    =   2.0;   // [If in (0,1), treat as a FRACTION of totalPosWeight].  Acceptable clauses must cover at least this many positive examples.  NOTE: this number is compared to SUMS of weighted examples, not simply counts (which is why this is a 'double').
 	private   double              maxNegCoverage                    =  -1.0;   // [If in (0,1), treat as a FRACTION of totalNegWeight].  Acceptable clauses must cover no  more this many negative examples.  NOTE: this number is compared to SUMS of weighted examples, not simply counts (which is why this is a 'double').  IGNORE IF A NEGATIVE NUMBER.
 	double              minPrecision                      =   0.501; // Acceptable clauses must have at least this precision.
@@ -121,10 +118,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 	public    double              clausesMustCoverFractPosSeeds     =   0.499; // ALL candidate clauses must cover at least this fraction of the pos seeds.  If performing RRR, these sets are used when creating the starting points.
     boolean             stopWhenUnacceptableCoverage      =   true;  // If set to  true, don't continue to prove examples when impossible to meet the minPosCoverage and minPrecision specifications.
     public    int                 minNumberOfNegExamples            =  10;     // If less than this many negative examples, create some implicit negative examples.
-	public    double              fractionOfImplicitNegExamplesToKeep = 0.10;  // NEW: if > 1.1, then count this NUMBER of examples, otherwise when generating implicit negatives, keep this fraction (but first make sure the min neg's number above is satisfied).
     final long                maxResolutionsPerClauseEval    = 10000000;     // When evaluating a clause, do not perform more than this many resolutions.  If this is exceeded, a clause is said to cover 0 pos and 0 neg, regardless of how many have been proven and it won't be expanded.
 
-    int                 savedBeamWidth;                // Save the old beam width so it can be restored when in phase 2 of RRR.
     private List<Example>         posExamples;
     private List<Example>         negExamples;
 	double              totalPosWeight = -1.0;   // Sum of the weights on the positive examples.
@@ -326,7 +321,6 @@ public class LearnOneClause extends StateBasedSearchTask {
             if (posExamplesReader       != null) closeWithoutException(posExamplesReader);
 			if (negExamplesReader       != null) closeWithoutException(negExamplesReader);
 			// Will be set to true when using this code to create features.
-			savedBeamWidth = beamWidth;  // To be safe, grab this even if not doing RRR search.
 
             targetModes = new ArrayList<>(1);
             bodyModes   = new LinkedHashSet<>(Utils.getSizeSafely(stringHandler.getKnownModes()) - 1);

@@ -223,8 +223,7 @@ public class LazyHornClausebase implements HornClausebase {
         return assertions;
     }
 
-    @Override
-    public DefiniteClauseList getAssertions(PredicateName predName, int arity) {
+    private DefiniteClauseList getAssertions(PredicateName predName, int arity) {
         return getIndexerForAllAssertions().getPossibleMatchingAssertions(predName, arity);
     }
 
@@ -242,11 +241,6 @@ public class LazyHornClausebase implements HornClausebase {
     @Override
     public Iterable<DefiniteClause> getAssertions() {
         return assertions;
-    }
-
-    @Override
-    public Iterable<Literal> getFacts() {
-        return new DefiniteClauseToLiteralIterable(assertions);
     }
 
     @Override

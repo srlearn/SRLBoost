@@ -39,18 +39,18 @@ public class InitHornProofSpace extends Initializer {
             nodes = createCutMarkerNodes(negatedQueryLiterals, proofCount);
         }
         else {
-            nodes = createNonCutNodes(negatedQueryLiterals, proofCount);
+            nodes = createNonCutNodes(negatedQueryLiterals);
         }
         
         if ( openList != null ) initializeOpen(openList, nodes);
 
     }
 
-    private HornSearchNode[] createNonCutNodes(List<Literal> negatedQueryLiterals, long proofCount) {
+    private HornSearchNode[] createNonCutNodes(List<Literal> negatedQueryLiterals) {
         Clause negatedQuery = getStringHandler().getClause(negatedQueryLiterals, false); // These are all negated (i.e., checked above), so tell Clause() that.
         
 
-        HornSearchNode negatedQueryAsRootNode = new HornSearchNode(getHornClauseProver(), negatedQuery, proofCount, 0);
+        HornSearchNode negatedQueryAsRootNode = new HornSearchNode(getHornClauseProver(), negatedQuery);
 
         HornSearchNode[] nodes = new HornSearchNode[1];
         nodes[0] = negatedQueryAsRootNode;
@@ -79,7 +79,7 @@ public class InitHornProofSpace extends Initializer {
 
         Clause newNegatedQuery    = getStringHandler().getClause(newQueryLiterals, false); // These are all negated (i.e., checked above), so tell Clause() that.
 
-        HornSearchNode rootNode          = new HornSearchNode(getHornClauseProver(), newNegatedQuery, proofCount, 0);
+        HornSearchNode rootNode          = new HornSearchNode(getHornClauseProver(), newNegatedQuery);
 
         HornSearchNode[] nodes = new HornSearchNode[2];
         nodes[0]=rootNode;

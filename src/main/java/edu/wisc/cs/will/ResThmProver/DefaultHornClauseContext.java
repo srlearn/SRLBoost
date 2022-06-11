@@ -42,21 +42,6 @@ public class DefaultHornClauseContext implements HornClauseContext {
         }
     }
 
-    /* Asserts the definite clause in the fact base of the prover.
-     *
-     * @param definiteClause A definite clause to be asserted in the fact base.
-     * @throws IllegalArgumentException Throws an illegal argument exceptions if
-     * the clause is not definite.
-     */
-    @Override
-    public void assertDefiniteClause(Clause definiteClause) throws IllegalArgumentException {
-        if (!definiteClause.isDefiniteClause()) {
-            throw new IllegalArgumentException("Clause '" + definiteClause + "' is not definite.");
-        }
-
-        getClausebase().assertBackgroundKnowledge(definiteClause);
-    }
-
     @Override
     public void assertSentences(Iterable<? extends Sentence> sentences) throws IllegalArgumentException {
         if (sentences != null) {

@@ -1,7 +1,5 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.Utils.Utils;
-
 import java.util.Collection;
 import java.util.Map;
 
@@ -10,16 +8,10 @@ import java.util.Map;
  *
  */
 public class ObjectAsTerm extends Term {
-	public final Object item;
-	
-	/*
-	 * Wrap an arbitrary item in a Term.  Don't operate on it.
-	 */
-	ObjectAsTerm(HandleFOPCstrings stringHandler, Object item, boolean warnIfWrappingTerm) {
-		this.stringHandler = stringHandler;
-		if (warnIfWrappingTerm && item instanceof Term) { Utils.error("The ObjectAsTerm class is unneccesary when asked to wrap terms: " + item); }
-		this.item = item;
-	}
+	public final Object item = null;
+
+	// TODO(hayesall): Constructor was never used, this can almost certainly be removed by rewriting parts of `Theory`.
+
 	public Term applyTheta(Map<Variable,Term> bindings) {
 		return this; // BUGGY if item is a variable that should have theta applied to it or contains such a variable (but this shouldn't be used in this case).
 	}
@@ -46,13 +38,12 @@ public class ObjectAsTerm extends Term {
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((item == null) ? 0 : item.hashCode());
+		result = prime * result + 0;
 		return result;
 	}	
 	public boolean equals(Object other) {
 		if (this == other) { return true; }
-		if (!(other instanceof ObjectAsTerm)) { return false; }
-		return this.item == ((ObjectAsTerm) other).item;
+		return other instanceof ObjectAsTerm;
 	}
 	public boolean containsVariables() {
 		return false;

@@ -41,27 +41,5 @@ public class BranchVectorStats extends BranchStats {
        numExamples+=weight;
        sumOfNumGroundingSquaredWithProb = num*num*weight*deno;
 	}
-	
-	public BranchStats add(BranchStats other) {
-		BranchVectorStats newVecStats = new BranchVectorStats();
-		if (other instanceof BranchVectorStats) {
-			BranchVectorStats otherVec = (BranchVectorStats)other;
-			// Can't initalize the vector if we don't have any examples in either vector stats
-			if (this.sumOfOutputAndNumGroundingVec != null &&
-				otherVec.sumOfOutputAndNumGroundingVec != null) {
-				newVecStats.sumOfOutputAndNumGroundingVec = VectorStatistics.addVectors(
-						this.sumOfOutputAndNumGroundingVec, 
-						otherVec.sumOfOutputAndNumGroundingVec);
-			} else {
-				newVecStats.sumOfOutputAndNumGroundingVec = (this.sumOfOutputAndNumGroundingVec != null) 
-						? this.sumOfOutputAndNumGroundingVec 
-						: otherVec.sumOfOutputAndNumGroundingVec;
-			}
-			super.addTo(other, newVecStats);
-		} else {
-			Utils.error("Trying to add BranchStats to BranchVectorStats");
-		}
-		
-		return newVecStats;
-	}
+
 }

@@ -451,7 +451,6 @@ public final class WILLSetup {
 
 		getInnerLooper().maxNumberOfNewVars =      7;
 		getInnerLooper().maxDepthOfNewVars  =      7;
-		getInnerLooper().maxPredOccurrences =      5;
 		getOuterLooper().max_total_nodesExpanded = 10000000;
 		getOuterLooper().max_total_nodesCreated  = 10 * getOuterLooper().max_total_nodesExpanded;
 		getHandler().setStarMode(TypeSpec.minusMode);
@@ -531,7 +530,6 @@ public final class WILLSetup {
 			getInnerLooper().minNumberOfNegExamples = 10;
 		}
 
-		getInnerLooper().fractionOfImplicitNegExamplesToKeep = 1;
 		// Other constraints say that at least half the examples must be covered, and sometimes we need to use the negation to do that.
 
 		// TODO(?): is this time PER TREE?  I think so ...

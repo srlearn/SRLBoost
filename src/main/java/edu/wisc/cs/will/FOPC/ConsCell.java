@@ -388,19 +388,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         return hash;
     }
 
-    // TODO - write an iterative version of this.
-    // Note: this is NOT an in-place copy.
-    public ConsCell append(ConsCell other) { // TODO: 'typeSpec' is not properly propagated, but wait until we see if that is needed.
-        if (numberArgs() == 0) {
-            return other;
-        }
-        if (isaConsCell(getArgument(1))) {
-            return stringHandler.getConsCell(getArgument(0), Objects.requireNonNull(ensureIsaConsCell(stringHandler, getArgument(1))).append(other), null);
-        }
-        Utils.error("Can't yet handle 'dotted-pair' type of lists.");
-        return null;
-    }
-
     @Override
     public <Return, Data> Return accept(TermVisitor<Return, Data> visitor, Data data) {
         return visitor.visitConsCell(this, data);

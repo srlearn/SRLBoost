@@ -41,13 +41,6 @@ public final class HandleFOPCstrings {
 
 	private int     starModeMap = TypeSpec.plusMode; // '*' modes are defined via this (this allows a program to change modes within a run).
 
-	// These constants indicate where in Literals 'special' terms are located.
-	// A non-negative value V means this special term is in position V (counting starts at zero).
-	// A negative value W means this special term is in position "#args - W" (so '-1' means LAST arg).
-	// Indicating an argument out of range means 'ignore' (TODO - check that code works this way).
-	public final int locationOfWorldArg         =  0;
-    public final int locationOfStateArg         = -1;
-
 	public final IsaHetrarchy                isaHandler;
 	private   List<PredicateNameAndArity> knownModes; // Hold all the predicates with known modes.
 	private final List<PredicateNameAndArity> disallowedModes;
@@ -72,7 +65,6 @@ public final class HandleFOPCstrings {
 	private final Map<ConnectiveName,Integer> precedenceTableForConnectives;
 	public final Map<Term,List<Type>>    constantToTypesMap;       // A given constant can have multiple types.  Record them here.  TODO 'wrap' this variable?
 	private   ConsCell                    nil;                      // The nil used for lists.
-    private   Literal                     nilAsLiteral;             // Just so we can convert back to the nil if we treat nil as a literal at some point.
 	private final Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
 	private   long varCounter             = 0; // Used to create new variable names that start with 'a', 'b', 'c', etc.
 	private   long overallCounter         = 0;
@@ -149,15 +141,6 @@ public final class HandleFOPCstrings {
 		cleanFunctionAndPredicateNames = hold;
 
 		setVariableIndicator(null); // Wait for the first user file to set things, and keep that as the default.
-	}
-
-	public int getArgumentPosition(int argLocationIndicator, int numberOfArgs) {
-		if (argLocationIndicator >= 0) {
-			if (argLocationIndicator >= numberOfArgs) { Utils.error("Cannot have argLocationIndicator >= numberOfArgs"); }
-			return argLocationIndicator;
-		}
-		if (numberOfArgs + argLocationIndicator < 0)  { Utils.error("Cannot have -argLocationIndicator > numberOfArgs"); }
-		return numberOfArgs + argLocationIndicator;
 	}
 
 	private void initPrecedences(Map<FunctionName,  Integer> precedenceTableForOperators,
@@ -641,13 +624,6 @@ public final class HandleFOPCstrings {
 		if (nil == null) { nil = this.getConsCell(); } // The empty cons cell is 'nil'
 		return nil;
 	}
-
-    Literal getNilAsLiteral() {
-        if (nilAsLiteral == null ) {
-            nilAsLiteral = getLiteral( getPredicateName("[]") );
-        }
-        return nilAsLiteral;
-    }
 
 
 	private String standardize(String str, boolean cleanString, boolean hadQuotesOriginally) {

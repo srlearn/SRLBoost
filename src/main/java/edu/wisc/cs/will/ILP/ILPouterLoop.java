@@ -390,7 +390,6 @@ public class ILPouterLoop {
                     Gleaner theGleaner = (Gleaner) innerLoopTask.searchMonitor;
                     theGleaner.clearBestNode();
 
-                    innerLoopTask.caller     = this;
                     innerLoopTask.callerName = "outerLoop #" + getNumberOfCycles() + getFoldInfoString();
                     theGleaner.setCurrentMarker(innerLoopTask.callerName);
                     if (!learningTreeStructuredTheory) { innerLoopTask.stringHandler.resetVarCounters(); } // When learning a tree-structured theory, we need a consistent set of variables.
@@ -782,15 +781,8 @@ public class ILPouterLoop {
    private Term createLeafNodeFromCurrentExamples(double value) {
 	   return innerLoopTask.stringHandler.getNumericConstant(value);
    }
-   private Term createLeafNodeFromCurrentExamples(double[] value) {
-	   List<Term> terms = new ArrayList<>();
-	   for (double val : value) {
-		terms.add(innerLoopTask.stringHandler.getNumericConstant(val));
-	   }
-	   return innerLoopTask.stringHandler.getConsCellFromList(terms);
-   }
 
-	private double computeVarianceOverTheseExamples(Collection<Example> currentExamples) {
+    private double computeVarianceOverTheseExamples(Collection<Example> currentExamples) {
 		if (innerLoopTask.regressionTask) {
 
 			if (Utils.getSizeSafely(currentExamples) < 1) {
@@ -798,7 +790,6 @@ public class ILPouterLoop {
 				return -1;
 			}
 
-            boolean learnMultiValPredicates = false;
             // Compute the mean value over all the (weighted) examples.
 			double totalOfOutputValues  = 0.0;
 			double totalSquaredOfOutput = 0.0;

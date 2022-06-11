@@ -33,15 +33,6 @@ public interface HornClausebase {
      */
     Iterable<DefiniteClause> getAssertions();
 
-    /* Returns the set of all asserted facts.
-     *
-     * The returned collection should be considered immutable.  Changing the
-     * collection directly would be bad.
-     *
-     * @return Set of all asserted definite clauses facts.
-     */
-    Iterable<Literal> getFacts();
-
     /* Returns the set of all asserted background knowledge.
      * 
      * The returned collection should be considered immutable.  Changing the
@@ -95,23 +86,6 @@ public interface HornClausebase {
      * @return Collection of Sentences that may match predicateName/arity, possible null.
      */
     List<DefiniteClause> getPossibleMatchingAssertions(Literal clauseHead, BindingList currentBinding);
-
-    /* Returns a Collection of definite clauses from both the background knowledge and the facts whose head matches the predicateName and arity.
-     *
-     * This is guaranteed to be the complete list and to only contain definite clauses with
-     * a head that matches the predName and arity.
-     *
-     * The DefiniteClause returned can be either a Literal (representing a fact) or a
-     * Clause (representing a definite clause from the background knowledge).
-     *
-     * The iteration order of the collection returned is guaranteed to match the
-     * order in which the clauses were ordinally asserted.
-     *
-     * @param predName Predicate name of head.
-     * @param arity Arity of head.
-     * @return Collection of Definite clauses matching the predName and arity.
-     */
-    List<DefiniteClause> getAssertions(PredicateName predName, int arity);
 
     /* Checks to see if there are any possible matching clauses in the background knowledge.
      *

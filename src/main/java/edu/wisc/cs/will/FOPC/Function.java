@@ -37,20 +37,6 @@ public class Function extends Term implements LiteralOrFunction {
 		}
 	}
 
-	void clearArgumentNamesInPlace() {
-		if (numberArgs() < 1) { return; }
-		if (argumentNames != null) {
-			if (argumentNames.get(0).equalsIgnoreCase("name")) {
-				removeArgument(arguments.get(0), argumentNames.get(0));
-			}
-		}
-		argumentNames = null;
-		if (arguments == null) { return; }
-		for (Term term : arguments) if (term instanceof Function) {
-			((Function) term).clearArgumentNamesInPlace();
-		}
-	}
-
 	public int numberArgs() {
 		if (cached_arity < 0) { setNumberArgs(); }
 		return cached_arity;
@@ -60,13 +46,6 @@ public class Function extends Term implements LiteralOrFunction {
 		else                   { cached_arity =  arguments.size(); }
 	}
 
-	private void removeArgument(Term term, String name) {
-		if (!arguments.remove(term))     { Utils.error("Could not remove '" + term + "' from '" + this + "'."); }
-		if (!argumentNames.remove(name)) { Utils.error("Could not remove '" + name + "' from '" + this + "'."); }
-		setNumberArgs();
-		sortArgumentsByName();
-	}
-	
 	// Cache this calculation to save time.
 	public boolean containsVariables() {
 		if (cachedVariableCount < 0) {

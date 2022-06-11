@@ -80,7 +80,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
             return false;
         }
         for (Literal otherLit : otherLists) {
-            if (this.equals(otherLit, useStrictEquality)) {
+            if (this.equals(otherLit)) {
                 return true;
             }
         }
@@ -237,7 +237,8 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         return predicateName;
     }
 
-    public boolean equals(Object obj, boolean considerUseStrictEqualsForLiterals) {
+    @Override
+    public boolean equals(Object obj) {
         if ( this == obj) {
             return true;
         }
@@ -265,11 +266,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         hash = 23 * hash + (this.arguments != null ? this.arguments.hashCode() : 0);
         hash = 23 * hash + (this.argumentNames != null ? this.argumentNames.hashCode() : 0);
         return hash;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return equals(other, true);
     }
 
     // Are these two equivalent POSSIBLY AFTER SOME VARIABLE RENAMING?

@@ -72,17 +72,17 @@ public class Utils {
      */
     public enum Verbosity {
         // Print everything, waitHeres don't wait, severeError cause a throw.
-        Medium(false,false)   // Print everything, waitHeres don't wait, severeError just print error
+        Medium()   // Print everything, waitHeres don't wait, severeError just print error
         ;
 
         final boolean print;
         final boolean waitHere;
         final boolean severeWarningThrowsError;
 
-        Verbosity(boolean waitHere, boolean severeWarningThrowsError) {
+        Verbosity() {
             this.print    = true;
-            this.waitHere = waitHere;
-            this.severeWarningThrowsError = severeWarningThrowsError;
+            this.waitHere = false;
+            this.severeWarningThrowsError = false;
         }
     }
 
@@ -643,9 +643,9 @@ public class Utils {
      *         tolerance.
      * @see #EQUIVALENCE_TOLERANCE
      */
-    private static boolean diffDoubles(double a, double b, double tolerance, double toleranceSmallNumbers) {
+    private static boolean diffDoubles(double a, double b, double toleranceSmallNumbers) {
     	double  diff        = Math.abs(a - b);
-        boolean firstResult = diff > tolerance;
+        boolean firstResult = diff > Utils.EQUIVALENCE_TOLERANCE;
         if (firstResult) { return true; }
         // See if we're dealing with small numbers.
         if (a > -1 && a < 1 && b > -1 && b < 1) {
@@ -654,7 +654,7 @@ public class Utils {
         return false;
     }
     public static boolean diffDoubles(double a, double b) {
-    	return diffDoubles(a, b, EQUIVALENCE_TOLERANCE, EQUIVALENCE_TOLERANCE_SMALL_NUMBERS);
+    	return diffDoubles(a, b, EQUIVALENCE_TOLERANCE_SMALL_NUMBERS);
     }
 
     /*

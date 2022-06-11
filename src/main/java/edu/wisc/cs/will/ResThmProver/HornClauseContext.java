@@ -13,14 +13,6 @@ public interface HornClauseContext {
     HornClausebase    getClausebase();
     Unifier           getUnifier();
 
-    /* Asserts the definite clause in the fact base of the prover.
-     *
-     * @param definiteClause A definite clause to be asserted in the fact base.
-     * @throws IllegalArgumentException Throws an illegal argument exceptions if
-     * the clause is not definite.
-     */
-    void assertDefiniteClause(Clause definiteClause) throws IllegalArgumentException;
-
     /* Asserts the definite clauses from the iterable into the clausebase.
      *
      * The sentences must definite clauses.  If any of the sentences are not

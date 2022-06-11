@@ -155,7 +155,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             if (bindingList.theta.size() > 0) {
                 bindingList.theta.clear();
             } // Revert to the empty binding list.
-            BindingList theta = userProcedurallyDefinedPredicateHandlerInstance.handle(context, negatedLiteral, unifier, bindingList);
+            BindingList theta = userProcedurallyDefinedPredicateHandlerInstance.handle(negatedLiteral, bindingList);
             if (theta != null) {
                 HornSearchNode newNode = createChildWithNoNewLiterals(hornSearchNode, queryLiterals, theta.copy());
 
@@ -388,7 +388,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
             }
         }
 
-        return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), bindingList, proofCounter, expansion);
+        return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), bindingList);
     }
 
     private HornSearchNode createChildWithNoNewLiterals(HornSearchNode hornSearchNode, List<Literal> queryLiterals, BindingList bindingList) {
@@ -400,7 +400,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
 
         List<Literal> newQueryLiterals = getQueryRemainder(queryLiterals, bindingList);
 
-        return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), bindingList, proofCounter, expansion);
+        return new HornSearchNode(hornSearchNode, getStringHandler().getClause(newQueryLiterals, false), bindingList);
     }
 
     protected static class CutMarkerNode extends HornSearchNode {
@@ -408,14 +408,14 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         private final CutMarkerLiteral cutMarkerLiteral;
 
         CutMarkerNode(HornSearchNode parentNode, Literal literalBeingCut, long proofCounterOfCutClause) {
-            super(parentNode, null, null, proofCounterOfCutClause, -1);
+            super(parentNode, null, null);
 
             this.cutMarkerLiteral = new CutMarkerLiteral(literalBeingCut.getStringHandler(), literalBeingCut, proofCounterOfCutClause);
             this.clause = literalBeingCut.getStringHandler().getClause(null, this.cutMarkerLiteral);
         }
 
         CutMarkerNode(HornClauseProver task, Literal literalBeingCut, long proofCounterOfCutClause) {
-            super(task, null, proofCounterOfCutClause, -1);
+            super(task, null);
 
             this.cutMarkerLiteral = new CutMarkerLiteral(literalBeingCut.getStringHandler(), literalBeingCut, proofCounterOfCutClause);
             this.clause = literalBeingCut.getStringHandler().getClause(null, this.cutMarkerLiteral);
