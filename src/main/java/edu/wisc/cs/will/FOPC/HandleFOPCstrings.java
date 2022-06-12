@@ -597,24 +597,6 @@ public final class HandleFOPCstrings {
         return new PredicateNameAndArity(pName, arity);
     }
 
-	/* Looks up the predicate name in the cache.  If it exists, it returns the cached version.  In not, it adds the predicateName to the cache.
-    *
-    * This is used to look up PredicateNames when we are de-serializing.  We attempt to maintain
-    * some information if possible about the predicateName.  However, in most cases, the predicateNames
-    * will already be instantiated and we will probably lose the serialized predicateName information anyway.
-    */
-   PredicateName getPredicateName(PredicateName pName) {
-		String name    = pName.name; // cleanString(pName.name); // should already be cleaned..
-        String stdName = standardize(name); // Hash case-independently.
-        PredicateName hashedValue = predicateNameHash.get(stdName);
-
-        if (hashedValue != null) { return hashedValue; }
-
-		PredicateName result = new PredicateName(name, this); // Store using the first version seen.
-		predicateNameHash.put(stdName, result);
-        return result;
-    }
-
 	public FunctionName getFunctionName(String nameRaw) {
 		String name    = (cleanFunctionAndPredicateNames ? cleanString(nameRaw) : nameRaw);
 		String stdName = standardize(name); // Hash case-independently.

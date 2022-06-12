@@ -32,7 +32,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	private List<Clause>               unsimplifiedSupportClauses = null;
 	private boolean                    somethingSimplified        = false; // See if the simplified version is different.	
 	
-	transient public HandleFOPCstrings stringHandler;
+	final transient public HandleFOPCstrings stringHandler;
 
 	private PrettyPrinterOptions prettyPrinterOptions = null;
 	
@@ -374,9 +374,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		
 	// This should all be done IN-PLACE.
 	private void renameLiteralIfTemporary(Literal lit, String prefixForSupportClause, String postfixForSupportClause) {
-		if (lit.predicateName.isaTemporaryName(lit.numberArgs())) {
-			lit.predicateName = stringHandler.getPredicateName(prefixForSupportClause + lit.predicateName + postfixForSupportClause);
-		}
 		renameFunctionsIfTemporary(lit.getArguments(), prefixForSupportClause, postfixForSupportClause);
 	}
 	private void renameFunctionsIfTemporary(List<Term> arguments, String prefixForSupportClause, String postfixForSupportClause) {
@@ -387,9 +384,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			// Need to recur inside functions.
 			renameFunctionsIfTemporary(f.getArguments(), prefixForSupportClause, postfixForSupportClause);
 			// And need to change the function name as well, IF it is a temporary name.
-			if (pNameVersion.isaTemporaryName(f.numberArgs())) {
-				f.functionName = stringHandler.getFunctionName(prefixForSupportClause + f.functionName + postfixForSupportClause);
-			}
 		}
 	}
 

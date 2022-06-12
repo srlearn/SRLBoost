@@ -11,7 +11,7 @@ import java.util.*;
  */
 public class Function extends Term implements LiteralOrFunction {
 	public  FunctionName functionName;
-	List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
+	final List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
 	private List<String> argumentNames; // (Optional) names of the arguments.
 	private int        cached_arity      = -1;
 	int        cachedVariableCount = -1; // Only set to false if CHECKED.  (Key: -1 = unknown, 0 = false, 1 = true.)

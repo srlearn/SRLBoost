@@ -102,8 +102,6 @@ public class ILPouterLoop {
 	private int            maxNumberOfLiteralsAtAnInteriorNode =  2; // In calls to LearnOneClause, this is how much we are allowed to extend the current clause.  Initially it is the max body length, but since recursive calls extend the clause at the parent, we need to add this much to the current number of literals on the path to the current node (not counting the length of the tests that evaluate to false, i.e., for the FALSE branches).
     private int            maxTreeDepthInLiterals              = 25; // This is the sum of literals at all the nodes in a path from root to leaf, not just the number of interior nodes.
     private int			   maxTreeDepthInInteriorNodes         =  5; // Maximum height/depth of the tree in terms of interior nodes in the tree. NOTE: One node in the tree may have multiple literals.
-    private String         prefixForExtractedRules             = "";
-    private String         postfixForExtractedRules            = "";
     private boolean		   learnMLNTheory					   = false;
     ///////////////////////////////////////////////////////////////////
 
@@ -1028,16 +1026,8 @@ public class ILPouterLoop {
 		}
 		
 		if (result == null) { return null; }
-		
-		if (!prefixForExtractedRules.equals("") || !postfixForExtractedRules.equals("")) { 
-			Literal target = getTargetLiteral();
-			assert target != null;
-			if (!target.predicateName.isaTemporaryName(target.getArity() + (innerLoopTask.regressionTask ? 1 : 0))) { // Possibly add 1 since we add the output value for regression tasks.
-				 target.predicateName.addTemporary(    target.getArity() + (innerLoopTask.regressionTask ? 1 : 0)); 
-			}
-			result.addPreAndPostfixToTemporaryNames(prefixForExtractedRules, postfixForExtractedRules); 
-		}
-		// Set inline mgr before simplifying
+
+        // Set inline mgr before simplifying
 		result.setInlineHandler(this.innerLoopTask.getInlineManager());
 		if (learningTreeStructuredTheory) { // Need to wait until any pre/post-fix stuff has been applied.
 			return ((TreeStructuredTheory) result).createFlattenedClauses().simplify();
@@ -1299,15 +1289,7 @@ public class ILPouterLoop {
 		this.maxTreeDepthInLiterals = Math.max(1, maxTreeDepthInLiterals);
 	}
 
-	public void setPrefixForExtractedRules(String prefixForExtractedRules) {
-		this.prefixForExtractedRules = prefixForExtractedRules;
-	}
-
-	public void setPostfixForExtractedRules(String postfixForExtractedRules) {
-		this.postfixForExtractedRules = postfixForExtractedRules;
-	}
-
-	public int getMaxTreeDepth() {
+    public int getMaxTreeDepth() {
 		return maxTreeDepthInInteriorNodes;
 	}
 

@@ -23,7 +23,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Set<Integer> dontComplainAboutMultipleTypesThisArity      = null;  // OF if this predicate/arity have multiple types for some argument.
 	private   boolean      dontComplainAboutMultipleTypesAnyArity       = false;
 	private   Set<Integer>                   bridgerSpec                = null;  // See if this predicate/arity is meant to be a 'bridger' predicate during ILP's search for clauses.  If the arg# is given (defaults to -1 otherwise), then all other arguments should be bound before this is treated as a 'bridger.'
-	private   Set<Integer>                   temporary                  = null;  // See if this predicate/arity is only a temporary predicate and if so, it needs to be renamed to avoid name conflicts across runs.  So slightly different than inline.
 	private   Set<Integer>                   queryPredSpec              = null;  // Used with MLNs.
 	private   Set<Integer>                   containsCallable           = null;  // One of the terms of the predicate is called during execution of the predicate.
 
@@ -79,13 +78,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		return results;
 	}
 
-	// See if this predicate name is temporary for this run (if so, it might need to be renamed to avoid name conflicts across runs).
-	public boolean isaTemporaryName(int arity) {
-		if (temporary == null)      { return false; }
-		if (temporary.contains(-1)) { return true;  } // "-1" means "any arity matches."
-		return (temporary.contains(arity));
-	}
-	
 	// See if this literal is a predicate that serves as a 'bridge' in ILP searches.
 	boolean isaBridgerLiteral(List<Term> arguments) {
 		return (bridgerSpec != null && bridgerSpec.contains(Utils.getSizeSafely(arguments)));
@@ -249,17 +241,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 		}
 		else if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate bridger of " + name + "/" + arity + ".  Will ignore."); }		
 	}
-	
-	public void addTemporary(int arity) { // -1 means 'any parity.'
-		if (temporary == null) {
-			temporary = new HashSet<>(4);
-		}
-		boolean firstLookUp = temporary.contains(arity);
-		if (!firstLookUp) { // Not currently specified.
-			temporary.add(arity);
-		}
-		else if (stringHandler.warningCount < HandleFOPCstrings.maxWarnings) { Utils.println("% WARNING #" + Utils.comma(stringHandler.warningCount++) + ": Duplicate temporary of " + name + "/" + arity + ".  Will ignore."); }		
-	}
 
 	public void addQueryPred(int arity) {
 		if (queryPredSpec == null) {
@@ -279,28 +260,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	public String toString(int precedenceOfCaller, BindingList bindingList) {
 		return name;
 	}
-
-   /*
-	* Methods for reading a Object cached to disk.
-    */
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        if (!(in instanceof FOPCInputStream)) {
-            throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject() input stream must support FOPCObjectInputStream interface");
-        }
-
-        in.defaultReadObject();
-
-        FOPCInputStream fOPCInputStream = (FOPCInputStream) in;
-
-        this.stringHandler = fOPCInputStream.getStringHandler();
-    }
-
-    /* Replaces the stream object with a cached one if available.
-     *
-     */
-    private Object readResolve() {
-        return stringHandler.getPredicateName(this);
-    }
 
 	@Override
 	public PredicateName applyTheta(Map<Variable, Term> bindings) {
