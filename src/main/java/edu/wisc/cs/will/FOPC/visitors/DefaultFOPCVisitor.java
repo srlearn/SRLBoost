@@ -146,67 +146,6 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
 
     }
 
-    public Term visitConsCell(ConsCell consCell, Data data) {
-        Term result = null; // Don't build a new consCell if all of the accepts return null.
-
-        if (consCell.isNil()) {
-            result = consCell;
-        }
-        else {
-            Term currentPosition = consCell;
-            ConsCell tail = null;
-
-            while (currentPosition != null) {
-                if (currentPosition instanceof ConsCell) {
-                    ConsCell cellPosition = (ConsCell) currentPosition;
-
-                    if (cellPosition.isNil()) {
-                        currentPosition = null; // We will fall out of the loop when we see a nil.
-                    }
-                    else {
-                        // Call accept on the car() of the cellPosition cell.
-                        Term newCar = cellPosition.car().accept(this, data);
-
-                        if (newCar != null) {
-
-                            ConsCell newCell = consCell.getStringHandler().getConsCell(newCar, consCell.getStringHandler().getNil(), null);
-                            if (tail == null) {
-                                // If we haven't starting constructing the cell chain, so record this first cell as the result.
-                                result = newCell;
-                            }
-                            else {
-                                // We are extending the tail, so set the cdr of tail and update tail to this.
-                                tail.setCdr(newCell);
-                            }
-                            tail = newCell;
-                        }
-
-                        currentPosition = cellPosition.cdr();
-                    }
-                }
-                else {
-                    // The currentPosition is not a consCell.
-                    // It is probably a variable since that is the only thing that
-                    // should occur in a cdr position.
-                    Term newTerm = currentPosition.accept(this, data);
-                    if (newTerm != null && tail != null) {
-                        // We are extending the tail, so set the cdr of tail.
-
-                        // If tail is null here...hmm...that shouldn't happen
-                        // since we had a consCell coming in so the first iteration
-                        // of the while loop had to create a tail.
-                        tail.setCdr(newTerm);
-                    }
-
-                    // Now just drop out of the loop by setting currentPosition to null;
-                    currentPosition = null;
-                }
-            }
-        }
-
-        return result;
-    }
-
     public Term visitVariable(Variable variable, Data data) {
         return variable;
     }

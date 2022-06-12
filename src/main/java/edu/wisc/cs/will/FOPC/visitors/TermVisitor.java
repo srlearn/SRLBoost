@@ -7,7 +7,7 @@ import edu.wisc.cs.will.FOPC.*;
  */
 public interface TermVisitor<Return, Data> {
     Return visitFunction(Function function, Data data);
-    Return visitConsCell(ConsCell consCell, Data data);
+
     Return visitVariable(Variable variable, Data data);
     Return visitSentenceAsTerm(SentenceAsTerm sentenceAsTerm, Data data);
     Return visitLiteralAsTerm(LiteralAsTerm literalAsTerm, Data data);

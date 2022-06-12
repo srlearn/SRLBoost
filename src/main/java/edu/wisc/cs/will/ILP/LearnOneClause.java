@@ -1317,15 +1317,13 @@ public class LearnOneClause extends StateBasedSearchTask {
 				targetArguments.add(newTerm);
 				theseVars.add(newTerm);
 				counter++;
-    		} else if (Function.isaConsCell(arg)) {
-    			counter++; // We need to skip lists, since they can be of variable length.
-			} else if (arg instanceof Function) {
-				Function f = (Function) arg;
-				List<Term> newArguments = new ArrayList<>(f.numberArgs());
-				traverseSignatureAndAddVariables(f.getArguments(), counter, typeSpecs, newArguments, theseVars, theseTargetArgSpecs);
-				targetArguments.add(stringHandler.getFunction(f.functionName, newArguments, f.getTypeSpec()));
-				counter += f.countLeaves();
-			} else { Utils.error("Unexpected argument in a signature: " + arg); }
+    		} else if (arg instanceof Function) {
+                Function f = (Function) arg;
+                List<Term> newArguments = new ArrayList<>(f.numberArgs());
+                traverseSignatureAndAddVariables(f.getArguments(), counter, typeSpecs, newArguments, theseVars, theseTargetArgSpecs);
+                targetArguments.add(stringHandler.getFunction(f.functionName, newArguments, f.getTypeSpec()));
+                counter += f.countLeaves();
+            } else { Utils.error("Unexpected argument in a signature: " + arg); }
 		}
 	}
 

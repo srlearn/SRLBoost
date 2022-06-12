@@ -24,9 +24,7 @@ public class Function extends Term implements LiteralOrFunction {
 		assert functionName != null;
 		if (functionName.name.equals("")) { Utils.error("You have not provided a function name that is the empty string!"); }
 	}
-	Function(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
-		this(stringHandler, functionName, null, typeSpec);
-	}
+
 	Function(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
 		this(stringHandler, functionName, arguments, typeSpec);
 		this.argumentNames = argumentNames;
@@ -272,9 +270,6 @@ public class Function extends Term implements LiteralOrFunction {
 	
     @Override
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
-		if (functionName.name.equalsIgnoreCase("conscell")) {
-			return stringHandler.getConsCell(this).toPrettyString(newLineStarter, precedenceOfCaller, bindingList);
-		}
 		String  fNameStr = (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" : "") + functionName;
 		boolean firstOne = true;
 		boolean hasArgNames = (argumentNames != null);
@@ -301,9 +296,6 @@ public class Function extends Term implements LiteralOrFunction {
 
     @Override
 	public String toString(int precedenceOfCaller, BindingList bindingList) {
-		if (functionName.name.equalsIgnoreCase("consCell")) {
-			return stringHandler.getConsCell(this).toString(precedenceOfCaller, bindingList);
-		}
 		String  fNameStr = "" + functionName;
 		boolean firstOne = true;
 		boolean hasArgNames = (argumentNames != null);
@@ -345,17 +337,11 @@ public class Function extends Term implements LiteralOrFunction {
 	public Term getArgument(int i) {
 		return arguments.get(i);
 	}
-	void setArguments(List<Term> arguments) {
-		this.arguments = arguments;
-		sortArgumentsByName();
-	}
+
 	public List<String> getArgumentNames() {
 		return argumentNames;
 	}
-	void setArgumentNames(List<String> argumentNames) {
-		this.argumentNames = argumentNames;
-		sortArgumentsByName();
-	}
+
 	private void sortArgumentsByName() {
 		if (argumentNames == null) { return; }
 		int numbArgs = numberArgs();
@@ -379,18 +365,6 @@ public class Function extends Term implements LiteralOrFunction {
 			arguments.add(    nt.term);
 			argumentNames.add(nt.name);
 		}
-	}
-
-    // Sometimes what should be ConsCell instances are Function instances instead.
-	// This provides a way to check for that case.
-	public static boolean isaConsCell(Term expression) {  // This and the above look to be identical (JWS, 7/25/10). So I (JWS) deleted checkIfReallyIsaConsCell.
-		if (expression instanceof ConsCell) { return true; }
-		if (expression instanceof Function) {
-			Function     f     = (Function) expression;
-			FunctionName fName = f.functionName;
-			return fName.name.equalsIgnoreCase("conscell");
-		}
-		return false;
 	}
 
 	@Override

@@ -123,9 +123,6 @@ public class TypeManagement {
             if (ambiguous.contains(counter)) {
                 counter++; // Need to skip this argument.
             }
-            else if (Function.isaConsCell(arg)) {
-                counter++; // We need to skip lists, since they can be of variable length.
-            }
             else if (arg.isGrounded()) {
                 Type thisType = argTypes.get(counter);
                 if (thisType == null) {
@@ -167,10 +164,7 @@ public class TypeManagement {
             Utils.error("Should not have signature = null for '" + predName + "'.");
         }
         for (Term term : signature) {
-            if (Function.isaConsCell(term)) {
-                counter++; // We need to skip lists, since they can be of variable length.
-            }
-            else if (term.isGrounded()) {
+            if (term.isGrounded()) {
                 TypeSpec spec = typeSpecList.get(counter);
                 Type thisType = (spec.isaType); // Cannot do type inferencing when the specification is for a SPECIFIC value.
                 if (firstTime) {
@@ -254,10 +248,7 @@ public class TypeManagement {
             }
             int counter = 0;
             for (Term arg : ex.getArguments()) {
-                if (Function.isaConsCell(arg)) {
-                    counter++; // We need to skip lists, since they can be of variable length.
-                }
-                else if (arg.isGrounded()) {
+                if (arg.isGrounded()) {
                     if (counter >= targetArgSpecs.size()) {
                         Utils.error("#args do not match!  TargetArgSpecs = " + targetArgSpecs + " while ex = " + ex);
                     }

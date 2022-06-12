@@ -60,7 +60,6 @@ public final class HandleFOPCstrings {
 
 	private final Map<ConnectiveName,Integer> precedenceTableForConnectives;
 	public final Map<Term,List<Type>>    constantToTypesMap;       // A given constant can have multiple types.  Record them here.  TODO 'wrap' this variable?
-	private   ConsCell                    nil;                      // The nil used for lists.
 	private final Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
 	private   long varCounter             = 0; // Used to create new variable names that start with 'a', 'b', 'c', etc.
 	private   long overallCounter         = 0;
@@ -341,23 +340,6 @@ public final class HandleFOPCstrings {
 		return new ConnectedSentence(this, A, connective, B);
 	}
 
-	private ConsCell getConsCell() {
-		return new ConsCell(this);
-	}
-	ConsCell getConsCell(FunctionName functionName, TypeSpec typeSpec) {
-		return new ConsCell(this, functionName, typeSpec);
-	}
-
-	public ConsCell getConsCell(Term firstTerm, Term restTerm, TypeSpec typeSpec) {
-		return new ConsCell(this, firstTerm, restTerm, typeSpec);
-	}
-	ConsCell getConsCell(FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
-		return new ConsCell(this, functionName, arguments, argumentNames, typeSpec);
-	}
-	ConsCell getConsCell(Function f) {
-		return new ConsCell(this, f.functionName, f.getArguments(), f.getArgumentNames(), f.getTypeSpec());
-	}
-
 	public ExistentialSentence getExistentialSentence(Collection<Variable> variables, Sentence body) {
 		return new ExistentialSentence(this, variables, body);
 	}
@@ -367,12 +349,7 @@ public final class HandleFOPCstrings {
 	}
 
 	public Function getFunction(FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
-        if ( functionName.name.equalsIgnoreCase("consCell")) {
-            return new ConsCell(this, functionName, arguments, argumentNames, typeSpec);
-        }
-        else {
-            return new Function(this, functionName, arguments, argumentNames, typeSpec);
-        }
+		return new Function(this, functionName, arguments, argumentNames, typeSpec);
 	}
 
     public Function getFunction(Function existingFunction, List<Term> newArguments) {
@@ -383,18 +360,7 @@ public final class HandleFOPCstrings {
             throw new IllegalArgumentException("newArguments.size() must match arity of " + existingFunction);
         }
 
-        Function newFunction;
-        if ( existingFunction == getNil() ) {
-            newFunction =  getNil();
-        }
-        else if(existingFunction instanceof ConsCell) {
-            newFunction = getConsCell(existingFunction.functionName, newArguments, existingFunction.getArgumentNames(), existingFunction.getTypeSpec());
-        }
-        else {
-            newFunction = getFunction(existingFunction.functionName, newArguments, existingFunction.getArgumentNames(), existingFunction.getTypeSpec());
-        }
-
-        return newFunction;
+		return getFunction(existingFunction.functionName, newArguments, existingFunction.getArgumentNames(), existingFunction.getTypeSpec());
     }
 
 	public ListAsTerm getListAsTerm(List<Term> objects) {
@@ -555,7 +521,6 @@ public final class HandleFOPCstrings {
 	private StringConstant  stringConstantMarker  = null;
 	private NumericConstant numericConstantMarker = null;
 	private Variable        variableMarker        = null;
-	private ConsCell        listMarker            = null;
 
 	public List<Term> getSignature(List<Term> arguments) {
 		if (Utils.getSizeSafely(arguments) < 1) { return null; }
@@ -563,14 +528,12 @@ public final class HandleFOPCstrings {
 			stringConstantMarker  = getStringConstant("Const");
 			numericConstantMarker = getNumericConstant(0);
 			variableMarker        = getExternalVariable("Var"); // Need be an external variable, but seems ok to do so.
-			listMarker            = getNil();
 		}
 		List<Term> result = new ArrayList<>(Utils.getSizeSafely(arguments));
 		for (Term arg : arguments) {
 			if      (arg instanceof StringConstant)  { result.add(stringConstantMarker);  }
 			if      (arg instanceof NumericConstant) { result.add(numericConstantMarker); }
 			else if (arg instanceof Variable) {        result.add(variableMarker);        }
-			else if (arg instanceof ConsCell) {        result.add(listMarker);            } // We won't try to deal with the WHAT is in the list (and if we do, we'll need to make sure that matchingSignatures matches [] to anything.
 			else if (arg instanceof Function) {
 				Function f           = (Function) arg;
 				Function functionSig = getFunction(f.functionName, getSignature(f.getArguments()), f.getTypeSpec());
@@ -593,12 +556,6 @@ public final class HandleFOPCstrings {
 			disallowedModes.add(predicateName);
         }
 	}
-
-	public ConsCell getNil() {
-		if (nil == null) { nil = this.getConsCell(); } // The empty cons cell is 'nil'
-		return nil;
-	}
-
 
 	private String standardize(String str, boolean cleanString, boolean hadQuotesOriginally) {
 		if (!cleanString) { return str; }

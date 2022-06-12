@@ -46,7 +46,7 @@ class SingleClauseRootNode extends SingleClauseNode {
 			if (arg instanceof Variable) {
 				Variable var = (Variable) arg;
 				// This is a linear lookup - but targets should not be so complex that this inefficiency matters.
-			} else if (arg instanceof Function) { // Should be ok to dive into ConsCells here.
+			} else if (arg instanceof Function) {
 				Function f = (Function) arg;
 				checkForRequiredBodyVars(f.getArguments());
 			} else { Utils.error("Should never reach here."); }

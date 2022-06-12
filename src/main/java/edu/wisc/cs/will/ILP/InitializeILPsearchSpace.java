@@ -256,7 +256,7 @@ public class InitializeILPsearchSpace extends Initializer {
 				Function exF = (exArg instanceof Function ? (Function) exArg : f); // Cannot go deeper into example (so it must have a variable; just be 'sloppy' here since this should be very rare).
 				List<Term> newArgs = help_getNewTarget(f.getArguments(), counter, exF.getArguments(), pSpec, theta);
 				result.add( ((LearnOneClause) task).stringHandler.getFunction(f.functionName, newArgs, f.getTypeSpec()));
-				counter += (Function.isaConsCell(arg) ? 1 : f.countLeaves());
+				counter += f.countLeaves();
 			}
 		}
 		return result;
