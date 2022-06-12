@@ -32,13 +32,15 @@ public abstract class Constant extends Term {
 	}
 
 	@Override
-	public int hashCode() { // Need to have equal objects produce the same hash code.
+	public int hashCode() {
 		return super.hashCode();
 	}
-	public boolean equals(Object other) {
-		return (this == other);
+
+	@Override
+	public boolean equals(Object obj) {
+		return super.equals(obj);
 	}
-	
+
 	public boolean containsVariables() {
 		return false;
 	}

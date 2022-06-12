@@ -89,18 +89,7 @@ public class VectorStatistics {
 		}
 		return result;
 	}
-	
-	public static double dotProduct(double[] a, double[] b) {
-		if (a.length != b.length) {
-			Utils.error("Vector lengths don't match for dot product!!:" + a.length + " Vs " + b.length);
-		}
-		double result = 0;
-		for (int i = 0; i < a.length; i++) {
-			result = result + a[i]*b[i];
-		}
-		return result;
-	}
-	
+
 	public static double[] addVectors(double[] a, double[] b) {
 		if (a.length != b.length) {
 			Utils.error("Vector lengths don't match for addition!!:" + a.length + " Vs " + b.length);

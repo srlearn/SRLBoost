@@ -2,7 +2,6 @@ package edu.wisc.cs.will.ILP;
 
 import edu.wisc.cs.will.Boosting.RDN.RegressionRDNExample;
 import edu.wisc.cs.will.Boosting.Utils.NumberGroundingsCalculator;
-import edu.wisc.cs.will.DataSetUtils.ArgSpec;
 import edu.wisc.cs.will.DataSetUtils.Example;
 import edu.wisc.cs.will.DataSetUtils.RegressionExample;
 import edu.wisc.cs.will.FOPC.*;
@@ -709,19 +708,7 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		if (getParentNode() != null) { return getParentNode().getVariablesInTarget(); }
 		return ((SingleClauseRootNode) this).variablesInTarget;
 	}
-	
-	private boolean allRequiredHeadArgsAppearInBody() {
-		SingleClauseRootNode root = getRootNode();
-		assert root.targetArgSpecs != null;
-		for (ArgSpec argSpec : root.targetArgSpecs) if (argSpec.arg instanceof Variable) {
-			if (argSpec.typeSpec.mustBeBound()
-					&& !variableAppearsInThisClause((Variable) argSpec.arg)) {
-					return false;
-			}
-		}	
-		return true;
-	}
-	
+
 	private boolean allTheseArgsAppearinBody(Collection<Variable> requiredVars) {
 		if (Utils.getSizeSafely(requiredVars) < 1) { return true; }
 		for (Variable var : requiredVars) {

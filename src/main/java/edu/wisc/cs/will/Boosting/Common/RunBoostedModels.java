@@ -8,7 +8,6 @@ import edu.wisc.cs.will.Boosting.Utils.BoostingUtils;
 import edu.wisc.cs.will.Boosting.Utils.CommandLineArguments;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 import java.io.File;
 
@@ -66,13 +65,8 @@ public abstract class RunBoostedModels {
 
 	private void setupWILLForTrain() {
 		setup     = new WILLSetup();
-		try {
-			Utils.println("\n% Calling SETUP.");
-			setup.setup(cmdArgs, cmdArgs.getTrainDirVal(), true);
-		} catch (SearchInterrupted e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in setupWILLForTrain.");
-		}
+		Utils.println("\n% Calling SETUP.");
+		setup.setup(cmdArgs, cmdArgs.getTrainDirVal(), true);
 	}
 	
 	/**
@@ -153,14 +147,9 @@ public abstract class RunBoostedModels {
 
 	private boolean setupWILLForTest() {
 		setup = new WILLSetup();
-		try {
-			if(!setup.setup(cmdArgs, cmdArgs.getTestDirVal(), false)) {
-				Utils.println("\nSetup failed (possibly because there are no examples), so will not infer anything.");
-				return false;
-			}
-		} catch (SearchInterrupted e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Problem in inferModel.");
+		if(!setup.setup(cmdArgs, cmdArgs.getTestDirVal(), false)) {
+			Utils.println("\nSetup failed (possibly because there are no examples), so will not infer anything.");
+			return false;
 		}
 		return true;
 	}

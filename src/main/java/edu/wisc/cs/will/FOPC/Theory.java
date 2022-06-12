@@ -409,8 +409,7 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 	}
 
 	public String toPrettyString() {
-        BindingList bl = null;
-		return toPrettyString("", Integer.MIN_VALUE, bl);
+		return toPrettyString("", Integer.MIN_VALUE, null);
 	}
 	protected String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		StringBuilder str = new StringBuilder(newLineStarter); // No weights on theories - instead they are on sentences.

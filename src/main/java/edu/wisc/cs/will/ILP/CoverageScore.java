@@ -55,7 +55,7 @@ public class CoverageScore implements Serializable {
 
         boolean nonInteger = (trueNegatives != Math.floor(trueNegatives) || truePositives != Math.floor(truePositives) || falseNegatives != Math.floor(falseNegatives) || falsePositives != Math.floor(falsePositives));
 
-        if (maxValue > 0 && !Double.isInfinite(maxValue) && !Double.isNaN(maxValue)) {
+        if (maxValue > 0 && !Double.isInfinite(maxValue)) {
             columnWidth = Math.max((int) Math.ceil(Math.log10(maxValue)) + 2 + (nonInteger ? 3 : 0), columnWidth);
         }
 

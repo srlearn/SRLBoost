@@ -38,7 +38,7 @@ public class ObjectAsTerm extends Term {
 	public int hashCode() { // Need to have equal objects produce the same hash code.
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + 0;
+		result = prime * result;
 		return result;
 	}	
 	public boolean equals(Object other) {
@@ -61,11 +61,11 @@ public class ObjectAsTerm extends Term {
 		return toString(precedenceOfCaller, bindingList);
 	}
 	protected String toString(int precedenceOfCaller, BindingList bindingList) {
-		return "objectAsTerm(" + item + ")";
+		return "objectAsTerm(" + null + ")";
 	}
 	@Override
 	public int countVarOccurrencesInFOPC(Variable v) {
-		return (item == v ? 1 : 2); // This is probably inadequate.  Maybe always return 2 if a non-match to be safe?
+		return (null == v ? 1 : 2); // This is probably inadequate.  Maybe always return 2 if a non-match to be safe?
 	}
 
 }

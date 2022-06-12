@@ -53,7 +53,7 @@ public class RegressionExample extends Example  implements Serializable {
 
 	public double getOutputValue() {
 		if (hasRegressionVector) {
-			Utils.error("Retrieving scalar output value for " + this.toString() + "\n but has regression vector: " + Arrays.toString(getOutputVector()));
+			Utils.error("Retrieving scalar output value for " + this + "\n but has regression vector: " + Arrays.toString(getOutputVector()));
 		}
 		return outputValue;
 	}
@@ -64,7 +64,7 @@ public class RegressionExample extends Example  implements Serializable {
 
 	public double[] getOutputVector() {
 		if (!hasRegressionVector) {
-			Utils.error("Retrieving regression vector for " + this.toString() + "\n but has scalar output value: " + getOutputValue());
+			Utils.error("Retrieving regression vector for " + this + "\n but has scalar output value: " + getOutputValue());
 		}
 		return outputVector;
 	}

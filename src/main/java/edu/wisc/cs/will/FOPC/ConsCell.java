@@ -26,16 +26,6 @@ public class ConsCell extends Function implements Iterable<Term> {
         super(stringHandler, stringHandler.getFunctionName("consCell"), null); // The empty cons cell is 'nil'.
     }
 
-    ConsCell(HandleFOPCstrings stringHandler, Term firstTerm, TypeSpec typeSpec) {
-        super(stringHandler, stringHandler.getFunctionName("consCell"), typeSpec);
-        ConsCell nil = stringHandler.getNil();
-        List<Term> arguments2 = new ArrayList<>(2);
-        arguments2.add(firstTerm);
-        arguments2.add(nil);
-        setArguments(arguments2);
-
-    }
-
     ConsCell(HandleFOPCstrings stringHandler, Term firstTerm, Term restTerm, TypeSpec typeSpec) {
         super(stringHandler, stringHandler.getFunctionName("consCell"), typeSpec);
         List<Term> arguments2 = new ArrayList<>(2);

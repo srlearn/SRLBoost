@@ -75,7 +75,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     }
 
     // A ('reverse') variant of contains().
-    public boolean member(Collection<Literal> otherLists, boolean useStrictEquality) {
+    public boolean member(Collection<Literal> otherLists) {
         if (Utils.getSizeSafely(otherLists) < 1) {
             return false;
         }

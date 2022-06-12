@@ -261,8 +261,8 @@ public class Variable extends Term {
             return "Anon" + counter;
         }
 		if (stringHandler.doVariablesStartWithQuestionMarks()) { return "?_" + counter; }
-		if (stringHandler.usingStdLogicNotation())             { return  "_" + counter; }
-		return   "_" + counter;
+        stringHandler.usingStdLogicNotation();
+        return "_" + counter;
     }
 
     public String toString(int precedenceOfCaller) {

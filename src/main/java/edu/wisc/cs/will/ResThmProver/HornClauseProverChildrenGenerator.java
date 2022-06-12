@@ -3,7 +3,6 @@ package edu.wisc.cs.will.ResThmProver;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.stdAIsearch.ChildrenNodeGenerator;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -106,7 +105,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
     }
 
     @Override
-    public List<HornSearchNode> collectChildren(HornSearchNode hornSearchNode) throws SearchInterrupted, RuntimeException {
+    public List<HornSearchNode> collectChildren(HornSearchNode hornSearchNode) throws RuntimeException {
 
         // TODO(hayesall): I pulled a bunch of spy and trace calls out of here. I don't think `printVariableCounters` does anything now.
 
@@ -123,7 +122,7 @@ public class HornClauseProverChildrenGenerator extends ChildrenNodeGenerator<Hor
         return result;
     }
 
-    private List<HornSearchNode> collectChildrenActual(HornSearchNode hornSearchNode) throws SearchInterrupted, RuntimeException {
+    private List<HornSearchNode> collectChildrenActual(HornSearchNode hornSearchNode) throws RuntimeException {
 
 
         // Grab the first negated literal in this node, and find all "rules" in the theory that unify with it.

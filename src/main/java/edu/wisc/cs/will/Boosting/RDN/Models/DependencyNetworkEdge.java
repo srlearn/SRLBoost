@@ -17,11 +17,10 @@ public class DependencyNetworkEdge {
 	
 	private final EdgeType edge;
 
-	DependencyNetworkEdge(DependencyNode start,
-						  EdgeType edge) {
+	DependencyNetworkEdge(DependencyNode start) {
 		super();
 		this.start = start;
-		this.edge = edge;
+		this.edge = EdgeType.PROBABILISTIC;
 	}
 
 	public DependencyNode getStart() {

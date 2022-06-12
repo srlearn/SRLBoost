@@ -15,7 +15,7 @@ repositories {
 
 dependencies {
     implementation files('libs/auc-0.3.1.jar')
-    implementation 'org.junit.jupiter:junit-jupiter:5.7.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
@@ -35,11 +35,15 @@ description = 'SRLBoost'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 jar {
-  manifest {
-    attributes(
-      'Main-Class': 'edu.wisc.cs.will.Boosting.Common.RunBoostedModels'
-    )
-  }
+    manifest {
+        attributes 'Main-Class': 'edu.wisc.cs.will.Boosting.Common.RunBoostedModels'
+    }
+
+    from provider {
+        zipTree(configurations.compileClasspath.filter {
+            it.name == 'auc-0.3.1.jar'
+        }.singleFile)
+    }
 }
 
 javadoc {
