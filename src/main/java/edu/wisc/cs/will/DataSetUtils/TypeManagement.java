@@ -172,7 +172,7 @@ public class TypeManagement {
             }
             else if (term.isGrounded()) {
                 TypeSpec spec = typeSpecList.get(counter);
-                Type thisType = ((spec.mustBeThisValue()) ? null : spec.isaType); // Cannot do type inferencing when the specification is for a SPECIFIC value.
+                Type thisType = (spec.isaType); // Cannot do type inferencing when the specification is for a SPECIFIC value.
                 if (firstTime) {
                     argTypes.add(thisType);
                 }

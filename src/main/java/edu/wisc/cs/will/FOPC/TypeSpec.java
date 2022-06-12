@@ -14,6 +14,8 @@ import java.util.Map;
  */
 public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // IMPORTANT NOTE: if adding more symbols here, also edit atTypeSpec() in the parser.
 
+	// TODO(hayesall): Enum?
+
     private final static int unspecifiedMode = -1; // For use when modes aren't needed.
 	final static int plusMode      = 1; // An 'input' argument (should be bound when the predicate or function containing this is called).
 	public final static int minusMode     = 3; // An 'output' argument - need not be bound.
@@ -77,42 +79,22 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 		return modeToUse == plusMode;
 	}
 
-	public boolean mustBeBoundAndAppearOnlyOnce() {
-		return false;
-	}
-	
 	public boolean canBeNewVariable() {
 		int modeToUse = mode;
-		return modeToUse == minusMode || mustBeNewVariable();
+		return modeToUse == minusMode;
 	}
-	
-	public boolean mustBeNewVariable() {
-		return false; // This might be buggy - it might not allow Constant to be used?  Depends on how the inner loop's child-generator handles this.
-	}
-	
-	public boolean mustBeThisValue()	{
-		return false;
-	}
-	
+
 	public boolean mustBeConstant()	{
 		int modeToUse = mode;
 		return modeToUse == constantMode;
 	}
-	
-	
-	public boolean mustNotBeHeadVar()	{
-		return false;
-	}
-	
+
+
 	public boolean canBeConstant()	{
 		int modeToUse = mode;
 		return modeToUse == constantMode;
 	}
-	
-	public boolean mustBeInBody()	{
-		return false;
-	}
-	
+
 	String getModeString() {
 		return getModeString(mode);
 	}
