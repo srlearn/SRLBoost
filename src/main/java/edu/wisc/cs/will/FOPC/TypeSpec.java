@@ -2,7 +2,6 @@ package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +23,7 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 	public Integer mode;    // One of the above, which are used to describe how this argument is to be used.
 	public Type    isaType; // Can be "human," "book," etc.  Type hierarchies are user-provided.
 
-	transient HandleFOPCstrings stringHandler;
+	final transient HandleFOPCstrings stringHandler;
 
 	public TypeSpec(char modeAsChar, String typeAsString, HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
