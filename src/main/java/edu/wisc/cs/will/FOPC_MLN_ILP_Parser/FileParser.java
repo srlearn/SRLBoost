@@ -1114,7 +1114,7 @@ public class FileParser {
             }
         }
 
-        return new NamedTermList(terms, null);
+        return new NamedTermList(terms);
     }
 
 	/*
@@ -1267,7 +1267,7 @@ public class FileParser {
 			else {
 				 NamedTermList namedTermList = processListOfTerms(argumentsMustBeTyped); // This should suck up the closing parenthesis.
 				 arguments = namedTermList.getTerms();
-				 names     = namedTermList.getNames();
+				 names     = null;
 			}
 			checkForLimitOnNumberOfTrueSettings(typeSpec); // Look for a training !k or $k.
 			return stringHandler.getFunction(fName, arguments, names, typeSpec);

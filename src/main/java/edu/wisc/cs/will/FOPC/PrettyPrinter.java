@@ -205,10 +205,6 @@ public class PrettyPrinter {
             return result;
         }
 
-        public PPResult visitQuantifiedSentence(QuantifiedSentence sentence, FOPCPrettyPrinterData data) {
-            return sentence.body.accept(this, data);
-        }
-
         public PPResult visitClause(Clause clause, FOPCPrettyPrinterData data) {
 
             PPResult result;
@@ -266,16 +262,12 @@ public class PrettyPrinter {
 
             String pred = literal.predicateName.name;
 
-            return prettyPrintTerms(pred, terms, literal.predicateName.printUsingInFixNotation, data);
+            return prettyPrintTerms(pred, terms, false, data);
         }
 
         public PPResult visitFunction(Function function, FOPCPrettyPrinterData data) {
 
             return prettyPrintTerms(function.functionName.name, function.getArguments(), function.functionName.printUsingInFixNotation, data);
-        }
-
-        public PPResult visitConsCell(ConsCell consCell, FOPCPrettyPrinterData data) {
-            return prettyPrintConCell(consCell, data);
         }
 
         public PPResult visitVariable(Variable variable, FOPCPrettyPrinterData data) {
@@ -318,22 +310,6 @@ public class PrettyPrinter {
             return result;
 
 
-        }
-
-        public PPResult visitSentenceAsTerm(SentenceAsTerm sentenceAsTerm, FOPCPrettyPrinterData data) {
-
-            Sentence s = sentenceAsTerm.sentence;
-
-            return s.accept(this, data);
-        }
-
-        public PPResult visitLiteralAsTerm(LiteralAsTerm literalAsTerm, FOPCPrettyPrinterData data) {
-
-            return literalAsTerm.itemBeingWrapped.accept(this, data);
-        }
-
-        public PPResult visitListAsTerm(ListAsTerm listAsTerm, FOPCPrettyPrinterData data) {
-            return null;
         }
 
         public PPResult visitNumericConstant(NumericConstant numericConstant) {
@@ -415,118 +391,6 @@ public class PrettyPrinter {
 
 
             return new PPResult(stringBuilder.toString(), multiline, 1000);
-        }
-
-        private PPResult prettyPrintConCell(ConsCell consCell, FOPCPrettyPrinterData data) {
-
-            StringBuilder stringBuilder = new StringBuilder();
-
-            stringBuilder.append("[");
-
-            boolean multiline = false;
-
-            data.pushIndent(1);
-
-            List<PPResult> list = new ArrayList<>();
-            int maxLineWidth = 0;
-
-            int totalWidth = 0;
-
-            int cellCount = 0;
-
-            Term currentCell = consCell;
-
-            boolean printBarForLastTerm = false;
-
-            while (currentCell != null && currentCell != consCell.getStringHandler().getNil()) {
-
-                PPResult tpp;
-
-                if (currentCell instanceof ConsCell) {
-                    ConsCell aCell = (ConsCell) currentCell;
-                    Term head = aCell.car();
-                    currentCell = aCell.getArgument(1);
-
-                    tpp = head.accept(this, data);
-                }
-                else {
-                    // Hmm...the currentCell isn't a consCell.  Probably a variable...
-                    tpp = currentCell.accept(this, data);
-                    currentCell = null;
-                    printBarForLastTerm = true;
-                }
-
-                list.add(tpp);
-
-                multiline = tpp.isMultiline() || multiline;
-                maxLineWidth = Math.max(maxLineWidth, tpp.getMaximumWidth());
-
-                totalWidth += tpp.getMaximumWidth();
-
-                cellCount++;
-
-            }
-
-            multiline = (multiline || totalWidth > 130 - data.getCurrentIndentation());
-
-            String prefix = spaces(1);
-
-            if (multiline && data.options.isNewLineAfterOpenParathesis()) {
-                stringBuilder.append("\n").append(prefix);
-            }
-
-            int maximumWidth = 130 - data.getCurrentIndentation();
-
-            int currentWidth = 0;
-
-            boolean lastWasMultiline = false;
-
-
-            for (int i = 0; i < list.size(); i++) {
-                PPResult tpp = list.get(i);
-                if (i > 0) {
-                    
-                    if (printBarForLastTerm && i == list.size() - 1) {
-                        stringBuilder.append("|");
-                    }
-                    else {
-                        stringBuilder.append(", ");
-                    }
-
-                    if (lastWasMultiline || tpp.multiline) {
-                        stringBuilder.append("\n").append(prefix);
-                        currentWidth = 0;
-                        lastWasMultiline = tpp.multiline;
-                        multiline = true;
-                    }
-                    else {
-                        if (currentWidth + tpp.getMaximumWidth() >= maximumWidth) {
-                            stringBuilder.append("\n").append(prefix);
-                            currentWidth = 0;
-                            multiline = true;
-                        }
-                    }
-                }
-
-                appendWithPrefix(stringBuilder, tpp.resultString, prefix);
-
-                // We really should be adding the maximum width of the last line
-                // of the PPResult string.  However, if we are printing multiline
-                // statements, we will automatically add a
-                currentWidth += tpp.getMaximumWidth();
-            }
-
-            if (multiline && data.options.isAlignParathesis()) {
-                stringBuilder.append("\n").append(spaces(1));
-            }
-
-
-            stringBuilder.append("]");
-
-            data.popIndent();
-
-            return new PPResult(stringBuilder.toString(), multiline, MIN_PRECEDENCE);
-
         }
 
         private PPResult prettyPrintTerms(String pred, List<? extends Term> terms, boolean infix, FOPCPrettyPrinterData data) {

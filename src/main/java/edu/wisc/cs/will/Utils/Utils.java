@@ -181,10 +181,8 @@ public class Utils {
     }    
     private static String comma(long value) { // Always use separators (e.g., "100,000").
     	return String.format("%,d", value);    	
-    }   
-    public static String comma(double value) { // Always use separators (e.g., "100,000").
-    	return String.format("%,f", value);    	
     }
+
     public static String comma(Collection<?> collection) {
     	return comma(getSizeSafely(collection));
     }
@@ -270,27 +268,6 @@ public class Utils {
         return map.size();
     }
 
-    /*
-     * Create a file-name string from this directory and (possibly partial) fileName. 
-     * (Could just return a File, but this is what other methods are expecting.)
-     * 
-     * @param directoryRaw The directory containing the file.
-     * @param fileNameRaw The name of the file.
-     * @return A path string indicating the given file within the given directory.
-     */
-    public static String createFileNameString(String directoryRaw, String fileNameRaw) {
-    	String directory = replaceWildCards(directoryRaw);
-    	String fileName  = replaceWildCards(fileNameRaw);
-    	
-        if (directory == null) { return fileName; }
-        File f = new CondorFile(fileName);
-        if (f.isAbsolute()) { return fileName; }
-
-        f = new CondorFile(directory, fileName);
-        ensureDirExists(f);
-        return f.getPath();
-    }
-    
     // Should we cache?  If we do, cache needs to be cleared whenever any of these keywords are changed.
     private static final Map<String,String> environmentVariableResolutionCache = new HashMap<>(4);
     public static String replaceWildCards(String original) {

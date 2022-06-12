@@ -102,8 +102,6 @@ public class ILPouterLoop {
 	private int            maxNumberOfLiteralsAtAnInteriorNode =  2; // In calls to LearnOneClause, this is how much we are allowed to extend the current clause.  Initially it is the max body length, but since recursive calls extend the clause at the parent, we need to add this much to the current number of literals on the path to the current node (not counting the length of the tests that evaluate to false, i.e., for the FALSE branches).
     private int            maxTreeDepthInLiterals              = 25; // This is the sum of literals at all the nodes in a path from root to leaf, not just the number of interior nodes.
     private int			   maxTreeDepthInInteriorNodes         =  5; // Maximum height/depth of the tree in terms of interior nodes in the tree. NOTE: One node in the tree may have multiple literals.
-    private String         prefixForExtractedRules             = "";
-    private String         postfixForExtractedRules            = "";
     private boolean		   learnMLNTheory					   = false;
     ///////////////////////////////////////////////////////////////////
 
@@ -119,7 +117,6 @@ public class ILPouterLoop {
 
     // These two allow one to randomly select a subset of the modes for each cycle.  (Added by JWS 6/24/10.)
 	private Set<PredicateNameAndArity> holdBodyModes;
-	public double randomlySelectWithoutReplacementThisManyModes = -1; // If in (0, 1), then is a FRACTION of the modes. If negative, then do not sample.	
 
     public ILPouterLoop(String workingDir, String prefix, String[] args,
                         SearchStrategy strategy, ScoreSingleClause scorer, SearchMonitor monitor,
@@ -395,7 +392,9 @@ public class ILPouterLoop {
 
                     if (getMaximumClockTimeInMillisec() < Long.MAX_VALUE) {
                         double denominator = 1.0; // If there is a time limit, leave some for later cycles, but allow at least 25% of the time for this one.
-                        if (maxNumberOfCycles > 1 && getMaximumClockTimeInMillisec() != Long.MAX_VALUE) { denominator = Math.max(1.0, Math.min(4.0, maxNumberOfCycles / (1 + getNumberOfCycles()))); }
+                        if (maxNumberOfCycles > 1 && getMaximumClockTimeInMillisec() != Long.MAX_VALUE) {
+                            denominator = Math.max(1.0, Math.min(4.0, maxNumberOfCycles / (1 + getNumberOfCycles())));
+                        }
                         long innerLoopTimeLimit = (long) (getTimeAvailableInMillisec() / denominator);
                         innerLoopTask.setMaximumClockTimePerIterationInMillisec(innerLoopTimeLimit);
                     } else {
@@ -403,29 +402,6 @@ public class ILPouterLoop {
                     }
 
                     ((ChildrenClausesGenerator) innerLoopTask.childrenGenerator).countOfPruningDueToVariantChildren = 0;
-
-                    // If we are going to be sampling the modes, make a copy of the full set.  AND RESET WHEN DONE.
-                    if (randomlySelectWithoutReplacementThisManyModes > 0 && holdBodyModes == null) {
-                        holdBodyModes = innerLoopTask.getBodyModes();
-
-                        if (randomlySelectWithoutReplacementThisManyModes < 1) { // Interpret as a FRACTION.  TODO - should we keep the fraction?  Seems not worth the trouble.
-                            randomlySelectWithoutReplacementThisManyModes = Math.round(randomlySelectWithoutReplacementThisManyModes * Utils.getSizeSafely(holdBodyModes));
-                        }
-                    }
-                    if (randomlySelectWithoutReplacementThisManyModes > 0 && randomlySelectWithoutReplacementThisManyModes  < Utils.getSizeSafely(holdBodyModes)) {
-                        Set<PredicateNameAndArity> newSetOfBodyModes = new HashSet<>((int) randomlySelectWithoutReplacementThisManyModes);
-                        int bodyModeSize = Utils.getSizeSafely(holdBodyModes);
-                        // If we are getting almost all of the body nodes, we really should make a copy then DELETE entries until small enough.
-                        int counter = 0;
-                        while (Utils.getSizeSafely(newSetOfBodyModes) < randomlySelectWithoutReplacementThisManyModes ) {
-                            int                   index = Utils.random0toNminus1(bodyModeSize);
-                            PredicateNameAndArity pName = Utils.getIthItemInCollectionUnsafe(holdBodyModes, index);
-
-                            newSetOfBodyModes.add(pName); // If a duplicate, won't be added.
-                            if (++counter > 10 * randomlySelectWithoutReplacementThisManyModes) { Utils.waitHere("Stuck in an infinite loop?  randomlySelectWithoutReplacementThisManyModes=" + Utils.comma(randomlySelectWithoutReplacementThisManyModes)); counter = 0; }
-                        }
-                        innerLoopTask.setBodyModes(newSetOfBodyModes);
-                    }
 
                     // If we are learning a tree-structured theory, then we continue where we left off.
                     innerLoopTask.performSearch(learningTreeStructuredTheory ? savedBestNode : null);
@@ -733,7 +709,10 @@ public class ILPouterLoop {
                 }
             }
 
-            if (holdBodyModes != null) { innerLoopTask.setBodyModes(holdBodyModes); holdBodyModes = null; }
+            if (holdBodyModes != null) {
+                innerLoopTask.setBodyModes(holdBodyModes);
+                holdBodyModes = null;
+            }
             Theory finalTheory = produceFinalTheory();
 
             innerLoopTask.fireOuterLoopFinished(this);
@@ -908,27 +887,18 @@ public class ILPouterLoop {
 		innerLoopTask.setIsaTreeStructuredTask(!notLearnTrees); // TODO - couple this with setting the above (via a setter)
     }
     
-    public void morphToRDNRegressionOuterLoop(double all_pos_wt, double all_neg_wt, double ratioOfNegToPositiveEx, 
-    		double samplePositiveProb, boolean notLearnTrees, boolean reweighExs, boolean areRegressionEgs) {
+    public void morphToRDNRegressionOuterLoop(double all_pos_wt, double all_neg_wt, double ratioOfNegToPositiveEx,
+                                              double samplePositiveProb, boolean notLearnTrees, boolean areRegressionEgs) {
 
-        // TODO(hayesall): inline `reweighExs = false`?
-
-    	setFlagsForRegressionTask(notLearnTrees);
+        setFlagsForRegressionTask(notLearnTrees);
 		
 		List<Example>  origPosExamples = getPosExamples();
 		List<Example> positiveExamples = new ArrayList<>(4);
 		int        numbOrigPosExamples = Utils.getSizeSafely(origPosExamples);
-		int		   numbNewPosExamples  = (int) samplePositiveProb * numbOrigPosExamples;
-		
-		// Less than zero means we dont want to sample.
-		if (numbNewPosExamples <= 0) {
-			numbNewPosExamples = numbOrigPosExamples;
-		}
 
-		// TODO(@hayesall): integer division that returning a double. This is likely a bug.
-		double	   reweighPositiveExamples = numbOrigPosExamples / numbNewPosExamples;
-		
-		int countOfPosKept = 0;
+        // Less than zero means we dont want to sample.
+
+        int countOfPosKept = 0;
         // TODO integrate this better if we decide to keep it.
         // TODO - should this also be sampling with replacement of the expected number to collect?  Correctly no duplicates, but number collected can vary.
         if (numbOrigPosExamples > 0) for (Example eg : origPosExamples) { // Should we ignore this positive example?
@@ -946,10 +916,6 @@ public class ILPouterLoop {
             if (areRegressionEgs) {
                 regEx.originalRegressionOrProbValue = regEx.getOutputValue();
             }
-            if (reweighExs) {
-            regEx.setWeightOnExample(eg.getWeightOnExample() * reweighPositiveExamples);
-
-            }
             positiveExamples.add(regEx);
             countOfPosKept++;
         }
@@ -964,13 +930,9 @@ public class ILPouterLoop {
 		if (countOfPosKept == 0) {
 			probOfSelectingNegEx = ratioOfNegToPositiveEx / (double) numbOrigNegExamples;
 		}
-		int           countOfNegsKept = 0;	
-		double	   reweighNegativeExamples = 1 / probOfSelectingNegEx;
-		if (probOfSelectingNegEx >= 1 || probOfSelectingNegEx <= 0) {
-			reweighNegativeExamples = 1;
-		}
+		int           countOfNegsKept = 0;
 
-		/*  TUSHAR - I (JWS) replaced this (above) with random sampling with replacement.  Will be faster if we have a lot of negatives (though that probably doesn't matter much),
+        /*  TUSHAR - I (JWS) replaced this (above) with random sampling with replacement.  Will be faster if we have a lot of negatives (though that probably doesn't matter much),
 		 *           but maybe more importantly we'll always get the same number of negatives.
 		 */
 		if (numbOrigNegExamples > 0) for (Example eg : origNegExamples) {
@@ -986,11 +948,7 @@ public class ILPouterLoop {
 			if (areRegressionEgs) {
 				regEx.originalRegressionOrProbValue = regEx.getOutputValue();
 			}
-			if (reweighExs) {
-				regEx.setWeightOnExample(eg.getWeightOnExample() * reweighNegativeExamples);
-
-			}
-			positiveExamples.add(regEx);
+            positiveExamples.add(regEx);
 			countOfNegsKept++;
 		}
 
@@ -1028,16 +986,8 @@ public class ILPouterLoop {
 		}
 		
 		if (result == null) { return null; }
-		
-		if (!prefixForExtractedRules.equals("") || !postfixForExtractedRules.equals("")) { 
-			Literal target = getTargetLiteral();
-			assert target != null;
-			if (!target.predicateName.isaTemporaryName(target.getArity() + (innerLoopTask.regressionTask ? 1 : 0))) { // Possibly add 1 since we add the output value for regression tasks.
-				 target.predicateName.addTemporary(    target.getArity() + (innerLoopTask.regressionTask ? 1 : 0)); 
-			}
-			result.addPreAndPostfixToTemporaryNames(prefixForExtractedRules, postfixForExtractedRules); 
-		}
-		// Set inline mgr before simplifying
+
+        // Set inline mgr before simplifying
 		result.setInlineHandler(this.innerLoopTask.getInlineManager());
 		if (learningTreeStructuredTheory) { // Need to wait until any pre/post-fix stuff has been applied.
 			return ((TreeStructuredTheory) result).createFlattenedClauses().simplify();
@@ -1299,15 +1249,7 @@ public class ILPouterLoop {
 		this.maxTreeDepthInLiterals = Math.max(1, maxTreeDepthInLiterals);
 	}
 
-	public void setPrefixForExtractedRules(String prefixForExtractedRules) {
-		this.prefixForExtractedRules = prefixForExtractedRules;
-	}
-
-	public void setPostfixForExtractedRules(String postfixForExtractedRules) {
-		this.postfixForExtractedRules = postfixForExtractedRules;
-	}
-
-	public int getMaxTreeDepth() {
+    public int getMaxTreeDepth() {
 		return maxTreeDepthInInteriorNodes;
 	}
 

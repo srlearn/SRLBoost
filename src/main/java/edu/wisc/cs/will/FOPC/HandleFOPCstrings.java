@@ -32,9 +32,7 @@ public final class HandleFOPCstrings {
 	private boolean ignoreCaseOfStringsOtherThanFirstChar = false; // If this is ever set, strange bugs can occur.
 	public  boolean cleanFunctionAndPredicateNames        = false; // Check for hyphens and spaces.  DO NOT SET UNTIL AFTER LIBRARIES ARE LOADED.
 	public  boolean keepQuoteMarks                        = false; // Set to true if quote marks on string constants should be preserved.  NOTE: if true, then strings with quote marks will NOT be cleaned regardless of any other setting.
-	final boolean alwaysUseParensForInfixFunctions      = false; // Useful for debugging the parser, and possibly for safely writing out expressions.
 
-	final boolean printTypedStrings     = false; // If set to true, then Terms will have their types printed.
 	public boolean printVariableCounters = false; // If set to true, then variables will have their counters printed.
 
 	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
@@ -62,7 +60,6 @@ public final class HandleFOPCstrings {
 
 	private final Map<ConnectiveName,Integer> precedenceTableForConnectives;
 	public final Map<Term,List<Type>>    constantToTypesMap;       // A given constant can have multiple types.  Record them here.  TODO 'wrap' this variable?
-	private   ConsCell                    nil;                      // The nil used for lists.
 	private final Map<Type,Set<Term>>     knownConstantsOfThisType; // Collection all constants of a given type.  Use a hash map for efficiency.
 	private   long varCounter             = 0; // Used to create new variable names that start with 'a', 'b', 'c', etc.
 	private   long overallCounter         = 0;
@@ -74,7 +71,6 @@ public final class HandleFOPCstrings {
 	public final Literal cutLiteral;
 
 	private boolean useStrictEqualsForFunctions = false; // Ditto for functions.
-	final boolean useFastHashCodeForClauses   = true;
 
 	private   static Map<String,Integer> precedenceTableForOperators_static   = null; // To avoid the need to pass around a stringHandler, there is also a static version that uses String.equals instead of '=='.
 	private   static Map<String,Integer> precedenceTableForConnectives_static = null;
@@ -221,11 +217,6 @@ public final class HandleFOPCstrings {
 		return result == null ? 1300 : result;
 	}
 
-	static int getLiteralPrecedence_static(PredicateName pName) { // All of the in-fix literals have the same precedence.
-		if (pName.name.equalsIgnoreCase("then")) { return 1050; }        // Except for THEN, which becomes a literal after parsing.
-		return 700;
-	}
-
 	public        int getConnectivePrecedence(ConnectiveName cName) {
 		Integer result = precedenceTableForConnectives.get(cName);
 		assert result != null;
@@ -327,6 +318,7 @@ public final class HandleFOPCstrings {
 	public Clause getClause(Literal posLiteral, Literal negLiteral) {
 		return getClause(posLiteral, negLiteral, null);
 	}
+
 	public Clause getClause(List<Literal> literals, boolean literalsAreAllPos) {
 		return new Clause(this, literals, literalsAreAllPos);	// NOTE: if literalsAreAllPos=false THEN IT IS ASSUMED ALL LITERALS ARE NEGATIVE.
 	}
@@ -344,23 +336,6 @@ public final class HandleFOPCstrings {
 		return new ConnectedSentence(this, A, connective, B);
 	}
 
-	private ConsCell getConsCell() {
-		return new ConsCell(this);
-	}
-	ConsCell getConsCell(FunctionName functionName, TypeSpec typeSpec) {
-		return new ConsCell(this, functionName, typeSpec);
-	}
-
-	public ConsCell getConsCell(Term firstTerm, Term restTerm, TypeSpec typeSpec) {
-		return new ConsCell(this, firstTerm, restTerm, typeSpec);
-	}
-	ConsCell getConsCell(FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
-		return new ConsCell(this, functionName, arguments, argumentNames, typeSpec);
-	}
-	ConsCell getConsCell(Function f) {
-		return new ConsCell(this, f.functionName, f.getArguments(), f.getArgumentNames(), f.getTypeSpec());
-	}
-
 	public ExistentialSentence getExistentialSentence(Collection<Variable> variables, Sentence body) {
 		return new ExistentialSentence(this, variables, body);
 	}
@@ -370,12 +345,7 @@ public final class HandleFOPCstrings {
 	}
 
 	public Function getFunction(FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
-        if ( functionName.name.equalsIgnoreCase("consCell")) {
-            return new ConsCell(this, functionName, arguments, argumentNames, typeSpec);
-        }
-        else {
-            return new Function(this, functionName, arguments, argumentNames, typeSpec);
-        }
+		return new Function(this, functionName, arguments, argumentNames, typeSpec);
 	}
 
     public Function getFunction(Function existingFunction, List<Term> newArguments) {
@@ -386,23 +356,8 @@ public final class HandleFOPCstrings {
             throw new IllegalArgumentException("newArguments.size() must match arity of " + existingFunction);
         }
 
-        Function newFunction;
-        if ( existingFunction == getNil() ) {
-            newFunction =  getNil();
-        }
-        else if(existingFunction instanceof ConsCell) {
-            newFunction = getConsCell(existingFunction.functionName, newArguments, existingFunction.getArgumentNames(), existingFunction.getTypeSpec());
-        }
-        else {
-            newFunction = getFunction(existingFunction.functionName, newArguments, existingFunction.getArgumentNames(), existingFunction.getTypeSpec());
-        }
-
-        return newFunction;
+		return getFunction(existingFunction.functionName, newArguments, existingFunction.getArgumentNames(), existingFunction.getTypeSpec());
     }
-
-	public ListAsTerm getListAsTerm(List<Term> objects) {
-		return new ListAsTerm(this, objects);
-	}
 
 	public Literal getLiteral(PredicateName pred) {
 		return new Literal(this, pred);
@@ -433,14 +388,6 @@ public final class HandleFOPCstrings {
             return getLiteral(pn, terms);
         }
     }
-
-	public LiteralAsTerm getLiteralAsTerm(Literal itemBeingWrapped) {
-		return new LiteralAsTerm(this, itemBeingWrapped);
-	}
-
-	public SentenceAsTerm getSentenceAsTerm(Sentence s, String wrapper) {
-		return new SentenceAsTerm(this, s, wrapper);
-	}
 
 	public UniversalSentence getUniversalSentence(Collection<Variable> variables, Sentence body) {
 		return new UniversalSentence(this, variables, body);
@@ -558,7 +505,6 @@ public final class HandleFOPCstrings {
 	private StringConstant  stringConstantMarker  = null;
 	private NumericConstant numericConstantMarker = null;
 	private Variable        variableMarker        = null;
-	private ConsCell        listMarker            = null;
 
 	public List<Term> getSignature(List<Term> arguments) {
 		if (Utils.getSizeSafely(arguments) < 1) { return null; }
@@ -566,14 +512,12 @@ public final class HandleFOPCstrings {
 			stringConstantMarker  = getStringConstant("Const");
 			numericConstantMarker = getNumericConstant(0);
 			variableMarker        = getExternalVariable("Var"); // Need be an external variable, but seems ok to do so.
-			listMarker            = getNil();
 		}
 		List<Term> result = new ArrayList<>(Utils.getSizeSafely(arguments));
 		for (Term arg : arguments) {
 			if      (arg instanceof StringConstant)  { result.add(stringConstantMarker);  }
 			if      (arg instanceof NumericConstant) { result.add(numericConstantMarker); }
 			else if (arg instanceof Variable) {        result.add(variableMarker);        }
-			else if (arg instanceof ConsCell) {        result.add(listMarker);            } // We won't try to deal with the WHAT is in the list (and if we do, we'll need to make sure that matchingSignatures matches [] to anything.
 			else if (arg instanceof Function) {
 				Function f           = (Function) arg;
 				Function functionSig = getFunction(f.functionName, getSignature(f.getArguments()), f.getTypeSpec());
@@ -596,12 +540,6 @@ public final class HandleFOPCstrings {
 			disallowedModes.add(predicateName);
         }
 	}
-
-	public ConsCell getNil() {
-		if (nil == null) { nil = this.getConsCell(); } // The empty cons cell is 'nil'
-		return nil;
-	}
-
 
 	private String standardize(String str, boolean cleanString, boolean hadQuotesOriginally) {
 		if (!cleanString) { return str; }
@@ -641,24 +579,6 @@ public final class HandleFOPCstrings {
 
 	public PredicateNameAndArity getPredicate(PredicateName pName, int arity) {
         return new PredicateNameAndArity(pName, arity);
-    }
-
-	/* Looks up the predicate name in the cache.  If it exists, it returns the cached version.  In not, it adds the predicateName to the cache.
-    *
-    * This is used to look up PredicateNames when we are de-serializing.  We attempt to maintain
-    * some information if possible about the predicateName.  However, in most cases, the predicateNames
-    * will already be instantiated and we will probably lose the serialized predicateName information anyway.
-    */
-   PredicateName getPredicateName(PredicateName pName) {
-		String name    = pName.name; // cleanString(pName.name); // should already be cleaned..
-        String stdName = standardize(name); // Hash case-independently.
-        PredicateName hashedValue = predicateNameHash.get(stdName);
-
-        if (hashedValue != null) { return hashedValue; }
-
-		PredicateName result = new PredicateName(name, this); // Store using the first version seen.
-		predicateNameHash.put(stdName, result);
-        return result;
     }
 
 	public FunctionName getFunctionName(String nameRaw) {

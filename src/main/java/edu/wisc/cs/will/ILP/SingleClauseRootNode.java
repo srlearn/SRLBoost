@@ -14,7 +14,6 @@ import java.util.*;
  */
 class SingleClauseRootNode extends SingleClauseNode {
 	final Literal        target;          // For now, only work on one target (at a time? to do).
-	final List<ArgSpec>  targetArgSpecs;  // The info about the target argument being used and the variable matched with the type.
 	final List<Term>     variablesInTarget;
 	final Set<Variable>  requiredBodyVariablesInTarget = null;
 
@@ -22,7 +21,6 @@ class SingleClauseRootNode extends SingleClauseNode {
                          List<Type> typesPresentInHead, Map<Type, List<Term>> typesMapInHead) throws SearchInterrupted {
 		super(task);
 		target               = head;
-		targetArgSpecs       = argSpecs;
 		int targetPredicateArity = head.numberArgs();
 		variablesInTarget    = variables;
 		literalAdded = head; // The root has with the empty body (i.e., it is an implicit 'true').  So we'll store the head literal here.
@@ -46,7 +44,7 @@ class SingleClauseRootNode extends SingleClauseNode {
 			if (arg instanceof Variable) {
 				Variable var = (Variable) arg;
 				// This is a linear lookup - but targets should not be so complex that this inefficiency matters.
-			} else if (arg instanceof Function) { // Should be ok to dive into ConsCells here.
+			} else if (arg instanceof Function) {
 				Function f = (Function) arg;
 				checkForRequiredBodyVars(f.getArguments());
 			} else { Utils.error("Should never reach here."); }

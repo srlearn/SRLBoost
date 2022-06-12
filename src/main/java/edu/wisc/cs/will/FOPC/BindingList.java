@@ -160,15 +160,7 @@ public class BindingList extends AllOfFOPC {
 			}
 			return false;
 		}
-		if (Function.isaConsCell(term)) {
-			ConsCell consCell =  ConsCell.ensureIsaConsCell(term.stringHandler, term);
-			assert consCell != null;
-			if (consCell.memberViaEq(var)) {
-				if (errorIfProblem) { Utils.error("This would be circular: " + var + " -> " + term); }
-				return false;
-			}
-		}
-		theta.put(var, term);	
+		theta.put(var, term);
 		return true;
 	}
 

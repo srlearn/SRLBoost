@@ -286,10 +286,7 @@ public final class WILLSetup {
 					cmdArgs.getSampleNegsToPosRatioVal(),
 					cmdArgs.getSamplePosProbVal(),
 					cmdArgs.isLearnMLN() && cmdArgs.isLearningMLNClauses(),
-					false,
-					cmdArgs.isLearnRegression())
-			;
-
+					cmdArgs.isLearnRegression());
 		}
 		// Set target literal to be just one literal.
 		getOuterLooper().innerLoopTask.setTargetAs(predicate, false, null);

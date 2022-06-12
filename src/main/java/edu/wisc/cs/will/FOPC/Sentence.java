@@ -4,7 +4,6 @@ import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.ILP.SentenceCompressor;
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -54,7 +53,9 @@ public abstract class Sentence extends AllOfFOPC implements Serializable {
 		Collection<Variable> boundVariables = new ArrayList<>(1);
 		Collection<Variable> freeVariables  = collectFreeVariables(boundVariables);
 		
-		if (freeVariables == null || freeVariables.size() <= 0) { return this; }
+		if (freeVariables == null || freeVariables.size() <= 0) {
+			return this;
+		}
 		UniversalSentence result = new UniversalSentence(stringHandler, freeVariables, this);
 		result.wgtSentence = wgtSentence; // Pull the weight out.  (Could check if the inner weight = maxWeight, but no big deal.
 		wgtSentence = Sentence.maxWeight;
@@ -83,32 +84,31 @@ public abstract class Sentence extends AllOfFOPC implements Serializable {
 		Sentence sentence = this;
 
 		// Convert equivalences to implications.   See pages 215 and 295-297 of Russell and Norvig, 2nd edition.
-		boolean containsEquivalence = sentence.containsThisFOPCtype("equivalent"); // Do some initial scanning since these steps lead to complete copying.  (I'm not sure this is a big deal ..)
-		if (containsEquivalence) { // Could also do these checks at each step, so only necessary parts are copied, but that might trade off too much time for space?
-			sentence = sentence.convertEquivalenceToImplication(); // This can produce a SET of sentences, but they'll be conjoined with an AND.
+		// Do some initial scanning since these steps lead to complete copying.  (I'm not sure this is a big deal ..)
+		// Could also do these checks at each step, so only necessary parts are copied, but that might trade off too much time for space?
+		// This can produce a SET of sentences, but they'll be conjoined with an AND.
+		if (sentence.containsThisFOPCtype("equivalent")) {
+			sentence = sentence.convertEquivalenceToImplication();
 		}
 		
 		// Eliminate implications.
-		boolean containsImplications = sentence.containsThisFOPCtype("implies");
-		if (containsImplications) {
+		if (sentence.containsThisFOPCtype("implies")) {
 			sentence = sentence.eliminateImplications();
 		}
 		
 		// Move negation inwards.
-		boolean containsNegations = sentence.containsThisFOPCtype("not");
-		if (containsNegations) {
+		if (sentence.containsThisFOPCtype("not")) {
 			sentence = sentence.moveNegationInwards();
 		}
 		
 		// Skolemize.
-		boolean needToSkolemize = sentence.containsThisFOPCtype("exists") || sentence.containsThisFOPCtype("forAll");
-		if (needToSkolemize ) { // Need to do the dropUniversalQuantifiers.
+		if (sentence.containsThisFOPCtype("exists") || sentence.containsThisFOPCtype("forAll") ){
+			// Need to do the dropUniversalQuantifiers.
 			sentence = sentence.skolemize(null);
 		}
 
 		// Distribute disjunctions over conjunctions.
-		boolean containsDisjunction = sentence.containsThisFOPCtype("or");
-		if (containsDisjunction) {
+		if (sentence.containsThisFOPCtype("or")) {
 			double holdWgt = sentence.getWeightOnSentence();
 			sentence.setWeightOnSentence(); // Set to the max weight.
 			sentence = sentence.distributeDisjunctionOverConjunction();
@@ -192,7 +192,6 @@ public abstract class Sentence extends AllOfFOPC implements Serializable {
     protected abstract Sentence distributeConjunctionOverDisjunction();
 
     public boolean isGrounded() { return !containsVariables(); }
-    public Term asTerm()        { return getStringHandler().getSentenceAsTerm(this, ""); }
 
 	/* Attempts to convert a sentence into a single clause.
      *
@@ -221,19 +220,10 @@ public abstract class Sentence extends AllOfFOPC implements Serializable {
 	}
 
 	public Literal extractLiteral() {
-		if (this instanceof Literal) { return (Literal) this; }
-		if (this instanceof UniversalSentence) {
-			UniversalSentence univ = (UniversalSentence) this;
-			return univ.body.extractLiteral();
+		if (this instanceof Literal) {
+			return (Literal) this;
 		}
-		if (this instanceof ConnectedSentence) {
-			ConnectedSentence conn = (ConnectedSentence) this;
-			if (ConnectiveName.isaNOT(conn.connective.name)) {
-				return conn.sentenceB.extractLiteral();
-			}
-			Utils.error("Cannot extract a literal from: " + this);
-		}
-		Utils.error("Cannot extract a literal from: " + this); 
+		Utils.error("Cannot extract a literal from: " + this);
 		return null;
 	}
 
@@ -259,18 +249,4 @@ public abstract class Sentence extends AllOfFOPC implements Serializable {
         return visitor.visitOtherSentence(this);
     }
 
-	/*
-	 * Methods for reading a Object cached to disk.
-    */
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        if (!(in instanceof FOPCInputStream)) {
-            throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject() input stream must support FOPCObjectInputStream interface");
-        }
-
-        in.defaultReadObject();
-
-        FOPCInputStream fOPCInputStream = (FOPCInputStream) in;
-
-        this.stringHandler = fOPCInputStream.getStringHandler();
-    }
 }

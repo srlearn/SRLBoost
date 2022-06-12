@@ -17,22 +17,6 @@ public interface HornClausebase {
 
     MapOfDefiniteClauseLists getAssertionsMap();
 
-    /* Returns the set of all asserted sentences.
-     *
-     * To maintain prolog semantics, we need to have all assertions in order,
-     * independent of whether they are facts or background knowledge.
-     *
-     * Facts will be returned as Literals while background knowledge will be
-     * returned as Clauses.  The DefiniteClause interface can be used to determine
-     * which is which and how to handle it.
-     *
-     * The returned collection should be considered immutable.  Changing the
-     * collection directly would be bad.
-     *
-     * @return Set of all asserted definite clauses, in their assertion order.
-     */
-    Iterable<DefiniteClause> getAssertions();
-
     /* Returns the set of all asserted background knowledge.
      * 
      * The returned collection should be considered immutable.  Changing the

@@ -10,8 +10,8 @@ import java.util.*;
  *
  */
 public class Function extends Term implements LiteralOrFunction {
-	public  FunctionName functionName;
-	List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
+	public final FunctionName functionName;
+	final List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
 	private List<String> argumentNames; // (Optional) names of the arguments.
 	private int        cached_arity      = -1;
 	int        cachedVariableCount = -1; // Only set to false if CHECKED.  (Key: -1 = unknown, 0 = false, 1 = true.)
@@ -24,9 +24,7 @@ public class Function extends Term implements LiteralOrFunction {
 		assert functionName != null;
 		if (functionName.name.equals("")) { Utils.error("You have not provided a function name that is the empty string!"); }
 	}
-	Function(HandleFOPCstrings stringHandler, FunctionName functionName, TypeSpec typeSpec) {
-		this(stringHandler, functionName, null, typeSpec);
-	}
+
 	Function(HandleFOPCstrings stringHandler, FunctionName functionName, List<Term> arguments, List<String> argumentNames, TypeSpec typeSpec) {
 		this(stringHandler, functionName, arguments, typeSpec);
 		this.argumentNames = argumentNames;
@@ -135,14 +133,12 @@ public class Function extends Term implements LiteralOrFunction {
 		if (argumentNames != null) { newArgNames.addAll(argumentNames); }
 		assert newArguments != null;
 		if (recursiveCopy) {
-			if (arguments != null) {				
-				for (Term term : arguments) {	
-					newArguments.add(term == null ? null : term.copy(true));
-				}
+			for (Term term : arguments) {
+				newArguments.add(term == null ? null : term.copy(true));
 			}
 			return getBareCopy(newArguments, newArgNames);
 		}
-		if (arguments!= null) { newArguments.addAll(arguments);    }
+		newArguments.addAll(arguments);
 		return getBareCopy(newArguments, newArgNames);
 	}
 
@@ -153,14 +149,12 @@ public class Function extends Term implements LiteralOrFunction {
 		if (argumentNames != null) { newArgNames.addAll(argumentNames); }
 		assert newArguments != null;
 		if (recursiveCopy) {
-			if (arguments != null) {
-				for (Term term : arguments) {
-					newArguments.add(term == null ? null : term.copy2(true, bindingList));
-				}
+			for (Term term : arguments) {
+				newArguments.add(term == null ? null : term.copy2(true, bindingList));
 			}
 			return getBareCopy(newArguments, newArgNames);
 		}
-		if (arguments!= null) { newArguments.addAll(arguments);    }
+		newArguments.addAll(arguments);
 		return getBareCopy(newArguments, newArgNames);
 	}
 
@@ -272,9 +266,6 @@ public class Function extends Term implements LiteralOrFunction {
 	
     @Override
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
-		if (functionName.name.equalsIgnoreCase("conscell")) {
-			return stringHandler.getConsCell(this).toPrettyString(newLineStarter, precedenceOfCaller, bindingList);
-		}
 		String  fNameStr = (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" : "") + functionName;
 		boolean firstOne = true;
 		boolean hasArgNames = (argumentNames != null);
@@ -301,21 +292,17 @@ public class Function extends Term implements LiteralOrFunction {
 
     @Override
 	public String toString(int precedenceOfCaller, BindingList bindingList) {
-		if (functionName.name.equalsIgnoreCase("consCell")) {
-			return stringHandler.getConsCell(this).toString(precedenceOfCaller, bindingList);
-		}
-		boolean useTypes = stringHandler.printTypedStrings;
-		String  fNameStr = (typeSpec != null && useTypes ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" : "") + functionName;
+		String  fNameStr = "" + functionName;
 		boolean firstOne = true;
 		boolean hasArgNames = (argumentNames != null);
 		
 		if (functionName.printUsingInFixNotation && numberArgs() == 1) {
-			int precedence = (stringHandler.alwaysUseParensForInfixFunctions ? Integer.MAX_VALUE : HandleFOPCstrings.getOperatorPrecedence_static(functionName.name));
+			int precedence = HandleFOPCstrings.getOperatorPrecedence_static(functionName.name);
 			if (precedenceOfCaller <= precedence) { return "(" + fNameStr + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + ")"; }
 			return                                               fNameStr + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList);
 	    }
 		if (functionName.printUsingInFixNotation && numberArgs() == 2) {
-			int precedence = (stringHandler.alwaysUseParensForInfixFunctions ? Integer.MAX_VALUE : HandleFOPCstrings.getOperatorPrecedence_static(functionName.name));
+			int precedence = HandleFOPCstrings.getOperatorPrecedence_static(functionName.name);
 			if (precedenceOfCaller <= precedence) { return "(" + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList) + ")"; }
 			return                                               (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList);
 	    }
@@ -346,17 +333,11 @@ public class Function extends Term implements LiteralOrFunction {
 	public Term getArgument(int i) {
 		return arguments.get(i);
 	}
-	void setArguments(List<Term> arguments) {
-		this.arguments = arguments;
-		sortArgumentsByName();
-	}
+
 	public List<String> getArgumentNames() {
 		return argumentNames;
 	}
-	void setArgumentNames(List<String> argumentNames) {
-		this.argumentNames = argumentNames;
-		sortArgumentsByName();
-	}
+
 	private void sortArgumentsByName() {
 		if (argumentNames == null) { return; }
 		int numbArgs = numberArgs();
@@ -380,18 +361,6 @@ public class Function extends Term implements LiteralOrFunction {
 			arguments.add(    nt.term);
 			argumentNames.add(nt.name);
 		}
-	}
-
-    // Sometimes what should be ConsCell instances are Function instances instead.
-	// This provides a way to check for that case.
-	public static boolean isaConsCell(Term expression) {  // This and the above look to be identical (JWS, 7/25/10). So I (JWS) deleted checkIfReallyIsaConsCell.
-		if (expression instanceof ConsCell) { return true; }
-		if (expression instanceof Function) {
-			Function     f     = (Function) expression;
-			FunctionName fName = f.functionName;
-			return fName.name.equalsIgnoreCase("conscell");
-		}
-		return false;
 	}
 
 	@Override

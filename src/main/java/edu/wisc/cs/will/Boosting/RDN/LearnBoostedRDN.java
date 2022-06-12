@@ -196,9 +196,6 @@ public class LearnBoostedRDN {
 		try {
 			// WILL somehow loses all the examples after every run.  TODO - JWS: Guess there is some final cleanup. 
 			setup.getOuterLooper().setPosExamples(BoostingUtils.convertToListOfExamples(newDataSet));
-			// Make sure the invented predicates (if any) have unique names.
-			setup.getOuterLooper().setPrefixForExtractedRules("");
-			setup.getOuterLooper().setPostfixForExtractedRules("");
 
 			thry = setup.getOuterLooper().executeOuterLoop();
 

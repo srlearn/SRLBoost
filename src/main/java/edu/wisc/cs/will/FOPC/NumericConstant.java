@@ -75,10 +75,6 @@ public class NumericConstant extends Constant implements Serializable {
         return false;
     }
 
-    private String toTypedString() {
-        return (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" + value : value.toString());
-    }
-
     @Override
     public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
         return toString(precedenceOfCaller, bindingList);
@@ -86,9 +82,6 @@ public class NumericConstant extends Constant implements Serializable {
 
     @Override
     protected String toString(int precedenceOfCaller, BindingList bindingList) {
-        if (stringHandler.printTypedStrings) {
-            return toTypedString();
-        }
         return getName();
     }
 

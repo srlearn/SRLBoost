@@ -34,16 +34,6 @@ public class BoostingUtils {
 		if (leafTerm instanceof NumericConstant) {
 			return new RegressionValueOrVector(((NumericConstant) leafTerm).value.doubleValue());
 		}
-		if (leafTerm instanceof ConsCell) {
-			ConsCell valarray = (ConsCell)leafTerm;
-			double[] regVec = new double[valarray.length()];
-			int index = 0;
-			for (Term term : valarray) {
-				double val  = ((NumericConstant) term).value.doubleValue();
-				regVec[index++] = val;
-			}
-			return new RegressionValueOrVector(regVec);
-		}
 		Utils.error("Uknown type of constant in leaf: " + leafTerm.toPrettyString());
 		return null;
 	}

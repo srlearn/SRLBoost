@@ -39,16 +39,7 @@ public class StringConstant extends Constant implements Serializable {
         return false;
     }
 
-    private String toTypedString() {
-        assert typeSpec != null;
-        if (name == null) {
-            return typeSpec.getModeString() + typeSpec.isaType.typeName;
-        } // Sometimes anonymous string constants are used (e.g., to pass around typeSpec's).
-        String nameToUse = getName();
-        return (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" + nameToUse : nameToUse);
-    }
-    
-    private void checkIfQuoteMarksNeeded() { 
+    private void checkIfQuoteMarksNeeded() {
     	alwaysUseDoubleQuotes     = false;
     	boolean containsNonNumber = false;
         if (name != null) for (int i = 0; i < name.length(); i++) {
@@ -142,9 +133,6 @@ public class StringConstant extends Constant implements Serializable {
     }
 
     protected String toString(int precedenceOfCaller, BindingList bindingList) {
-        if (stringHandler.printTypedStrings) {
-            return toTypedString();
-        }
         String prefix = "";
         if (name == null) {
             if (typeSpec == null) {

@@ -18,10 +18,6 @@ public class CondorFile extends File {
         super(parent, Utils.replaceWildCards(child));
     }
 
-    public CondorFile(String parent, String child) {
-        super(Utils.replaceWildCards(parent), Utils.replaceWildCards(child));
-    }
-
     public CondorFile(String pathname) {
         super(Utils.replaceWildCards(pathname));
     }

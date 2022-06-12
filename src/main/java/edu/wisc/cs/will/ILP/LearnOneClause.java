@@ -11,9 +11,7 @@ import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForMLN;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForRDN;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
-import edu.wisc.cs.will.ResThmProver.HornClausebase;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.stdAIsearch.*;
 
 import javax.swing.event.EventListenerList;
@@ -337,30 +335,20 @@ public class LearnOneClause extends StateBasedSearchTask {
 		procDefinedForConstants        = stringHandler.getPredicateName("collectContantsBoundToTheseVars");
 		procDefinedNeedForNewVariables = stringHandler.getPredicateName("newTermBoundByThisVariable");
         context.getClausebase().setUserProcedurallyDefinedPredicateHandler(procHandler);
+		// TODO(hayesall): Is the `procHandler` actually doing anything?
 
 		if (Utils.getSizeSafely(posExamples) + Utils.getSizeSafely(negExamples) > 0) {
 			chooseTargetMode();
 		}
 
-		// TODO(@hayesall): What is `prune.txt`?
-		String pruneFileNameToUse = Utils.createFileNameString(getDirectoryName(), "prune.txt");
+		Utils.println("\n% Started collecting constants");
 
-		// The method below will check if the prune file already exists, and if so, will simply return true.
-			// Files cached (if requested):
-            boolean pruneFileAlreadyExists = lookForPruneOpportunities(getParser());
+		// TODO(hayesall): `typeManager` also appears to try to do type inference. This behavior should be deprecated.
 
-			Utils.println("\n% Started collecting constants");
 		long start = System.currentTimeMillis();
-		// The following will see if the old types file exists.
-            // Checks for errors in the data.
-            String  typesFileNameToUse     = Utils.createFileNameString(getDirectoryName(), "types.txt");
-            // Create files that cache computations, to save time, for debugging, etc.
-            boolean createCacheFiles = false;
-            Boolean typesFileAlreadyExists = typeManager.collectTypedConstants(createCacheFiles, false, typesFileNameToUse, targets, targetArgSpecs, bodyModes, getPosExamples(), getNegExamples(), facts); // Look at all the examples and facts, and collect the typed constants in them wherever possible.
-            if (typesFileAlreadyExists) {
-                addToFacts(typesFileNameToUse); // Load the types file, if it exists.
-            }
-            long end = System.currentTimeMillis();
+		typeManager.collectTypedConstants(targets, targetArgSpecs, bodyModes, getPosExamples(), getNegExamples(), facts);
+		long end = System.currentTimeMillis();
+
 		Utils.println("% Time to collect constants: " + Utils.convertMillisecondsToTimeSpan(end - start));
         if (!creatingConjunctiveFeaturesOnly && minNumberOfNegExamples > 0 && getNegExamples() == null) {
             Utils.severeWarning("Have ZERO negative examples!  Variable 'minNumberOfNegExamples' is currently set to " + minNumberOfNegExamples + ".");
@@ -373,129 +361,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         Utils.println("% Time to init learnOneClause: " + Utils.convertMillisecondsToTimeSpan(iend-istart));
         }
 	}
-
-    private boolean lookForPruneOpportunities(FileParser parser) {
-        // See if any 'prune' rules can be generated from this rule set.
-        // For example, if 'p :- q, r' is the ONLY way to derive 'p,' then if 'p' in a clause body, no need to consider adding 'q' nor 'r.'
-
-        //  Could simply redo this each time, since the calculation is simple, but this design allows the user to EDIT this file.
-        StringBuilder parseThisString = new StringBuilder();
-        // Don't create unless needed.
-        for (DefiniteClause definiteClause : getContext().getClausebase().getAssertions()) {
-            if (definiteClause instanceof Clause) {
-                Clause clause = (Clause) definiteClause;
-
-                Literal clauseHead = clause.posLiterals.get(0);
-                PredicateName clauseHeadName = clauseHead.predicateName;
-
-                if (clauseHeadName.getTypeOnlyList(clauseHead.numberArgs()) == null) {
-                    continue;
-                } // Need to have some mode.  NOTE: this means modes need to be read before this method is called.
-                Collection<Variable> boundVariables = clauseHead.collectFreeVariables(null);
-                boolean canPrune = (clause.negLiterals != null); // Should always be true, but need to test this anyway.
-
-                if (canPrune) { // If ANY fact has the matches the clause head, cannot prune since cannot be sure this clause was used to deduce the head.
-                    canPrune = (matchingFactExists(getContext().getClausebase(), clauseHead) == null);
-                }
-
-                // See if there are any other ways clauseHead can be derived.  If so, set canPrune=false.
-                if (canPrune) {
-                    canPrune = (matchingClauseHeadExists(getContext().getClausebase(), clauseHead, clause) == null);
-                }
-
-                // Can only prune predicates that are DETERMINED by the arguments in the clauseHead.
-                // Note: this code is 'safe' but it misses some opportunities.  E.g., if one has 'p(x) :- q(x,y)' AND THERE IS ONLY ONE POSSIBLE y FOR EACH x, then pruning is valid.  (Called "determinate literals" in ILP - TODO handle such cases.)
-                if (canPrune) {
-                    for (Literal prunableLiteral : clause.negLiterals) {
-                        if (prunableLiteral.predicateName.getTypeOnlyList(prunableLiteral.numberArgs()) != null && canPrune(prunableLiteral) && prunableLiteral.collectFreeVariables(boundVariables) == null) { // Could include 'if (!canPrune) then continue;' but this code should be fast enough.
-                            String newStringLine = "prune: " + prunableLiteral + ", " + clauseHead + ", warnIf(2)."; // Use '2' here, since if more than one rule, the inference is incorrect.
-                            parseThisString.append(newStringLine).append("\n");
-                        }
-                    }
-                }
-            }
-        }
-        parser.readFOPCstream(parseThisString.toString());
-        return false;
-    }
-
-    /* Returns whether a literal can be pruned.
-     *
-     * Filter some things we don't want to add to the list of prunable items.
-     * Wouldn't hurt to include these, but might confuse/distract the user.
-     */
-    private boolean canPrune(Literal lit) {
-        if (lit.predicateName == getStringHandler().standardPredicateNames.cutMarker) {
-            return false;
-        }
-        if (lit.numberArgs() > 0) {
-            for (Term term : lit.getArguments()) {
-                if (term instanceof SentenceAsTerm) {
-                    return false;
-                }
-            } // Cannot handle clauses in the parser.
-        }
-        return true;
-    }
-
-    /* Does an item in the fact base match (i.e., unify with) this query?
-     * @return The matching fact, if one exists. Otherwise null.
-     */
-	private Literal matchingFactExists(HornClausebase clausebase, Literal query) {
-		assert query != null;
-
-        BindingList aBinding = new BindingList(); // Note: the unifier can change this.  But save on creating a new one for each fact.
-        Iterable<Literal> factsToUse = clausebase.getPossibleMatchingFacts(query, null);
-
-        if (factsToUse != null) {
-            for (Literal fact : factsToUse) {
-                aBinding.theta.clear(); // Revert to the empty binding list.
-                if (Unifier.UNIFIER.unify(fact, query, aBinding) != null) {
-                    return fact;
-                }
-            }
-        }
-        return null;
-    }
-
-    /*
-     * Does this query unify with any known clause, other than the one to ignore?  (OK to set ignoreThisClause=null.)
-     * @return The matching clause head if one exists, otherwise null.
-     */
-	private Clause matchingClauseHeadExists(HornClausebase clausebase, Literal query, Clause ignoreThisClause) {
-        Iterable<Clause> candidates = clausebase.getPossibleMatchingBackgroundKnowledge(query, null);
-        if (candidates == null) {
-            return null;
-        }
-        return matchingClauseHeadExists(query, ignoreThisClause, candidates);
-    }
-
-    /*
-     * Does this query unify with the head of any of these clauses, other than the one to ignore?  (OK to set ignoreThisClause=null.)
-     * @return The matching clause head if one exists, otherwise null.
-     */
-	private Clause matchingClauseHeadExists(Literal query, Clause ignoreThisClause, Iterable<Clause> listOfClauses) {
-        if (query == null) {
-            Utils.error("Cannot have query=null here.");
-        }
-        if (listOfClauses == null) {
-            return null;
-        }
-
-        BindingList aBinding = new BindingList(); // Note: the unifier can change this.
-        for (Clause clause : listOfClauses) {
-            if (!clause.isDefiniteClause()) {
-                Utils.error("Call clauses passed to the method must be Horn.  You provided: '" + clause + "'.");
-            }
-            if (clause != ignoreThisClause) {
-				aBinding.theta.clear();
-				if (Unifier.UNIFIER.unify(clause.posLiterals.get(0), query, aBinding) != null) {
-                    return clause;
-                }
-            }
-        }
-        return null;
-    }
 
     public void addBodyMode(PredicateNameAndArity pName) {
         bodyModes.add(pName);
@@ -1088,42 +953,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return sentences;
 	}
 
-	private void addToFacts(String factsFileName) {
-		try {
-			if (!Utils.fileExists(factsFileName)) {
-				Utils.error("Cannot find this file:\n  " + factsFileName);
-			}
-			File factsFile = Utils.ensureDirExists(factsFileName);
-			addToFacts(new CondorFileReader(factsFile), factsFile.getParent()); // Need the String in CondorFileReader since that will check if compressed.
-		} catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Cannot find this file: " + factsFileName);
-		}
-	}
-
-	private void addToFacts(Reader factsReader, String readerDirectory) {
-		List<Sentence> moreFacts = readFacts(factsReader, readerDirectory, true);
-		if (moreFacts == null) { return; }
-		Utils.println("% Read an additional " + Utils.comma(moreFacts) + " facts from " + factsReader + ".");
-		addFacts(moreFacts);
-	}
-
-	void addFacts(List<Sentence> newFacts) {
-        for (Sentence sentence : newFacts) {
-            // These should all be facts, but there is really no way to enforce it.
-            // However, if they are literals we will consider them as facts.
-            // We add the fact predicate/arity to a set so we know that they
-            // came in as facts and can be used as so later.
-            if (sentence instanceof Literal) {
-                Literal literal = (Literal) sentence;
-                PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-            }
-        }
-
-		context.assertSentences(newFacts);
-	}
-
-    private void chooseTargetMode() {
+	private void chooseTargetMode() {
 		chooseTargetMode(stringHandler.dontComplainIfMoreThanOneTargetModes);
 		
 	}
@@ -1317,15 +1147,13 @@ public class LearnOneClause extends StateBasedSearchTask {
 				targetArguments.add(newTerm);
 				theseVars.add(newTerm);
 				counter++;
-    		} else if (Function.isaConsCell(arg)) {
-    			counter++; // We need to skip lists, since they can be of variable length.
-			} else if (arg instanceof Function) {
-				Function f = (Function) arg;
-				List<Term> newArguments = new ArrayList<>(f.numberArgs());
-				traverseSignatureAndAddVariables(f.getArguments(), counter, typeSpecs, newArguments, theseVars, theseTargetArgSpecs);
-				targetArguments.add(stringHandler.getFunction(f.functionName, newArguments, f.getTypeSpec()));
-				counter += f.countLeaves();
-			} else { Utils.error("Unexpected argument in a signature: " + arg); }
+    		} else if (arg instanceof Function) {
+                Function f = (Function) arg;
+                List<Term> newArguments = new ArrayList<>(f.numberArgs());
+                traverseSignatureAndAddVariables(f.getArguments(), counter, typeSpecs, newArguments, theseVars, theseTargetArgSpecs);
+                targetArguments.add(stringHandler.getFunction(f.functionName, newArguments, f.getTypeSpec()));
+                counter += f.countLeaves();
+            } else { Utils.error("Unexpected argument in a signature: " + arg); }
 		}
 	}
 

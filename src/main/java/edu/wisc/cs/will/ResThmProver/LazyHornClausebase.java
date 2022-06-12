@@ -239,11 +239,6 @@ public class LazyHornClausebase implements HornClausebase {
     }
 
     @Override
-    public Iterable<DefiniteClause> getAssertions() {
-        return assertions;
-    }
-
-    @Override
     public Iterable<Clause> getBackgroundKnowledge() {
         return new DefiniteClauseToClauseIterable(assertions);
     }

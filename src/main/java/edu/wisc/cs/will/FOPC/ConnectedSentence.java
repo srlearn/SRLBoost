@@ -190,18 +190,30 @@ public class ConnectedSentence extends Sentence implements Serializable {
 	// Clausal-form converter stuff.
     @Override
 	protected boolean containsThisFOPCtype(String marker) {
-		if (ConnectiveName.isaAND(       marker) && ConnectiveName.isaAND(       connective.name)) { return true; }
-		if (ConnectiveName.isaOR(        marker) && ConnectiveName.isaOR(        connective.name)) { return true; }
-		if (ConnectiveName.isaNOT(       marker) && ConnectiveName.isaNOT(       connective.name)) { return true; }
-		if (ConnectiveName.isaIMPLIES(   marker) && ConnectiveName.isaIMPLIES(   connective.name)) { return true; }
-		if (ConnectiveName.isaEQUIVALENT(marker) && ConnectiveName.isaEQUIVALENT(connective.name)) { return true; }
-		boolean sentA = (sentenceA != null && sentenceA.containsThisFOPCtype(marker)); // Handle NOT's case of one argument.
-		if (sentA) { return true; }
+		if (ConnectiveName.isaAND(       marker) && ConnectiveName.isaAND(       connective.name)) {
+			return true;
+		}
+		if (ConnectiveName.isaOR(        marker) && ConnectiveName.isaOR(        connective.name)) {
+			return true;
+		}
+		if (ConnectiveName.isaNOT(       marker) && ConnectiveName.isaNOT(       connective.name)) {
+			return true;
+		}
+		if (ConnectiveName.isaIMPLIES(   marker) && ConnectiveName.isaIMPLIES(   connective.name)) {
+			return true;
+		}
+		if (ConnectiveName.isaEQUIVALENT(marker) && ConnectiveName.isaEQUIVALENT(connective.name)) {
+			return true;
+		}
+		if (sentenceA != null && sentenceA.containsThisFOPCtype(marker)) {
+			return true;
+		}
 		return sentenceB.containsThisFOPCtype(marker);
 	}
-	// Convert p <=> q into p => q and q => p.
+
     @Override
 	protected ConnectedSentence convertEquivalenceToImplication() {
+		// Convert p <=> q into p => q and q => p.
 		Sentence newA = (sentenceA == null ? null : sentenceA.convertEquivalenceToImplication()); // Handle NOT.
 		Sentence newB =                             sentenceB.convertEquivalenceToImplication();
 		if (ConnectiveName.isaEQUIVALENT(connective.name)) {	
@@ -214,9 +226,10 @@ public class ConnectedSentence extends Sentence implements Serializable {
 		}
 		return (ConnectedSentence) stringHandler.getConnectedSentence(newA, connective, newB).setWeightOnSentence(wgtSentence);
 	}
-	// Convert p => q into  ~p or q.
+
     @Override
 	protected ConnectedSentence eliminateImplications() {
+		// Convert p => q into  ~p or q.
 		Sentence newA = (sentenceA == null ? null : sentenceA.eliminateImplications()); // Handle NOT, which has only one argument.
 		Sentence newB = sentenceB.eliminateImplications();
 		if (ConnectiveName.isaBackwardsIMPLIES(connective.name)) {
@@ -272,52 +285,17 @@ public class ConnectedSentence extends Sentence implements Serializable {
 			boolean sentRightIsaAND = (newR instanceof ConnectedSentence && ConnectiveName.isaAND(((ConnectedSentence) newR).connective.name));
 			 
 			// According to the original MLN paper in MLj (page 8), split weights evenly when converting one weighted sentence into N.
-			
-			// (a ^ b) v (c ^ d) <==> ((a ^ b) v c) ^ ((a ^ b) v d) <==> (a v c) ^ (b v c) ^ (a v d) ^ (b v d)
+
 			if (sentLeftIsaAND && sentRightIsaAND) {
-				ConnectiveName andConnective = stringHandler.getConnectiveName("^");
-				ConnectiveName  orConnective = stringHandler.getConnectiveName("v");
-				Sentence               leftA = ((ConnectedSentence) newL).sentenceA;
-				Sentence               leftB = ((ConnectedSentence) newL).sentenceB;
-				Sentence              rightA = ((ConnectedSentence) newR).sentenceA;
-				Sentence              rightB = ((ConnectedSentence) newR).sentenceB;
-				ConnectedSentence        or1 = stringHandler.getConnectedSentence(leftA, orConnective, rightA);
-				ConnectedSentence        or2 = stringHandler.getConnectedSentence(leftA, orConnective, rightB);
-				ConnectedSentence        or3 = stringHandler.getConnectedSentence(leftB, orConnective, rightA);
-				ConnectedSentence        or4 = stringHandler.getConnectedSentence(leftB, orConnective, rightB);
-				Sentence              newOr1 = or1.distributeDisjunctionOverConjunction(); // Need to handle conjuncts with more than two items.
-				Sentence              newOr2 = or2.distributeDisjunctionOverConjunction();
-				Sentence              newOr3 = or3.distributeDisjunctionOverConjunction(); // Need to handle conjuncts with more than two items.
-				Sentence              newOr4 = or4.distributeDisjunctionOverConjunction();
-				ConnectedSentence       and1 = stringHandler.getConnectedSentence(newOr1,  andConnective, newOr2); 
-				ConnectedSentence       and2 = stringHandler.getConnectedSentence(newOr3,  andConnective, newOr4);
-				return stringHandler.getConnectedSentence(and1, andConnective, and2).spreadWeightEquallyOverConjuncts(wgtSentence);
-			}
-			// (a ^ b) v c  <==> (a v c) ^ (b v c)
-			else if (sentLeftIsaAND) {
-				ConnectiveName andConnective = stringHandler.getConnectiveName("^");
-				ConnectiveName  orConnective = stringHandler.getConnectiveName("v");
-				Sentence               leftA = ((ConnectedSentence) newL).sentenceA;
-				Sentence               leftB = ((ConnectedSentence) newL).sentenceB;
-				ConnectedSentence       left = stringHandler.getConnectedSentence(leftA, orConnective, newR);
-				ConnectedSentence      right = stringHandler.getConnectedSentence(leftB, orConnective, newR);
-				Sentence             newLeft =  left.distributeDisjunctionOverConjunction(); // Need to handle conjuncts with more than two items.
-				Sentence            newRight = right.distributeDisjunctionOverConjunction();
-				return stringHandler.getConnectedSentence(newLeft, andConnective, newRight).spreadWeightEquallyOverConjuncts(wgtSentence);
-			}
-			//  a v (b ^ c) <==> (a v b) ^ (a v c)
-			else if (sentRightIsaAND) {
-				ConnectiveName andConnective = stringHandler.getConnectiveName("^");
-				ConnectiveName  orConnective = stringHandler.getConnectiveName("v");
-				Sentence              rightA = ((ConnectedSentence) newR).sentenceA;
-				Sentence              rightB = ((ConnectedSentence) newR).sentenceB;
-				ConnectedSentence       left = stringHandler.getConnectedSentence(newL, orConnective, rightA);
-				ConnectedSentence      right = stringHandler.getConnectedSentence(newL, orConnective, rightB);
-				Sentence             newLeft =  left.distributeDisjunctionOverConjunction(); // Need to handle conjuncts with more than two items.
-				Sentence            newRight = right.distributeDisjunctionOverConjunction();
-				return stringHandler.getConnectedSentence(newLeft, andConnective, newRight).spreadWeightEquallyOverConjuncts(wgtSentence);
-			}
-			else {
+				// (a ^ b) v (c ^ d) <==> ((a ^ b) v c) ^ ((a ^ b) v d) <==> (a v c) ^ (b v c) ^ (a v d) ^ (b v d)
+				throw new RuntimeException("Deprecated.");
+			} else if (sentLeftIsaAND) {
+				// (a ^ b) v c  <==> (a v c) ^ (b v c)
+				throw new RuntimeException("Deprecated.");
+			} else if (sentRightIsaAND) {
+				//  a v (b ^ c) <==> (a v b) ^ (a v c)
+				throw new RuntimeException("Deprecated.");
+			} else {
 				return (ConnectedSentence) stringHandler.getConnectedSentence(newL, connective, newR).setWeightOnSentence(wgtSentence);
 			}
 		}
@@ -395,48 +373,6 @@ public class ConnectedSentence extends Sentence implements Serializable {
 		}
 		Utils.error("Should not be distributing connected sentences except those containing AND, OR, or NOT: " + this); // If negate needed more broadly, then make a new version or pass in a flag.
 		return null;
-	}
-
-    // Need to handle (A ^ (B ^ C)) by giving them all 1/3rd the weight, that than 1/2, 1/4th, and 1/4th.
-    private ConnectedSentence spreadWeightEquallyOverConjuncts(double wgtSentenceToUse) {
-		ConnectiveName andConnective = stringHandler.getConnectiveName("^");
-		int numberOfConjuncts = countANDconnectives(andConnective);
-		if (numberOfConjuncts < 1) { Utils.error("This should not happen: " + this); }
-    	setWeightOnAllANDconnectives(andConnective, wgtSentenceToUse / numberOfConjuncts);
-		return this;
-	}
-
-    private int countANDconnectives(ConnectiveName andConnective) {
-    	if (connective != andConnective) { return 0; }
-    	boolean AisConnected = sentenceA instanceof ConnectedSentence;
-    	boolean BisConnected = sentenceB instanceof ConnectedSentence;
-    	if (AisConnected && BisConnected) {
-    		return 1 + ((ConnectedSentence) sentenceA).countANDconnectives(andConnective) + ((ConnectedSentence) sentenceB).countANDconnectives(andConnective);
-    	}
-    	if (AisConnected) {
-    		return 1 + ((ConnectedSentence) sentenceA).countANDconnectives(andConnective);
-    	}
-    	if (BisConnected) {
-    		return 1 + ((ConnectedSentence) sentenceB).countANDconnectives(andConnective);
-    	}
-    	return 1;
-	}
-
-    private void setWeightOnAllANDconnectives(ConnectiveName andConnective, double wgtSentenceToUse) {
-    	if (connective != andConnective) { return; }
-    	boolean AisConnected = sentenceA instanceof ConnectedSentence;
-    	boolean BisConnected = sentenceB instanceof ConnectedSentence;
-    	if (AisConnected && BisConnected) {
-    		((ConnectedSentence) sentenceA).setWeightOnAllANDconnectives(andConnective, wgtSentenceToUse);
-    		((ConnectedSentence) sentenceB).setWeightOnAllANDconnectives(andConnective, wgtSentenceToUse);
-    	}
-    	if (AisConnected) {
-    		((ConnectedSentence) sentenceA).setWeightOnAllANDconnectives(andConnective, wgtSentenceToUse);
-    	}
-    	if (BisConnected) {
-    		((ConnectedSentence) sentenceB).setWeightOnAllANDconnectives(andConnective, wgtSentenceToUse);
-    	}
-    	setWeightOnSentence(wgtSentenceToUse);
 	}
 
 	// When this is called the sentence should be in conjunctive normal form.
