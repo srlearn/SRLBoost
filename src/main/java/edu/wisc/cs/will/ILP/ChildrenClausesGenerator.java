@@ -147,7 +147,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				Map<Variable,Type> newVariables = null;
 
 				// Need to sometimes treat these specially.
-				Set<Variable> mustBeNewVariables = null;
 				Map<Type,List<Variable>> newVarsThisType = null;
 				Map<Term,Type> typesOfNewTerms = null;
 				Map<Term,Integer> depthsOfTerms = null;
@@ -169,18 +168,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 					//   If a @mode, then use the SPECIFIC value given (should be a constant and not a variable).
 					//   If a &mode, then combine '-' and '#'.
 					//   If a %mode, then combine '+' and '#'.
-					if (spec.mustBeThisValue()) {
-						Constant  typeSpecAsConstant = (Constant) ((LearnOneClause) task).stringHandler.getVariableOrConstant(spec.isaType.toString());
-						Type typeOfThisSpecificValue = ((LearnOneClause) task).stringHandler.isaHandler.getIsaType(typeSpecAsConstant);
-						
-						if (typeOfThisSpecificValue == null) { Utils.error("Cannot find type of: '" + typeSpecAsConstant + "'."); }
-						validTermsOfThisType.add(typeSpecAsConstant);
-						if (typesOfNewTerms == null) { typesOfNewTerms = new HashMap<>(4); }
-						Type assignedType = typesOfNewTerms.get(typeSpecAsConstant);
-						if (assignedType == null) { typesOfNewTerms.put(typeSpecAsConstant, typeOfThisSpecificValue); }
-						else if (assignedType != typeOfThisSpecificValue) { Utils.error("Have two types for '" + typeSpecAsConstant + "': " + assignedType + "' and '" + typeOfThisSpecificValue + "'."); }
-						// No need to add to depthsOfTerms since constants have depth of the max depth of the input variables.
-					} else if (spec.mustBeConstant()) {  // Grab some number of constants from the positive SEEDs.
+					if (spec.mustBeConstant()) {  // Grab some number of constants from the positive SEEDs.
 						Variable newVarOfThisType = getNewILPbodyVar(spec); // We'll stick a variable in for now, then later find to what it gets bound.
 						if (typesOfNewConstants == null) { typesOfNewConstants = new HashMap<>(4); }
 						typesOfNewConstants.put(newVarOfThisType, spec.isaType);
@@ -208,7 +196,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 						}
 
 						List<Variable> listOfNewVarsThisType = null;
-						if (!spec.mustBeBound() && !spec.mustBeNewVariable() && newVarsThisType != null) {
+						if (!spec.mustBeBound() && newVarsThisType != null) {
 							// Look for new variables of this type already introduced for this mode.
 							listOfNewVarsThisType = newVarsThisType.get(spec.isaType);
 							if (listOfNewVarsThisType != null) { 
@@ -224,16 +212,10 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 						}
 
 						// Collect all these legal terms.
-						if (existingTermsOfThisType != null) { 
-							if (spec.mustBeBoundAndAppearOnlyOnce()) {
-								for (Term existing : existingTermsOfThisType) {
-									if (parent.thisTermAppearsOnlyOnceInClause(existing)) { validTermsOfThisType.add(existing); }
-								}
-							} else if (!spec.mustBeNewVariable()) {
-								// This must be a TOTALLY new variable (see about 10 lines above), i.e., cannot appear elsewhere in the predicate?  Seems so ... but need to DOC!
-								for (Term existingTerm : existingTermsOfThisType) if (!validTermsOfThisType.contains(existingTerm)) {
-									validTermsOfThisType.add(existingTerm);
-								}
+						if (existingTermsOfThisType != null) {
+							// This must be a TOTALLY new variable (see about 10 lines above), i.e., cannot appear elsewhere in the predicate?  Seems so ... but need to DOC!
+							for (Term existingTerm : existingTermsOfThisType) if (!validTermsOfThisType.contains(existingTerm)) {
+								validTermsOfThisType.add(existingTerm);
 							}
 						}
 
@@ -254,43 +236,23 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 								newVarsThisType = new HashMap<>(4);
 							}
 
-							if (!spec.mustBeNewVariable()) {
-								// Don't reuse this in the same literal (OK for later literals in the clause).
-								if (listOfNewVarsThisType == null) {
-									listOfNewVarsThisType = new ArrayList<>(1);
-								}
-
-								listOfNewVarsThisType.add(newVarOfThisType);
-								newVarsThisType.put(spec.isaType, listOfNewVarsThisType);
-							} else {
-								if (mustBeNewVariables == null) { mustBeNewVariables = new HashSet<>(4); }
-								mustBeNewVariables.add(newVarOfThisType);
+							// Don't reuse this in the same literal (OK for later literals in the clause).
+							if (listOfNewVarsThisType == null) {
+								listOfNewVarsThisType = new ArrayList<>(1);
 							}
+
+							listOfNewVarsThisType.add(newVarOfThisType);
+							newVarsThisType.put(spec.isaType, listOfNewVarsThisType);
 							if (typesOfNewTerms == null) {
 								// These don't need to be very big since few new variables per literal.  Ie, allow 3 before rebuilding the hash map.
 								typesOfNewTerms = new HashMap<>(4);
 							}
 							typesOfNewTerms.put(newVarOfThisType, spec.isaType);
 							validTermsOfThisType.add(newVarOfThisType);
-						} else {
-							if (spec.mustBeNewVariable()) {
-								usableTerms = null;
-								break;
-							}
 						}
 					}
 
-					// Since this is a notHeadVarMode, we should remove variables after collecting them all
-					if (spec.mustNotBeHeadVar()) {
-						List<Term> removeTheseVars = parent.getVariablesInTarget();
-						validTermsOfThisType.removeAll(removeTheseVars);
-					}
-
 					usableTerms.add(validTermsOfThisType); // Remember what can be used to fill this argument.
-				}
-
-				if (usableTerms == null) {
-					continue;
 				}
 
 				int totalNumberOfCandidates = 1;
@@ -583,9 +545,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 
 									for (Variable newVar : newVars) {
 
-										// We will always add these.
-										boolean isaMustBeVar = (mustBeNewVariables != null && mustBeNewVariables.contains(newVar));
-
 										if (newVar == null) {
 											Utils.error("Should not have var=null!  args=" + args + " types=" + typesOfNewTerms);
 										}
@@ -597,10 +556,10 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 										}
 
 										// Need ALL the variables of this type, up to and including the head.  We also can accept LOWER items in the isaHier.  E.g., as above, if we're a DOG, collect POODLEs, but *not* ANIMALs.
-										List<Term> existingTermsOfThisType = (isaMustBeVar ? null : getExistingTermsOfThisType(thisVarType, parent));
+										List<Term> existingTermsOfThisType = getExistingTermsOfThisType(thisVarType, parent);
 
 										// If no other variables of this type, then this variable is needed so no more checking necessary.
-										if (!isaMustBeVar && existingTermsOfThisType != null) {
+										if (existingTermsOfThisType != null) {
 
 											// The FIRST variable is the new one whose need is being questioned.
 											existingTermsOfThisType.add(0, newVar);

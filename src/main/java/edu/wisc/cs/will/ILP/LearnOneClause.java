@@ -1312,12 +1312,8 @@ public class LearnOneClause extends StateBasedSearchTask {
 				if (positionToFill != counter) { Utils.error("positionToFill = " + positionToFill + " != counter = " + counter); }
 				TypeSpec typeSpec = typeSpecs.get(positionToFill);
 				Term newTerm;
-				if (typeSpec.mustBeThisValue()) {
-					newTerm = stringHandler.getStringConstant(typeSpec.isaType.toString());
-				} else {
-					newTerm = stringHandler.getNewNamedGeneratedVariable();
-				}
-				theseTargetArgSpecs.add(new ArgSpec(newTerm, typeSpec));
+                newTerm = stringHandler.getNewNamedGeneratedVariable();
+                theseTargetArgSpecs.add(new ArgSpec(newTerm, typeSpec));
 				targetArguments.add(newTerm);
 				theseVars.add(newTerm);
 				counter++;

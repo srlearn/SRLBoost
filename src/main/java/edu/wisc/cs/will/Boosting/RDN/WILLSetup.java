@@ -452,7 +452,6 @@ public final class WILLSetup {
 		getInnerLooper().maxDepthOfNewVars  =      7;
 		getOuterLooper().max_total_nodesExpanded = 10000000;
 		getOuterLooper().max_total_nodesCreated  = 10 * getOuterLooper().max_total_nodesExpanded;
-		getHandler().setStarMode(TypeSpec.minusMode);
 		getInnerLooper().setMEstimatePos(0.1);
 		getInnerLooper().setMEstimateNeg(0.1);
 		getInnerLooper().setMaxNegCoverage(0.499);

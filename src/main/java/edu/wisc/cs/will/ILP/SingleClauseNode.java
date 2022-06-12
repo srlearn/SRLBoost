@@ -176,19 +176,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		return result;
 	}
 
-	boolean thisTermAppearsOnlyOnceInClause(Term termToCheck) { // TODO maybe should generalize to thisTermAppearsAtMostNtimeInClause (and maybe also write a "atLeastN" version).
-		return help_thisTermAppearsOnlyOnceInClause(termToCheck, 0);
-	}
-	private boolean help_thisTermAppearsOnlyOnceInClause(Term termToCheck, int countSoFar) {
-		if (literalAdded.getArguments() != null) for (Term term : literalAdded.getArguments()) { 
-			if (term == termToCheck) {	countSoFar++; }
-			if (countSoFar > 1) { return false; } // Return false once count EXCEEDS 1.
-		}
-		SingleClauseNode parent = getParentNode();
-		if (parent != null) { return parent.help_thisTermAppearsOnlyOnceInClause(termToCheck, countSoFar); }
-		return (countSoFar == 1); // If at root, see if count=1.
-	}
-
 	List<Term> termsOfThisTypePresentInChild(Type type) {
 		List<Term> result = null;
 		SingleClauseNode parent = getParentNode();

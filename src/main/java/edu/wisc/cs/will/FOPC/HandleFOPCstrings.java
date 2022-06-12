@@ -39,8 +39,6 @@ public final class HandleFOPCstrings {
 
 	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
 
-	private int     starModeMap = TypeSpec.plusMode; // '*' modes are defined via this (this allows a program to change modes within a run).
-
 	public final IsaHetrarchy                isaHandler;
 	private   List<PredicateNameAndArity> knownModes; // Hold all the predicates with known modes.
 	private final List<PredicateNameAndArity> disallowedModes;
@@ -699,49 +697,6 @@ public final class HandleFOPCstrings {
 		return getExternalVariable(spec, name, false);
 	}
 
-	public Term getVariableOrConstant(String name) {
-		return getVariableOrConstant(name, false);
-	}
-
-	public Term getVariableOrConstant(String name, boolean createNewVariable) {
-		String typeIfNumber = isaNumericConstant(name);
-
-		if (typeIfNumber == null) {
-			if (isaConstantType(name))  { return getStringConstant(name); }
-			return getExternalVariable(name, createNewVariable);
-		}
-		if (typeIfNumber.equals("integer")) { return getNumericConstant(Integer.parseInt(   name)); }  // Getting numbers here should be rare.
-		if (typeIfNumber.equals("double"))  { return getNumericConstant( Double.parseDouble(name)); }
-		Utils.error("Cannot interpret this variable or constant: '" + name + "'.");
-		return null;
-	}
-
-	private String isaNumericConstant(String name) {
-		if (name == null || name.length() < 1) { return null; }
-		switch (name.charAt(0)) {
-			case '-':
-			case '+':
-			case '0':
-			case '1':
-			case '2':
-			case '3':
-			case '4':
-			case '5':
-			case '6':
-			case '7':
-			case '8':
-			case '9':
-				 if (name.contains(".")) {
-					 try { Double.parseDouble(name); return "double"; }
-					 catch (NumberFormatException e) { Utils.error("This looks to be a double but could not parse it: '" + name + "'."); }
-				 }
-				 try { Integer.parseInt(name); return "integer"; }
-				 catch (NumberFormatException e) { Utils.error("This looks to be an integer but could not parse it: '" + name + "'."); }
-
-		}
-		return null;
-	}
-
 	// Should this be interpreted as a Constant (or a Variable)?
 	boolean isaConstantType(String name) {
 		if (name == null || name.length() < 1) { return false; } // Only variables can be nameless.
@@ -1271,12 +1226,6 @@ public final class HandleFOPCstrings {
             knownModes.add(predicateName);
         }
     }
-
-
-	public void setStarMode(int value) {
-        starModeMap = value;
-    }
-	int     getStarMode()          { return starModeMap; }
 
 	static class SetParamInfo {
 		final String parameterValue;

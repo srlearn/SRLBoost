@@ -16,7 +16,7 @@ class SingleClauseRootNode extends SingleClauseNode {
 	final Literal        target;          // For now, only work on one target (at a time? to do).
 	final List<ArgSpec>  targetArgSpecs;  // The info about the target argument being used and the variable matched with the type.
 	final List<Term>     variablesInTarget;
-	Set<Variable>  requiredBodyVariablesInTarget = null;
+	final Set<Variable>  requiredBodyVariablesInTarget = null;
 
 	SingleClauseRootNode(StateBasedSearchTask task, Literal head, List<ArgSpec> argSpecs, List<Term> variables,
                          List<Type> typesPresentInHead, Map<Type, List<Term>> typesMapInHead) throws SearchInterrupted {
@@ -46,21 +46,11 @@ class SingleClauseRootNode extends SingleClauseNode {
 			if (arg instanceof Variable) {
 				Variable var = (Variable) arg;
 				// This is a linear lookup - but targets should not be so complex that this inefficiency matters.
-				for (ArgSpec aSpec : targetArgSpecs) if (aSpec.arg == var && aSpec.typeSpec.mustBeInBody()) {
-					addRequiredBodyVariable((Variable) arg);
-				}
 			} else if (arg instanceof Function) { // Should be ok to dive into ConsCells here.
 				Function f = (Function) arg;
 				checkForRequiredBodyVars(f.getArguments());
 			} else { Utils.error("Should never reach here."); }
 		}
-	}
-
-	private void addRequiredBodyVariable(Variable var) {
-		if (requiredBodyVariablesInTarget == null) {
-			requiredBodyVariablesInTarget = new HashSet<>(4);
-		}
-		requiredBodyVariablesInTarget.add(var);
 	}
 
 }
