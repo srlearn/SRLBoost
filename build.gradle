@@ -35,11 +35,15 @@ description = 'SRLBoost'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 jar {
-  manifest {
-    attributes(
-      'Main-Class': 'edu.wisc.cs.will.Boosting.Common.RunBoostedModels'
-    )
-  }
+    manifest {
+        attributes 'Main-Class': 'edu.wisc.cs.will.Boosting.Common.RunBoostedModels'
+    }
+
+    from provider {
+        zipTree(configurations.compileClasspath.filter {
+            it.name == 'auc-0.3.1.jar'
+        }.singleFile)
+    }
 }
 
 javadoc {
