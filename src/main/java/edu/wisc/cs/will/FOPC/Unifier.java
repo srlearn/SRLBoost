@@ -92,18 +92,7 @@ public class Unifier extends AllOfFOPC implements Serializable {
 				return null;
 			}
 		}
-		else if (term1 instanceof LiteralAsTerm && term2 instanceof LiteralAsTerm) {
-			LiteralAsTerm f1 = ((LiteralAsTerm) term1);
-			LiteralAsTerm f2 = ((LiteralAsTerm) term2);
-			
-			if (f1.itemBeingWrapped.predicateName == f2.itemBeingWrapped.predicateName && f1.itemBeingWrapped.numberArgs() == f2.itemBeingWrapped.numberArgs()) {
-				return unify(f1.itemBeingWrapped.getArguments(), f2.itemBeingWrapped.getArguments(), bindingList);
-			}
-			else {
-				return null;
-			}
-		}
-        else {
+		else {
 			return null;
 		}
 	}

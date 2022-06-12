@@ -393,10 +393,6 @@ public final class HandleFOPCstrings {
         }
     }
 
-	public LiteralAsTerm getLiteralAsTerm(Literal itemBeingWrapped) {
-		return new LiteralAsTerm(this, itemBeingWrapped);
-	}
-
 	public UniversalSentence getUniversalSentence(Collection<Variable> variables, Sentence body) {
 		return new UniversalSentence(this, variables, body);
 	}
