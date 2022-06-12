@@ -39,8 +39,6 @@ public final class HandleFOPCstrings {
 
 	int     numberOfLiteralsPerRowInPrintouts = Clause.defaultNumberOfLiteralsPerRowInPrintouts; // Store this here once, rather than in every clause.
 
-	private int     starModeMap = TypeSpec.plusMode; // '*' modes are defined via this (this allows a program to change modes within a run).
-
 	public final IsaHetrarchy                isaHandler;
 	private   List<PredicateNameAndArity> knownModes; // Hold all the predicates with known modes.
 	private final List<PredicateNameAndArity> disallowedModes;
@@ -1271,12 +1269,6 @@ public final class HandleFOPCstrings {
             knownModes.add(predicateName);
         }
     }
-
-
-	public void setStarMode(int value) {
-        starModeMap = value;
-    }
-	int     getStarMode()          { return starModeMap; }
 
 	static class SetParamInfo {
 		final String parameterValue;
