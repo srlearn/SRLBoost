@@ -397,10 +397,6 @@ public final class HandleFOPCstrings {
 		return new LiteralAsTerm(this, itemBeingWrapped);
 	}
 
-	public SentenceAsTerm getSentenceAsTerm(Sentence s, String wrapper) {
-		return new SentenceAsTerm(this, s, wrapper);
-	}
-
 	public UniversalSentence getUniversalSentence(Collection<Variable> variables, Sentence body) {
 		return new UniversalSentence(this, variables, body);
 	}

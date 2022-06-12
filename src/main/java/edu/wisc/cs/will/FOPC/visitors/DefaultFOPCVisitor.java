@@ -150,32 +150,6 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
         return variable;
     }
 
-    public Term visitSentenceAsTerm(SentenceAsTerm sentenceAsTerm, Data data) {
-        Term result = sentenceAsTerm;
-
-
-        Sentence s = sentenceAsTerm.sentence.accept(this, data);
-
-        if (s != null) {
-            result = s.asTerm();
-        }
-
-
-        return result;
-    }
-
-    public Term visitLiteralAsTerm(LiteralAsTerm literalAsTerm, Data data) {
-        Term result = literalAsTerm;
-
-        Sentence s = literalAsTerm.itemBeingWrapped.accept(this, data);
-
-        if (s != null) {
-            result = s.asTerm();
-        }
-
-        return result;
-    }
-
     public Term visitNumericConstant(NumericConstant numericConstant) {
         return numericConstant;
     }

@@ -11,7 +11,6 @@ import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForMLN;
 import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForRDN;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
-import edu.wisc.cs.will.ResThmProver.HornClausebase;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.stdAIsearch.*;
@@ -345,10 +344,6 @@ public class LearnOneClause extends StateBasedSearchTask {
 		// TODO(@hayesall): What is `prune.txt`?
 		String pruneFileNameToUse = Utils.createFileNameString(getDirectoryName(), "prune.txt");
 
-		// The method below will check if the prune file already exists, and if so, will simply return true.
-			// Files cached (if requested):
-            boolean pruneFileAlreadyExists = lookForPruneOpportunities(getParser());
-
 			Utils.println("\n% Started collecting constants");
 		long start = System.currentTimeMillis();
 		// The following will see if the old types file exists.
@@ -373,129 +368,6 @@ public class LearnOneClause extends StateBasedSearchTask {
         Utils.println("% Time to init learnOneClause: " + Utils.convertMillisecondsToTimeSpan(iend-istart));
         }
 	}
-
-    private boolean lookForPruneOpportunities(FileParser parser) {
-        // See if any 'prune' rules can be generated from this rule set.
-        // For example, if 'p :- q, r' is the ONLY way to derive 'p,' then if 'p' in a clause body, no need to consider adding 'q' nor 'r.'
-
-        //  Could simply redo this each time, since the calculation is simple, but this design allows the user to EDIT this file.
-        StringBuilder parseThisString = new StringBuilder();
-        // Don't create unless needed.
-        for (DefiniteClause definiteClause : getContext().getClausebase().getAssertions()) {
-            if (definiteClause instanceof Clause) {
-                Clause clause = (Clause) definiteClause;
-
-                Literal clauseHead = clause.posLiterals.get(0);
-                PredicateName clauseHeadName = clauseHead.predicateName;
-
-                if (clauseHeadName.getTypeOnlyList(clauseHead.numberArgs()) == null) {
-                    continue;
-                } // Need to have some mode.  NOTE: this means modes need to be read before this method is called.
-                Collection<Variable> boundVariables = clauseHead.collectFreeVariables(null);
-                boolean canPrune = (clause.negLiterals != null); // Should always be true, but need to test this anyway.
-
-                if (canPrune) { // If ANY fact has the matches the clause head, cannot prune since cannot be sure this clause was used to deduce the head.
-                    canPrune = (matchingFactExists(getContext().getClausebase(), clauseHead) == null);
-                }
-
-                // See if there are any other ways clauseHead can be derived.  If so, set canPrune=false.
-                if (canPrune) {
-                    canPrune = (matchingClauseHeadExists(getContext().getClausebase(), clauseHead, clause) == null);
-                }
-
-                // Can only prune predicates that are DETERMINED by the arguments in the clauseHead.
-                // Note: this code is 'safe' but it misses some opportunities.  E.g., if one has 'p(x) :- q(x,y)' AND THERE IS ONLY ONE POSSIBLE y FOR EACH x, then pruning is valid.  (Called "determinate literals" in ILP - TODO handle such cases.)
-                if (canPrune) {
-                    for (Literal prunableLiteral : clause.negLiterals) {
-                        if (prunableLiteral.predicateName.getTypeOnlyList(prunableLiteral.numberArgs()) != null && canPrune(prunableLiteral) && prunableLiteral.collectFreeVariables(boundVariables) == null) { // Could include 'if (!canPrune) then continue;' but this code should be fast enough.
-                            String newStringLine = "prune: " + prunableLiteral + ", " + clauseHead + ", warnIf(2)."; // Use '2' here, since if more than one rule, the inference is incorrect.
-                            parseThisString.append(newStringLine).append("\n");
-                        }
-                    }
-                }
-            }
-        }
-        parser.readFOPCstream(parseThisString.toString());
-        return false;
-    }
-
-    /* Returns whether a literal can be pruned.
-     *
-     * Filter some things we don't want to add to the list of prunable items.
-     * Wouldn't hurt to include these, but might confuse/distract the user.
-     */
-    private boolean canPrune(Literal lit) {
-        if (lit.predicateName == getStringHandler().standardPredicateNames.cutMarker) {
-            return false;
-        }
-        if (lit.numberArgs() > 0) {
-            for (Term term : lit.getArguments()) {
-                if (term instanceof SentenceAsTerm) {
-                    return false;
-                }
-            } // Cannot handle clauses in the parser.
-        }
-        return true;
-    }
-
-    /* Does an item in the fact base match (i.e., unify with) this query?
-     * @return The matching fact, if one exists. Otherwise null.
-     */
-	private Literal matchingFactExists(HornClausebase clausebase, Literal query) {
-		assert query != null;
-
-        BindingList aBinding = new BindingList(); // Note: the unifier can change this.  But save on creating a new one for each fact.
-        Iterable<Literal> factsToUse = clausebase.getPossibleMatchingFacts(query, null);
-
-        if (factsToUse != null) {
-            for (Literal fact : factsToUse) {
-                aBinding.theta.clear(); // Revert to the empty binding list.
-                if (Unifier.UNIFIER.unify(fact, query, aBinding) != null) {
-                    return fact;
-                }
-            }
-        }
-        return null;
-    }
-
-    /*
-     * Does this query unify with any known clause, other than the one to ignore?  (OK to set ignoreThisClause=null.)
-     * @return The matching clause head if one exists, otherwise null.
-     */
-	private Clause matchingClauseHeadExists(HornClausebase clausebase, Literal query, Clause ignoreThisClause) {
-        Iterable<Clause> candidates = clausebase.getPossibleMatchingBackgroundKnowledge(query, null);
-        if (candidates == null) {
-            return null;
-        }
-        return matchingClauseHeadExists(query, ignoreThisClause, candidates);
-    }
-
-    /*
-     * Does this query unify with the head of any of these clauses, other than the one to ignore?  (OK to set ignoreThisClause=null.)
-     * @return The matching clause head if one exists, otherwise null.
-     */
-	private Clause matchingClauseHeadExists(Literal query, Clause ignoreThisClause, Iterable<Clause> listOfClauses) {
-        if (query == null) {
-            Utils.error("Cannot have query=null here.");
-        }
-        if (listOfClauses == null) {
-            return null;
-        }
-
-        BindingList aBinding = new BindingList(); // Note: the unifier can change this.
-        for (Clause clause : listOfClauses) {
-            if (!clause.isDefiniteClause()) {
-                Utils.error("Call clauses passed to the method must be Horn.  You provided: '" + clause + "'.");
-            }
-            if (clause != ignoreThisClause) {
-				aBinding.theta.clear();
-				if (Unifier.UNIFIER.unify(clause.posLiterals.get(0), query, aBinding) != null) {
-                    return clause;
-                }
-            }
-        }
-        return null;
-    }
 
     public void addBodyMode(PredicateNameAndArity pName) {
         bodyModes.add(pName);

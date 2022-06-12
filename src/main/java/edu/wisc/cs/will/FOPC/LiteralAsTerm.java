@@ -97,11 +97,6 @@ public class LiteralAsTerm extends Term {
 		return itemBeingWrapped.toString(precedenceOfCaller, bindingList);
 	}
 
-    @Override
-    public <Return,Data> Return accept(TermVisitor<Return,Data> visitor, Data data) {
-        return visitor.visitLiteralAsTerm(this, data);
-   }
-
 	@Override
 	public int countVarOccurrencesInFOPC(Variable v) {
 		int total = 0;

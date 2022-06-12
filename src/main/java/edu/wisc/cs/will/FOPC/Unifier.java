@@ -103,13 +103,7 @@ public class Unifier extends AllOfFOPC implements Serializable {
 				return null;
 			}
 		}
-        else if (term1 instanceof SentenceAsTerm && term2 instanceof SentenceAsTerm) {
-            SentenceAsTerm s1 = ((SentenceAsTerm)term1);
-            SentenceAsTerm s2 = ((SentenceAsTerm)term2);
-
-            return unify(s1.sentence, s2.sentence, bindingList);
-        }
-		else {
+        else {
 			return null;
 		}
 	}

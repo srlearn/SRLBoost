@@ -192,7 +192,6 @@ public abstract class Sentence extends AllOfFOPC implements Serializable {
     protected abstract Sentence distributeConjunctionOverDisjunction();
 
     public boolean isGrounded() { return !containsVariables(); }
-    public Term asTerm()        { return getStringHandler().getSentenceAsTerm(this, ""); }
 
 	/* Attempts to convert a sentence into a single clause.
      *

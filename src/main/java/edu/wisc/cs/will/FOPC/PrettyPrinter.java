@@ -316,18 +316,6 @@ public class PrettyPrinter {
 
         }
 
-        public PPResult visitSentenceAsTerm(SentenceAsTerm sentenceAsTerm, FOPCPrettyPrinterData data) {
-
-            Sentence s = sentenceAsTerm.sentence;
-
-            return s.accept(this, data);
-        }
-
-        public PPResult visitLiteralAsTerm(LiteralAsTerm literalAsTerm, FOPCPrettyPrinterData data) {
-
-            return literalAsTerm.itemBeingWrapped.accept(this, data);
-        }
-
         public PPResult visitNumericConstant(NumericConstant numericConstant) {
             return new PPResult(numericConstant.getName(), false, MIN_PRECEDENCE);
         }
