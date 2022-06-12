@@ -113,13 +113,6 @@ public class BindingList extends AllOfFOPC {
     }
 
 
-    public Collection<Variable> getVariables() {
-        if (theta == null) {
-            return Collections.emptySet();
-        }
-		return theta.keySet();
-    }
-
 	Variable reverseLookup(Term term) { // Could save this method call.
 		boolean hold = term.stringHandler.usingStrictEqualsForFunctions();
 		term.stringHandler.setUseStrictEqualsForFunctions(false);

@@ -209,7 +209,7 @@ public class ILPouterLoop {
 			return false;
 		} // Simply skip over indices that are out of bounds.
 		Example chosenExample = innerLoopTask.getPosExamples().get(index);
-		if ((innerLoopTask.allowPosSeedsToBeReselected || getSeedPosExamplesUsed() == null || !getSeedPosExamplesUsed().contains(chosenExample)) && // Make sure that this wasn't previously a seed.
+		if ((getSeedPosExamplesUsed() == null || !getSeedPosExamplesUsed().contains(chosenExample)) && // Make sure that this wasn't previously a seed.
 			!getCoveredPosExamples().contains(chosenExample)) { // Make sure this is an uncovered seed.
 			int[] posSeeds = new int[1];
 			posSeeds[0] = index;
@@ -240,17 +240,7 @@ public class ILPouterLoop {
 		Set<Integer> negChosen = new HashSet<>(4);
 		
 		// Could be really slow if selecting nearly all of the examples, but we're limiting this to 10X tries, so don't worry about it.
-		if (innerLoopTask.allowPosSeedsToBeReselected) {
-			int counter = 0; // Put a limit on the number of cycles here.
-			while (posCounter < numberPosSeedsToUse && counter++ < 10 * numberPosSeedsToUse) {
-				int index = Utils.random0toNminus1(getNumberOfPosExamples());
-				if (!posChosen.contains(index)) {
-					posChosen.add(index);
-					posSeeds[posCounter++] = index;
-				}
-			}			
-		}
-		// It still looking, grab in order.
+        // It still looking, grab in order.
 		if (posCounter < numberPosSeedsToUse) {
 			int i = 0;
 			// Use the 1.1 to handle the case of not getting enough due to sampling effects.  This fraction is ratio of SEEDS_NEEDED over SEEDS_TO_SELECT_FROM.
@@ -264,18 +254,8 @@ public class ILPouterLoop {
 				i++;
 			}
 		}
-		
-		if (innerLoopTask.allowNegSeedsToBeReselected) {
-			int counter = 0;
-			while (negCounter < numberNegSeedsToUse && counter++ < 10 * numberNegSeedsToUse) {
-				int index = Utils.random0toNminus1(getNumberOfNegExamples());
-				if (!negChosen.contains(index)) {
-					negChosen.add(index);
-					negSeeds[posCounter++] = index;
-				}
-			}			
-		}
-		if (negCounter < numberNegSeedsToUse) {
+
+        if (negCounter < numberNegSeedsToUse) {
 			int i = 0; // See comment above.
 			double fraction = 1.1 * (numberNegSeedsToUse - negCounter) / (double) (innerLoopTask.getNegExamples().size() - outerLoopState.getNegExamplesUsedAsSeeds().size() - negCounter);
 			for (Example neg : innerLoopTask.getNegExamples()) {
@@ -410,7 +390,6 @@ public class ILPouterLoop {
                     Gleaner theGleaner = (Gleaner) innerLoopTask.searchMonitor;
                     theGleaner.clearBestNode();
 
-                    innerLoopTask.caller     = this;
                     innerLoopTask.callerName = "outerLoop #" + getNumberOfCycles() + getFoldInfoString();
                     theGleaner.setCurrentMarker(innerLoopTask.callerName);
                     if (!learningTreeStructuredTheory) { innerLoopTask.stringHandler.resetVarCounters(); } // When learning a tree-structured theory, we need a consistent set of variables.
@@ -802,15 +781,8 @@ public class ILPouterLoop {
    private Term createLeafNodeFromCurrentExamples(double value) {
 	   return innerLoopTask.stringHandler.getNumericConstant(value);
    }
-   private Term createLeafNodeFromCurrentExamples(double[] value) {
-	   List<Term> terms = new ArrayList<>();
-	   for (double val : value) {
-		terms.add(innerLoopTask.stringHandler.getNumericConstant(val));
-	   }
-	   return innerLoopTask.stringHandler.getConsCellFromList(terms);
-   }
 
-	private double computeVarianceOverTheseExamples(Collection<Example> currentExamples) {
+    private double computeVarianceOverTheseExamples(Collection<Example> currentExamples) {
 		if (innerLoopTask.regressionTask) {
 
 			if (Utils.getSizeSafely(currentExamples) < 1) {
@@ -818,7 +790,6 @@ public class ILPouterLoop {
 				return -1;
 			}
 
-            boolean learnMultiValPredicates = false;
             // Compute the mean value over all the (weighted) examples.
 			double totalOfOutputValues  = 0.0;
 			double totalSquaredOfOutput = 0.0;
@@ -891,7 +862,7 @@ public class ILPouterLoop {
     	return null;
     }
 
-    public void initialize(boolean creatingCompoundFeaturesOnly) throws SearchInterrupted { // Pull this out from the constructor so that the caller can set some globals in innerLoopTask after that instance is created.
+    public void initialize(boolean creatingCompoundFeaturesOnly) { // Pull this out from the constructor so that the caller can set some globals in innerLoopTask after that instance is created.
     	
 		// All the stuff that used to be here was moved to resetAll()...
     	
@@ -904,18 +875,13 @@ public class ILPouterLoop {
 		////////////////////////////////////////////////////////
 		// Set parameters using setParams:
 		////////////////////////////////////////////////////////
+
+        // TODO(hayesall): Move this into `FileParser`?
+        //  It feels like bad practice to be dynamically parsing new options in multiple places.
+
 		String lookup;
-		if ((lookup =  innerLoopTask.getStringHandler().getParameterSetting("maxNodesToConsider")) != null) {
-			innerLoopTask.setMaxNodesToConsider(Integer.parseInt(lookup));
-		}
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxNodesToCreate")) != null) {
-			innerLoopTask.setMaxNodesToCreate(Integer.parseInt(lookup));
-		}
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxTreeDepth")) != null) {
 			setMaxTreeDepth(Integer.parseInt(lookup));
-		}
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("clauseLength")) != null) {
-			setMaxTreeDepthInLiterals(Integer.parseInt(lookup));
 		}
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("nodeSize")) != null) {
 			setMaxNumberOfLiteralsAtAnInteriorNode(Integer.parseInt(lookup));
@@ -927,14 +893,6 @@ public class ILPouterLoop {
 		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("numOfCycles")) != null) {
 			maxNumberOfCycles = Integer.parseInt(lookup);
 		}
-        if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("maxScoreToStop")) != null) {
-			setMaxAcceptableNodeScoreToStop(Double.parseDouble(lookup));
-		}
-		
-		if ((lookup = innerLoopTask.getStringHandler().getParameterSetting("minPosCoverage")) != null) {
-			innerLoopTask.setMinPosCoverage(Double.parseDouble(lookup));
-		}
-
 	}		
 
     // TODO - put all this RDN stuff in a subclass of ILPouterLoop.
@@ -1044,10 +1002,7 @@ public class ILPouterLoop {
 		setNegExamples(new ArrayList<>(0));
     }
 
-    public void setLearnMultiValPredicatesFalse() {
-		innerLoopTask.setLearnMultiVal(false);
-	}
-	private Theory produceFinalTheory() {
+    private Theory produceFinalTheory() {
 		// TODO allow theories to come from some covering algorithm, possibly based on all the Gleaners.		
 		Theory result;
 		if (learningTreeStructuredTheory) {

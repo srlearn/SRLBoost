@@ -27,9 +27,6 @@ public abstract class Term extends AllOfFOPC implements Serializable, Comparable
 		if (     typeSpec == null) { return; }
 		if (this.typeSpec == null) { this.typeSpec = typeSpec; return; }
 
-		if (!this.typeSpec.equals(typeSpec)) {
-			this.typeSpec.isNotYetSet();
-		}
 		int newMode =      typeSpec.mode;
 		int oldMode = this.typeSpec.mode;
 		if (newMode != oldMode) { this.typeSpec.mode = newMode; }
@@ -41,15 +38,7 @@ public abstract class Term extends AllOfFOPC implements Serializable, Comparable
 		this.typeSpec.isaType = newType;
 	}
 
-	Term copyAndRenameVariables() {
-		stringHandler.pushVariableHash();
-		Term result = copy(true);
-		stringHandler.popVariableHash();
-		result.typeSpec = typeSpec;
-		return result;
-	}
-
-    Term applyTheta(BindingList bindings) {
+	Term applyTheta(BindingList bindings) {
         if ( bindings == null || bindings.theta == null ) {
             return this;
         }

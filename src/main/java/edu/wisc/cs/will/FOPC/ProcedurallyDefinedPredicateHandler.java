@@ -1,8 +1,5 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.ResThmProver.HornClauseContext;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
-
 import java.util.List;
 import java.util.Set;
 
@@ -34,7 +31,7 @@ public abstract class ProcedurallyDefinedPredicateHandler {
      * @return The binding list, or null if evaluation of the literal failed.
      * @throws SearchInterrupted Thrown if an error occurs which interpts the evaluation of the literal.
      */
-    public abstract BindingList handle(HornClauseContext context, Literal literal, Unifier unifier, BindingList bindingList) throws SearchInterrupted;
+    public abstract BindingList handle(Literal literal, BindingList bindingList);
 
     protected boolean confirmAllVarsAreBound(List<Term> args) {
 		if (args != null) for (Term arg : args) if (arg instanceof Variable) {

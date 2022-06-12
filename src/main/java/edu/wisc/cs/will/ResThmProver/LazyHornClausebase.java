@@ -67,7 +67,6 @@ public class LazyHornClausebase implements HornClausebase {
             if (checkRule(clause)) {
                 assertions.add(clause.getDefiniteClauseHead().getPredicateNameAndArity(), definiteClause);
                 indexerForAllAssertions.indexAssertion(clause);
-                fireAssertion();
             }
         }
         else {
@@ -80,7 +79,6 @@ public class LazyHornClausebase implements HornClausebase {
         if (checkFact(literal)) {
             assertions.add(literal.getPredicateNameAndArity(), literal);
             indexerForAllAssertions.indexAssertion(literal);
-            fireAssertion();
         }
     }
 
@@ -96,7 +94,6 @@ public class LazyHornClausebase implements HornClausebase {
         PredicateNameAndArity pnaa = clauseToRemove.getDefiniteClauseHead().getPredicateNameAndArity();
         assertions.removeValue(pnaa, clauseToRemove);
         removeFromIndexes(clauseToRemove);
-        fireRetraction();
     }
 
     @Override
@@ -226,8 +223,7 @@ public class LazyHornClausebase implements HornClausebase {
         return assertions;
     }
 
-    @Override
-    public DefiniteClauseList getAssertions(PredicateName predName, int arity) {
+    private DefiniteClauseList getAssertions(PredicateName predName, int arity) {
         return getIndexerForAllAssertions().getPossibleMatchingAssertions(predName, arity);
     }
 
@@ -245,11 +241,6 @@ public class LazyHornClausebase implements HornClausebase {
     @Override
     public Iterable<DefiniteClause> getAssertions() {
         return assertions;
-    }
-
-    @Override
-    public Iterable<Literal> getFacts() {
-        return new DefiniteClauseToLiteralIterable(assertions);
     }
 
     @Override
@@ -308,12 +299,6 @@ public class LazyHornClausebase implements HornClausebase {
      */
     private LazyHornClausebaseIndexer getIndexerForAllAssertions() {
         return indexerForAllAssertions;
-    }
-
-    private void fireAssertion() {
-    }
-
-    private void fireRetraction() {
     }
 
 }

@@ -119,11 +119,6 @@ public final class WILLSetup {
 		if (cmdArgs.getResultsDirVal() == null) { // Usually we want MODEL and RESULTS to be the same, but not if we're running on a fresh testset (i.e., one completely separate from the trainset).
 			cmdArgs.setResultsDirVal(cmdArgs.getModelDirVal());
 		}
-		
-		// Following code for non regression examples
-		if (getInnerLooper().createdSomeNegExamples) {
-			Example.writeObjectsToFile(file_paths[1], getInnerLooper().getNegExamples(), ".", "// Negative examples, including created ones.");
-		}
 
 		List<Literal> targets = getInnerLooper().targets;
 		Set<Integer> arities = new HashSet<>(4);
@@ -285,8 +280,6 @@ public final class WILLSetup {
 		getOuterLooper().setNegExamples(new ArrayList<>(newNegEg));
 
 		if (forLearning) {
-
-			getOuterLooper().setLearnMultiValPredicatesFalse();
 			// 	Move the examples into facts and get facts to predicates.
 			getOuterLooper().morphToRDNRegressionOuterLoop(
 					1,
@@ -458,7 +451,6 @@ public final class WILLSetup {
 
 		getInnerLooper().maxNumberOfNewVars =      7;
 		getInnerLooper().maxDepthOfNewVars  =      7;
-		getInnerLooper().maxPredOccurrences =      5;
 		getOuterLooper().max_total_nodesExpanded = 10000000;
 		getOuterLooper().max_total_nodesCreated  = 10 * getOuterLooper().max_total_nodesExpanded;
 		getHandler().setStarMode(TypeSpec.minusMode);
@@ -538,7 +530,6 @@ public final class WILLSetup {
 			getInnerLooper().minNumberOfNegExamples = 10;
 		}
 
-		getInnerLooper().fractionOfImplicitNegExamplesToKeep = 1;
 		// Other constraints say that at least half the examples must be covered, and sometimes we need to use the negation to do that.
 
 		// TODO(?): is this time PER TREE?  I think so ...

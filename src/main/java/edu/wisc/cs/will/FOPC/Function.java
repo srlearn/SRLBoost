@@ -37,20 +37,6 @@ public class Function extends Term implements LiteralOrFunction {
 		}
 	}
 
-	void clearArgumentNamesInPlace() {
-		if (numberArgs() < 1) { return; }
-		if (argumentNames != null) {
-			if (argumentNames.get(0).equalsIgnoreCase("name")) {
-				removeArgument(arguments.get(0), argumentNames.get(0));
-			}
-		}
-		argumentNames = null;
-		if (arguments == null) { return; }
-		for (Term term : arguments) if (term instanceof Function) {
-			((Function) term).clearArgumentNamesInPlace();
-		}
-	}
-
 	public int numberArgs() {
 		if (cached_arity < 0) { setNumberArgs(); }
 		return cached_arity;
@@ -60,13 +46,6 @@ public class Function extends Term implements LiteralOrFunction {
 		else                   { cached_arity =  arguments.size(); }
 	}
 
-	private void removeArgument(Term term, String name) {
-		if (!arguments.remove(term))     { Utils.error("Could not remove '" + term + "' from '" + this + "'."); }
-		if (!argumentNames.remove(name)) { Utils.error("Could not remove '" + name + "' from '" + this + "'."); }
-		setNumberArgs();
-		sortArgumentsByName();
-	}
-	
 	// Cache this calculation to save time.
 	public boolean containsVariables() {
 		if (cachedVariableCount < 0) {
@@ -297,19 +276,18 @@ public class Function extends Term implements LiteralOrFunction {
 			return stringHandler.getConsCell(this).toPrettyString(newLineStarter, precedenceOfCaller, bindingList);
 		}
 		String  fNameStr = (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" : "") + functionName;
-		String  end      = (typeSpec != null ? typeSpec.getCountString() : "");
 		boolean firstOne = true;
 		boolean hasArgNames = (argumentNames != null);
 		
 		if (functionName.printUsingInFixNotation && numberArgs() == 1) {
 			int precedence = HandleFOPCstrings.getOperatorPrecedence_static(functionName.name);
-			if (precedenceOfCaller < precedence) { return "(" + fNameStr + (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList) + ")" + end; }
-			return fNameStr + (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList) + end;
+			if (precedenceOfCaller < precedence) { return "(" + fNameStr + (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList) + ")"; }
+			return fNameStr + (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList);
 	    }
 		if (functionName.printUsingInFixNotation && numberArgs() == 2) {
 			int precedence =  HandleFOPCstrings.getOperatorPrecedence_static(functionName.name);
-			if (precedenceOfCaller < precedence) { return "(" + (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toPrettyString(newLineStarter, precedence, bindingList) + ")" + end; }
-			return                                              (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toPrettyString(newLineStarter, precedence, bindingList)       + end;
+			if (precedenceOfCaller < precedence) { return "(" + (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toPrettyString(newLineStarter, precedence, bindingList) + ")"; }
+			return                                              (hasArgNames ? argumentNames.get(0) + "=": "") + arguments.get(0).toPrettyString(newLineStarter, precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toPrettyString(newLineStarter, precedence, bindingList);
 	    }
 		StringBuilder result = new StringBuilder(fNameStr + "(");
 		for (int i = 0; i < numberArgs(); i++) {
@@ -318,7 +296,7 @@ public class Function extends Term implements LiteralOrFunction {
 				result.append(", "); }
 			result.append(hasArgNames ? argumentNames.get(i) + "=" : "").append(arg.toPrettyString(newLineStarter, Integer.MAX_VALUE, bindingList)); // No need for extra parentheses in an argument list.
 		}		
-		return result + ")" + end;
+		return result + ")";
 	}
 
     @Override
@@ -328,19 +306,18 @@ public class Function extends Term implements LiteralOrFunction {
 		}
 		boolean useTypes = stringHandler.printTypedStrings;
 		String  fNameStr = (typeSpec != null && useTypes ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" : "") + functionName;
-		String  end      = (typeSpec != null && useTypes ? typeSpec.getCountString() : "");
 		boolean firstOne = true;
 		boolean hasArgNames = (argumentNames != null);
 		
 		if (functionName.printUsingInFixNotation && numberArgs() == 1) {
 			int precedence = (stringHandler.alwaysUseParensForInfixFunctions ? Integer.MAX_VALUE : HandleFOPCstrings.getOperatorPrecedence_static(functionName.name));
-			if (precedenceOfCaller <= precedence) { return "(" + fNameStr + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + ")" + end; }
-			return                                               fNameStr + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList)       + end;
+			if (precedenceOfCaller <= precedence) { return "(" + fNameStr + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + ")"; }
+			return                                               fNameStr + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList);
 	    }
 		if (functionName.printUsingInFixNotation && numberArgs() == 2) {
 			int precedence = (stringHandler.alwaysUseParensForInfixFunctions ? Integer.MAX_VALUE : HandleFOPCstrings.getOperatorPrecedence_static(functionName.name));
-			if (precedenceOfCaller <= precedence) { return "(" + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList) + ")" + end; }
-			return                                               (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList)       + end;
+			if (precedenceOfCaller <= precedence) { return "(" + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList) + ")"; }
+			return                                               (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList);
 	    }
 
 		StringBuilder result = new StringBuilder(fNameStr + "(");
@@ -350,7 +327,7 @@ public class Function extends Term implements LiteralOrFunction {
 				result.append(", "); }
 			result.append(hasArgNames && i < argumentNames.size() ? argumentNames.get(i) + "=" : "").append(arg.toString(Integer.MAX_VALUE, bindingList)); // No need for extra parentheses in an argument list.
 		}		
-		return result + ")" + end;
+		return result + ")";
 	}
 	
 	public int countLeaves() {

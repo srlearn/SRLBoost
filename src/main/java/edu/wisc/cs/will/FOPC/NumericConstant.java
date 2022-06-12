@@ -76,8 +76,7 @@ public class NumericConstant extends Constant implements Serializable {
     }
 
     private String toTypedString() {
-        String end = (typeSpec != null ? typeSpec.getCountString() : "");
-        return (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" + value + end : value.toString() + end);
+        return (typeSpec != null ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" + value : value.toString());
     }
 
     @Override

@@ -16,17 +16,6 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
     public MapOfLists() {
     }
 
-    /*
-     * Returns the number of Key entries in the map.
-     */
-    public int size() {
-        return map == null ? 0 : map.size();
-    }
-
-    public boolean isEmpty() {
-        return map == null || map.isEmpty();
-    }
-
     public boolean containsKey(Key key) {
         return map != null && map.containsKey(key);
     }
@@ -59,15 +48,6 @@ public class MapOfLists<Key, Value> implements Iterable<Value> {
 
     public List<Value> getValues(Key key) {
         return map == null ? null : map.get(key);
-    }
-
-    public Set<Key> keySet() {
-        if ( map != null) {
-            return map.keySet();
-        }
-        else {
-            return Collections.EMPTY_SET;
-        }
     }
 
     protected List<Value> createValueList() {

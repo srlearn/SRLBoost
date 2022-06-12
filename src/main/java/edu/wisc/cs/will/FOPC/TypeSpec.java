@@ -31,36 +31,8 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 
     public Integer mode;    // One of the above, which are used to describe how this argument is to be used.
 	public Type    isaType; // Can be "human," "book," etc.  Type hierarchies are user-provided.
-	public int     truthCounts = 0; // Specifies how often this predicate will be true.
-							       // If truthCounts =  0 then any number is possible.
-								   // If truthCounts =  K and K > 0, then for EXACTLY K of the possibly values for this argument will the predicate be true.
-								   // If truthCounts = -K and K > 0, then for AT MOST K possible values will this predicate be true.
 	transient HandleFOPCstrings stringHandler;
 
-	public TypeSpec(String modeAsString, String typeAsString, HandleFOPCstrings stringHandler) {
-		this(modeAsString,
-			 stringHandler.isaHandler.getIsaType(stringHandler.createSafeStringConstantForWILL(typeAsString)), 
-			 stringHandler);		
-	}
-	private TypeSpec(String modeAsString, Type isaType, HandleFOPCstrings stringHandler) {
-		this.stringHandler = stringHandler;
-		if      (isaSynonymForPlus(         modeAsString)) { mode = plusMode;      }
-		else if (isaSynonymForOnce(         modeAsString)) { mode = onceMode;      }
-		else if (isaSynonymForMinus(        modeAsString)) { mode = minusMode;     }
-		else if (isaSynonymForNovel(        modeAsString)) { mode = novelMode;     }
-		else if (isaSynonymForConstant(     modeAsString)) { mode = constantMode;  }
-		else if (isaSynonymForThisConstant( modeAsString)) { mode = thisValueMode; }
-		else if (isaSynonymForEqual(        modeAsString)) { mode = equalMode;     }
-		else if (isaSynonymForStar(         modeAsString)) { mode = starMode;      }
-		else if (isaSynonymForMinusConstant(modeAsString)) { mode = minusOrConstantMode; }
-		else if (isaSynonymForPlusConstant( modeAsString)) { mode = plusOrConstantMode;  }
-		else if (isaSynonymForNovelConstant(modeAsString)) { mode = novelOrConstantMode; }
-		else if (isaSynonymForUnspecified(  modeAsString)) { mode = unspecifiedMode;     }
-		else if (isaSynonymForNotHeadVar(    modeAsString)) { mode = notHeadVarMode;     }
-		else if (isaSynonymForNotYetSet(    modeAsString)) { mode = modeNotYetSet;     }
-		else { Utils.error("Unknown mode string: '" + modeAsString + "'"); }
-		this.isaType = isaType;
-	}
 	public TypeSpec(char modeAsChar, String typeAsString, HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
 		if      (modeAsChar == '+') { mode = plusMode;      } // If additions to this, be sure to add to isaModeSpec().
@@ -119,56 +91,11 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 		TypeSpec typeSpec = (TypeSpec) obj;
 		return (mode.equals(typeSpec.mode) && isaType == typeSpec.isaType);
 	}
-	
-	private boolean isaSynonymForPlus(String str) {
-		return (str.equalsIgnoreCase("+") || str.equalsIgnoreCase("plus"));
-	}	
-	private boolean isaSynonymForOnce(String str) {
-		return (str.equalsIgnoreCase("$") || str.equalsIgnoreCase("once"));
-	}
+
 	private boolean isaSynonymForMinus(String str) {
 		return (str.equalsIgnoreCase("-") || str.equalsIgnoreCase("minus"));
 	}
-	private boolean isaSynonymForNovel(String str) {
-		return (str.equalsIgnoreCase("^") || str.equalsIgnoreCase("novel"));
-	}
-	private boolean isaSynonymForConstant(String str) {
-		return (str.equalsIgnoreCase("#") || str.equalsIgnoreCase("constant") || str.equalsIgnoreCase("const"));
-	}
-	private boolean isaSynonymForThisConstant(String str) {
-		return (str.equalsIgnoreCase("@") || str.equalsIgnoreCase("at"));
-	}
-	private boolean isaSynonymForEqual(String str) {
-		return (str.equalsIgnoreCase("=") || str.equalsIgnoreCase("equal") || str.equalsIgnoreCase("equals"));
-	}
-	private boolean isaSynonymForMinusConstant(String str) {
-		return (str.equalsIgnoreCase(":") || str.equalsIgnoreCase("minusConstant") || str.equalsIgnoreCase("minConst"));
-	}
-	private boolean isaSynonymForPlusConstant(String str) {
-		return (str.equalsIgnoreCase("&") || str.equalsIgnoreCase("plusConstant") || str.equalsIgnoreCase("plusConst"));
-	}
-	private boolean isaSynonymForNovelConstant(String str) {
-		return (                             str.equalsIgnoreCase("novelConstant") || str.equalsIgnoreCase("novelConst"));
-	}
-	
-	private boolean isaSynonymForNotHeadVar(String str) {
-		return (str.equalsIgnoreCase("`") || str.equalsIgnoreCase("notHeadVar"));
-	}
-	private boolean isaSynonymForStar(String str) {
-		return (str.equalsIgnoreCase("*") || str.equalsIgnoreCase("star"));
-	}
-	private boolean isaSynonymForUnspecified(String str) {
-		return (str.equalsIgnoreCase(" ") || str.equalsIgnoreCase(""));
-	}
-	private boolean isaSynonymForNotYetSet(String str) {
-		return (str.equalsIgnoreCase(">") || str.equalsIgnoreCase("unknown"));
-	}
 
-	boolean isPlusOrMinus() { // A rather odd special case.  We don't want to count 'star' (nor '^' ?) here.
-		int modeToUse = mode;
-		return mustBeBound() ||  modeToUse == minusMode; //  || modeToUse == novelMode;
-	}
-	
 	public boolean mustBeBound() {
 		int modeToUse = mode;
 		if (mode == starMode) { modeToUse = stringHandler.getStarMode(); }
@@ -247,20 +174,8 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 					 return null;
 		}		
 	}
-	
-	String getCountString() {
-		if (truthCounts ==  0) { return "";  }
-		if (truthCounts ==  1) { return "!"; }
-		if (truthCounts == -1) { return "$"; }
-		if (truthCounts >   1) { return "!" + truthCounts; }
-		return                          "$" + truthCounts;
-	}
 
-	boolean isNotYetSet() {
-		return mode == modeNotYetSet;
-	}
-	
-    @Override
+	@Override
 	public String toPrettyString(String newLineStarter, int precedenceOfCaller, BindingList bindingList) {
 		return getModeString() + isaType;
 	}

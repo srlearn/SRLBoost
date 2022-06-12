@@ -4,17 +4,11 @@ public class PrettyPrinterOptions {
 
     private int maximumLiteralsPerLine = -1;
 
-    private boolean multilineOutputEnabled = true;
-
     private boolean renameVariables = true;
 
     private boolean alignParathesis = true;
 
     private boolean newLineAfterOpenParathesis = true;
-
-    private int maximumConsCells = -1;
-
-    private String sentenceTerminator = ".";
 
     private int maximumIndentationAfterImplication = Integer.MAX_VALUE;
 
@@ -31,10 +25,6 @@ public class PrettyPrinterOptions {
 
     public void setMaximumLiteralsPerLine(int maximumLiteralsPerLine) {
         this.maximumLiteralsPerLine = maximumLiteralsPerLine;
-    }
-
-    boolean isMultilineOutputEnabled() {
-        return multilineOutputEnabled;
     }
 
     boolean isRenameVariables() {
@@ -59,14 +49,6 @@ public class PrettyPrinterOptions {
 
     void setNewLineAfterOpenParathesis() {
         this.newLineAfterOpenParathesis = true;
-    }
-
-    int getMaximumConsCells() {
-        return maximumConsCells;
-    }
-
-    String getSentenceTerminator() {
-        return sentenceTerminator;
     }
 
     int getMaximumIndentationAfterImplication() {
