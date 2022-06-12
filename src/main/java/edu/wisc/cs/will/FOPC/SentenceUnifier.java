@@ -69,11 +69,6 @@ public class SentenceUnifier {
             return data.bl;
         }
 
-        public BindingList visitQuantifiedSentence(QuantifiedSentence sentence, SentenceUnifierData data) {
-            Utils.warning("Unifying Quantified sentences not supported.");
-            return null;
-        }
-
         public BindingList visitClause(Clause clause, SentenceUnifierData data) {
             if (!(data.that instanceof Clause)) return null;
 

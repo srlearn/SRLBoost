@@ -9,39 +9,16 @@ import java.util.List;
  * @author shavlik
  */
 public class NamedTermList {
+
+    // TODO(hayesall): Probably safe to remove.
+
 	private final List<Term>   terms;
-	private final List<String> names;
-	
-	public NamedTermList(List<Term> terms, List<String> names) {
+
+    public NamedTermList(List<Term> terms) {
 		this.terms = terms;
-		this.names = names;
 	}
 
 	public List<Term> getTerms() {
 		return terms;
 	}
-
-	public List<String> getNames() {
-		return names;
-	}
-
-	@Override
-    public String toString() {
-
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("[");
-
-
-        for (int i = 0; i < terms.size(); i++) {
-            if ( i > 0 ) stringBuilder.append(", ");
-
-            if ( names != null ) {
-                stringBuilder.append(names.get(i)).append("=");
-            }
-            stringBuilder.append(terms.get(i));
-        }
-        stringBuilder.append("]");
-
-        return stringBuilder.toString();
-    }
 }

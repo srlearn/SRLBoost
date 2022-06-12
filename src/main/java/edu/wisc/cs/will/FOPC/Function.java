@@ -133,14 +133,12 @@ public class Function extends Term implements LiteralOrFunction {
 		if (argumentNames != null) { newArgNames.addAll(argumentNames); }
 		assert newArguments != null;
 		if (recursiveCopy) {
-			if (arguments != null) {				
-				for (Term term : arguments) {	
-					newArguments.add(term == null ? null : term.copy(true));
-				}
+			for (Term term : arguments) {
+				newArguments.add(term == null ? null : term.copy(true));
 			}
 			return getBareCopy(newArguments, newArgNames);
 		}
-		if (arguments!= null) { newArguments.addAll(arguments);    }
+		newArguments.addAll(arguments);
 		return getBareCopy(newArguments, newArgNames);
 	}
 
@@ -151,14 +149,12 @@ public class Function extends Term implements LiteralOrFunction {
 		if (argumentNames != null) { newArgNames.addAll(argumentNames); }
 		assert newArguments != null;
 		if (recursiveCopy) {
-			if (arguments != null) {
-				for (Term term : arguments) {
-					newArguments.add(term == null ? null : term.copy2(true, bindingList));
-				}
+			for (Term term : arguments) {
+				newArguments.add(term == null ? null : term.copy2(true, bindingList));
 			}
 			return getBareCopy(newArguments, newArgNames);
 		}
-		if (arguments!= null) { newArguments.addAll(arguments);    }
+		newArguments.addAll(arguments);
 		return getBareCopy(newArguments, newArgNames);
 	}
 

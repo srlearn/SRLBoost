@@ -482,7 +482,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
     @Override
     public String toString(int precedenceOfCaller, BindingList bindingList) {
         String result = returnWeightString();
-        boolean hasArgNames = (argumentNames != null);
 
         String pNameString = predicateName.toString();
 

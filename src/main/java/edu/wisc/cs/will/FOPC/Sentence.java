@@ -54,7 +54,9 @@ public abstract class Sentence extends AllOfFOPC implements Serializable {
 		Collection<Variable> boundVariables = new ArrayList<>(1);
 		Collection<Variable> freeVariables  = collectFreeVariables(boundVariables);
 		
-		if (freeVariables == null || freeVariables.size() <= 0) { return this; }
+		if (freeVariables == null || freeVariables.size() <= 0) {
+			return this;
+		}
 		UniversalSentence result = new UniversalSentence(stringHandler, freeVariables, this);
 		result.wgtSentence = wgtSentence; // Pull the weight out.  (Could check if the inner weight = maxWeight, but no big deal.
 		wgtSentence = Sentence.maxWeight;

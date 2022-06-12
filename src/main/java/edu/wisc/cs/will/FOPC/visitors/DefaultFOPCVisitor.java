@@ -59,18 +59,6 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
 
     }
 
-    public Sentence visitQuantifiedSentence(QuantifiedSentence sentence, Data data) {
-        Sentence newBody = sentence.body.accept(this, data);
-
-        Sentence result = null;
-
-        if (newBody != null) {
-            result = sentence.replaceVariablesAndBody(sentence.variables, newBody);
-        }
-
-        return result;
-    }
-
     public Sentence visitClause(Clause clause, Data data) {
         List<Literal> positiveLits = null;
         List<Literal> negativeLits = null;

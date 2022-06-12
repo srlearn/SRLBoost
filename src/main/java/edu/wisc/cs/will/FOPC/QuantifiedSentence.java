@@ -58,11 +58,6 @@ public abstract class QuantifiedSentence extends Sentence {
 		return null;
     }
 
-    @Override
-    public <Return,Data> Return accept(SentenceVisitor<Return,Data> visitor, Data data) {
-        return visitor.visitQuantifiedSentence(this, data);
-    }
-
 	@Override
 	public int countVarOccurrencesInFOPC(Variable v) {
 		int total = 0;

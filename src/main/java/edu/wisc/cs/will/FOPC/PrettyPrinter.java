@@ -205,10 +205,6 @@ public class PrettyPrinter {
             return result;
         }
 
-        public PPResult visitQuantifiedSentence(QuantifiedSentence sentence, FOPCPrettyPrinterData data) {
-            return sentence.body.accept(this, data);
-        }
-
         public PPResult visitClause(Clause clause, FOPCPrettyPrinterData data) {
 
             PPResult result;

@@ -217,11 +217,6 @@ public final class HandleFOPCstrings {
 		return result == null ? 1300 : result;
 	}
 
-	static int getLiteralPrecedence_static(PredicateName pName) { // All of the in-fix literals have the same precedence.
-		if (pName.name.equalsIgnoreCase("then")) { return 1050; }        // Except for THEN, which becomes a literal after parsing.
-		return 700;
-	}
-
 	public        int getConnectivePrecedence(ConnectiveName cName) {
 		Integer result = precedenceTableForConnectives.get(cName);
 		assert result != null;
