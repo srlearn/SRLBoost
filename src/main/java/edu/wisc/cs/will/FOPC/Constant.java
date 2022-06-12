@@ -31,10 +31,16 @@ public abstract class Constant extends Term {
 		return null;
 	}
 
-	public boolean equals(Object other) {
-		return (this == other);
+	@Override
+	public int hashCode() {
+		return super.hashCode();
 	}
-	
+
+	@Override
+	public boolean equals(Object obj) {
+		return super.equals(obj);
+	}
+
 	public boolean containsVariables() {
 		return false;
 	}
