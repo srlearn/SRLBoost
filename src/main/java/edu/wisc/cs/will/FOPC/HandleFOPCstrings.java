@@ -318,6 +318,7 @@ public final class HandleFOPCstrings {
 	public Clause getClause(Literal posLiteral, Literal negLiteral) {
 		return getClause(posLiteral, negLiteral, null);
 	}
+
 	public Clause getClause(List<Literal> literals, boolean literalsAreAllPos) {
 		return new Clause(this, literals, literalsAreAllPos);	// NOTE: if literalsAreAllPos=false THEN IT IS ASSUMED ALL LITERALS ARE NEGATIVE.
 	}

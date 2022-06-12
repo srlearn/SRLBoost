@@ -1,6 +1,5 @@
 package edu.wisc.cs.will.FOPC;
 
-import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.Utils.Utils;
 
 import java.util.Collection;
@@ -39,9 +38,7 @@ public abstract class QuantifiedSentence extends Sentence {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public abstract QuantifiedSentence replaceVariablesAndBody(Collection<Variable> variables, Sentence             body);
-
-    @Override
+	@Override
 	public boolean containsVariables() {
 		return body.containsVariables(); // Should be true or no need for the variables!
 	}

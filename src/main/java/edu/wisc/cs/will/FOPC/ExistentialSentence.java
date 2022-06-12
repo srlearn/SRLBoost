@@ -164,9 +164,4 @@ public class ExistentialSentence extends QuantifiedSentence {
 		return result + "} " + body.toString(precedence, bindingList);
 	}
 
-    @Override
-    public ExistentialSentence replaceVariablesAndBody(Collection<Variable> variables, Sentence body) {
-        return getStringHandler().getExistentialSentence(variables, body);
-    }
-
 }

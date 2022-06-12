@@ -39,6 +39,7 @@ public class Clause extends Sentence implements DefiniteClause {
 		this.posLiterals   = other.posLiterals;
 		this.negLiterals   = other.negLiterals;
 	}
+
 	Clause(HandleFOPCstrings stringHandler, List<Literal> literals, boolean literalsAreAllPos) { // If not all positive, assumes all are negative.
     	this();
 		this.stringHandler = stringHandler;
@@ -79,13 +80,8 @@ public class Clause extends Sentence implements DefiniteClause {
 	public int getLength() {
 		return Utils.getSizeSafely(posLiterals) + Utils.getSizeSafely(negLiterals);
 	}
-	Literal getIthLiteral(int i) {
-		int numberPosLiterals = Utils.getSizeSafely(posLiterals);
-		if (i < numberPosLiterals) { return posLiterals.get(i); }
-		return                              negLiterals.get(i - numberPosLiterals);
-	}
 
-	public Literal getPosLiteral(int i) {
+    public Literal getPosLiteral(int i) {
         if ( posLiterals == null ) throw new IndexOutOfBoundsException();
         return posLiterals.get(i);
     }

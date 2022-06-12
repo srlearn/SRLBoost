@@ -166,8 +166,4 @@ public class UniversalSentence extends QuantifiedSentence {
 		return result + "} " + body.toString(precedence, bindingList);
 	}
 
-    @Override
-    public UniversalSentence replaceVariablesAndBody(Collection<Variable> variables, Sentence body) {
-        return getStringHandler().getUniversalSentence(variables, body);
-    }
 }
