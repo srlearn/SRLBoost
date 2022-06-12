@@ -387,9 +387,7 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
                     return true;
                 }
             }
-            if (containsVariables < 0) {
-                containsVariables = 0;
-            }
+            containsVariables = 0;
         }
         return (containsVariables > 0);
     }
