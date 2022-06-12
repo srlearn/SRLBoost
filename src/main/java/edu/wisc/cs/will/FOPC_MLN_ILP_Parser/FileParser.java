@@ -1077,9 +1077,8 @@ public class FileParser {
     private NamedTermList processListOfTerms(boolean argumentsMustBeTyped) throws ParsingException, IOException {
 
         List<Term> terms = new ArrayList<>();
-        List<String> names = null;
 
-        Term t;
+		Term t;
         String name;
 
         boolean done = false;
@@ -1115,7 +1114,7 @@ public class FileParser {
             }
         }
 
-        return new NamedTermList(terms, names);
+        return new NamedTermList(terms, null);
     }
 
 	/*
@@ -1252,7 +1251,7 @@ public class FileParser {
 		if (checkAndConsume('(')) { // See if this is a function.
 			FunctionName fName = stringHandler.getFunctionName(wordRead);
 			List<Term>   arguments;
-			List<String> names = null;
+			List<String> names;
 			// ONCE is really more of a connective than a predicate, but since it is the only prefix-based connective, treat it here.
 			if (wordRead.equalsIgnoreCase("once")) { // A once() needs to have an argument that is an FOPC clause.
 				throw new ParsingException("Deprecated");

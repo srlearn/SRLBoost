@@ -92,10 +92,6 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 		return (mode.equals(typeSpec.mode) && isaType == typeSpec.isaType);
 	}
 
-	private boolean isaSynonymForMinus(String str) {
-		return (str.equalsIgnoreCase("-") || str.equalsIgnoreCase("minus"));
-	}
-
 	public boolean mustBeBound() {
 		int modeToUse = mode;
 		if (mode == starMode) { modeToUse = stringHandler.getStarMode(); }

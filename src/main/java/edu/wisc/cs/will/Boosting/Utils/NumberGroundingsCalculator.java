@@ -432,11 +432,8 @@ public class NumberGroundingsCalculator {
 
 	public boolean isOnlyInHead(Clause cl, Literal eg) {
 		Literal head = cl.getDefiniteClauseHead();
-		boolean isInHead = false;
-		if (head.getPredicateNameAndArity().equals(eg.getPredicateNameAndArity())) {
-			isInHead = true;
-		}
-		
+		boolean isInHead = head.getPredicateNameAndArity().equals(eg.getPredicateNameAndArity());
+
 		for (Literal body : cl.negLiterals) {
 			if (body.getPredicateNameAndArity().equals(eg.getPredicateNameAndArity())) {
 				isInHead = false;

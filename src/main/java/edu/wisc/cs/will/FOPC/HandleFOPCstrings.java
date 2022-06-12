@@ -352,9 +352,7 @@ public final class HandleFOPCstrings {
 	ConsCell getConsCell(FunctionName functionName, TypeSpec typeSpec) {
 		return new ConsCell(this, functionName, typeSpec);
 	}
-	public ConsCell getConsCell(Term firstTerm, TypeSpec typeSpec) {
-		return new ConsCell(this, firstTerm, typeSpec);
-	}
+
 	public ConsCell getConsCell(Term firstTerm, Term restTerm, TypeSpec typeSpec) {
 		return new ConsCell(this, firstTerm, restTerm, typeSpec);
 	}
@@ -364,25 +362,6 @@ public final class HandleFOPCstrings {
 	ConsCell getConsCell(Function f) {
 		return new ConsCell(this, f.functionName, f.getArguments(), f.getArgumentNames(), f.getTypeSpec());
 	}
-    public ConsCell getConsCellFromList(List<Term> items) {
-
-        ConsCell head = null;
-        
-        ConsCell tail = null;
-
-		for (Term term : items) {
-			ConsCell newCell = getConsCell(term, null);
-			if ( head == null) {
-				head = newCell;
-			}
-			else {
-				tail.setCdr(newCell);
-			}
-			tail = newCell;
-		}
-
-        return head;
-    }
 
 	public ExistentialSentence getExistentialSentence(Collection<Variable> variables, Sentence body) {
 		return new ExistentialSentence(this, variables, body);
@@ -1226,10 +1205,6 @@ public final class HandleFOPCstrings {
 		SetParamInfo lookup = hashOfSetParameters.get(paramName);
 		if (lookup == null) { return null; }
 		return lookup.parameterValue;
-	}
-
-	String createSafeStringConstantForWILL(String string) {
-		return Utils.createSafeStringConstantForWILL(string, this);
 	}
 
 	boolean usingStrictEqualsForFunctions() {

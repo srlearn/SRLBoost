@@ -2,11 +2,7 @@ package edu.wisc.cs.will.DataSetUtils;
 
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.*;
 
@@ -112,7 +108,7 @@ public class Example extends Literal implements Serializable {
 	}
 	public void setWeightOnExample(double weightOnExample) {
 		if (weightOnExample < 0.0001) {
-			Utils.waitHere("Setting weight to zero!!: " + weightOnExample + " for " + this.toString());
+			Utils.waitHere("Setting weight to zero!!: " + weightOnExample + " for " + this);
 		}
 		this.weightOnExample = weightOnExample;
 	}

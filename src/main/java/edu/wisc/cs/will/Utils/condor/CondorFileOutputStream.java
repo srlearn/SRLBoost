@@ -9,7 +9,7 @@ import java.io.*;
  */
 public class CondorFileOutputStream extends OutputStream {
 
-    private OutputStream stream;
+    private final OutputStream stream;
 
     public CondorFileOutputStream(File file) throws FileNotFoundException {
         stream = new FileOutputStream(file);

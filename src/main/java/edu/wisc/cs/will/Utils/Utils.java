@@ -996,7 +996,7 @@ public class Utils {
 				&& trimmed.length() > 1 // This line added by caden, internal block assumes length of at least 2
 				&& trimmed.charAt(0) == '?') {
 			String subStr = trimmed.substring(1);
-			if (subStr.length() > 0 && subStr.charAt(0) == '?') { // Had multiple question marks (which DO mean something in IL but we are not exploiting that).
+			if (subStr.charAt(0) == '?') { // Had multiple question marks (which DO mean something in IL but we are not exploiting that).
 				return cleanString(subStr, stringHandler);
 			}
 			return "?" + cleanString(trimmed.substring(1), stringHandler);
@@ -1011,31 +1011,6 @@ public class Utils {
 			}
 		}
 		return result;
-	}
-
-	public static String createSafeStringConstantForWILL(String string, HandleFOPCstrings stringHandler) {
-		if (string == null)    { return null;   }
-		if (string.equals("")) { return string; }
-		
-		if (stringHandler.doVariablesStartWithQuestionMarks()) {
-			if (string.charAt(0) == '?') {
-				return createSafeStringConstantForWILL("qm_" + string.substring(1), stringHandler); // Get rid of any leading question mark in a constant.
-			}
-			return cleanString(string, stringHandler);
-		}
-		
-		String result = cleanString(string, stringHandler);
-
-		if (!Character.isLetter(result.charAt(0))) {
-            // This will also handle a leading underscore, which indicates (in all notations) a variable.
-		    result = "c_" + result;
-		} else {
-		    result = changeCaseFirstChar(result);
-        }
-
-        // Make these canonical.
-        // TODO(?): allow an override?
-        return stringHandler.getStringConstant(result).getName();
 	}
 
     public static Boolean fileExists(String fileName) {

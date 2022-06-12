@@ -128,16 +128,13 @@ class LazyHornClausebaseIndexer {
                     }
                 }
 
-                if (set != null) {
-                    return set;
-                }
-                else {
+                if (set == null) {
                     set = lookupDefiniteClausesByPredicate(pnaa);
                     if (set != null && !set.isEmpty()) {
                         predicateHitCount++;
                     }
-                    return set;
                 }
+                return set;
             }
         }
 
@@ -215,7 +212,7 @@ class LazyHornClausebaseIndexer {
         sb.append(String.format("%%   All ground index    : Lookups = %d, Hits = %d, Efficiency = %.2f%%.\n", groundClauseLookupCount, groundClauseHitCount, 100.0 * groundClauseHitCount / groundClauseLookupCount));
         sb.append(String.format("%%   Predicates Index    : Lookups = %d, Hits = %d, Efficiency = %.2f%%.\n", predicateLookupCount, predicateHitCount, 100.0 * predicateHitCount / predicateLookupCount));
 
-        if ( groundClauseIndex != null ) sb.append(groundClauseIndex.toString());
+        if ( groundClauseIndex != null ) sb.append(groundClauseIndex);
         for (LazyGroundNthArgumentClauseIndex lazyGroundNthArgumentClauseIndex : singleGroundArgIndexArray) {
             if (lazyGroundNthArgumentClauseIndex != null) sb.append(lazyGroundNthArgumentClauseIndex);
         }

@@ -88,7 +88,7 @@ class TreeStructuredLearningTask implements Serializable {
 			if (regEx.isHasRegressionVector()) {
 				vecStats.addVector(regEx.getOutputVector());
 			} else {
-				Utils.error("No regression vector for example: " + regEx.toString());
+				Utils.error("No regression vector for example: " + regEx);
 			}
 		}
 		return vecStats.getVariance();

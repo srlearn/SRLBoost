@@ -54,8 +54,6 @@ public class CommandLineArguments {
 	private static final String maxMLNLength = "mlnClauseLen";
 	private int maxMLNClauseLength=2;
 
-	public final String outFileSuffix = null;
-
 	private static final String infer = "i";
 	private boolean inferVal=false;
 
@@ -73,8 +71,6 @@ public class CommandLineArguments {
 	private static final String targetPred = "target";
 	private Set<String> targetPredVal = null;
 
-	private final Set<String> loadPredModelVal = null;
-
 	private static final String maxTrees = "trees";
 	private int maxTreesVal=10;
 
@@ -91,8 +87,6 @@ public class CommandLineArguments {
 	private double testNegsToPosRatioVal = -1;
 
 	private static final String aucPath = "aucJarPath";
-
-	private String modelFileVal = null;
 
 	public boolean parseArgs(String[] args) {
 
@@ -348,11 +342,7 @@ public class CommandLineArguments {
 	}
 
 	public String getModelFileVal() {
-		return modelFileVal;
-	}
-
-	public void setModelFileVal(String modelFileVal) {
-		this.modelFileVal = modelFileVal;
+		return null;
 	}
 
 	public Set<String> getTargetPredVal() {
@@ -385,19 +375,6 @@ public class CommandLineArguments {
 
 	public double getTestNegsToPosRatioVal() {
 		return testNegsToPosRatioVal;
-	}
-
-	public String getExtraMarkerForFiles(boolean includeTestSkew) {
-		// TODO(@hayesall): Factor out the need for the file system.
-		String result = "_";
-		result += "pos_";
-		result += "neg_";
-		result += "Lits"  + 1;
-		if (maxTreesVal                    >= 0)    { result += "Trees" + maxTreesVal; }
-		if (sampleNegsToPosRatioVal        >= 0)    { result += "Skew"     + (int) sampleNegsToPosRatioVal; }
-		if (includeTestSkew &&
-				testNegsToPosRatioVal      >= 0)    { result += "TestSkew" + (int) testNegsToPosRatioVal; }
-		return result;
 	}
 
 	public boolean isLearnMLN() {

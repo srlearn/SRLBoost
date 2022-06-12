@@ -325,7 +325,7 @@ public class LearnBoostedRDN {
 	private void addToFlattenedLiterals(Collection<Literal> lits) { // Written by JWS.
 		if (lits == null) { return; }
 		for (Literal lit : lits) {
-			if (!(lit.member(theseFlattenedLits, false))) {
+			if (!(lit.member(theseFlattenedLits))) {
 				theseFlattenedLits.add(lit);
 			}
 		}

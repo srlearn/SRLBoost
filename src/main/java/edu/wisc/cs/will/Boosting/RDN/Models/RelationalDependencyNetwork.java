@@ -2,7 +2,6 @@ package edu.wisc.cs.will.Boosting.RDN.Models;
 
 import edu.wisc.cs.will.Boosting.RDN.ConditionalModelPerPredicate;
 import edu.wisc.cs.will.Boosting.RDN.JointRDNModel;
-import edu.wisc.cs.will.Boosting.RDN.Models.DependencyNetworkEdge.EdgeType;
 import edu.wisc.cs.will.Boosting.RDN.Models.DependencyPredicateNode.PredicateType;
 import edu.wisc.cs.will.Boosting.RDN.WILLSetup;
 import edu.wisc.cs.will.FOPC.Clause;
@@ -66,24 +65,23 @@ public class RelationalDependencyNetwork extends DependencyNetwork {
 			Set<PredicateName> parents = new HashSet<>();
 			model.getParentPredicates(parents);
 			for (PredicateName parent : parents) {
-				addLink(parent, predname, EdgeType.PROBABILISTIC);
+				addLink(parent, predname);
 			}
 		}
 	}
 
-	private void addLink(PredicateName parent, PredicateName child, EdgeType type) {
+	private void addLink(PredicateName parent, PredicateName child) {
 		// Check if we have parent node
 		DependencyNode parNode = getDependencyNode(parent);
 		DependencyNode chiNode = getDependencyNode(child);
-		DependencyNetworkEdge edge = getDependencyEdge(parNode, type);
+		DependencyNetworkEdge edge = getDependencyEdge(parNode);
 		parNode.addChild(edge);
 		chiNode.addParent(edge);
 	}
 
 	private DependencyNetworkEdge getDependencyEdge(
-			DependencyNode parNode,
-            EdgeType type) {
-		return new DependencyNetworkEdge(parNode, type);
+			DependencyNode parNode) {
+		return new DependencyNetworkEdge(parNode);
 	}
 
 	public DependencyPredicateNode getDependencyNode(PredicateName parent) {

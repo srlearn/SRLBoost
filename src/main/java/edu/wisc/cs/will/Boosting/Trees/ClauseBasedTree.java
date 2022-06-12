@@ -145,13 +145,13 @@ public class ClauseBasedTree  {
 			Clause cl2=null;
 			Clause cl = regressionClauses.get(i);
 			if (cl!=null)  { 
-				cl2 = setup.convertFactToClause(cl.toString() + ".");
+				cl2 = setup.convertFactToClause(cl + ".");
 			}
 			regressionClauses.set(i, cl2);
 		}
 		for (Clause suppClause : suppClauses) {
 			if (suppClause !=null)  { 
-				Clause cl2 = setup.convertFactToClause(suppClause.toString() + ".");
+				Clause cl2 = setup.convertFactToClause(suppClause + ".");
 				setup.getInnerLooper().getContext().getClausebase().assertBackgroundKnowledge(cl2);
 			}
 	

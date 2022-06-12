@@ -49,12 +49,6 @@ public class HornClauseProver extends StateBasedSearchTask<HornSearchNode> {
 		initalizeStateBasedSearchTask(myInitializer, endTest, monitor, searchStrategy, null, hornClauseProverChildrenGenerator, null);
 	}
 
-	private PredicateName getPredicateNameFromFirstNegatedLiteral(HornSearchNode node) {
-		List<Literal> queryLiterals  = node.clause.negLiterals;
-		Literal       negatedLiteral = queryLiterals.get(0);
-		return negatedLiteral.predicateName;
-	}
-
 	private boolean proveSimpleQuery(Literal negatedFact) throws SearchInterrupted {
 		((InitHornProofSpace) initializer).loadNegatedSimpleQuery(negatedFact, open);
 		return performSearch().goalFound();

@@ -10,7 +10,6 @@ import edu.wisc.cs.will.ResThmProver.*;
 import edu.wisc.cs.will.Utils.Utils;
 import edu.wisc.cs.will.Utils.condor.CondorFile;
 import edu.wisc.cs.will.stdAIsearch.BestFirstSearch;
-import edu.wisc.cs.will.stdAIsearch.SearchInterrupted;
 import edu.wisc.cs.will.stdAIsearch.SearchStrategy;
 
 import java.io.File;
@@ -57,7 +56,7 @@ public final class WILLSetup {
 		return                       "_runTypeIsUnknown";
 	}
 
-	public boolean setup(CommandLineArguments args, String directory, boolean forTraining) throws SearchInterrupted {
+	public boolean setup(CommandLineArguments args, String directory, boolean forTraining) {
 
 		this.cmdArgs = args;
 		this.useMLNs = args.isLearnMLN();
