@@ -2,7 +2,7 @@ usePrologVariables: true.
 setParam: maxTreeDepth=4.
 setParam: nodeSize=2.
 setParam: numOfClauses=8.
-queryPred: sameauthor/1.
+queryPred: sameauthor/2.
 mode: author(-paper,+auth).
 mode: author(+paper,-auth).
 mode: haswordauthor(-auth,+word).
