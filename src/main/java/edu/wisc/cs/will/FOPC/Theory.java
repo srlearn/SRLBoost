@@ -107,22 +107,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 			}
     	}
     }
-    
-    private void help_collectAnyRemainingInliners(Clause cRaw, int depth) {
-    	if (cRaw == null) {
-			return;
-		}
-    	if (depth > 20) {
-			Utils.error("cRaw = " + cRaw + " depth = " + depth);
-		}
-    	if (cRaw.negLiterals != null) {
-			for (Literal lit : cRaw.negLiterals) {
-				help_collectAnyRemainingInliners(lit, depth + 1);
-			}
-		}
-    }
-    	
-    private void help_collectAnyRemainingInliners(Literal lit, int depth) {
+
+	private void help_collectAnyRemainingInliners(Literal lit, int depth) {
 		if (depth > 20) {
 			Utils.error("help_collectAnyRemainingInliners: lit = '" + lit + "' depth = " + depth);
 		}
@@ -138,24 +124,8 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		if (depth > 20) {
 			Utils.error("help_collectAnyRemainingInliners: term = '" + term + "' depth = " + depth);
 		}
-
-    	if (term instanceof LiteralAsTerm) {
-    		LiteralAsTerm lat = (LiteralAsTerm) term;
-    		help_collectAnyRemainingInliners(lat.itemBeingWrapped, depth + 1);    		
-    	} else if (term instanceof SentenceAsTerm) {
-    		SentenceAsTerm sat = (SentenceAsTerm) term;
-    		help_collectAnyRemainingInliners(sat.asClause(), depth);    		
-    	} else if (term instanceof ListAsTerm) {
-    		ListAsTerm lat = (ListAsTerm) term;
-    		List<Term> terms = lat.objects;
-    		for (Term latTerm : terms) { help_collectAnyRemainingInliners(latTerm, depth + 1); }    		
-    	} else if (term instanceof Function) {
-    		Function f = (Function) term;
-    		help_collectAnyRemainingInliners(f.convertToLiteral(stringHandler), depth + 1);
-    	
-    		if (f.getArity() > 0) for (Term termInner : f.getArguments()) { help_collectAnyRemainingInliners(termInner, depth + 1); }
-    	}
-    }
+		// TODO(hayesall): Deprecate all of this.
+	}
     
     private List<Literal> simplifyListOfLiterals(List<Literal> inputList) {
     	if (inputList == null) { return null; }
@@ -335,57 +305,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 
         return prettyPrinterOptions;
     }
-
-	public void addPreAndPostfixToTemporaryNames(String prefixForSupportClause, String postfixForSupportClause) {
-		if (clauses != null) {
-			for (Clause c : clauses) { // These are the main clauses.  Don't rename them (shouldn't happen since should not be in renameTheseSupportingPredicates), but check their bodies.
-				for (int i = 0; i < c.getLength(); i++) {
-					Literal lit = c.getIthLiteral(i);
-					if (lit.predicateName == stringHandler.standardPredicateNames.negationByFailure) {
-						renameNegationByFailure(lit, prefixForSupportClause, postfixForSupportClause);
-					} else {
-						renameLiteralIfTemporary(lit, prefixForSupportClause, postfixForSupportClause);
-					}
-				}
-			}
-		}
-		if (supportClauses != null) {
-			for (Clause c : supportClauses) { // These are the supporting clauses.  Rename them, plus check their bodies.
-				for (int i = 0; i < c.getLength(); i++) {
-					Literal lit = c.getIthLiteral(i);
-					if (lit.predicateName == stringHandler.standardPredicateNames.negationByFailure) {
-						renameNegationByFailure(lit, prefixForSupportClause, postfixForSupportClause);
-					} else {
-						renameLiteralIfTemporary(lit, prefixForSupportClause, postfixForSupportClause);
-					} //else { Utils.println("% THIS IS NOT A TEMPORARY NAME AND SO NO PRE/POST-FIX ADDED: " + lit.predicateName); }
-				}
-			}
-		}
-	}
-	
-	private void renameNegationByFailure(Literal negationByFailure, String prefixForSupportClause, String postfixForSupportClause) {
-
-        Clause contents = negationByFailure.getStringHandler().getNegationByFailureContents(negationByFailure);
-
-        for (Literal contentsLiteral : contents.getPositiveLiterals()) {
-            renameLiteralIfTemporary(contentsLiteral, prefixForSupportClause, postfixForSupportClause);
-        }
-	}
-		
-	// This should all be done IN-PLACE.
-	private void renameLiteralIfTemporary(Literal lit, String prefixForSupportClause, String postfixForSupportClause) {
-		renameFunctionsIfTemporary(lit.getArguments(), prefixForSupportClause, postfixForSupportClause);
-	}
-	private void renameFunctionsIfTemporary(List<Term> arguments, String prefixForSupportClause, String postfixForSupportClause) {
-		if (arguments != null) for (Term t : arguments) if (t instanceof Function) {
-			Function      f            = (Function) t;
-			PredicateName pNameVersion = stringHandler.getPredicateName(f.functionName.name);
-			
-			// Need to recur inside functions.
-			renameFunctionsIfTemporary(f.getArguments(), prefixForSupportClause, postfixForSupportClause);
-			// And need to change the function name as well, IF it is a temporary name.
-		}
-	}
 
 	@Override
     public Theory applyTheta(Map<Variable, Term> bindings) {

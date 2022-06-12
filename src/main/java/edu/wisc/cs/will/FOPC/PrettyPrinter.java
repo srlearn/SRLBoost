@@ -328,10 +328,6 @@ public class PrettyPrinter {
             return literalAsTerm.itemBeingWrapped.accept(this, data);
         }
 
-        public PPResult visitListAsTerm(ListAsTerm listAsTerm, FOPCPrettyPrinterData data) {
-            return null;
-        }
-
         public PPResult visitNumericConstant(NumericConstant numericConstant) {
             return new PPResult(numericConstant.getName(), false, MIN_PRECEDENCE);
         }

@@ -363,10 +363,6 @@ public final class HandleFOPCstrings {
 		return getFunction(existingFunction.functionName, newArguments, existingFunction.getArgumentNames(), existingFunction.getTypeSpec());
     }
 
-	public ListAsTerm getListAsTerm(List<Term> objects) {
-		return new ListAsTerm(this, objects);
-	}
-
 	public Literal getLiteral(PredicateName pred) {
 		return new Literal(this, pred);
 	}

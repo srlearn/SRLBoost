@@ -176,25 +176,6 @@ public class DefaultFOPCVisitor<Data> implements SentenceVisitor<Sentence, Data>
         return result;
     }
 
-    public Term visitListAsTerm(ListAsTerm listAsTerm, Data data) {
-        Term result = listAsTerm;
-
-        if (listAsTerm.getObjects() != null) {
-            List<Term> objects;
-
-            objects = new ArrayList<>();
-            for (Term term : listAsTerm.getObjects()) {
-                Term newTerm = term.accept(this, data);
-                if (newTerm != null) {
-                    objects.add(newTerm);
-                }
-            }
-            result = listAsTerm.getStringHandler().getListAsTerm(objects);
-        }
-
-        return result;
-    }
-
     public Term visitNumericConstant(NumericConstant numericConstant) {
         return numericConstant;
     }
