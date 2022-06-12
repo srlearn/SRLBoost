@@ -26,8 +26,7 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	private   Set<Integer>                   queryPredSpec              = null;  // Used with MLNs.
 	private   Set<Integer>                   containsCallable           = null;  // One of the terms of the predicate is called during execution of the predicate.
 
-	public    boolean printUsingInFixNotation = false;
-	transient private HandleFOPCstrings stringHandler;  // The stringHandler needed to de-serialize the Predicate.
+	final transient private HandleFOPCstrings stringHandler;  // The stringHandler needed to de-serialize the Predicate.
 
 	PredicateName(String name, HandleFOPCstrings stringHandler) { // This is protected because getPredicateName(String name) should be used instead.
 		this.name          = name;

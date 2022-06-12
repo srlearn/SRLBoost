@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class FunctionName extends AllOfFOPC {
 	public final String  name;
-	boolean printUsingInFixNotation = false;
+	final boolean printUsingInFixNotation = false;
 
 	FunctionName(String name) { // This is protected because getFunctionName(String name) should be used instead.
 		this.name = name;

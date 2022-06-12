@@ -266,7 +266,7 @@ public class PrettyPrinter {
 
             String pred = literal.predicateName.name;
 
-            return prettyPrintTerms(pred, terms, literal.predicateName.printUsingInFixNotation, data);
+            return prettyPrintTerms(pred, terms, false, data);
         }
 
         public PPResult visitFunction(Function function, FOPCPrettyPrinterData data) {

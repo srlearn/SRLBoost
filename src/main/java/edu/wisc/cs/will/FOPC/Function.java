@@ -10,7 +10,7 @@ import java.util.*;
  *
  */
 public class Function extends Term implements LiteralOrFunction {
-	public  FunctionName functionName;
+	public final FunctionName functionName;
 	final List<Term>   arguments;    // Note: should not directly manipulate.  Instead use addArgument(), removeArgument(), and setArguments().
 	private List<String> argumentNames; // (Optional) names of the arguments.
 	private int        cached_arity      = -1;

@@ -3,12 +3,7 @@ package edu.wisc.cs.will.DataSetUtils;
 import edu.wisc.cs.will.FOPC.*;
 import edu.wisc.cs.will.Utils.MessageType;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.CondorFile;
-import edu.wisc.cs.will.Utils.condor.CondorFileOutputStream;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.util.*;
 
 /*
@@ -28,53 +23,30 @@ public class TypeManagement {
 
     // Collect as many types as possible from the data read in.
     // The Boolean return indicates whether or not addToFactsFile should be called.
-    public Boolean collectTypedConstants(boolean createCacheFiles, boolean useCachedFiles, String typesFileNameToUse, List<Literal> targetLiterals, List<List<ArgSpec>> targetArgSpecs, Set<PredicateNameAndArity> bodyModes,
-                                         List<Example> posExamples, List<Example> negExamples, Iterable<Sentence> backgroundFacts) {
-        File file = (useCachedFiles ? new CondorFile(typesFileNameToUse) : null);
-        if (useCachedFiles && file.exists()) {
-            Utils.println("\n% Collection of the types of constants has previously occurred.  If this is incorrect, delete:\n%   '" + file.getPath() + "'");
-            return true; // Tell the caller to load this file.
-        }
-        Utils.println("\n% Collecting the types of constants.");
-        try {
-            CondorFileOutputStream outStream = (createCacheFiles ? new CondorFileOutputStream(typesFileNameToUse) : null);
-            PrintStream printStream = (createCacheFiles ? new PrintStream(outStream, false) : null); // (Don't) Request auto-flush (can slow down code).
+    public void collectTypedConstants(List<Literal> targetLiterals, List<List<ArgSpec>> targetArgSpecs, Set<PredicateNameAndArity> bodyModes,
+                                      List<Example> posExamples, List<Example> negExamples, Iterable<Sentence> backgroundFacts) {
 
-            collectImplicitTypeConstantsViaModeAndFactInspection(printStream, bodyModes, backgroundFacts);
-            Utils.println("\n% Looking at the training examples to see if any types of new constants can be inferred.");
-            if (printStream != null) {
-                printStream.println("\n% Looking at the training examples to see if any types of new constants can be inferred.");
+        Utils.println("\n% Collecting the types of constants.");
+
+        collectImplicitTypeConstantsViaModeAndFactInspection(bodyModes, backgroundFacts);
+        Utils.println("\n% Looking at the training examples to see if any types of new constants can be inferred.");
+
+        // TODO(hayesall): Inlining on the assumption that `target` and `types` are known at runtime.
+        //      Type errors should be treated as runtime/parsing errors.
+
+        if (targetLiterals != null && (posExamples != null || negExamples != null)) {
+            for (int i = 0; i < Utils.getSizeSafely(targetLiterals); i++) {
+                PredicateName targetPredicate = targetLiterals.get(i).predicateName;
+                assert targetArgSpecs != null;
+                List<ArgSpec> argSpecs = targetArgSpecs.get(i);
+                recordTypedConstantsFromTheseExamples(posExamples, targetPredicate, argSpecs);
+                recordTypedConstantsFromTheseExamples(negExamples, targetPredicate, argSpecs);
             }
-            if (targetLiterals == null) {
-                Utils.warning("targetPredicates=null");
-            }
-            if (targetArgSpecs == null) {
-                Utils.warning("targetArgSpecs=null");
-            }
-            if (targetLiterals != null && targetArgSpecs != null && targetArgSpecs.size() != Utils.getSizeSafely(targetLiterals)) {
-                Utils.error("targetArgSpecs = " + targetArgSpecs + " and targetPredicates = " + targetLiterals);
-            }
-            if (targetLiterals != null && (posExamples != null || negExamples != null)) {
-                for (int i = 0; i < Utils.getSizeSafely(targetLiterals); i++) {
-                    PredicateName targetPredicate = targetLiterals.get(i).predicateName;
-                    assert targetArgSpecs != null;
-                    List<ArgSpec> argSpecs = targetArgSpecs.get(i);
-                    recordTypedConstantsFromTheseExamples(printStream, posExamples, targetPredicate, argSpecs);
-                    recordTypedConstantsFromTheseExamples(printStream, negExamples, targetPredicate, argSpecs);
-                }
-            }
-            checkThatTypesOfAllConstantsAreKnown(printStream, backgroundFacts);
-            if (printStream != null) {
-                printStream.close();
-            }
-        } catch (FileNotFoundException e) {
-            Utils.reportStackTrace(e);
-            Utils.error("Unable to successfully open this file for writing: " + typesFileNameToUse + ".  Error message: " + e.getMessage());
         }
-        return false;
+        checkThatTypesOfAllConstantsAreKnown(backgroundFacts);
     }
 
-    private void collectImplicitTypeConstantsViaModeAndFactInspection(PrintStream printStream, Set<PredicateNameAndArity> bodyModes, Iterable<Sentence> backgroundFacts) {
+    private void collectImplicitTypeConstantsViaModeAndFactInspection(Set<PredicateNameAndArity> bodyModes, Iterable<Sentence> backgroundFacts) {
         Map<Term, Set<Type>> alreadyCheckedConstantHash = new HashMap<>(4096);
         for (PredicateNameAndArity predName : bodyModes) {
             // First need to see if this predicate can have DIFFERENT numbers of arguments.  If so, we need to treat each separately.
@@ -103,7 +75,7 @@ public class TypeManagement {
                             if (sentence instanceof Literal) {
                                 Literal fact = (Literal) sentence;
                                 if (fact.predicateName == predName.getPredicateName() && fact.getArity() == argSize) {
-                                    help_matchFactsAndModes(fact, fact.getArguments(), ambiguous, argTypes, printStream, alreadyCheckedConstantHash);
+                                    help_matchFactsAndModes(fact, fact.getArguments(), ambiguous, argTypes, alreadyCheckedConstantHash);
                                 }
                             }
                         }
@@ -113,7 +85,7 @@ public class TypeManagement {
         }
     }
 
-    private void help_matchFactsAndModes(Literal fact, List<Term> args, Set<Integer> ambiguous, List<Type> argTypes, PrintStream printStream, Map<Term, Set<Type>> alreadyCheckedConstantHash) {
+    private void help_matchFactsAndModes(Literal fact, List<Term> args, Set<Integer> ambiguous, List<Type> argTypes, Map<Term, Set<Type>> alreadyCheckedConstantHash) {
 
         int counter = 0;
         if (args == null) {
@@ -139,7 +111,7 @@ public class TypeManagement {
                     continue; // Already checked if this constant is of this type.
                 }
                 // Have inferred the type of this constant.
-                addNewConstant(printStream, stringHandler, arg, thisType, fact);
+                addNewConstant(stringHandler, arg, thisType, fact);
                 if (lookup1 == null) {
                     lookup1 = new HashSet<>(4);
                     alreadyCheckedConstantHash.put(arg, lookup1);
@@ -183,7 +155,7 @@ public class TypeManagement {
     }
 
     // Check all constants in facts and make sure they are typed (and uniquely!).
-    private void checkThatTypesOfAllConstantsAreKnown(PrintStream printStream, Iterable<Sentence> backgroundFacts) {
+    private void checkThatTypesOfAllConstantsAreKnown(Iterable<Sentence> backgroundFacts) {
         boolean untypedConstantFound = false;
         Set<Term> alreadyCheckedHash = new HashSet<>(1024);
 
@@ -201,25 +173,16 @@ public class TypeManagement {
                                 if (stringHandler.getTypesOfConstant(arg, false) == null) {
                                     if (!untypedConstantFound) {
                                         Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "\n% The type of the following constants are not known: ");
-                                        if (printStream != null) {
-                                            printStream.println("\n% The type of the following constants are not known: ");
-                                        }
                                         untypedConstantFound = true;
                                     }
                                     Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "%  " + arg + "  [from: " + fact + "]");
                                     if (arg instanceof NumericConstant && stringHandler.isaHandler.isa(stringHandler.isaHandler.getIsaType("number"), stringHandler.isaHandler.getIsaType("willAnything"))) {
                                         Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "%  Inferring that '" + arg + "' is of type 'number'.");
-                                        if (printStream != null) {
-                                            printStream.println("%  Inferring that '" + arg + "' is of type 'number'.");
-                                        }
-                                        addNewConstant(printStream, stringHandler, arg, stringHandler.isaHandler.getIsaType("number"), fact);
+                                        addNewConstant(stringHandler, arg, stringHandler.isaHandler.getIsaType("number"), fact);
                                     }
                                     else {
                                         Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "%  Inferring that '" + arg + "' is of type 'willAnything'.");
-                                        if (printStream != null) {
-                                            printStream.println("%  Inferring that '" + arg + "' is of type 'willAnything'.");
-                                        }
-                                        addNewConstant(printStream, stringHandler, arg, stringHandler.isaHandler.getIsaType("willAnything"), fact);
+                                        addNewConstant(stringHandler, arg, stringHandler.isaHandler.getIsaType("willAnything"), fact);
                                     }
                                 }
                                 alreadyCheckedHash.add(arg);
@@ -234,7 +197,7 @@ public class TypeManagement {
         }
     }
 
-    private void recordTypedConstantsFromTheseExamples(PrintStream printStream, List<Example> examples, PredicateName targetPredicate, List<ArgSpec> targetArgSpecs) {
+    private void recordTypedConstantsFromTheseExamples(List<Example> examples, PredicateName targetPredicate, List<ArgSpec> targetArgSpecs) {
 
         if (examples == null) {
             return;
@@ -253,7 +216,7 @@ public class TypeManagement {
                         Utils.error("#args do not match!  TargetArgSpecs = " + targetArgSpecs + " while ex = " + ex);
                     }
                     ArgSpec spec = targetArgSpecs.get(counter);
-                    addNewConstant(printStream, stringHandler, arg, spec.typeSpec.isaType, ex);
+                    addNewConstant(stringHandler, arg, spec.typeSpec.isaType, ex);
                     counter++;
                 }
                 else if (arg instanceof Function) {
@@ -272,7 +235,7 @@ public class TypeManagement {
 
     private int reportCounter = 0;
     // See if this is a new constant of this type.
-    private void addNewConstant(PrintStream printStream, HandleFOPCstrings stringHandler, Term constant, Type type, Literal generator) {
+    private void addNewConstant(HandleFOPCstrings stringHandler, Term constant, Type type, Literal generator) {
         if (generator == null) {
             Utils.error("Cannot have generator=null.");
         }
@@ -351,9 +314,6 @@ public class TypeManagement {
         Type newType = stringHandler.isaHandler.getIsaType(constant.toString());
         if (newType != type && !stringHandler.isaHandler.okToAddToIsa(newType, type)) { // OK to add constant with same name as type.
             return;
-        }
-        if (printStream != null) {
-            printStream.println("isa: " + constant + " isa " + type + ";");
         }
         stringHandler.addNewConstantOfThisType(constant, type);
     }

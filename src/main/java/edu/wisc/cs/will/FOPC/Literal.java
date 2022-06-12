@@ -485,20 +485,6 @@ public class Literal extends Sentence implements Serializable, DefiniteClause, L
         boolean hasArgNames = (argumentNames != null);
 
         String pNameString = predicateName.toString();
-        if (predicateName.printUsingInFixNotation && numberArgs() == 2) {
-            int precedence = HandleFOPCstrings.getLiteralPrecedence_static(predicateName);
-            if (precedenceOfCaller < precedence) {
-                return result + "(" + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + pNameString + " " + (hasArgNames ? argumentNames.get(1) + "=" : "") + arguments.get(1).toString(precedence, bindingList) + ")";
-            }
-			return result + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + pNameString + " " + (hasArgNames ? argumentNames.get(1) + "=" : "") + arguments.get(1).toString(precedence, bindingList);
-        }
-        if (predicateName.printUsingInFixNotation && numberArgs() == 3 && predicateName.name.equalsIgnoreCase("then")) {
-            int precedence = HandleFOPCstrings.getLiteralPrecedence_static(predicateName);
-            if (precedenceOfCaller < precedence) {
-                return result + "(" + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + pNameString + " " + (hasArgNames ? argumentNames.get(1) + "=" : "") + arguments.get(1).toString(precedence, bindingList) + " else " + (hasArgNames ? argumentNames.get(2) + "=" : "") + arguments.get(2).toString(precedence, bindingList) + ")";
-            }
-			return result + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + pNameString + " " + (hasArgNames ? argumentNames.get(1) + "=" : "") + arguments.get(1).toString(precedence, bindingList) + " else " + (hasArgNames ? argumentNames.get(2) + "=" : "") + arguments.get(2).toString(precedence, bindingList);
-        }
 
         result += pNameString;
         if (arguments == null) {

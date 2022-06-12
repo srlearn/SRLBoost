@@ -12,7 +12,6 @@ import edu.wisc.cs.will.ILP.Regression.RegressionInfoHolderForRDN;
 import edu.wisc.cs.will.ResThmProver.HornClauseContext;
 import edu.wisc.cs.will.ResThmProver.HornClauseProver;
 import edu.wisc.cs.will.Utils.Utils;
-import edu.wisc.cs.will.Utils.condor.CondorFileReader;
 import edu.wisc.cs.will.stdAIsearch.*;
 
 import javax.swing.event.EventListenerList;
@@ -336,26 +335,20 @@ public class LearnOneClause extends StateBasedSearchTask {
 		procDefinedForConstants        = stringHandler.getPredicateName("collectContantsBoundToTheseVars");
 		procDefinedNeedForNewVariables = stringHandler.getPredicateName("newTermBoundByThisVariable");
         context.getClausebase().setUserProcedurallyDefinedPredicateHandler(procHandler);
+		// TODO(hayesall): Is the `procHandler` actually doing anything?
 
 		if (Utils.getSizeSafely(posExamples) + Utils.getSizeSafely(negExamples) > 0) {
 			chooseTargetMode();
 		}
 
-		// TODO(@hayesall): What is `prune.txt`?
-		String pruneFileNameToUse = Utils.createFileNameString(getDirectoryName(), "prune.txt");
+		Utils.println("\n% Started collecting constants");
 
-			Utils.println("\n% Started collecting constants");
+		// TODO(hayesall): `typeManager` also appears to try to do type inference. This behavior should be deprecated.
+
 		long start = System.currentTimeMillis();
-		// The following will see if the old types file exists.
-            // Checks for errors in the data.
-            String  typesFileNameToUse     = Utils.createFileNameString(getDirectoryName(), "types.txt");
-            // Create files that cache computations, to save time, for debugging, etc.
-            boolean createCacheFiles = false;
-            Boolean typesFileAlreadyExists = typeManager.collectTypedConstants(createCacheFiles, false, typesFileNameToUse, targets, targetArgSpecs, bodyModes, getPosExamples(), getNegExamples(), facts); // Look at all the examples and facts, and collect the typed constants in them wherever possible.
-            if (typesFileAlreadyExists) {
-                addToFacts(typesFileNameToUse); // Load the types file, if it exists.
-            }
-            long end = System.currentTimeMillis();
+		typeManager.collectTypedConstants(targets, targetArgSpecs, bodyModes, getPosExamples(), getNegExamples(), facts);
+		long end = System.currentTimeMillis();
+
 		Utils.println("% Time to collect constants: " + Utils.convertMillisecondsToTimeSpan(end - start));
         if (!creatingConjunctiveFeaturesOnly && minNumberOfNegExamples > 0 && getNegExamples() == null) {
             Utils.severeWarning("Have ZERO negative examples!  Variable 'minNumberOfNegExamples' is currently set to " + minNumberOfNegExamples + ".");
@@ -960,42 +953,7 @@ public class LearnOneClause extends StateBasedSearchTask {
 		return sentences;
 	}
 
-	private void addToFacts(String factsFileName) {
-		try {
-			if (!Utils.fileExists(factsFileName)) {
-				Utils.error("Cannot find this file:\n  " + factsFileName);
-			}
-			File factsFile = Utils.ensureDirExists(factsFileName);
-			addToFacts(new CondorFileReader(factsFile), factsFile.getParent()); // Need the String in CondorFileReader since that will check if compressed.
-		} catch (IOException e) {
-			Utils.reportStackTrace(e);
-			Utils.error("Cannot find this file: " + factsFileName);
-		}
-	}
-
-	private void addToFacts(Reader factsReader, String readerDirectory) {
-		List<Sentence> moreFacts = readFacts(factsReader, readerDirectory, true);
-		if (moreFacts == null) { return; }
-		Utils.println("% Read an additional " + Utils.comma(moreFacts) + " facts from " + factsReader + ".");
-		addFacts(moreFacts);
-	}
-
-	void addFacts(List<Sentence> newFacts) {
-        for (Sentence sentence : newFacts) {
-            // These should all be facts, but there is really no way to enforce it.
-            // However, if they are literals we will consider them as facts.
-            // We add the fact predicate/arity to a set so we know that they
-            // came in as facts and can be used as so later.
-            if (sentence instanceof Literal) {
-                Literal literal = (Literal) sentence;
-                PredicateNameAndArity pnaa = literal.getPredicateNameAndArity();
-            }
-        }
-
-		context.assertSentences(newFacts);
-	}
-
-    private void chooseTargetMode() {
+	private void chooseTargetMode() {
 		chooseTargetMode(stringHandler.dontComplainIfMoreThanOneTargetModes);
 		
 	}
