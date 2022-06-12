@@ -35,25 +35,14 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 
 	public TypeSpec(char modeAsChar, String typeAsString, HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
-		if      (modeAsChar == '+') { mode = plusMode;      } // If additions to this, be sure to add to isaModeSpec().
-		else if (modeAsChar == '$') { mode = onceMode;      }
+		if      (modeAsChar == '+') { mode = plusMode;      }
 		else if (modeAsChar == '-') { mode = minusMode;     }
-		else if (modeAsChar == '^') { mode = novelMode;     }
 		else if (modeAsChar == '#') { mode = constantMode;  }
-		else if (modeAsChar == '@') { mode = thisValueMode; }
-		else if (modeAsChar == '*') { mode = starMode;      }
-		else if (modeAsChar == '=') { mode = equalMode;     }
-		else if (modeAsChar == '&') { mode = minusOrConstantMode; }
-		else if (modeAsChar == ':') { mode = plusOrConstantMode;  }
-		else if (modeAsChar == '`') { mode = notHeadVarMode;  }
-		else if (modeAsChar == '>') { mode = modeNotYetSet;  }
-		// novelOrConstantMode
-		else if (modeAsChar == ' ') { mode = unspecifiedMode;     }
 		else { Utils.error("Unknown mode character: '" + modeAsChar + "'"); }
 		isaType = stringHandler.isaHandler.getIsaType(typeAsString);
 	}	
 	public static boolean isaModeSpec(char c) { // Also look at FileParser.processTerm
-		return c == '+' || c == '$' || c == '-' || c == '^' || c == '#' || c == '@' || c == '*' || c == '=' || c == '&' || c == ':' || c == '>'|| c == '`';
+		return c == '+' || c == '-' || c == '#';
 	}
 	public TypeSpec(Type isaType, HandleFOPCstrings stringHandler) {
 		this.stringHandler = stringHandler;
@@ -153,19 +142,8 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
 	private static String getModeString(int modeToUse) {
 		switch (modeToUse) {
 			case plusMode:      return "+";
-			case onceMode:      return "$";
 			case minusMode:     return "-";
-			case novelMode:     return "^";
 			case constantMode:  return "#";
-			case thisValueMode: return "@";
-			case equalMode:     return "=";
-			case starMode:      return "*";
-			case minusOrConstantMode: return "&";
-			case plusOrConstantMode:  return "%";
-			case notHeadVarMode:  	  return "`";
-			case novelOrConstantMode: return "novelConst";
-			case unspecifiedMode:     return "";
-			case modeNotYetSet:       return ">";
 			default: Utils.error("Unknown mode type code: '" + modeToUse + "'");
 					 return null;
 		}		
