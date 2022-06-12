@@ -142,9 +142,6 @@ public class StringConstant extends Constant implements Serializable {
     }
 
     protected String toString(int precedenceOfCaller, BindingList bindingList) {
-        if (stringHandler.printTypedStrings) {
-            return toTypedString();
-        }
         String prefix = "";
         if (name == null) {
             if (typeSpec == null) {

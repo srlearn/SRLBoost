@@ -86,9 +86,6 @@ public class NumericConstant extends Constant implements Serializable {
 
     @Override
     protected String toString(int precedenceOfCaller, BindingList bindingList) {
-        if (stringHandler.printTypedStrings) {
-            return toTypedString();
-        }
         return getName();
     }
 

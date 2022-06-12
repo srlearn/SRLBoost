@@ -188,9 +188,6 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
     		ListAsTerm lat = (ListAsTerm) term;
     		List<Term> terms = lat.objects;
     		for (Term latTerm : terms) { help_collectAnyRemainingInliners(latTerm, depth + 1); }    		
-    	} else if (term instanceof ObjectAsTerm) {
-    		ObjectAsTerm oat = (ObjectAsTerm) term;
-    		Utils.waitHere("ObjectAsTerm? " + oat);    	// Probably OK to simply NOT recur into this.	
     	} else if (term instanceof Function) {
     		Function f = (Function) term;
     		help_collectAnyRemainingInliners(f.convertToLiteral(stringHandler), depth + 1);

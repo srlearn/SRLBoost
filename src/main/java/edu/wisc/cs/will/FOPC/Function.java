@@ -304,18 +304,17 @@ public class Function extends Term implements LiteralOrFunction {
 		if (functionName.name.equalsIgnoreCase("consCell")) {
 			return stringHandler.getConsCell(this).toString(precedenceOfCaller, bindingList);
 		}
-		boolean useTypes = stringHandler.printTypedStrings;
-		String  fNameStr = (typeSpec != null && useTypes ? typeSpec.getModeString() + typeSpec.isaType.typeName + ":" : "") + functionName;
+		String  fNameStr = "" + functionName;
 		boolean firstOne = true;
 		boolean hasArgNames = (argumentNames != null);
 		
 		if (functionName.printUsingInFixNotation && numberArgs() == 1) {
-			int precedence = (stringHandler.alwaysUseParensForInfixFunctions ? Integer.MAX_VALUE : HandleFOPCstrings.getOperatorPrecedence_static(functionName.name));
+			int precedence = HandleFOPCstrings.getOperatorPrecedence_static(functionName.name);
 			if (precedenceOfCaller <= precedence) { return "(" + fNameStr + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + ")"; }
 			return                                               fNameStr + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList);
 	    }
 		if (functionName.printUsingInFixNotation && numberArgs() == 2) {
-			int precedence = (stringHandler.alwaysUseParensForInfixFunctions ? Integer.MAX_VALUE : HandleFOPCstrings.getOperatorPrecedence_static(functionName.name));
+			int precedence = HandleFOPCstrings.getOperatorPrecedence_static(functionName.name);
 			if (precedenceOfCaller <= precedence) { return "(" + (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList) + ")"; }
 			return                                               (hasArgNames ? argumentNames.get(0) + "=" : "") + arguments.get(0).toString(precedence, bindingList) + " " + fNameStr + " " + (hasArgNames ? argumentNames.get(1) + "=": "") + arguments.get(1).toString(precedence, bindingList);
 	    }

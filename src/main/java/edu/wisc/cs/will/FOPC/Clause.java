@@ -382,15 +382,8 @@ public class Clause extends Sentence implements DefiniteClause {
 	}
 	@Override
 	public int hashCode() {
-		if (stringHandler.useFastHashCodeForClauses) { return super.hashCode(); }
-		final int prime = (getBodyContainsCut() ? 4889 : 2447); // http://primes.utm.edu/lists/small/10000.txt
-		int result = 1;
-		result = prime * result
-				+ ((negLiterals == null) ? 677 : negLiterals.hashCode() + 2531); // Make positive and negative literals different.
-		result = prime * result
-				+ ((posLiterals == null) ? 739 : posLiterals.hashCode() + 1889);
-		return result;
-	}
+        return super.hashCode();
+    }
     @Override
 	public boolean equals(Object other) { // TODO doesn't deal with permutations in the literals.  Not sure doing so is necessary; other code deals with canonical forms.
 		if (this == other) { return true; }
