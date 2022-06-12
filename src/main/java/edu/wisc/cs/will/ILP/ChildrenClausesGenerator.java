@@ -147,7 +147,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				Map<Variable,Type> newVariables = null;
 
 				// Need to sometimes treat these specially.
-				Set<Variable> mustBeNewVariables = null;
 				Map<Type,List<Variable>> newVarsThisType = null;
 				Map<Term,Type> typesOfNewTerms = null;
 				Map<Term,Integer> depthsOfTerms = null;
@@ -546,9 +545,6 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 
 									for (Variable newVar : newVars) {
 
-										// We will always add these.
-										boolean isaMustBeVar = (mustBeNewVariables != null && mustBeNewVariables.contains(newVar));
-
 										if (newVar == null) {
 											Utils.error("Should not have var=null!  args=" + args + " types=" + typesOfNewTerms);
 										}
@@ -560,10 +556,10 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 										}
 
 										// Need ALL the variables of this type, up to and including the head.  We also can accept LOWER items in the isaHier.  E.g., as above, if we're a DOG, collect POODLEs, but *not* ANIMALs.
-										List<Term> existingTermsOfThisType = (isaMustBeVar ? null : getExistingTermsOfThisType(thisVarType, parent));
+										List<Term> existingTermsOfThisType = getExistingTermsOfThisType(thisVarType, parent);
 
 										// If no other variables of this type, then this variable is needed so no more checking necessary.
-										if (!isaMustBeVar && existingTermsOfThisType != null) {
+										if (existingTermsOfThisType != null) {
 
 											// The FIRST variable is the new one whose need is being questioned.
 											existingTermsOfThisType.add(0, newVar);

@@ -16,7 +16,7 @@ class SingleClauseRootNode extends SingleClauseNode {
 	final Literal        target;          // For now, only work on one target (at a time? to do).
 	final List<ArgSpec>  targetArgSpecs;  // The info about the target argument being used and the variable matched with the type.
 	final List<Term>     variablesInTarget;
-	Set<Variable>  requiredBodyVariablesInTarget = null;
+	final Set<Variable>  requiredBodyVariablesInTarget = null;
 
 	SingleClauseRootNode(StateBasedSearchTask task, Literal head, List<ArgSpec> argSpecs, List<Term> variables,
                          List<Type> typesPresentInHead, Map<Type, List<Term>> typesMapInHead) throws SearchInterrupted {
