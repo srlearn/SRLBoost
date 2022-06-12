@@ -690,11 +690,6 @@ public class SingleClauseNode extends SearchNode implements Serializable{
 		Utils.error("Could not reach the root node from: " + this);
 		return null;
 	}
-	
-	List<Term> getVariablesInTarget() {
-		if (getParentNode() != null) { return getParentNode().getVariablesInTarget(); }
-		return ((SingleClauseRootNode) this).variablesInTarget;
-	}
 
 	private boolean allTheseArgsAppearinBody(Collection<Variable> requiredVars) {
 		if (Utils.getSizeSafely(requiredVars) < 1) { return true; }

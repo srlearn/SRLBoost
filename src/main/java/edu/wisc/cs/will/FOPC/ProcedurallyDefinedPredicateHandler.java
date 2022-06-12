@@ -8,7 +8,6 @@ import java.util.Set;
  * @author twalker
  */
 public abstract class ProcedurallyDefinedPredicateHandler {
-    Set<PredicateNameAndArity> hashOfSupportedPredicates;
 
     protected ProcedurallyDefinedPredicateHandler() {}
 
@@ -17,7 +16,7 @@ public abstract class ProcedurallyDefinedPredicateHandler {
     }
     
     private boolean canHandle(PredicateNameAndArity predicateNameAndArity) {
-        return hashOfSupportedPredicates != null && hashOfSupportedPredicates.contains(predicateNameAndArity);
+        return false;
     }
 
     /* Handle evaluation of the literal.

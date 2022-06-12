@@ -2,7 +2,6 @@ package edu.wisc.cs.will.FOPC;
 
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -56,25 +55,6 @@ public class PredicateName extends AllOfFOPC implements Serializable {
 	}
 	public List<PredicateSpec> getTypeOnlyList() {
 		return typeOnlyList;
-	}
-	// Only return when the arity matches.
-	public List<PredicateSpec> getTypeOnlyList(int numberArgs) {
-		if (typeOnlyList == null) { return null; }
-		boolean allOK = true;
-		for (PredicateSpec pSpec : typeOnlyList) {
-			if (Utils.getSizeSafely(pSpec.getSignature()) != numberArgs) {
-				allOK = false;
-				break;
-			}
-		}
-		if (allOK) { return typeOnlyList; } // Save creating a new list.
-		List<PredicateSpec> results = new ArrayList<>(1);
-		for (PredicateSpec pSpec : typeOnlyList) {
-			if (Utils.getSizeSafely(pSpec.getSignature()) == numberArgs) {
-				results.add(pSpec);
-			}
-		}
-		return results;
 	}
 
 	// See if this literal is a predicate that serves as a 'bridge' in ILP searches.
@@ -289,11 +269,11 @@ public class PredicateName extends AllOfFOPC implements Serializable {
         return hash;
     }
 
-    void setContainsCallable(int arity) {
+    void setContainsCallable() {
         if ( containsCallable == null ) {
             containsCallable = new HashSet<>();
         }
-        containsCallable.add(arity);
+        containsCallable.add(1);
     }
 
 

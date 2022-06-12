@@ -27,7 +27,7 @@ public class InlineManager {
 
 		if (!c.isDefiniteClause()) { Utils.error("This code only handle definite clauses.  It was given: " + c); }
 
-		List<Clause> results = help_handleInlinerAndSupportingClauses(c, 0);
+		List<Clause> results = help_handleInlinerAndSupportingClauses(c);
 		if (results == null) { Utils.waitHere("Got no results from in-lining: " + c); return null; }
 		VisitedClauses clausesVisited = new VisitedClauses(100000);  // Watch for duplicates in the Supporting Clauses.
 		List<Clause>   newResults     = new ArrayList<>(results.size());
@@ -38,15 +38,12 @@ public class InlineManager {
 		}
 		return newResults;
 	}
-	private final BindingList blToUse =  new BindingList();
-	private List<Clause> help_handleInlinerAndSupportingClauses(Clause c, int depth) {
+
+	private List<Clause> help_handleInlinerAndSupportingClauses(Clause c) {
 
 		if (c == null) { return null; }
 
-		if (depth >  50) { Utils.severeWarning("Are some in-liners calling each other, producing an infinite loop?\n " + c); }
-		if (depth > 100) { Utils.error("Seems to be an infinite loop.\n " + c); } // If this passed the severeWarning, and still a problem, simply give up.
-
-        if (!c.isDefiniteClause()) { Utils.error("This code only handle definite clauses.  It was given: " + c); }
+		if (!c.isDefiniteClause()) { Utils.error("This code only handle definite clauses.  It was given: " + c); }
 		
 		List<Literal> newBodyLiterals = new ArrayList<>(c.getLength());
 		// Remove duplicates when possible, but might not too look for variants via VisitedClauses instance.

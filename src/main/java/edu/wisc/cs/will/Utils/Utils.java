@@ -181,10 +181,8 @@ public class Utils {
     }    
     private static String comma(long value) { // Always use separators (e.g., "100,000").
     	return String.format("%,d", value);    	
-    }   
-    public static String comma(double value) { // Always use separators (e.g., "100,000").
-    	return String.format("%,f", value);    	
     }
+
     public static String comma(Collection<?> collection) {
     	return comma(getSizeSafely(collection));
     }

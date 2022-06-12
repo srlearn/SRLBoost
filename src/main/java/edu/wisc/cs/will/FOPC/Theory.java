@@ -102,28 +102,21 @@ public class Theory extends AllOfFOPC implements Serializable, Iterable<Sentence
 		for (Clause cRaw : theseClauses) {
 			if (cRaw.negLiterals != null) {
 				for (Literal lit : cRaw.negLiterals) {
-					help_collectAnyRemainingInliners(lit, 1 + 1);
+					help_collectAnyRemainingInliners(lit);
 				}
 			}
     	}
     }
 
-	private void help_collectAnyRemainingInliners(Literal lit, int depth) {
-		if (depth > 20) {
-			Utils.error("help_collectAnyRemainingInliners: lit = '" + lit + "' depth = " + depth);
-		}
-
+	private void help_collectAnyRemainingInliners(Literal lit) {
 		if (lit.getArity() > 0) {
-			for (Term term : lit.getArguments()) {
-				help_collectAnyRemainingInliners(term, depth + 1);
+			for (Term ignored : lit.getArguments()) {
+				help_collectAnyRemainingInliners();
 			}
 		}
     }
     
-    private void help_collectAnyRemainingInliners(Term term, int depth) {
-		if (depth > 20) {
-			Utils.error("help_collectAnyRemainingInliners: term = '" + term + "' depth = " + depth);
-		}
+    private void help_collectAnyRemainingInliners() {
 		// TODO(hayesall): Deprecate all of this.
 	}
     

@@ -12,10 +12,6 @@ public class CondorFileReader extends Reader {
 
     private final Reader reader;
 
-    public CondorFileReader(File file) throws FileNotFoundException  {
-        reader = new InputStreamReader( new CondorFileInputStream(file));
-    }
-
     public CondorFileReader(String fileNameRaw) throws IOException  {
     	String fileName = Utils.replaceWildCardsAndCheckForExistingGZip(fileNameRaw);
    		boolean isaGzippedFile = fileName.endsWith(".gz");

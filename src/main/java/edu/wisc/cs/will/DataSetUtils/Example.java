@@ -106,14 +106,8 @@ public class Example extends Literal implements Serializable {
 	public double getWeightOnExample() {
 		return weightOnExample;
 	}
-	public void setWeightOnExample(double weightOnExample) {
-		if (weightOnExample < 0.0001) {
-			Utils.waitHere("Setting weight to zero!!: " + weightOnExample + " for " + this);
-		}
-		this.weightOnExample = weightOnExample;
-	}
 
-    /*
+	/*
 	 * Returns the sum of the weights of all examples in <code>examples</code>.
      */
     public static double getWeightOfExamples(Collection<? extends Example> examples) {

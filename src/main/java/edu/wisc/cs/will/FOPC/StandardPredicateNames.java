@@ -29,7 +29,7 @@ public class StandardPredicateNames {
         cutMarker = stringHandler.getPredicateName("cutMarker");
         negationByFailure = stringHandler.getPredicateName("\\+");
 
-        negationByFailure.setContainsCallable(1);
+        negationByFailure.setContainsCallable();
 
         buildinPredicates = new HashSet<>(4);
         buildinPredicates.add(trueName);

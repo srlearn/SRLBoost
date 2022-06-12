@@ -4,7 +4,6 @@ import edu.wisc.cs.will.FOPC.visitors.SentenceVisitor;
 import edu.wisc.cs.will.ILP.SentenceCompressor;
 import edu.wisc.cs.will.Utils.Utils;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
