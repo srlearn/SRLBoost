@@ -125,18 +125,6 @@ public class TypeSpec extends AllOfFOPC implements Serializable, Cloneable { // 
         return isaType;
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        if (!(in instanceof FOPCInputStream)) {
-            throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject() input stream must support FOPCObjectInputStream interface");
-        }
-
-        in.defaultReadObject();
-
-        FOPCInputStream fOPCInputStream = (FOPCInputStream) in;
-
-        this.stringHandler = fOPCInputStream.getStringHandler();
-    }
-    
 	@Override
 	public int countVarOccurrencesInFOPC(Variable v) {
 		return 0;

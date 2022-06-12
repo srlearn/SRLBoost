@@ -53,11 +53,4 @@ class SingleClauseRootNode extends SingleClauseNode {
 		}
 	}
 
-	private void addRequiredBodyVariable(Variable var) {
-		if (requiredBodyVariablesInTarget == null) {
-			requiredBodyVariablesInTarget = new HashSet<>(4);
-		}
-		requiredBodyVariablesInTarget.add(var);
-	}
-
 }
