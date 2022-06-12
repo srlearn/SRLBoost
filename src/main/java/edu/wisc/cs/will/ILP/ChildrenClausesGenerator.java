@@ -158,16 +158,13 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 
 					// Consider each argument in this mode.
 					List<Term> validTermsOfThisType = new ArrayList<>(4);
+
 					// Collect all the terms that can legally be used for this argument.
 					// If a predicate is acceptable, need to hook into the old variables.
 					//   If a +mode, then MUST hook into an old variable of same type, but what if several?  Do all possibilities.
-					//   If a $mode, then MUST hook into an old variable that APPEARS ONLY ONCE EARLIER IN THE CLAUSE.  Again, do all such possibilities.
-					//   If a -mode, then CAN hook into an old variable of same type, but that if several?  Again do all, as well as create a new variable. 
-					//   If a ^mode, then treat SAME as '-' but ONLY create a new variable (and do NOT use other new variables of this type created for this literal).
+					//   If a -mode, then CAN hook into an old variable of same type, but that if several?  Again do all, as well as create a new variable.
 					//   If a #mode, then use one of the selected positive SEEDs and find a constant of that type.
-					//   If a @mode, then use the SPECIFIC value given (should be a constant and not a variable).
-					//   If a &mode, then combine '-' and '#'.
-					//   If a %mode, then combine '+' and '#'.
+
 					if (spec.mustBeConstant()) {  // Grab some number of constants from the positive SEEDs.
 						Variable newVarOfThisType = getNewILPbodyVar(spec); // We'll stick a variable in for now, then later find to what it gets bound.
 						if (typesOfNewConstants == null) { typesOfNewConstants = new HashMap<>(4); }
@@ -175,14 +172,7 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 						validTermsOfThisType.add(newVarOfThisType); // Just stick in the required type - below possible constants will be picked using the pos seeds.
 						// No need to add to depthsOfTerms since constants have depth of the max depth of the input variables.
 					} else {
-						// Seemed easiest in terms of the logic to repeat the code above.
-						if (spec.canBeConstant()) {
-							Variable newVarOfThisType = getNewILPbodyVar(spec); // We'll stick a variable in for now, then later find to what it gets bound.
-							if (typesOfNewConstants == null) { typesOfNewConstants = new HashMap<>(4); }
-							typesOfNewConstants.put(newVarOfThisType, spec.isaType);
-							validTermsOfThisType.add(newVarOfThisType); // Just stick in the required type - below possible constants will be picked using the positive seeds.
-						}
-						
+
 						// Collect all of the variables and constants of this type in the current clause.
 						List<Term> existingTermsOfThisType = getExistingTermsOfThisType(spec.isaType, parent); // We want objects UNDER this type (or OF this type).  E.g., if we're looking for an DOG, collect POODLEs, but *not* ANIMALs.
 						if (existingTermsOfThisType != null) for (Term item : existingTermsOfThisType) {
@@ -424,8 +414,9 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 									}
 									thisTask.collectedConstantBindings = null;  // Might as well return these memory cells now.
 								}
+							} else {
+								allArgPossibilities2.add(args);
 							}
-							else { allArgPossibilities2.add(args); }
 						}
 					}
 
@@ -715,10 +706,10 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 					newTypesPresentInChild    = new ArrayList<>(4);
 				}
 				List<Term> termsOfThisType = newTypesPresentInChildMap.get(argType); // See if any variables of this type in the hash map.
-				if (termsOfThisType != null) { // Is there already a list for variables of this type in the hash map?
+				if (termsOfThisType != null) {
+					// Is there already a list for variables of this type in the hash map?
 					termsOfThisType.add(argAsVar);
-				}
-				else {
+				} else {
 					// Otherwise create one.
 					List<Term> termList = new ArrayList<>(1);
 					termList.add(argAsVar);
@@ -726,8 +717,8 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 					newTypesPresentInChild.add(argType);  // Also record that a new type encountered.
 				}
 			}
-		}
-		else if (arg instanceof Constant) {
+		} else if (arg instanceof Constant) {
+
 			Constant argAsConst = (Constant) arg;
 			Type argType = typesOfNewTerms.get(argAsConst);
 
@@ -739,9 +730,11 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 				}
 				List<Term> termsOfThisType = newTypesPresentInChildMap.get(argType); // See if any vars of this type in the hash map.
 				if (termsOfThisType != null) { // Is there already a list for terms of this type in the hash map?
+
+					// TODO(hayesall): Doesn't appear to be possible.
+
 					termsOfThisType.add(argAsConst);
-				}
-				else {
+				} else {
 					// Otherwise create one.
 					List<Term> termList = new ArrayList<>(1);
 					termList.add(argAsConst);
@@ -749,13 +742,10 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
 					newTypesPresentInChild.add(argType);  // Also record that a new type encountered.
 				}
 			}
-		}
-		else if (arg instanceof Function) {
-			Function argAsFunct = (Function) arg;
-			help_collectNewTypesPresentInChildMap(argAsFunct.getArguments(), typesOfNewTerms);			
-		}
-		else {
-			Utils.error("Should not reach here: " + arg);
+		} else if (arg instanceof Function) {
+			throw new RuntimeException("Deprecated + Should not be possible anymore.");
+		} else {
+			throw new RuntimeException("Deprecated + Should not be possible anymore.");
 		}
 	}
 	
@@ -850,6 +840,9 @@ public class ChildrenClausesGenerator extends ChildrenNodeGenerator {
     }
 
 	private Set<PredicateNameAndArity> applyModeContraints(Set<PredicateNameAndArity> bodyModes, SingleClauseNode parent) {
+
+		// TODO(hayesall): Doesn't appear to do anything.
+
         List<ModeConstraint> constraints = getTask().getModeConstraints();
 
         Set<PredicateNameAndArity> modes = bodyModes;

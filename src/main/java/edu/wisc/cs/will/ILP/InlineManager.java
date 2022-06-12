@@ -23,12 +23,19 @@ public class InlineManager {
 	// and the REST of the Clauses (if any) are the SUPPORTING literals in
 	// this clause.  (Recall that supporting literals are ones that need to accompany theories.)
 	public List<Clause> handleInlinerAndSupportingClauses(Clause c) {
-		if (c == null) { return null; }
+		if (c == null) {
+			return null;
+		}
 
-		if (!c.isDefiniteClause()) { Utils.error("This code only handle definite clauses.  It was given: " + c); }
+		if (!c.isDefiniteClause()) {
+			Utils.error("This code only handle definite clauses.  It was given: " + c);
+		}
 
 		List<Clause> results = help_handleInlinerAndSupportingClauses(c);
-		if (results == null) { Utils.waitHere("Got no results from in-lining: " + c); return null; }
+		if (results == null) {
+			Utils.waitHere("Got no results from in-lining: " + c);
+			return null;
+		}
 		VisitedClauses clausesVisited = new VisitedClauses(100000);  // Watch for duplicates in the Supporting Clauses.
 		List<Clause>   newResults     = new ArrayList<>(results.size());
 		for (Clause c2 : results) {
@@ -43,7 +50,9 @@ public class InlineManager {
 
 		if (c == null) { return null; }
 
-		if (!c.isDefiniteClause()) { Utils.error("This code only handle definite clauses.  It was given: " + c); }
+		if (!c.isDefiniteClause()) {
+			Utils.error("This code only handle definite clauses.  It was given: " + c);
+		}
 		
 		List<Literal> newBodyLiterals = new ArrayList<>(c.getLength());
 		// Remove duplicates when possible, but might not too look for variants via VisitedClauses instance.
@@ -67,6 +76,9 @@ public class InlineManager {
 				newBodyLiterals.add(lit);
 			}			
 		}
+
+		// TODO(hayesall): It *looks* like this takes something out of one list and puts it into another,
+		//		might be possible to remove, do some testing.
 
 		Clause newClause = getStringHandler().getClause(c.posLiterals, newBodyLiterals, c.getExtraLabel());  // Note we are REUSING THE OLD HEAD.
 		List<Clause> newListOfClauses = new ArrayList<>();

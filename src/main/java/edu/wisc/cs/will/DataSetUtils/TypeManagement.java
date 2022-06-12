@@ -156,7 +156,6 @@ public class TypeManagement {
 
     // Check all constants in facts and make sure they are typed (and uniquely!).
     private void checkThatTypesOfAllConstantsAreKnown(Iterable<Sentence> backgroundFacts) {
-        boolean untypedConstantFound = false;
         Set<Term> alreadyCheckedHash = new HashSet<>(1024);
 
         if (backgroundFacts != null) {
@@ -171,19 +170,7 @@ public class TypeManagement {
                                     continue;
                                 } // Already checked this constant.
                                 if (stringHandler.getTypesOfConstant(arg, false) == null) {
-                                    if (!untypedConstantFound) {
-                                        Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "\n% The type of the following constants are not known: ");
-                                        untypedConstantFound = true;
-                                    }
-                                    Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "%  " + arg + "  [from: " + fact + "]");
-                                    if (arg instanceof NumericConstant && stringHandler.isaHandler.isa(stringHandler.isaHandler.getIsaType("number"), stringHandler.isaHandler.getIsaType("willAnything"))) {
-                                        Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "%  Inferring that '" + arg + "' is of type 'number'.");
-                                        addNewConstant(stringHandler, arg, stringHandler.isaHandler.getIsaType("number"), fact);
-                                    }
-                                    else {
-                                        Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "%  Inferring that '" + arg + "' is of type 'willAnything'.");
-                                        addNewConstant(stringHandler, arg, stringHandler.isaHandler.getIsaType("willAnything"), fact);
-                                    }
+                                    throw new RuntimeException("Deprecated + Should not be possible.");
                                 }
                                 alreadyCheckedHash.add(arg);
                             }
@@ -191,9 +178,6 @@ public class TypeManagement {
                     }
                 }
             }
-        }
-        if (untypedConstantFound) {
-            Utils.warning("checkThatTypesOfAllConstantsAreKnown: Note that there were some constants whose type was not known (see list above or in dribble file).");
         }
     }
 
@@ -218,22 +202,18 @@ public class TypeManagement {
                     ArgSpec spec = targetArgSpecs.get(counter);
                     addNewConstant(stringHandler, arg, spec.typeSpec.isaType, ex);
                     counter++;
-                }
-                else if (arg instanceof Function) {
+                } else if (arg instanceof Function) {
                     Function f = (Function) arg;
                     counter += f.countLeaves();
-                }
-                else if (arg instanceof Variable) {
+                } else if (arg instanceof Variable) {
                     Utils.error("Should not have variables here: " + arg + " for: " + targetPredicate);
-                }
-                else {
+                } else {
                     Utils.error("Have a type here for which code needs to be written: " + arg);
                 }
             }
         }
     }
 
-    private int reportCounter = 0;
     // See if this is a new constant of this type.
     private void addNewConstant(HandleFOPCstrings stringHandler, Term constant, Type type, Literal generator) {
         if (generator == null) {
@@ -259,23 +239,12 @@ public class TypeManagement {
                 for (Type existing : existingTypes) {
                     // If the new type is a superclass of an existing type, don't add.
                     if (stringHandler.isaHandler.isa(existing, type)) {
-                        reportCounter++;
-                        return;
+                        throw new RuntimeException("Deprecated + Should not be possible.");
                     }
 
                     // If the new type is a subclass of an existing type, remove the old attachment to this constant, since the ISA hierarchy contains this information.
                     if (stringHandler.isaHandler.isa(type, existing)) {
-                        reportCounter++;
-                        if (reportCounter <= 25) {
-                            Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "% Already know '" + constant + "' isa '" + existing + ",' but now being told it isa '" + type + ",' which is LOWER in the isa hierarchy.  Editing the hierarchy.");
-                            if (reportCounter == 25) {
-                                Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "% (Future reports will be suppressed since 25 have been reported.)");
-                            }
-                        }  // TODO figure out what to do here (move isa's around?)
-                        // TAW: This used to be: stringHandler.constantToTypesMap.remove(existing).
-                        // TAW: However, that was obviously a typo, since constantToTypesMap uses
-                        // TAW: constants as keys, not Types.  I change it to the constant being checked.
-                        stringHandler.constantToTypesMap.remove(constant); // Remove this since the ISA hierarchy already knows it.
+                        throw new RuntimeException("Deprecated + Should not be possible.");
                     }
                 }
             }
@@ -286,6 +255,9 @@ public class TypeManagement {
             Set<Type> lookup1a = beenWarnedHashMap.computeIfAbsent(predName, k -> new HashSet<>(4));  // See if there has been a warning about this type from this predicate.
             if (!lookup1a.contains(type)) {
                 if (!predName.dontComplainAboutMultipleTypes(predArity) && !dontWorryAboutTheseTypes(existingTypes)) {
+
+                    // TODO(hayesall): Turn this into an actual error earlier.
+
                     Utils.println(MessageType.ISA_HANDLER_TYPE_INFERENCE, "\n%   *** WARNING ***  Constant '" + constant + "' is already marked as being of types = " + existingTypes
                             + ";\n%          type = '" + type + "' may be added if not already known.\n%  PredicateName = '" + predName + "', from '" + generator + "',\n%  which has types = " + predName.getTypeList()
                             + "\n%   Other warnings with this predicate and this new type are not reported in order to keep this printout small.  Use dontComplainAboutMultipleTypes to override.");

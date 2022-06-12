@@ -13,8 +13,6 @@ public class Variable extends Term {
 
     public long counter; // This isn't used in the internal code (instead, instances are compared, not string names), but each variable has a unique counter value, and printing this can help with debugging.
 
-    private Variable() {
-    }
     /*
      * The way this works is that a request for variable 'x' will always return the SAME instance,
      * UNTIL Variable.resetAllVariables() is called or a new instance is pushed onto the stack.  Each time a new sentence is created, this reset
@@ -26,7 +24,6 @@ public class Variable extends Term {
         this(stringHandler, name, counter, typeSpec, false);
     }
     Variable(HandleFOPCstrings stringHandler, String name, long counter, TypeSpec typeSpec, boolean isaGeneratedVar) { // This is protected because getVariable(String name) should be used instead.
-    	this();
         this.name = name; // DON'T CALL THESE DIRECTLY.  GO VIA HandleFOPCstrings.
         this.counter = 2 * counter; if (isaGeneratedVar) { this.counter++; } // Odd values indicate variables that are generated (say adding another instance variable).
         this.setTypeSpec(typeSpec);
