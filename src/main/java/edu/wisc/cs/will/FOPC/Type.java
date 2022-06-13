@@ -24,52 +24,7 @@ public class Type extends AllOfFOPC implements Serializable {
 		return typeName;
 	}
 
-    /* Substitutes the Type with a SerializableType while Serializing.
-    */
-   private Object writeReplace() {
-       return new SerializableType(typeName);
-    }
-
-    /* This is a little hack to allow the Type to be canonicalized by the string handler.
-     *
-     * We want to use readResolve to canonicalize the Type object.  However, when we
-     * run readResolve, we don't have the InputStream.  No inputStream, no string handler.
-     * So, we serialize this little stub class which has a variable to temporarily hold
-     * the string handler.
-     *
-     * This call will then use the readResolve method to fix up the stream.
-     */
-    static class SerializableType implements Serializable {
-
-        final String typeName;
-        transient HandleFOPCstrings stringHandler;
-
-        SerializableType(String type) {
-            this.typeName = type;
-        }
-
-        /* Methods for reading a Object cached to disk.
-         */
-        private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-            if (!(in instanceof FOPCInputStream)) {
-                throw new IllegalArgumentException(getClass().getCanonicalName() + ".readObject input stream must support FOPCObjectInputStream interface");
-            }
-
-            in.defaultReadObject();
-
-            FOPCInputStream fOPCInputStream = (FOPCInputStream) in;
-
-            this.stringHandler = fOPCInputStream.getStringHandler();
-        }
-
-        public Object readResolve() {
-            // Canonicalize the object via the string handler...
-            return stringHandler.isaHandler.getIsaType(typeName);
-        }
-
-    }
-
-	@Override
+    @Override
 	public Type applyTheta(Map<Variable, Term> bindings) {
 		return this;
 	}

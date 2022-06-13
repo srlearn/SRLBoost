@@ -17,7 +17,6 @@ public class IsaHetrarchy {
 	private static final String WILL_BOOLEAN_TYPE_NAME  = "willBoolean";
 	private static final String WILL_TOKEN_TYPE_NAME    = "willToken";
 	private static final String WILL_ATOMIC_TYPE_NAME   = "willAtomic";
-	private final Type willNumberType;
 
 	private final Type                        rootOfISA;
 	private final Map<Type,List<Type>>        isaHetrarchy; // Only LEAF nodes can be ISA more than one type.  EXTENDED (7/09) TO A HETRARCHY.
@@ -35,7 +34,7 @@ public class IsaHetrarchy {
 		reverseIsaHetrarchy.put(rootOfISA, new ArrayList<>(32));
 		Type willListType = getIsaType(WILL_LIST_TYPE_NAME);
 		Type willAtomicType = getIsaType(WILL_ATOMIC_TYPE_NAME);
-		willNumberType  = getIsaType(WILL_NUMBER_TYPE_NAME);
+		Type willNumberType = getIsaType(WILL_NUMBER_TYPE_NAME);
 		Type willBooleanType = getIsaType(WILL_BOOLEAN_TYPE_NAME);
 		Type willTokenType = getIsaType(WILL_TOKEN_TYPE_NAME);
 		addISA(willListType,    rootOfISA);
@@ -52,36 +51,19 @@ public class IsaHetrarchy {
 			StringConstant sc = (StringConstant) term;
 			String      value = sc.getName();
 			Type lookup = isaTypeHash.get(value);
-			if (lookup == null) { return null; }
-			return isaHetrarchy.get(lookup);
-		}
-		if (term instanceof NumericConstant) {
-			NumericConstant nc = (NumericConstant) term;
-			String      value = nc.getName();
-			Type lookup = isaTypeHash.get(value);
-			if (lookup == null) { 
-				List<Type> result = new ArrayList<>(1);
-				result.add(willNumberType);
-				return result;
+			if (lookup == null) {
+				return null;
+			} else {
+				throw new RuntimeException("Deprecated + Should not be possible.");
 			}
-			List<Type> result = isaHetrarchy.get(lookup);
-			if (result != null) {
-				if (result.contains(willNumberType)) { return result; }
-				// Else see if this is already known via an ISA.
-				for (Type knownType : result) {
-					if (isa(knownType, willNumberType)) { return result; }
-				}
-			}
-			List<Type> result2 = new ArrayList<>(Utils.getSizeSafely(result) + 1);
-			if (result != null) { result2.addAll(result); }
-			result2.add(willNumberType);
-			return result2;
 		}
 		return null;
 	}
 	
 	public boolean okToAddToIsa(Type child, Type parent) {
-		if (isa(child, parent)) { return false; }
+		if (isa(child, parent)) {
+			return false;
+		}
 		return !isa(parent, child);
 	}
 	
@@ -91,22 +73,14 @@ public class IsaHetrarchy {
 		List<Type> otherParents = isaHetrarchy.get(child);
 		
 		if (otherParents != null) {
-			ListIterator<Type> parentIter = otherParents.listIterator();
-			while (parentIter.hasNext()) { // Need to do this for ALL parents.
-				Type otherParent = parentIter.next();
-				if        (isa(otherParent, parent)) {
-					// Want to add isa(A,C) but already have isa(A,B) and isa(B,C).
-					Utils.waitHere("This should not occur since then would already be ISA.");
-					return;
+			for (Type otherParent : otherParents) { // Need to do this for ALL parents.
+				if (isa(otherParent, parent)) {
+					throw new RuntimeException("Deprecated + Should not be possible.");
 				} else if (isa(parent, otherParent)) {
-					// Want to add isa(A,C) but already have isa(A,B) and isa(C,B),
-					// so can remove the A-B link.  HOWEVER CAN ONKY DO THIS BECAUSE A-B IS A *DIRECT* LINK.  OTHERWISE MIGHT LOSE SOME ISA's.
-					parentIter.remove(); // Need to use this instead of removeISA() due to the way Java iteration works.
-					removeFromReverseISA(otherParent, child);
+					throw new RuntimeException("Deprecated + Should not be possible.");
 				}
 			}
-		}
-		else {
+		} else {
 			otherParents = new ArrayList<>(1);
 		}
 		isaHetrarchy.put(child, otherParents);
@@ -149,22 +123,6 @@ public class IsaHetrarchy {
 			newChildren.add(child);
 			reverseIsaHetrarchy.put(parent, newChildren);
 		}
-	}
-
-	// Only works for DIRECT child-parent links.
-	private void removeFromReverseISA(Type parent, Type child) {
-		Collection<Type> children = reverseIsa(parent);
-		
-		if (children != null) {
-			if (children.contains(child)) {
-				if (!children.remove(child)) { Utils.error("Could not remove '" + child + "' from " + Utils.limitLengthOfPrintedList(children, 10) + " of '" + parent + "'."); }
-				return;
-			}
-		}
-		Utils.println("%         isa: " + Utils.limitLengthOfPrintedList(isaHetrarchy));
-		Utils.println("% reverse isa: " + Utils.limitLengthOfPrintedList(reverseIsaHetrarchy));
-		Utils.println("% reverse children of '" + parent + "' are " + children);
-		Utils.error("Cannot remove '" + child + "' from the reverse ISA of '" + parent + "'.");
 	}
 
 	public boolean isa(Type child, Type parent) {
