@@ -24,6 +24,6 @@ jobs:
           distribution: 'adopt'
 
       - name: Setup and execute Gradle test
-        uses: gradle/gradle-build-action@v1
+        uses: gradle/gradle-build-action@v2.4.2
         with:
           arguments: test
